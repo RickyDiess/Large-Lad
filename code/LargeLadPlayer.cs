@@ -3,7 +3,7 @@ using Sandbox;
 public enum LargeLadRole
 {
 	Unassigned,
-	Runner,
+	SkinnyKid,
 	LargeLad,
 	Minion
 }
@@ -19,7 +19,7 @@ public sealed class LargeLadPlayer : Component
 	[Property]
 	public SkinnedModelRenderer BodyRenderer { get; set; }
 
-	[Property]
+	[Property, Title( "Skinny Kid Tint" )]
 	public Color RunnerTint { get; set; } = Color.White;
 
 	[Property]
@@ -28,10 +28,10 @@ public sealed class LargeLadPlayer : Component
 	[Property]
 	public Color MinionTint { get; set; } = new( 0.55f, 0.15f, 0.75f );
 
-	[Property]
+	[Property, Title( "Skinny Kid Walk Speed" )]
 	public float RunnerWalkSpeed { get; set; } = 110.0f;
 
-	[Property]
+	[Property, Title( "Skinny Kid Run Speed" )]
 	public float RunnerRunSpeed { get; set; } = 320.0f;
 
 	[Property]

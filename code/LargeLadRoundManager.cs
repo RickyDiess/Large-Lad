@@ -12,7 +12,7 @@ public enum LargeLadRoundPhase
 public enum LargeLadWinner
 {
 	None,
-	Runners,
+	SkinnyKids,
 	LargeLadTeam
 }
 
@@ -33,7 +33,7 @@ public sealed class LargeLadRoundManager : Component
 	[Property]
 	public float ConversionDistance { get; set; } = 48.0f;
 
-	[Property]
+	[Property, Title( "Skinny Kid Spawn" )]
 	public GameObject RunnerSpawn { get; set; }
 
 	[Property]
@@ -70,7 +70,10 @@ public sealed class LargeLadRoundManager : Component
 				break;
 
 			case LargeLadRoundPhase.HeadStart:
-				AssignLateJoiners( players );
+				AssignLateJoinersAsMinions( players );
+
+				if ( EndRoundIfTeamIsMissing( players ) )
+					break;
 
 				if ( TickPhaseTimer() )
 				{
@@ -79,18 +82,19 @@ public sealed class LargeLadRoundManager : Component
 				break;
 
 			case LargeLadRoundPhase.Playing:
-				AssignLateJoiners( players );
-				ConvertTouchedRunners( players );
+				AssignLateJoinersAsMinions( players );
 
-				if ( players.All( player => player.Role != LargeLadRole.Runner ) )
-				{
-					EndRound( LargeLadWinner.LargeLadTeam );
+				if ( EndRoundIfTeamIsMissing( players ) )
 					break;
-				}
+
+				ConvertTouchedSkinnyKids( players );
+
+				if ( EndRoundIfTeamIsMissing( players ) )
+					break;
 
 				if ( TickPhaseTimer() )
 				{
-					EndRound( LargeLadWinner.Runners );
+					EndRound( LargeLadWinner.SkinnyKids );
 				}
 				break;
 
@@ -107,7 +111,7 @@ public sealed class LargeLadRoundManager : Component
 	{
 		foreach ( var player in players )
 		{
-			player.Role = LargeLadRole.Runner;
+			player.Role = LargeLadRole.SkinnyKid;
 		}
 
 		Winner = LargeLadWinner.None;
@@ -116,7 +120,7 @@ public sealed class LargeLadRoundManager : Component
 		largeLad.Role = LargeLadRole.LargeLad;
 		nextLargeLadIndex = ( nextLargeLadIndex + 1 ) % players.Count;
 
-		var runnerIndex = 0;
+		var skinnyKidIndex = 0;
 
 		foreach ( var player in players )
 		{
@@ -129,8 +133,8 @@ public sealed class LargeLadRoundManager : Component
 			}
 			else
 			{
-				TeleportPlayer( player, RunnerSpawn, runnerIndex );
-				runnerIndex++;
+				TeleportPlayer( player, RunnerSpawn, skinnyKidIndex );
+				skinnyKidIndex++;
 			}
 		}
 
@@ -149,12 +153,13 @@ public sealed class LargeLadRoundManager : Component
 
 		PhaseTimeRemaining = RoundDuration;
 		Phase = LargeLadRoundPhase.Playing;
-		Log.Info( $"Head start finished. The Large Lad can move. Runners must survive {RoundDuration:0.#} seconds." );
+		Log.Info( $"Head start finished. The Large Lad can move. Skinny Kids must survive {RoundDuration:0.#} seconds." );
 	}
 
 	public void EndRound( LargeLadWinner winner )
 	{
-		if ( !Networking.IsHost || Phase != LargeLadRoundPhase.Playing )
+		if ( !Networking.IsHost ||
+			(Phase != LargeLadRoundPhase.HeadStart && Phase != LargeLadRoundPhase.Playing) )
 			return;
 
 		Winner = winner;
@@ -174,7 +179,11 @@ public sealed class LargeLadRoundManager : Component
 			TeleportPlayer( players[i], initialSpawn, i );
 		}
 
-		Log.Info( $"Round over. {winner} won. Next round in {IntermissionDuration:0.#} seconds." );
+		var winnerName = winner == LargeLadWinner.SkinnyKids
+			? "Skinny Kids"
+			: "Large Lad team";
+
+		Log.Info( $"Round over. {winnerName} won. Next round in {IntermissionDuration:0.#} seconds." );
 	}
 
 	private void FinishIntermission( List<LargeLadPlayer> players )
@@ -192,48 +201,68 @@ public sealed class LargeLadRoundManager : Component
 		Log.Info( "Waiting for enough players to start the next round." );
 	}
 
-	private void AssignLateJoiners( List<LargeLadPlayer> players )
+	private void AssignLateJoinersAsMinions( List<LargeLadPlayer> players )
 	{
-		var runnerIndex = players.Count( player => player.Role == LargeLadRole.Runner );
+		var hunterIndex = players.Count( player =>
+			player.Role is LargeLadRole.LargeLad or LargeLadRole.Minion );
 
 		foreach ( var player in players.Where( player => player.Role == LargeLadRole.Unassigned ) )
 		{
-			player.Role = LargeLadRole.Runner;
+			player.Role = LargeLadRole.Minion;
 			player.MovementLocked = false;
-			TeleportPlayer( player, RunnerSpawn, runnerIndex );
-			runnerIndex++;
+			TeleportPlayer( player, LargeLadSpawn, hunterIndex );
+			hunterIndex++;
+
+			Log.Info( $"{player.GameObject.Name} joined the active round as a Minion." );
 		}
 	}
 
-	private void ConvertTouchedRunners( List<LargeLadPlayer> players )
+	private bool EndRoundIfTeamIsMissing( List<LargeLadPlayer> players )
+	{
+		if ( players.All( player => player.Role != LargeLadRole.LargeLad ) )
+		{
+			EndRound( LargeLadWinner.SkinnyKids );
+			return true;
+		}
+
+		if ( players.All( player => player.Role != LargeLadRole.SkinnyKid ) )
+		{
+			EndRound( LargeLadWinner.LargeLadTeam );
+			return true;
+		}
+
+		return false;
+	}
+
+	private void ConvertTouchedSkinnyKids( List<LargeLadPlayer> players )
 	{
 		var hunters = players
 			.Where( player => player.Role is LargeLadRole.LargeLad or LargeLadRole.Minion )
 			.ToList();
 
-		var runners = players
-			.Where( player => player.Role == LargeLadRole.Runner )
+		var skinnyKids = players
+			.Where( player => player.Role == LargeLadRole.SkinnyKid )
 			.ToList();
 
 		var conversionDistanceSquared = ConversionDistance * ConversionDistance;
 
 		foreach ( var hunter in hunters )
 		{
-			foreach ( var runner in runners )
+			foreach ( var skinnyKid in skinnyKids )
 			{
-				if ( runner.Role != LargeLadRole.Runner )
+				if ( skinnyKid.Role != LargeLadRole.SkinnyKid )
 					continue;
 
 				var distanceSquared = hunter.GameObject.WorldPosition
-					.DistanceSquared( runner.GameObject.WorldPosition );
+					.DistanceSquared( skinnyKid.GameObject.WorldPosition );
 
 				if ( distanceSquared > conversionDistanceSquared )
 					continue;
 
-				runner.Role = LargeLadRole.Minion;
-				runner.MovementLocked = false;
+				skinnyKid.Role = LargeLadRole.Minion;
+				skinnyKid.MovementLocked = false;
 
-				Log.Info( $"{hunter.GameObject.Name} converted {runner.GameObject.Name} into a Minion." );
+				Log.Info( $"{hunter.GameObject.Name} converted {skinnyKid.GameObject.Name} into a Minion." );
 				break;
 			}
 		}
@@ -266,7 +295,7 @@ public sealed class LargeLadRoundManager : Component
 		return initialSpawn;
 	}
 
-	private void TeleportPlayer( LargeLadPlayer player, GameObject spawn, int runnerIndex = 0 )
+	private void TeleportPlayer( LargeLadPlayer player, GameObject spawn, int spawnIndex = 0 )
 	{
 		if ( spawn is null )
 		{
@@ -274,7 +303,7 @@ public sealed class LargeLadRoundManager : Component
 			return;
 		}
 
-		var spacingOffset = spawn.WorldRotation.Right * runnerIndex * 40.0f;
+		var spacingOffset = spawn.WorldRotation.Right * spawnIndex * 40.0f;
 		player.TeleportTo( spawn.WorldPosition + spacingOffset, spawn.WorldRotation );
 	}
 

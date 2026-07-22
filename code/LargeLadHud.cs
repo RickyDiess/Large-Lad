@@ -82,7 +82,7 @@ public sealed class LargeLadHud : Component
 	private static void DrawWinnerBanner( HudPainter hud, LargeLadRoundManager round )
 	{
 		var center = new Vector2( Screen.Width * 0.5f, Screen.Height * 0.42f );
-		var accent = round.Winner == LargeLadWinner.Runners
+		var accent = round.Winner == LargeLadWinner.SkinnyKids
 			? new Color( 0.25f, 0.85f, 1.0f )
 			: new Color( 1.0f, 0.32f, 0.10f );
 
@@ -91,7 +91,7 @@ public sealed class LargeLadHud : Component
 
 		var winnerText = round.Winner switch
 		{
-			LargeLadWinner.Runners => "RUNNERS SURVIVED",
+			LargeLadWinner.SkinnyKids => "SKINNY KIDS SURVIVED",
 			LargeLadWinner.LargeLadTeam => "LAD TEAM WINS",
 			_ => "ROUND OVER"
 		};
@@ -159,7 +159,7 @@ public sealed class LargeLadHud : Component
 			LargeLadRoundPhase.WaitingForPlayers => new Color( 0.65f, 0.68f, 0.75f ),
 			LargeLadRoundPhase.HeadStart => new Color( 1.0f, 0.78f, 0.18f ),
 			LargeLadRoundPhase.Playing => new Color( 0.25f, 0.85f, 1.0f ),
-			LargeLadRoundPhase.RoundOver when round.Winner == LargeLadWinner.Runners =>
+			LargeLadRoundPhase.RoundOver when round.Winner == LargeLadWinner.SkinnyKids =>
 				new Color( 0.25f, 0.85f, 1.0f ),
 			LargeLadRoundPhase.RoundOver => new Color( 1.0f, 0.32f, 0.10f ),
 			_ => Color.White
@@ -170,7 +170,7 @@ public sealed class LargeLadHud : Component
 	{
 		return role switch
 		{
-			LargeLadRole.Runner => new Color( 0.25f, 0.85f, 1.0f ),
+			LargeLadRole.SkinnyKid => new Color( 0.25f, 0.85f, 1.0f ),
 			LargeLadRole.LargeLad => new Color( 1.0f, 0.32f, 0.10f ),
 			LargeLadRole.Minion => new Color( 0.72f, 0.35f, 1.0f ),
 			_ => new Color( 0.65f, 0.68f, 0.75f )
@@ -181,7 +181,7 @@ public sealed class LargeLadHud : Component
 	{
 		return role switch
 		{
-			LargeLadRole.Runner => "RUNNER",
+			LargeLadRole.SkinnyKid => "SKINNY KID",
 			LargeLadRole.LargeLad => "LARGE LAD",
 			LargeLadRole.Minion => "MINION",
 			_ => "UNASSIGNED"
@@ -192,9 +192,9 @@ public sealed class LargeLadHud : Component
 	{
 		return role switch
 		{
-			LargeLadRole.Runner => "Survive until the timer expires.",
-			LargeLadRole.LargeLad => "Convert every Runner.",
-			LargeLadRole.Minion => "Help the Lad convert the remaining Runners.",
+			LargeLadRole.SkinnyKid => "Survive until the timer expires.",
+			LargeLadRole.LargeLad => "Convert every Skinny Kid.",
+			LargeLadRole.Minion => "Help the Lad convert the remaining Skinny Kids.",
 			_ => "A new round will begin shortly."
 		};
 	}
