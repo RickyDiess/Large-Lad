@@ -23,12 +23,49 @@ public sealed class LargeLadHud : Component
 		var hud = Scene.Camera.Hud;
 
 		DrawRoundStatus( hud, round, player );
+		DrawLargeLadStatus( hud, round );
 		DrawRoleStatus( hud, player );
 
 		if ( round.Phase == LargeLadRoundPhase.RoundOver )
 		{
 			DrawWinnerBanner( hud, round );
 		}
+	}
+
+	private static void DrawLargeLadStatus(
+		HudPainter hud,
+		LargeLadRoundManager round )
+	{
+		if ( round.Phase != LargeLadRoundPhase.HeadStart &&
+			round.Phase != LargeLadRoundPhase.Playing )
+		{
+			return;
+		}
+
+		var largeLad = round.Scene
+			.GetAllComponents<LargeLadPlayer>()
+			.FirstOrDefault( player => player.Role == LargeLadRole.LargeLad );
+		var health = largeLad?.Health;
+
+		if ( health is null )
+			return;
+
+		var accent = new Color( 1.0f, 0.32f, 0.10f );
+		var centerX = Screen.Width * 0.5f;
+		var panel = new Rect( centerX - 190.0f, 116.0f, 380.0f, 42.0f );
+
+		DrawPanel( hud, panel, accent );
+
+		var status = health.IsDead
+			? $"LARGE LAD RESPAWNING IN {FormatSeconds( health.RespawnTimeRemaining )}"
+			: $"LARGE LAD  {health.CurrentHealth:0} / {health.MaximumHealth:0}";
+
+		hud.DrawText(
+			status,
+			16.0f,
+			health.IsDead ? Color.White : accent,
+			new Vector2( centerX, panel.Center.y ),
+			TextFlag.Center );
 	}
 
 	private static void DrawRoundStatus(
@@ -60,7 +97,7 @@ public sealed class LargeLadHud : Component
 	private static void DrawRoleStatus( HudPainter hud, LargeLadPlayer player )
 	{
 		var accent = GetRoleColor( player.Role );
-		var panel = new Rect( 28.0f, Screen.Height - 104.0f, 330.0f, 76.0f );
+		var panel = new Rect( 28.0f, Screen.Height - 130.0f, 360.0f, 102.0f );
 
 		DrawPanel( hud, panel, accent );
 
@@ -76,6 +113,22 @@ public sealed class LargeLadHud : Component
 			14.0f,
 			MutedTextColor,
 			new Vector2( panel.Left + 18.0f, panel.Top + 53.0f ),
+			TextFlag.LeftCenter );
+
+		var health = player.Health;
+
+		if ( health is null || player.Role == LargeLadRole.Unassigned )
+			return;
+
+		var healthText = health.IsDead
+			? $"RESPAWNING IN {FormatSeconds( health.RespawnTimeRemaining )}"
+			: $"HEALTH {health.CurrentHealth:0} / {health.MaximumHealth:0}";
+
+		hud.DrawText(
+			healthText,
+			14.0f,
+			health.IsDead ? new Color( 1.0f, 0.32f, 0.10f ) : accent,
+			new Vector2( panel.Left + 18.0f, panel.Top + 80.0f ),
 			TextFlag.LeftCenter );
 	}
 
@@ -140,6 +193,8 @@ public sealed class LargeLadHud : Component
 		return round.Phase switch
 		{
 			LargeLadRoundPhase.WaitingForPlayers => "Waiting for another player...",
+			LargeLadRoundPhase.Playing when player.Health?.IsDead == true =>
+				$"Respawning in {FormatSeconds( player.Health.RespawnTimeRemaining )}",
 			LargeLadRoundPhase.HeadStart when player.Role == LargeLadRole.LargeLad =>
 				$"Released in {FormatSeconds( round.PhaseTimeRemaining )}",
 			LargeLadRoundPhase.HeadStart =>
@@ -192,7 +247,7 @@ public sealed class LargeLadHud : Component
 	{
 		return role switch
 		{
-			LargeLadRole.SkinnyKid => "Survive until the timer expires.",
+			LargeLadRole.SkinnyKid => "Survive the timer. Primary fire: test blaster.",
 			LargeLadRole.LargeLad => "Convert every Skinny Kid.",
 			LargeLadRole.Minion => "Help the Lad convert the remaining Skinny Kids.",
 			_ => "A new round will begin shortly."

@@ -21,17 +21,26 @@ public sealed class LargeLadRoundManager : Component
 	[Property]
 	public int MinimumPlayers { get; set; } = 2;
 
+	[Property, Title( "Round Start Padding" )]
+	public float PlayerReadyDelay { get; set; } = 0.5f;
+
 	[Property]
 	public float HeadStartDuration { get; set; } = 10.0f;
 
 	[Property]
 	public float RoundDuration { get; set; } = 60.0f;
 
-	[Property]
+	[Property, Title( "Between-Round Padding" )]
 	public float IntermissionDuration { get; set; } = 5.0f;
 
 	[Property]
 	public float ConversionDistance { get; set; } = 48.0f;
+
+	[Property]
+	public float LargeLadRespawnDelay { get; set; } = 5.0f;
+
+	[Property]
+	public float PlayerRespawnDelay { get; set; } = 5.0f;
 
 	[Property, Title( "Skinny Kid Spawn" )]
 	public GameObject RunnerSpawn { get; set; }
@@ -50,6 +59,8 @@ public sealed class LargeLadRoundManager : Component
 	public LargeLadWinner Winner { get; private set; } = LargeLadWinner.None;
 
 	private int nextLargeLadIndex;
+	private int waitingPlayerCount = -1;
+	private float playerReadyTimeRemaining;
 
 	protected override void OnUpdate()
 	{
@@ -63,7 +74,25 @@ public sealed class LargeLadRoundManager : Component
 		switch ( Phase )
 		{
 			case LargeLadRoundPhase.WaitingForPlayers:
-				if ( players.Count >= MinimumPlayers )
+				UpdateInactiveRespawns( players );
+
+				if ( players.Count < MinimumPlayers )
+				{
+					waitingPlayerCount = players.Count;
+					playerReadyTimeRemaining = PlayerReadyDelay;
+					break;
+				}
+
+				if ( waitingPlayerCount != players.Count )
+				{
+					waitingPlayerCount = players.Count;
+					playerReadyTimeRemaining = PlayerReadyDelay;
+					break;
+				}
+
+				playerReadyTimeRemaining -= Time.Delta;
+
+				if ( playerReadyTimeRemaining <= 0.0f )
 				{
 					StartTestRound( players );
 				}
@@ -87,6 +116,8 @@ public sealed class LargeLadRoundManager : Component
 				if ( EndRoundIfTeamIsMissing( players ) )
 					break;
 
+				UpdateLargeLadRespawn( players );
+				UpdatePlayerRespawns( players );
 				ConvertTouchedSkinnyKids( players );
 
 				if ( EndRoundIfTeamIsMissing( players ) )
@@ -99,6 +130,8 @@ public sealed class LargeLadRoundManager : Component
 				break;
 
 			case LargeLadRoundPhase.RoundOver:
+				UpdateInactiveRespawns( players );
+
 				if ( TickPhaseTimer() )
 				{
 					FinishIntermission( players );
@@ -119,6 +152,11 @@ public sealed class LargeLadRoundManager : Component
 		var largeLad = players[nextLargeLadIndex % players.Count];
 		largeLad.Role = LargeLadRole.LargeLad;
 		nextLargeLadIndex = ( nextLargeLadIndex + 1 ) % players.Count;
+
+		foreach ( var player in players )
+		{
+			player.Health?.ResetForCurrentRole();
+		}
 
 		var skinnyKidIndex = 0;
 
@@ -174,9 +212,15 @@ public sealed class LargeLadRoundManager : Component
 
 		for ( var i = 0; i < players.Count; i++ )
 		{
-			players[i].Role = LargeLadRole.Unassigned;
-			players[i].MovementLocked = false;
-			TeleportPlayer( players[i], initialSpawn, i );
+			var player = players[i];
+
+			if ( player.Health?.IsDead == true )
+				continue;
+
+			player.Role = LargeLadRole.Unassigned;
+			player.MovementLocked = false;
+			TeleportPlayer( player, initialSpawn, i );
+			player.Health?.ResetForCurrentRole();
 		}
 
 		var winnerName = winner == LargeLadWinner.SkinnyKids
@@ -210,6 +254,7 @@ public sealed class LargeLadRoundManager : Component
 		{
 			player.Role = LargeLadRole.Minion;
 			player.MovementLocked = false;
+			player.Health?.ResetForCurrentRole();
 			TeleportPlayer( player, LargeLadSpawn, hunterIndex );
 			hunterIndex++;
 
@@ -234,14 +279,122 @@ public sealed class LargeLadRoundManager : Component
 		return false;
 	}
 
+	private void UpdateLargeLadRespawn( List<LargeLadPlayer> players )
+	{
+		var largeLad = players.FirstOrDefault( player =>
+			player.Role == LargeLadRole.LargeLad );
+		var health = largeLad?.Health;
+
+		if ( largeLad is null || health is null )
+			return;
+
+		if ( !health.IsDead && health.CurrentHealth <= 0.0f )
+		{
+			largeLad.MovementLocked = true;
+			health.BeginRespawnCountdown( LargeLadRespawnDelay, true );
+
+			Log.Info(
+				$"The Large Lad was killed and will respawn in {LargeLadRespawnDelay:0.#} seconds." );
+			return;
+		}
+
+		if ( !health.IsDead || !health.TickRespawnCountdown() )
+			return;
+
+		TeleportPlayer( largeLad, LargeLadSpawn );
+		health.ResetForCurrentRole();
+		largeLad.MovementLocked = false;
+
+		Log.Info( "The Large Lad respawned." );
+	}
+
+	public void BeginPlayerRespawn(
+		LargeLadPlayer player,
+		LargeLadRole respawnRole,
+		bool useRagdoll = true )
+	{
+		if ( !Networking.IsHost || player?.Health is null || player.Health.IsDead )
+			return;
+
+		// Infection is unconditional: once a Skinny Kid dies, they join the
+		// Lad team regardless of which weapon, player, or hazard killed them.
+		if ( player.Role == LargeLadRole.SkinnyKid )
+		{
+			respawnRole = LargeLadRole.Minion;
+		}
+
+		player.Role = respawnRole;
+		player.MovementLocked = true;
+		player.Health.BeginRespawnCountdown( PlayerRespawnDelay, useRagdoll );
+	}
+
+	private void UpdatePlayerRespawns( List<LargeLadPlayer> players )
+	{
+		foreach ( var player in players.Where( player =>
+			player.Role != LargeLadRole.LargeLad &&
+			player.Role != LargeLadRole.Unassigned ) )
+		{
+			var health = player.Health;
+
+			if ( health is null )
+				continue;
+
+			if ( !health.IsDead && health.CurrentHealth <= 0.0f )
+			{
+				BeginPlayerRespawn( player, player.Role, true );
+				continue;
+			}
+
+			if ( !health.IsDead || !health.TickRespawnCountdown() )
+				continue;
+
+			var spawn = player.Role == LargeLadRole.Minion
+				? LargeLadSpawn
+				: RunnerSpawn;
+			var spawnIndex = players.Count( other =>
+				other != player && other.Role == player.Role && other.Health?.IsDead != true );
+
+			TeleportPlayer( player, spawn, spawnIndex );
+			health.ResetForCurrentRole();
+			player.MovementLocked = false;
+
+			Log.Info( $"{player.GameObject.Name} respawned as {GetRoleName( player.Role )}." );
+		}
+	}
+
+	private void UpdateInactiveRespawns( List<LargeLadPlayer> players )
+	{
+		var initialSpawn = GetInitialSpawn();
+
+		for ( var i = 0; i < players.Count; i++ )
+		{
+			var player = players[i];
+			var health = player.Health;
+
+			if ( health is null || !health.IsDead || !health.TickRespawnCountdown() )
+				continue;
+
+			player.Role = LargeLadRole.Unassigned;
+			TeleportPlayer( player, initialSpawn, i );
+			health.ResetForCurrentRole();
+			player.MovementLocked = false;
+
+			Log.Info( $"{player.GameObject.Name} respawned in the waiting area." );
+		}
+	}
+
 	private void ConvertTouchedSkinnyKids( List<LargeLadPlayer> players )
 	{
 		var hunters = players
-			.Where( player => player.Role is LargeLadRole.LargeLad or LargeLadRole.Minion )
+			.Where( player =>
+				(player.Role is LargeLadRole.LargeLad or LargeLadRole.Minion) &&
+				player.Health?.IsDead != true )
 			.ToList();
 
 		var skinnyKids = players
-			.Where( player => player.Role == LargeLadRole.SkinnyKid )
+			.Where( player =>
+				player.Role == LargeLadRole.SkinnyKid &&
+				player.Health?.IsDead != true )
 			.ToList();
 
 		var conversionDistanceSquared = ConversionDistance * ConversionDistance;
@@ -259,10 +412,11 @@ public sealed class LargeLadRoundManager : Component
 				if ( distanceSquared > conversionDistanceSquared )
 					continue;
 
-				skinnyKid.Role = LargeLadRole.Minion;
-				skinnyKid.MovementLocked = false;
+				BeginPlayerRespawn( skinnyKid, LargeLadRole.Minion, false );
 
-				Log.Info( $"{hunter.GameObject.Name} converted {skinnyKid.GameObject.Name} into a Minion." );
+				Log.Info(
+					$"{hunter.GameObject.Name} ate {skinnyKid.GameObject.Name}. " +
+					$"They will respawn as a Minion in {PlayerRespawnDelay:0.#} seconds." );
 				break;
 			}
 		}
@@ -310,5 +464,16 @@ public sealed class LargeLadRoundManager : Component
 	private void OnPhaseChanged( LargeLadRoundPhase oldPhase, LargeLadRoundPhase newPhase )
 	{
 		Log.Info( $"Round phase changed from {oldPhase} to {newPhase}." );
+	}
+
+	private static string GetRoleName( LargeLadRole role )
+	{
+		return role switch
+		{
+			LargeLadRole.SkinnyKid => "a Skinny Kid",
+			LargeLadRole.Minion => "a Minion",
+			LargeLadRole.LargeLad => "the Large Lad",
+			_ => "unassigned"
+		};
 	}
 }

@@ -48,7 +48,7 @@
               "IsTrigger": false,
               "Mesh": {
                 "Data": {
-                  "$blob": "b4a0e89c-9688-4d4c-8922-1b9b0bf2d8d3"
+                  "$blob": "fdfb5d80-2254-4888-b46d-c9afb39fafda"
                 }
               },
               "OnComponentDestroy": null,
@@ -101,7 +101,7 @@
               "IsTrigger": false,
               "Mesh": {
                 "Data": {
-                  "$blob": "55f8083b-1cde-4c03-af87-f696b089706d"
+                  "$blob": "82369dae-75f4-49d3-8281-d91baf463253"
                 },
                 "Materials": [
                   "materials/dev/gray_grid_4.vmat"
@@ -157,7 +157,7 @@
               "IsTrigger": false,
               "Mesh": {
                 "Data": {
-                  "$blob": "11a65e9e-c926-428e-8691-3f0b2806cb66"
+                  "$blob": "7788731e-b0d1-451c-bb66-6f28b1145050"
                 },
                 "Materials": [
                   "materials/dev/gray_grid_4.vmat"
@@ -213,7 +213,7 @@
               "IsTrigger": false,
               "Mesh": {
                 "Data": {
-                  "$blob": "1ab4b0fc-027e-4944-9f2b-b2246395d5b1"
+                  "$blob": "cd856e6f-76c4-4f6c-8a74-2ba2362dd0bc"
                 },
                 "Materials": [
                   "materials/dev/gray_grid_4.vmat"
@@ -269,7 +269,7 @@
               "IsTrigger": false,
               "Mesh": {
                 "Data": {
-                  "$blob": "869a0ac5-d52e-4f69-97a3-6f4edf572736"
+                  "$blob": "6c4728f9-558c-461c-82fb-07b648976c1d"
                 },
                 "Materials": [
                   "materials/dev/gray_grid_4.vmat"
@@ -325,7 +325,7 @@
               "IsTrigger": false,
               "Mesh": {
                 "Data": {
-                  "$blob": "d57db99d-e0ac-47a4-b05c-c99e529478f1"
+                  "$blob": "d14fc6ff-5d6a-43eb-9f8e-0b84ad7762f6"
                 },
                 "Materials": [
                   "materials/dev/gray_grid_4.vmat"
@@ -381,7 +381,7 @@
               "IsTrigger": false,
               "Mesh": {
                 "Data": {
-                  "$blob": "8bdf3b35-4893-4723-b17e-c51346abb942"
+                  "$blob": "93a41b94-7c97-497c-a74d-fa5661902232"
                 },
                 "Materials": [
                   "materials/dev/gray_grid_4.vmat"
@@ -437,7 +437,7 @@
               "IsTrigger": false,
               "Mesh": {
                 "Data": {
-                  "$blob": "f12d3930-641a-4485-b981-0eaa509ad6ef"
+                  "$blob": "566aad45-d1ce-4e92-89b0-abfb63d92651"
                 },
                 "Materials": [
                   "materials/dev/gray_grid_4.vmat"
@@ -493,7 +493,7 @@
               "IsTrigger": false,
               "Mesh": {
                 "Data": {
-                  "$blob": "12f9d312-42fd-4d82-914f-b219d9424bb9"
+                  "$blob": "90b3a655-c7c8-4d9c-90ba-0ec124f8da0b"
                 },
                 "Materials": [
                   "materials/dev/gray_grid_4.vmat"
@@ -549,7 +549,7 @@
               "IsTrigger": false,
               "Mesh": {
                 "Data": {
-                  "$blob": "be50c375-275b-42b3-89be-1e791f63f006"
+                  "$blob": "4c5b2f0e-b11b-4cb8-8236-ba1ccd8aae9b"
                 },
                 "Materials": [
                   "materials/dev/gray_grid_4.vmat"
@@ -605,7 +605,7 @@
               "IsTrigger": false,
               "Mesh": {
                 "Data": {
-                  "$blob": "c9fbf0ad-6f0d-4dfb-9a89-69ac1cada7cf"
+                  "$blob": "1deb6842-728d-44f6-9ef4-70ea523ef2e2"
                 },
                 "Materials": [
                   "materials/dev/gray_grid_4.vmat"
@@ -661,7 +661,7 @@
               "IsTrigger": false,
               "Mesh": {
                 "Data": {
-                  "$blob": "4bf18f2d-bc7f-48eb-891a-9bcab01efa9b"
+                  "$blob": "5b7de1b5-d28c-43d5-b9f7-885fbbe03329"
                 },
                 "Materials": [
                   "materials/dev/gray_grid_4.vmat"
@@ -717,7 +717,7 @@
               "IsTrigger": false,
               "Mesh": {
                 "Data": {
-                  "$blob": "63f3f199-8e39-45b8-8f87-a8f573d73a80"
+                  "$blob": "32041498-e6e7-4531-9d78-f84f7ac25562"
                 },
                 "Materials": [
                   "materials/dev/gray_grid_4.vmat"
@@ -748,7 +748,7 @@
           "__version": 2,
           "Flags": 0,
           "Name": "Block",
-          "Position": "52.4969788,-284.323273,76.5732727",
+          "Position": "-211.503021,-284.323273,76.5732727",
           "Rotation": "0,0,0,1",
           "Scale": "1,1,1",
           "Tags": "world",
@@ -773,7 +773,7 @@
               "IsTrigger": false,
               "Mesh": {
                 "Data": {
-                  "$blob": "995c30ab-472b-45b5-bdc2-fd004dad99b6"
+                  "$blob": "66985a04-0168-4179-ac12-abe6c13e2066"
                 },
                 "Materials": [
                   "materials/dev/gray_grid_4.vmat"
@@ -804,7 +804,7 @@
           "__version": 2,
           "Flags": 0,
           "Name": "Block",
-          "Position": "-147.503021,-284.323273,100.573257",
+          "Position": "-675.503052,-284.323273,100.573257",
           "Rotation": "0,0,0,1",
           "Scale": "1,1,1",
           "Tags": "world",
@@ -829,7 +829,7 @@
               "IsTrigger": false,
               "Mesh": {
                 "Data": {
-                  "$blob": "c733cfbd-47b3-4470-94b3-b8b9678b03de"
+                  "$blob": "8191c9db-68de-4acd-8953-3fb72b0edc60"
                 },
                 "Materials": [
                   "materials/dev/gray_grid_4.vmat"
@@ -885,7 +885,7 @@
               "IsTrigger": false,
               "Mesh": {
                 "Data": {
-                  "$blob": "5f31c0d7-13f6-4188-b101-f7a2bf1167d7"
+                  "$blob": "ac0568a3-e331-446b-81a2-37b1630bfece"
                 },
                 "Materials": [
                   "materials/dev/gray_grid_4.vmat"
@@ -916,7 +916,7 @@
           "__version": 2,
           "Flags": 0,
           "Name": "Block",
-          "Position": "52.4969788,-484.323273,100.573273",
+          "Position": "-211.503021,-484.323273,100.573273",
           "Rotation": "0,0,0,1",
           "Scale": "1,1,1",
           "Tags": "world",
@@ -941,7 +941,7 @@
               "IsTrigger": false,
               "Mesh": {
                 "Data": {
-                  "$blob": "40727070-0104-48e7-bf0f-dbd08e63370f"
+                  "$blob": "e06afb19-6af4-4aa1-9679-b9f3a472e628"
                 },
                 "Materials": [
                   "materials/dev/gray_grid_4.vmat"
@@ -1078,7 +1078,7 @@
               "IsTrigger": false,
               "Mesh": {
                 "Data": {
-                  "$blob": "71d28381-a22b-455b-b4c0-f9a8b86cd0fe"
+                  "$blob": "1c5217f9-69f7-4c23-96c4-9c6c60ddf590"
                 },
                 "Materials": [
                   "materials/dev/gray_grid_4.vmat"
@@ -1134,7 +1134,7 @@
               "IsTrigger": false,
               "Mesh": {
                 "Data": {
-                  "$blob": "5198274c-c0a2-4fe9-9c75-0eab57f3f330"
+                  "$blob": "1ddf53d5-f483-4c7c-af3c-da4c768f7fb9"
                 },
                 "Materials": [
                   "materials/dev/gray_grid_4.vmat"
@@ -1165,7 +1165,7 @@
           "__version": 2,
           "Flags": 0,
           "Name": "Block",
-          "Position": "-139.503021,-476.323273,-3.42672729",
+          "Position": "-667.503052,-476.323273,-3.42672729",
           "Rotation": "0,0,0,1",
           "Scale": "1,1,1",
           "Tags": "world",
@@ -1190,7 +1190,7 @@
               "IsTrigger": false,
               "Mesh": {
                 "Data": {
-                  "$blob": "70f41dbb-fa6c-4b88-8ebe-5dcb389e3791"
+                  "$blob": "cb8fbc4b-8f4c-4ac2-acb4-72303234419a"
                 },
                 "Materials": [
                   "materials/dev/gray_grid_4.vmat"
@@ -1246,7 +1246,7 @@
               "IsTrigger": false,
               "Mesh": {
                 "Data": {
-                  "$blob": "8e6441be-3d89-4835-b0b8-8824f815ce6f"
+                  "$blob": "b612d7de-3162-45b2-92e8-36f1358dd791"
                 },
                 "Materials": [
                   "materials/dev/gray_grid_4.vmat"
@@ -1302,7 +1302,7 @@
               "IsTrigger": false,
               "Mesh": {
                 "Data": {
-                  "$blob": "41475cd9-b380-4793-bb0d-67474a5f5bd9"
+                  "$blob": "6f958ae3-187b-4106-abb0-845fd75c898a"
                 },
                 "Materials": [
                   "materials/dev/gray_grid_4.vmat"
@@ -1358,7 +1358,7 @@
               "IsTrigger": false,
               "Mesh": {
                 "Data": {
-                  "$blob": "8c792f39-701f-43b8-a3ed-319b200ac1d4"
+                  "$blob": "2f679a2d-fe66-41c2-ada9-2ca6daf7d099"
                 },
                 "Materials": [
                   "materials/dev/gray_grid_4.vmat"
@@ -1414,7 +1414,7 @@
               "IsTrigger": false,
               "Mesh": {
                 "Data": {
-                  "$blob": "0fcb8c1f-f914-41b1-bf58-1a4a501d4f55"
+                  "$blob": "567243c4-a622-4f28-8b28-d1ebb8562d96"
                 },
                 "Materials": [
                   "materials/dev/gray_grid_4.vmat"

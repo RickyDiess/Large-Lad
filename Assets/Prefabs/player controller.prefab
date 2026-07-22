@@ -229,6 +229,12 @@
           "go": "663383c9-6bdb-48e2-9c7d-30bedec4b012",
           "component_type": "SkinnedModelRenderer"
         },
+        "Health": {
+          "_type": "component",
+          "component_id": "8ff41dc2-a36e-4bbf-9526-bff01566ba8d",
+          "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
+          "component_type": "LargeLadHealth"
+        },
         "LargeLadRunSpeed": 230,
         "LargeLadTint": "1,0.25,0.05,1",
         "LargeLadWalkSpeed": 85,
@@ -241,9 +247,46 @@
         "OnComponentFixedUpdate": null,
         "OnComponentStart": null,
         "OnComponentUpdate": null,
+        "PrototypeWeapon": {
+          "_type": "component",
+          "component_id": "7ab7d5da-c1ae-4c15-853e-30de38e3d5a2",
+          "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
+          "component_type": "LargeLadPrototypeWeapon"
+        },
         "RunnerRunSpeed": 320,
         "RunnerTint": "1,1,1,1",
         "RunnerWalkSpeed": 110
+      },
+      {
+        "__type": "LargeLadHealth",
+        "__guid": "8ff41dc2-a36e-4bbf-9526-bff01566ba8d",
+        "__enabled": true,
+        "CreateRagdollOnDeath": true,
+        "Flags": 0,
+        "LargeLadMaximumHealth": 500,
+        "MinionMaximumHealth": 75,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "SkinnyKidMaximumHealth": 100
+      },
+      {
+        "__type": "LargeLadPrototypeWeapon",
+        "__guid": "7ab7d5da-c1ae-4c15-853e-30de38e3d5a2",
+        "__enabled": true,
+        "Cooldown": 0.35,
+        "Damage": 100,
+        "Flags": 0,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "Range": 1200
       },
       {
         "__type": "LargeLadHud",
@@ -289,7 +332,7 @@
             "MaterialGroup": "default",
             "MaterialOverride": null,
             "Materials": null,
-            "Model": "models/citizen/citizen.vmdl",
+            "Model": "models/citizen_human/citizen_human_male.vmdl",
             "Morphs": {},
             "OnComponentDestroy": null,
             "OnComponentDisabled": null,

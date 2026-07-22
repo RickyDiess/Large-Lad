@@ -10,6 +10,18 @@ public enum LargeLadRole
 
 public sealed class LargeLadPlayer : Component
 {
+	private const int TeleportSettleFrames = 2;
+
+	private Vector3 pendingTeleportPosition;
+	private Rotation pendingTeleportRotation;
+	private int pendingTeleportFrames;
+
+	[Property, RequireComponent]
+	public LargeLadHealth Health { get; set; }
+
+	[Property, RequireComponent]
+	public LargeLadPrototypeWeapon PrototypeWeapon { get; set; }
+
 	[Sync( SyncFlags.FromHost ), Change( nameof( OnRoleChanged ) )]
 	public LargeLadRole Role { get; set; } = LargeLadRole.Unassigned;
 
@@ -49,7 +61,31 @@ public sealed class LargeLadPlayer : Component
 	protected override void OnStart()
 	{
 		ApplyRole( Role );
-		ApplyMovementLock( MovementLocked );
+		RefreshMovementState();
+	}
+
+	protected override void OnFixedUpdate()
+	{
+		if ( IsProxy )
+			return;
+
+		if ( pendingTeleportFrames > 0 )
+		{
+			ApplyPendingTeleport();
+			pendingTeleportFrames--;
+
+			if ( pendingTeleportFrames == 0 )
+			{
+				RefreshMovementState();
+			}
+
+			return;
+		}
+
+		if ( MovementLocked || Health?.IsDead == true )
+		{
+			StopMovement();
+		}
 	}
 
 	private void OnRoleChanged( LargeLadRole oldRole, LargeLadRole newRole )
@@ -60,7 +96,7 @@ public sealed class LargeLadPlayer : Component
 
 	private void OnMovementLockedChanged( bool oldValue, bool newValue )
 	{
-		ApplyMovementLock( newValue );
+		RefreshMovementState();
 	}
 
 	private void ApplyRole( LargeLadRole role )
@@ -97,7 +133,7 @@ public sealed class LargeLadPlayer : Component
 		};
 	}
 
-	private void ApplyMovementLock( bool isLocked )
+	public void RefreshMovementState()
 	{
 		if ( IsProxy )
 			return;
@@ -107,27 +143,62 @@ public sealed class LargeLadPlayer : Component
 		if ( controller is null )
 			return;
 
+		var isLocked = MovementLocked || Health?.IsDead == true;
 		controller.UseInputControls = !isLocked;
 
-		if ( isLocked && controller.Body is not null )
+		if ( controller.Body is null )
+			return;
+
+		if ( isLocked || pendingTeleportFrames > 0 )
 		{
-			controller.Body.Velocity = Vector3.Zero;
+			StopMovement();
+			controller.Body.MotionEnabled = false;
+			return;
 		}
+
+		controller.Body.MotionEnabled = true;
 	}
 
 	[Rpc.Owner( NetFlags.HostOnly )]
 	public void TeleportTo( Vector3 worldPosition, Rotation worldRotation )
 	{
-		GameObject.WorldPosition = worldPosition;
-		GameObject.WorldRotation = worldRotation;
+		pendingTeleportPosition = worldPosition;
+		pendingTeleportRotation = worldRotation;
+		pendingTeleportFrames = TeleportSettleFrames;
 
 		var controller = Components.Get<PlayerController>();
 
 		if ( controller?.Body is not null )
 		{
-			controller.Body.Velocity = Vector3.Zero;
+			controller.Body.MotionEnabled = false;
 		}
 
+		ApplyPendingTeleport();
+	}
+
+	private void ApplyPendingTeleport()
+	{
+		StopMovement();
+
+		GameObject.WorldPosition = pendingTeleportPosition;
+		GameObject.WorldRotation = pendingTeleportRotation;
 		GameObject.Network.ClearInterpolation();
+	}
+
+	private void StopMovement()
+	{
+		var controller = Components.Get<PlayerController>();
+
+		if ( controller is null )
+			return;
+
+		controller.WishVelocity = Vector3.Zero;
+
+		if ( controller.Body is null )
+			return;
+
+		controller.Body.ClearForces();
+		controller.Body.Velocity = Vector3.Zero;
+		controller.Body.AngularVelocity = Vector3.Zero;
 	}
 }
