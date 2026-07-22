@@ -42,7 +42,21 @@ public sealed class LargeLadMeleeAttack : Component
 
 		timeSinceLocalSwing = 0.0f;
 
-		var target = FindBestTarget( attacker, controller );
+		var target = FindBestTarget( attacker, controller )?.GameObject;
+
+		if ( target is null && attacker.Role == LargeLadRole.LargeLad )
+		{
+			var start = controller.EyePosition;
+			var trace = Scene.Trace
+				.Ray( start, start + controller.EyeTransform.Rotation.Forward * GetRange( attacker.Role ) )
+				.Radius( 12.0f )
+				.UseHitboxes( true )
+				.IgnoreGameObjectHierarchy( GameObject )
+				.Run();
+
+			var barricade = LargeLadBarricade.FindFor( Scene, trace.GameObject );
+			target = barricade?.GameObject;
+		}
 
 		if ( target is null )
 		{
@@ -50,7 +64,7 @@ public sealed class LargeLadMeleeAttack : Component
 			return;
 		}
 
-		RequestMeleeAttack( target.GameObject );
+		RequestMeleeAttack( target );
 	}
 
 	[Rpc.Host( NetFlags.OwnerOnly )]
@@ -72,7 +86,35 @@ public sealed class LargeLadMeleeAttack : Component
 
 		timeSinceValidatedSwing = 0.0f;
 
-		var target = targetObject?.Components.Get<LargeLadPlayer>();
+		var target = targetObject?.Components.Get<LargeLadPlayer>(
+			FindMode.EverythingInSelfAndAncestors );
+		var barricade = LargeLadBarricade.FindFor( Scene, targetObject );
+
+		if ( barricade is not null )
+		{
+			if ( !IsWithinReachAndFacingObject( attacker, barricade, controller ) ||
+				!HasLineOfSightToObject( attacker, barricade, controller ) )
+			{
+				return;
+			}
+
+			var structuralHit = new LargeLadDamageContext
+			{
+				Attacker = GameObject,
+				AttackerRole = attacker.Role,
+				SourceWeapon = LargeLadWeaponId.Melee,
+				DamageType = LargeLadDamageType.Melee,
+				BaseDamage = attacker.Role == LargeLadRole.LargeLad ? 100.0f : MinionDamage
+			};
+
+			if ( barricade.TryApplyDamage( structuralHit, out var structuralDamage ) )
+			{
+				Log.Info(
+					$"{attacker.GameObject.Name} damaged {barricade.AuthoredTarget.Name} for " +
+					$"{structuralDamage.AppliedDamage:0.#}." );
+			}
+			return;
+		}
 
 		if ( !IsValidTarget( target ) ||
 			!IsWithinReachAndFacing( attacker, target, controller ) ||
@@ -97,13 +139,21 @@ public sealed class LargeLadMeleeAttack : Component
 			return;
 		}
 
-		var killed = target.Health.TakeDamage( MinionDamage );
+		var damage = new LargeLadDamageContext
+		{
+			Attacker = GameObject,
+			AttackerRole = attacker.Role,
+			SourceWeapon = LargeLadWeaponId.Melee,
+			DamageType = LargeLadDamageType.Melee,
+			BaseDamage = MinionDamage
+		};
+		var killed = target.Health.TryApplyDamage( damage, out var appliedDamage );
 
 		if ( !killed )
 		{
 			Log.Info(
 				$"{attacker.GameObject.Name} hit {target.GameObject.Name} for " +
-				$"{MinionDamage:0.#} damage. " +
+				$"{appliedDamage.AppliedDamage:0.#} damage. " +
 				$"{target.Health.CurrentHealth:0.#}/{target.Health.MaximumHealth:0.#} health remains." );
 			return;
 		}
@@ -124,7 +174,7 @@ public sealed class LargeLadMeleeAttack : Component
 	{
 		if ( attacker is null || controller is null ||
 			attacker.Role is not (LargeLadRole.LargeLad or LargeLadRole.Minion) ||
-			attacker.EquippedWeapon != LargeLadWeaponType.Melee ||
+			attacker.EquippedWeapon != LargeLadWeaponId.Melee ||
 			attacker.Health?.IsDead == true ||
 			attacker.MovementLocked )
 		{
@@ -185,6 +235,42 @@ public sealed class LargeLadMeleeAttack : Component
 			FindMode.EverythingInSelfAndAncestors );
 
 		return hitPlayer == target;
+	}
+
+	private bool IsWithinReachAndFacingObject(
+		LargeLadPlayer attacker,
+		LargeLadBarricade target,
+		PlayerController controller )
+	{
+		var range = GetRange( attacker.Role );
+		var targetPosition = target.GetClosestWorldPoint( controller.EyePosition );
+		var toTarget = targetPosition - controller.EyePosition;
+
+		if ( toTarget.LengthSquared > range * range )
+			return false;
+
+		return toTarget.LengthSquared <= 0.001f ||
+			Vector3.Dot( controller.EyeTransform.Rotation.Forward, toTarget.Normal ) >= MinimumFacingDot;
+	}
+
+	private bool HasLineOfSightToObject(
+		LargeLadPlayer attacker,
+		LargeLadBarricade target,
+		PlayerController controller )
+	{
+		var start = controller.EyePosition;
+		var targetPosition = target.GetClosestWorldPoint( start );
+		var towardTarget = targetPosition - start;
+		var traceEnd = towardTarget.LengthSquared > 0.001f
+			? targetPosition + towardTarget.Normal * 4.0f
+			: targetPosition;
+		var trace = Scene.Trace
+			.Ray( start, traceEnd )
+			.UseHitboxes( true )
+			.IgnoreGameObjectHierarchy( attacker.GameObject )
+			.Run();
+		var hitBarricade = LargeLadBarricade.FindFor( Scene, trace.GameObject );
+		return hitBarricade == target;
 	}
 
 	private static bool IsValidTarget( LargeLadPlayer target )

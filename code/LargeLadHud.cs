@@ -25,6 +25,7 @@ public sealed class LargeLadHud : Component
 		DrawRoundStatus( hud, round, player );
 		DrawLargeLadStatus( hud, round );
 		DrawRoleStatus( hud, player );
+		DrawWeaponStatus( hud, player );
 		DrawCrosshair( hud, player );
 
 		if ( round.Phase == LargeLadRoundPhase.RoundOver )
@@ -169,7 +170,8 @@ public sealed class LargeLadHud : Component
 	{
 		if ( player.Health is null ||
 			player.Health.IsDead ||
-			player.EquippedWeapon == LargeLadWeaponType.None )
+			player.Inventory is null ||
+			player.EquippedWeapon == LargeLadWeaponId.None )
 		{
 			return;
 		}
@@ -177,7 +179,9 @@ public sealed class LargeLadHud : Component
 		var centerX = Screen.Width * 0.5f;
 		var centerY = Screen.Height * 0.5f;
 
-		if ( player.EquippedWeapon == LargeLadWeaponType.Melee )
+		var crosshair = player.Inventory.EquippedDefinition.Crosshair;
+
+		if ( crosshair == LargeLadCrosshairStyle.Dot )
 		{
 			DrawCrosshairSegment(
 				hud,
@@ -185,7 +189,7 @@ public sealed class LargeLadHud : Component
 			return;
 		}
 
-		if ( player.EquippedWeapon != LargeLadWeaponType.PrototypeGun )
+		if ( crosshair != LargeLadCrosshairStyle.FourSegment )
 			return;
 
 		const float gap = 6.0f;
@@ -221,6 +225,47 @@ public sealed class LargeLadHud : Component
 				centerY + gap,
 				thickness,
 				armLength ) );
+	}
+
+	private static void DrawWeaponStatus( HudPainter hud, LargeLadPlayer player )
+	{
+		var inventory = player.Inventory;
+
+		if ( player.Health?.IsDead != false || inventory is null ||
+			inventory.EquippedWeapon == LargeLadWeaponId.None )
+		{
+			return;
+		}
+
+		var definition = inventory.EquippedDefinition;
+		var accent = definition.PickupColor;
+		var panel = new Rect(
+			Screen.Width - 318.0f,
+			Screen.Height - 116.0f,
+			290.0f,
+			88.0f );
+
+		DrawPanel( hud, panel, accent );
+		hud.DrawText(
+			definition.DisplayName.ToUpperInvariant(),
+			20.0f,
+			accent,
+			new Vector2( panel.Right - 18.0f, panel.Top + 24.0f ),
+			TextFlag.RightCenter );
+
+		if ( !definition.UsesAmmo )
+			return;
+
+		var ammoText = inventory.IsReloading
+			? $"RELOADING {FormatSeconds( inventory.ReloadTimeRemaining )}"
+			: $"{inventory.EquippedMagazine} / {inventory.EquippedReserve}";
+
+		hud.DrawText(
+			ammoText,
+			18.0f,
+			Color.White,
+			new Vector2( panel.Right - 18.0f, panel.Top + 58.0f ),
+			TextFlag.RightCenter );
 	}
 
 	private static void DrawCrosshairSegment( HudPainter hud, Rect rect )
@@ -330,7 +375,7 @@ public sealed class LargeLadHud : Component
 	{
 		return role switch
 		{
-			LargeLadRole.SkinnyKid => "Survive the timer. Primary fire: test blaster.",
+			LargeLadRole.SkinnyKid => "Survive the timer. Find weapons placed in the map.",
 			LargeLadRole.LargeLad => "Eat every Skinny Kid. Primary fire: melee.",
 			LargeLadRole.Minion => "Help the Lad eat the Skinny Kids. Primary fire: melee.",
 			_ => "A new round will begin shortly."

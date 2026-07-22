@@ -1,4 +1,5 @@
 using Sandbox;
+using System.Collections.Generic;
 using System.Linq;
 
 public enum LargeLadRoundPhase
@@ -39,11 +40,8 @@ public sealed class LargeLadRoundManager : Component
 	[Property]
 	public float PlayerRespawnDelay { get; set; } = 5.0f;
 
-	[Property, Title( "Skinny Kid Spawn" )]
-	public GameObject RunnerSpawn { get; set; }
-
 	[Property]
-	public GameObject LargeLadSpawn { get; set; }
+	public LargeLadMapDefinition MapDefinition { get; private set; }
 
 	[Sync( SyncFlags.FromHost ), Change( nameof( OnPhaseChanged ) )]
 	public LargeLadRoundPhase Phase { get; private set; } =
@@ -58,6 +56,33 @@ public sealed class LargeLadRoundManager : Component
 	private int nextLargeLadIndex;
 	private int waitingPlayerCount = -1;
 	private float playerReadyTimeRemaining;
+
+	protected override void OnStart()
+	{
+		MapDefinition ??= Scene
+			.GetAllComponents<LargeLadMapDefinition>()
+			.FirstOrDefault();
+
+		if ( MapDefinition is not null )
+		{
+			UseMapDefinition( MapDefinition );
+		}
+		else
+		{
+			Log.Warning( "Round manager has no LargeLadMapDefinition." );
+		}
+	}
+
+	public void UseMapDefinition( LargeLadMapDefinition definition )
+	{
+		if ( definition is null )
+			return;
+
+		MapDefinition = definition;
+		HeadStartDuration = definition.HeadStartDuration;
+		RoundDuration = definition.SurvivalDuration;
+		IntermissionDuration = definition.IntermissionDuration;
+	}
 
 	protected override void OnUpdate()
 	{
@@ -90,9 +115,7 @@ public sealed class LargeLadRoundManager : Component
 				playerReadyTimeRemaining -= Time.Delta;
 
 				if ( playerReadyTimeRemaining <= 0.0f )
-				{
-					StartTestRound( players );
-				}
+					StartRound( players );
 				break;
 
 			case LargeLadRoundPhase.HeadStart:
@@ -102,9 +125,7 @@ public sealed class LargeLadRoundManager : Component
 					break;
 
 				if ( TickPhaseTimer() )
-				{
 					BeginPlaying( players );
-				}
 				break;
 
 			case LargeLadRoundPhase.Playing:
@@ -120,39 +141,44 @@ public sealed class LargeLadRoundManager : Component
 					break;
 
 				if ( TickPhaseTimer() )
-				{
 					EndRound( LargeLadWinner.SkinnyKids );
-				}
 				break;
 
 			case LargeLadRoundPhase.RoundOver:
 				UpdateInactiveRespawns( players );
 
 				if ( TickPhaseTimer() )
-				{
 					FinishIntermission( players );
-				}
 				break;
 		}
 	}
 
-	private void StartTestRound( List<LargeLadPlayer> players )
+	private void StartRound( List<LargeLadPlayer> players )
 	{
-		foreach ( var player in players )
+		if ( MapDefinition is null )
 		{
-			player.Role = LargeLadRole.SkinnyKid;
+			Log.Warning( "Cannot start a round without a map definition." );
+			return;
 		}
+
+		// Player-held exclusive items are cleared before their authored pickup
+		// returns, so a reset can never create a second copy.
+		foreach ( var player in players )
+			player.Inventory?.ClearForRoundReset();
+
+		ResetMapState();
+
+		foreach ( var player in players )
+			player.Role = LargeLadRole.SkinnyKid;
 
 		Winner = LargeLadWinner.None;
 
 		var largeLad = players[nextLargeLadIndex % players.Count];
 		largeLad.Role = LargeLadRole.LargeLad;
-		nextLargeLadIndex = ( nextLargeLadIndex + 1 ) % players.Count;
+		nextLargeLadIndex = (nextLargeLadIndex + 1) % players.Count;
 
 		foreach ( var player in players )
-		{
 			player.Health?.ResetForCurrentRole();
-		}
 
 		var skinnyKidIndex = 0;
 
@@ -163,48 +189,43 @@ public sealed class LargeLadRoundManager : Component
 
 			if ( isLargeLad )
 			{
-				TeleportPlayer( player, LargeLadSpawn );
+				TeleportPlayer( player, LargeLadSpawnGroup.Hunter, 0 );
 			}
 			else
 			{
-				TeleportPlayer( player, RunnerSpawn, skinnyKidIndex );
+				TeleportPlayer( player, LargeLadSpawnGroup.SkinnyKid, skinnyKidIndex );
 				skinnyKidIndex++;
 			}
 		}
 
 		PhaseTimeRemaining = HeadStartDuration;
 		Phase = LargeLadRoundPhase.HeadStart;
-
-		Log.Info( $"Large Lad test round started with {players.Count} players and a {HeadStartDuration:0.#}-second head start." );
+		Log.Info( $"Round started with {players.Count} players and a {HeadStartDuration:0.#}-second head start." );
 	}
 
 	private void BeginPlaying( List<LargeLadPlayer> players )
 	{
 		foreach ( var player in players )
-		{
 			player.MovementLocked = false;
-		}
 
 		PhaseTimeRemaining = RoundDuration;
 		Phase = LargeLadRoundPhase.Playing;
-		Log.Info( $"Head start finished. The Large Lad can move. Skinny Kids must survive {RoundDuration:0.#} seconds." );
+		Log.Info( $"Head start finished. Skinny Kids must survive {RoundDuration:0.#} seconds." );
 	}
 
 	public void EndRound( LargeLadWinner winner )
 	{
 		if ( !Networking.IsHost ||
 			(Phase != LargeLadRoundPhase.HeadStart && Phase != LargeLadRoundPhase.Playing) )
+		{
 			return;
+		}
 
 		Winner = winner;
 		PhaseTimeRemaining = IntermissionDuration;
 		Phase = LargeLadRoundPhase.RoundOver;
 
-		var players = Scene
-			.GetAllComponents<LargeLadPlayer>()
-			.ToList();
-
-		var initialSpawn = GetInitialSpawn();
+		var players = Scene.GetAllComponents<LargeLadPlayer>().ToList();
 
 		for ( var i = 0; i < players.Count; i++ )
 		{
@@ -215,14 +236,13 @@ public sealed class LargeLadRoundManager : Component
 
 			player.Role = LargeLadRole.Unassigned;
 			player.MovementLocked = false;
-			TeleportPlayer( player, initialSpawn, i );
+			TeleportPlayer( player, LargeLadSpawnGroup.Lobby, i );
 			player.Health?.ResetForCurrentRole();
 		}
 
 		var winnerName = winner == LargeLadWinner.SkinnyKids
 			? "Skinny Kids"
 			: "Large Lad team";
-
 		Log.Info( $"Round over. {winnerName} won. Next round in {IntermissionDuration:0.#} seconds." );
 	}
 
@@ -233,7 +253,7 @@ public sealed class LargeLadRoundManager : Component
 
 		if ( players.Count >= MinimumPlayers )
 		{
-			StartTestRound( players );
+			StartRound( players );
 			return;
 		}
 
@@ -251,9 +271,8 @@ public sealed class LargeLadRoundManager : Component
 			player.Role = LargeLadRole.Minion;
 			player.MovementLocked = false;
 			player.Health?.ResetForCurrentRole();
-			TeleportPlayer( player, LargeLadSpawn, hunterIndex );
+			TeleportPlayer( player, LargeLadSpawnGroup.Hunter, hunterIndex );
 			hunterIndex++;
-
 			Log.Info( $"{player.GameObject.Name} joined the active round as a Minion." );
 		}
 	}
@@ -277,8 +296,7 @@ public sealed class LargeLadRoundManager : Component
 
 	private void UpdateLargeLadRespawn( List<LargeLadPlayer> players )
 	{
-		var largeLad = players.FirstOrDefault( player =>
-			player.Role == LargeLadRole.LargeLad );
+		var largeLad = players.FirstOrDefault( player => player.Role == LargeLadRole.LargeLad );
 		var health = largeLad?.Health;
 
 		if ( largeLad is null || health is null )
@@ -286,21 +304,20 @@ public sealed class LargeLadRoundManager : Component
 
 		if ( !health.IsDead && health.CurrentHealth <= 0.0f )
 		{
+			largeLad.Inventory?.HandleDeath( largeLad.GameObject.WorldPosition );
 			largeLad.MovementLocked = true;
 			health.BeginRespawnCountdown( LargeLadRespawnDelay, true );
-
-			Log.Info(
-				$"The Large Lad was killed and will respawn in {LargeLadRespawnDelay:0.#} seconds." );
+			Log.Info( $"The Large Lad was killed and will respawn in {LargeLadRespawnDelay:0.#} seconds." );
 			return;
 		}
 
 		if ( !health.IsDead || !health.TickRespawnCountdown() )
 			return;
 
-		TeleportPlayer( largeLad, LargeLadSpawn );
+		TeleportPlayer( largeLad, LargeLadSpawnGroup.Hunter, 0 );
 		health.ResetForCurrentRole();
+		largeLad.Inventory?.PrepareForRole( LargeLadRole.LargeLad );
 		largeLad.MovementLocked = false;
-
 		Log.Info( "The Large Lad respawned." );
 	}
 
@@ -312,16 +329,38 @@ public sealed class LargeLadRoundManager : Component
 		if ( !Networking.IsHost || player?.Health is null || player.Health.IsDead )
 			return;
 
-		// Infection is unconditional: once a Skinny Kid dies, they join the
-		// Lad team regardless of which weapon, player, or hazard killed them.
+		player.Inventory?.HandleDeath( player.GameObject.WorldPosition );
+
 		if ( player.Role == LargeLadRole.SkinnyKid )
-		{
 			respawnRole = LargeLadRole.Minion;
-		}
 
 		player.Role = respawnRole;
 		player.MovementLocked = true;
 		player.Health.BeginRespawnCountdown( PlayerRespawnDelay, useRagdoll );
+	}
+
+	public void HandleKillVolumeDeath( LargeLadPlayer player )
+	{
+		if ( !Networking.IsHost || player?.Health is null || player.Health.IsDead ||
+			Phase is not (LargeLadRoundPhase.HeadStart or LargeLadRoundPhase.Playing) )
+		{
+			return;
+		}
+
+		if ( player.Role == LargeLadRole.LargeLad )
+		{
+			var damage = new LargeLadDamageContext
+			{
+				AttackerRole = LargeLadRole.Unassigned,
+				SourceWeapon = LargeLadWeaponId.None,
+				DamageType = LargeLadDamageType.Environment,
+				BaseDamage = 1000000.0f
+			};
+			player.Health.TryApplyDamage( damage, out _ );
+			return;
+		}
+
+		BeginPlayerRespawn( player, player.Role, useRagdoll: false );
 	}
 
 	private void UpdatePlayerRespawns( List<LargeLadPlayer> players )
@@ -344,24 +383,23 @@ public sealed class LargeLadRoundManager : Component
 			if ( !health.IsDead || !health.TickRespawnCountdown() )
 				continue;
 
-			var spawn = player.Role == LargeLadRole.Minion
-				? LargeLadSpawn
-				: RunnerSpawn;
-			var spawnIndex = players.Count( other =>
-				other != player && other.Role == player.Role && other.Health?.IsDead != true );
+			var group = player.Role == LargeLadRole.Minion
+				? LargeLadSpawnGroup.Hunter
+				: LargeLadSpawnGroup.SkinnyKid;
+			var spawnIndex = group == LargeLadSpawnGroup.Hunter
+				? 1 + players.Where( other => other.Role == LargeLadRole.Minion ).ToList().IndexOf( player )
+				: players.Where( other => other.Role == LargeLadRole.SkinnyKid ).ToList().IndexOf( player );
 
-			TeleportPlayer( player, spawn, spawnIndex );
+			TeleportPlayer( player, group, spawnIndex );
 			health.ResetForCurrentRole();
+			player.Inventory?.PrepareForRole( player.Role );
 			player.MovementLocked = false;
-
 			Log.Info( $"{player.GameObject.Name} respawned as {GetRoleName( player.Role )}." );
 		}
 	}
 
 	private void UpdateInactiveRespawns( List<LargeLadPlayer> players )
 	{
-		var initialSpawn = GetInitialSpawn();
-
 		for ( var i = 0; i < players.Count; i++ )
 		{
 			var player = players[i];
@@ -371,11 +409,45 @@ public sealed class LargeLadRoundManager : Component
 				continue;
 
 			player.Role = LargeLadRole.Unassigned;
-			TeleportPlayer( player, initialSpawn, i );
+			TeleportPlayer( player, LargeLadSpawnGroup.Lobby, i );
 			health.ResetForCurrentRole();
+			player.Inventory?.PrepareForRole( LargeLadRole.Unassigned );
 			player.MovementLocked = false;
-
 			Log.Info( $"{player.GameObject.Name} respawned in the waiting area." );
+		}
+	}
+
+	private void ResetMapState()
+	{
+		// Barricades keep their authoritative state on a networked child. Query
+		// them explicitly so they cannot be skipped because their authored mesh
+		// component was disabled when the previous round destroyed them.
+		foreach ( var barricade in Scene.GetAllComponents<LargeLadBarricade>() )
+		{
+			barricade.ResetForRound();
+		}
+
+		// Core pickups are never globally consumed, but each keeps a host-side
+		// per-player collection set for the current round. Reset these concrete
+		// component types explicitly so every Skinny Kid can collect them again.
+		foreach ( var pickup in Scene.GetAllComponents<LargeLadWeaponPickup>() )
+		{
+			pickup.ResetForRound();
+		}
+
+		foreach ( var ammoPickup in Scene.GetAllComponents<LargeLadAmmoPickup>() )
+		{
+			ammoPickup.ResetForRound();
+		}
+
+		foreach ( var component in Scene.GetAllComponents<Component>() )
+		{
+			if ( component is LargeLadBarricade or
+				LargeLadWeaponPickup or LargeLadAmmoPickup )
+				continue;
+
+			if ( component is ILargeLadRoundResettable resettable )
+				resettable.ResetForRound();
 		}
 	}
 
@@ -390,32 +462,20 @@ public sealed class LargeLadRoundManager : Component
 		return true;
 	}
 
-	private GameObject GetInitialSpawn()
+	private void TeleportPlayer(
+		LargeLadPlayer player,
+		LargeLadSpawnGroup group,
+		int spawnIndex )
 	{
-		var networkHelper = Scene
-			.GetAllComponents<NetworkHelper>()
-			.FirstOrDefault();
+		var spawn = MapDefinition?.GetSpawn( group, spawnIndex );
 
-		var initialSpawn = networkHelper?.SpawnPoints?.FirstOrDefault();
-
-		if ( initialSpawn is null )
-		{
-			Log.Warning( "NetworkHelper has no initial spawn configured." );
-		}
-
-		return initialSpawn;
-	}
-
-	private void TeleportPlayer( LargeLadPlayer player, GameObject spawn, int spawnIndex = 0 )
-	{
 		if ( spawn is null )
 		{
-			Log.Warning( $"No spawn has been assigned for {player.Role}." );
+			Log.Warning( $"No explicit {group} spawn is available for {player.GameObject.Name}." );
 			return;
 		}
 
-		var spacingOffset = spawn.WorldRotation.Right * spawnIndex * 40.0f;
-		player.TeleportTo( spawn.WorldPosition + spacingOffset, spawn.WorldRotation );
+		player.TeleportTo( spawn.WorldPosition, spawn.WorldRotation );
 	}
 
 	private void OnPhaseChanged( LargeLadRoundPhase oldPhase, LargeLadRoundPhase newPhase )

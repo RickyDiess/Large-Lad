@@ -1,31 +1,30 @@
 using Sandbox;
 using System.Linq;
 
+/// <summary>
+/// Owner-aimed, host-validated firearm driver. The historical class name is
+/// retained so existing player prefabs keep their serialized component.
+/// </summary>
 public sealed class LargeLadPrototypeWeapon : Component
 {
-	[Property]
-	public float Damage { get; set; } = 100.0f;
-
-	[Property]
-	public float Range { get; set; } = 1200.0f;
-
-	[Property]
-	public float Cooldown { get; set; } = 0.35f;
-
-	private TimeSince timeSinceLastAttack;
+	private TimeSince timeSinceLocalShot;
+	private TimeSince timeSinceValidatedShot;
 
 	protected override void OnUpdate()
 	{
-		if ( IsProxy || !Input.Pressed( "Attack1" ) )
+		if ( IsProxy || !Input.Down( "Attack1" ) )
 			return;
 
 		var player = Components.Get<LargeLadPlayer>();
 		var controller = Components.Get<PlayerController>();
+		var inventory = player?.Inventory;
+		var definition = inventory?.EquippedDefinition;
 
-		if ( player is null || controller is null ||
-			player.Role != LargeLadRole.SkinnyKid ||
-			player.EquippedWeapon != LargeLadWeaponType.PrototypeGun ||
-			player.Health?.IsDead == true )
+		if ( player is null || controller is null || inventory is null ||
+			definition is null || player.Role != LargeLadRole.SkinnyKid ||
+			!LargeLadWeaponCatalog.IsFirearm( inventory.EquippedWeapon ) ||
+			player.Health?.IsDead == true || inventory.IsReloading ||
+			timeSinceLocalShot < definition.FireInterval )
 		{
 			return;
 		}
@@ -37,92 +36,111 @@ public sealed class LargeLadPrototypeWeapon : Component
 		if ( round?.Phase != LargeLadRoundPhase.Playing )
 			return;
 
-		// Aim through the center of the active camera so the shot follows the
-		// crosshair even when the third-person view is offset over a shoulder.
+		timeSinceLocalShot = 0.0f;
+
 		var camera = Scene.Camera;
-		var start = camera is not null
-			? camera.WorldPosition
-			: controller.EyePosition;
+		var start = camera is not null ? camera.WorldPosition : controller.EyePosition;
 		var forward = camera is not null
 			? camera.WorldRotation.Forward
 			: controller.EyeTransform.Rotation.Forward;
-		var end = start + forward * Range;
 		var trace = Scene.Trace
-			.Ray( start, end )
+			.Ray( start, start + forward * definition.Range )
 			.UseHitboxes( true )
 			.IgnoreGameObjectHierarchy( GameObject )
 			.Run();
 
-		Log.Info( trace.Hit
-			? $"Prototype blaster hit {trace.GameObject?.Name ?? "the world"}."
-			: "Prototype blaster missed." );
-
-		if ( !trace.Hit || trace.GameObject is null )
-			return;
-
-		var target = trace.GameObject.Components.Get<LargeLadPlayer>(
-			FindMode.EverythingInSelfAndAncestors );
-
-		if ( target?.Role is not (LargeLadRole.LargeLad or LargeLadRole.Minion) )
-			return;
-
-		RequestDamage( target.GameObject );
+		RequestFire( trace.Hit ? trace.GameObject : null );
 	}
 
 	[Rpc.Host( NetFlags.OwnerOnly )]
-	public void RequestDamage( GameObject targetObject )
+	private void RequestFire( GameObject claimedTarget )
 	{
-		if ( !Networking.IsHost || timeSinceLastAttack < Cooldown )
+		if ( !Networking.IsHost )
 			return;
 
 		var attacker = Components.Get<LargeLadPlayer>();
-		var target = targetObject?.Components.Get<LargeLadPlayer>();
+		var inventory = attacker?.Inventory;
+		var definition = inventory?.EquippedDefinition;
 		var round = Scene
 			.GetAllComponents<LargeLadRoundManager>()
 			.FirstOrDefault();
 
-		if ( attacker?.Role != LargeLadRole.SkinnyKid ||
-			attacker.EquippedWeapon != LargeLadWeaponType.PrototypeGun ||
-			attacker.Health?.IsDead == true ||
-			target?.Role is not (LargeLadRole.LargeLad or LargeLadRole.Minion) ||
-			target.Health is null ||
-			target.Health.IsDead ||
-			round?.Phase != LargeLadRoundPhase.Playing )
+		if ( attacker?.Role != LargeLadRole.SkinnyKid || inventory is null ||
+			definition is null || !LargeLadWeaponCatalog.IsFirearm( inventory.EquippedWeapon ) ||
+			attacker.Health?.IsDead == true || round?.Phase != LargeLadRoundPhase.Playing ||
+			timeSinceValidatedShot < definition.FireInterval )
 		{
 			return;
 		}
 
-		if ( GameObject.WorldPosition.DistanceSquared( target.GameObject.WorldPosition ) >
-			Range * Range )
+		if ( !inventory.TryConsumeShot( out definition ) )
+		{
+			inventory.BeginReload();
+			return;
+		}
+
+		timeSinceValidatedShot = 0.0f;
+
+		if ( claimedTarget is null )
+			return;
+
+		var targetPlayer = claimedTarget.Components.Get<LargeLadPlayer>(
+			FindMode.EverythingInSelfAndAncestors );
+		var barricade = LargeLadBarricade.FindFor( Scene, claimedTarget );
+
+		if ( targetPlayer is null && barricade is null )
+			return;
+
+		var resolvedTarget = targetPlayer?.GameObject ?? barricade.GameObject;
+
+		if ( GameObject.WorldPosition.DistanceSquared( resolvedTarget.WorldPosition ) >
+			definition.Range * definition.Range )
 		{
 			return;
 		}
 
 		var controller = Components.Get<PlayerController>();
 		var start = controller?.EyePosition ?? GameObject.WorldPosition + Vector3.Up * 64.0f;
-		var end = target.GameObject.WorldPosition + Vector3.Up * 36.0f;
+		var targetPosition = targetPlayer is not null
+			? targetPlayer.GameObject.WorldPosition + Vector3.Up * 36.0f
+			: barricade.GameObject.WorldPosition;
 		var trace = Scene.Trace
-			.Ray( start, end )
+			.Ray( start, targetPosition )
 			.UseHitboxes( true )
 			.IgnoreGameObjectHierarchy( GameObject )
 			.Run();
 
-		var validatedTarget = trace.GameObject?.Components.Get<LargeLadPlayer>(
+		var validatedPlayer = trace.GameObject?.Components.Get<LargeLadPlayer>(
 			FindMode.EverythingInSelfAndAncestors );
+		var validatedBarricade = LargeLadBarricade.FindFor( Scene, trace.GameObject );
 
-		if ( validatedTarget != target )
+		var damage = new LargeLadDamageContext
+		{
+			Attacker = GameObject,
+			AttackerRole = attacker.Role,
+			SourceWeapon = inventory.EquippedWeapon,
+			DamageType = LargeLadDamageType.Firearm,
+			BaseDamage = definition.Damage
+		};
+
+		if ( targetPlayer is not null )
+		{
+			if ( validatedPlayer != targetPlayer ||
+				targetPlayer.Role is not (LargeLadRole.LargeLad or LargeLadRole.Minion) ||
+				targetPlayer.Health?.IsDead != false )
+			{
+				return;
+			}
+
+			targetPlayer.Health.TryApplyDamage( damage, out var applied );
+			Log.Info( $"{GameObject.Name} hit {targetPlayer.GameObject.Name} for {applied.AppliedDamage:0.#} damage." );
 			return;
+		}
 
-		timeSinceLastAttack = 0.0f;
-		target.Health.TakeDamage( Damage, out var appliedDamage );
-
-		var targetName = target.Role == LargeLadRole.LargeLad
-			? "the Large Lad"
-			: "a Minion";
-
-		Log.Info(
-			$"{attacker.GameObject.Name} hit {targetName} for {appliedDamage:0.#} damage " +
-			$"({Damage:0.#} base). " +
-			$"{target.Health.CurrentHealth:0.#}/{target.Health.MaximumHealth:0.#} health remains." );
+		if ( validatedBarricade == barricade &&
+			barricade.TryApplyDamage( damage, out var structuralDamage ) )
+		{
+			Log.Info( $"{GameObject.Name} damaged {barricade.GameObject.Name} for {structuralDamage.AppliedDamage:0.#}." );
+		}
 	}
 }

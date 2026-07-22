@@ -1,6 +1,6 @@
 using Sandbox;
 
-public sealed class LargeLadHealth : Component
+public sealed class LargeLadHealth : Component, ILargeLadDamageable
 {
 	[Property]
 	public bool CreateRagdollOnDeath { get; set; } = true;
@@ -75,9 +75,24 @@ public sealed class LargeLadHealth : Component
 
 	public bool TakeDamage( float amount, out float appliedDamage )
 	{
-		appliedDamage = 0.0f;
+		var context = new LargeLadDamageContext
+		{
+			DamageType = LargeLadDamageType.Environment,
+			BaseDamage = amount
+		};
 
-		if ( !Networking.IsHost || IsDead || CurrentHealth <= 0.0f || amount <= 0.0f )
+		var killed = TryApplyDamage( context, out var applied );
+		appliedDamage = applied.AppliedDamage;
+		return killed;
+	}
+
+	public bool TryApplyDamage(
+		LargeLadDamageContext damage,
+		out LargeLadDamageContext appliedDamage )
+	{
+		appliedDamage = damage.WithAppliedDamage( 0.0f );
+
+		if ( !Networking.IsHost || IsDead || CurrentHealth <= 0.0f || damage.BaseDamage <= 0.0f )
 			return false;
 
 		var player = Components.Get<LargeLadPlayer>();
@@ -89,12 +104,13 @@ public sealed class LargeLadHealth : Component
 			? System.MathF.Max( 0.0f, LargeLadDamageMultiplier )
 			: 1.0f;
 
-		appliedDamage = amount * multiplier;
+		var amount = damage.BaseDamage * multiplier;
 
-		if ( appliedDamage <= 0.0f )
+		if ( amount <= 0.0f )
 			return false;
 
-		CurrentHealth = System.MathF.Max( 0.0f, CurrentHealth - appliedDamage );
+		CurrentHealth = System.MathF.Max( 0.0f, CurrentHealth - amount );
+		appliedDamage = damage.WithAppliedDamage( amount );
 		return CurrentHealth <= 0.0f;
 	}
 

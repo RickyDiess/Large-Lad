@@ -8,13 +8,6 @@ public enum LargeLadRole
 	Minion
 }
 
-public enum LargeLadWeaponType
-{
-	None,
-	Melee,
-	PrototypeGun
-}
-
 public sealed class LargeLadPlayer : Component
 {
 	private const int TeleportSettleFrames = 2;
@@ -30,14 +23,16 @@ public sealed class LargeLadPlayer : Component
 	public LargeLadPrototypeWeapon PrototypeWeapon { get; set; }
 
 	[Property, RequireComponent]
+	public LargeLadInventory Inventory { get; set; }
+
+	[Property, RequireComponent]
 	public LargeLadMeleeAttack MeleeAttack { get; set; }
 
 	[Sync( SyncFlags.FromHost ), Change( nameof( OnRoleChanged ) )]
 	public LargeLadRole Role { get; set; } = LargeLadRole.Unassigned;
 
-	[Sync( SyncFlags.FromHost )]
-	public LargeLadWeaponType EquippedWeapon { get; private set; } =
-		LargeLadWeaponType.None;
+	public LargeLadWeaponId EquippedWeapon =>
+		Inventory?.EquippedWeapon ?? LargeLadWeaponId.None;
 
 	[Sync( SyncFlags.FromHost ), Change( nameof( OnMovementLockedChanged ) )]
 	public bool MovementLocked { get; set; }
@@ -53,6 +48,16 @@ public sealed class LargeLadPlayer : Component
 
 	[Property]
 	public Color MinionTint { get; set; } = new( 0.55f, 0.15f, 0.75f );
+
+	[Property, Title( "Skinny Kid Body Scale" )]
+	public Vector3 RunnerBodyScale { get; set; } = Vector3.One;
+
+	[Property]
+	public Vector3 LargeLadBodyScale { get; set; } =
+		new( 1.25f, 1.45f, 1.0f );
+
+	[Property]
+	public Vector3 MinionBodyScale { get; set; } = Vector3.One;
 
 	[Property, Title( "Skinny Kid Walk Speed" )]
 	public float RunnerWalkSpeed { get; set; } = 110.0f;
@@ -76,7 +81,7 @@ public sealed class LargeLadPlayer : Component
 	{
 		if ( Networking.IsHost )
 		{
-			EquipDefaultWeaponForRole( Role );
+			Inventory?.PrepareForRole( Role );
 		}
 
 		ApplyRole( Role );
@@ -111,30 +116,11 @@ public sealed class LargeLadPlayer : Component
 	{
 		if ( Networking.IsHost )
 		{
-			EquipDefaultWeaponForRole( newRole );
+			Inventory?.PrepareForRole( newRole );
 		}
 
 		ApplyRole( newRole );
 		Log.Info( $"{GameObject.Name} changed role from {oldRole} to {newRole}." );
-	}
-
-	public void EquipWeapon( LargeLadWeaponType weapon )
-	{
-		if ( !Networking.IsHost )
-			return;
-
-		EquippedWeapon = weapon;
-	}
-
-	private void EquipDefaultWeaponForRole( LargeLadRole role )
-	{
-		EquipWeapon( role switch
-		{
-			LargeLadRole.SkinnyKid => LargeLadWeaponType.PrototypeGun,
-			LargeLadRole.LargeLad => LargeLadWeaponType.Melee,
-			LargeLadRole.Minion => LargeLadWeaponType.Melee,
-			_ => LargeLadWeaponType.None
-		} );
 	}
 
 	private void OnMovementLockedChanged( bool oldValue, bool newValue )
@@ -151,6 +137,15 @@ public sealed class LargeLadPlayer : Component
 				LargeLadRole.LargeLad => LargeLadTint,
 				LargeLadRole.Minion => MinionTint,
 				_ => RunnerTint
+			};
+
+			// Scale only the rendered body hierarchy. Scaling the networked player
+			// root would also distort movement, camera offsets, and physics.
+			BodyRenderer.GameObject.LocalScale = role switch
+			{
+				LargeLadRole.LargeLad => LargeLadBodyScale,
+				LargeLadRole.Minion => MinionBodyScale,
+				_ => RunnerBodyScale
 			};
 		}
 

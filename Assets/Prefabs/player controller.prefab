@@ -173,7 +173,7 @@
         "__guid": "45e6cf64-2e4e-4d37-9d0c-ea3c31ca0c2a",
         "__enabled": true,
         "Flags": 0,
-        "ApplyHeightScale": true,
+        "ApplyHeightScale": false,
         "BodyTarget": {
           "_type": "component",
           "component_id": "4173bfeb-7cf5-4fa1-8cac-1ae353f6cdac",
@@ -182,7 +182,7 @@
         },
         "Clothing": [],
         "ManualAge": 0.5,
-        "ManualHeight": 0.5,
+        "ManualHeight": 1,
         "ManualTint": 0.5,
         "OnComponentDestroy": null,
         "OnComponentDisabled": null,
@@ -235,6 +235,13 @@
           "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
           "component_type": "LargeLadHealth"
         },
+        "Inventory": {
+          "_type": "component",
+          "component_id": "c566b4c2-90b1-4bc8-87bb-94bf78e65549",
+          "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
+          "component_type": "LargeLadInventory"
+        },
+        "LargeLadBodyScale": "1.25,1.45000005,1",
         "LargeLadRunSpeed": 230,
         "LargeLadTint": "1,0.25,0.05,1",
         "LargeLadWalkSpeed": 85,
@@ -244,6 +251,7 @@
           "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
           "component_type": "LargeLadMeleeAttack"
         },
+        "MinionBodyScale": "1,1,1",
         "MinionRunSpeed": 300,
         "MinionTint": "0.55,0.15,0.75,1",
         "MinionWalkSpeed": 110,
@@ -259,6 +267,7 @@
           "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
           "component_type": "LargeLadPrototypeWeapon"
         },
+        "RunnerBodyScale": "1,1,1",
         "RunnerRunSpeed": 320,
         "RunnerTint": "1,1,1,1",
         "RunnerWalkSpeed": 110
@@ -279,6 +288,18 @@
         "OnComponentStart": null,
         "OnComponentUpdate": null,
         "SkinnyKidMaximumHealth": 100
+      },
+      {
+        "__type": "LargeLadInventory",
+        "__guid": "c566b4c2-90b1-4bc8-87bb-94bf78e65549",
+        "__enabled": true,
+        "Flags": 0,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null
       },
       {
         "__type": "LargeLadPrototypeWeapon",
@@ -391,7 +412,7 @@
         ],
         "Children": [
           {
-            "__guid": "e754c60b-63c1-4663-b722-56b1b0f71dd2",
+            "__guid": "04fa885f-3d15-43bd-a817-52899002066e",
             "__version": 2,
             "Flags": 0,
             "Name": "Clothing - y_front_pants_white",
@@ -408,7 +429,7 @@
             "Components": [
               {
                 "__type": "Sandbox.SkinnedModelRenderer",
-                "__guid": "bbd5213b-73eb-4cb1-85dc-fb76bc989a06",
+                "__guid": "c098e829-cab5-4182-93c2-90b4eab17737",
                 "__enabled": true,
                 "Flags": 0,
                 "AnimationGraph": null,
