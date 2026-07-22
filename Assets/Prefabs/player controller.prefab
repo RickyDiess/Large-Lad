@@ -244,6 +244,18 @@
         "RunnerRunSpeed": 320,
         "RunnerTint": "1,1,1,1",
         "RunnerWalkSpeed": 110
+      },
+      {
+        "__type": "LargeLadHud",
+        "__guid": "89f097a9-12e5-46f0-9476-cc36ed2584c3",
+        "__enabled": true,
+        "Flags": 0,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null
       }
     ],
     "Children": [
