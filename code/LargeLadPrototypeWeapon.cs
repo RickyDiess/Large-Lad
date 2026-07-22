@@ -24,6 +24,7 @@ public sealed class LargeLadPrototypeWeapon : Component
 
 		if ( player is null || controller is null ||
 			player.Role != LargeLadRole.SkinnyKid ||
+			player.EquippedWeapon != LargeLadWeaponType.PrototypeGun ||
 			player.Health?.IsDead == true )
 		{
 			return;
@@ -36,8 +37,16 @@ public sealed class LargeLadPrototypeWeapon : Component
 		if ( round?.Phase != LargeLadRoundPhase.Playing )
 			return;
 
-		var start = controller.EyePosition;
-		var end = start + controller.EyeTransform.Rotation.Forward * Range;
+		// Aim through the center of the active camera so the shot follows the
+		// crosshair even when the third-person view is offset over a shoulder.
+		var camera = Scene.Camera;
+		var start = camera is not null
+			? camera.WorldPosition
+			: controller.EyePosition;
+		var forward = camera is not null
+			? camera.WorldRotation.Forward
+			: controller.EyeTransform.Rotation.Forward;
+		var end = start + forward * Range;
 		var trace = Scene.Trace
 			.Ray( start, end )
 			.UseHitboxes( true )
@@ -73,6 +82,7 @@ public sealed class LargeLadPrototypeWeapon : Component
 			.FirstOrDefault();
 
 		if ( attacker?.Role != LargeLadRole.SkinnyKid ||
+			attacker.EquippedWeapon != LargeLadWeaponType.PrototypeGun ||
 			attacker.Health?.IsDead == true ||
 			target?.Role is not (LargeLadRole.LargeLad or LargeLadRole.Minion) ||
 			target.Health is null ||
@@ -104,14 +114,15 @@ public sealed class LargeLadPrototypeWeapon : Component
 			return;
 
 		timeSinceLastAttack = 0.0f;
-		target.Health.TakeDamage( Damage );
+		target.Health.TakeDamage( Damage, out var appliedDamage );
 
 		var targetName = target.Role == LargeLadRole.LargeLad
 			? "the Large Lad"
 			: "a Minion";
 
 		Log.Info(
-			$"{attacker.GameObject.Name} hit {targetName} for {Damage:0.#} damage. " +
+			$"{attacker.GameObject.Name} hit {targetName} for {appliedDamage:0.#} damage " +
+			$"({Damage:0.#} base). " +
 			$"{target.Health.CurrentHealth:0.#}/{target.Health.MaximumHealth:0.#} health remains." );
 	}
 }

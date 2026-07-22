@@ -38,7 +38,7 @@
         "BodyRadius": 16,
         "BrakePower": 1,
         "CameraCollisionIgnore": "",
-        "CameraOffset": "256,0,12",
+        "CameraOffset": "190,42,18",
         "ColliderObject": {
           "_type": "gameobject",
           "go": "e7ce2dee-ae66-4b87-8126-bb42eabb501c"
@@ -238,6 +238,12 @@
         "LargeLadRunSpeed": 230,
         "LargeLadTint": "1,0.25,0.05,1",
         "LargeLadWalkSpeed": 85,
+        "MeleeAttack": {
+          "_type": "component",
+          "component_id": "baaf6897-d157-4b8e-a452-eac53335bf87",
+          "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
+          "component_type": "LargeLadMeleeAttack"
+        },
         "MinionRunSpeed": 300,
         "MinionTint": "0.55,0.15,0.75,1",
         "MinionWalkSpeed": 110,
@@ -261,8 +267,9 @@
         "__type": "LargeLadHealth",
         "__guid": "8ff41dc2-a36e-4bbf-9526-bff01566ba8d",
         "__enabled": true,
-        "CreateRagdollOnDeath": true,
         "Flags": 0,
+        "CreateRagdollOnDeath": true,
+        "LargeLadDamageMultiplier": 0.1,
         "LargeLadMaximumHealth": 500,
         "MinionMaximumHealth": 75,
         "OnComponentDestroy": null,
@@ -277,9 +284,9 @@
         "__type": "LargeLadPrototypeWeapon",
         "__guid": "7ab7d5da-c1ae-4c15-853e-30de38e3d5a2",
         "__enabled": true,
+        "Flags": 0,
         "Cooldown": 0.35,
         "Damage": 100,
-        "Flags": 0,
         "OnComponentDestroy": null,
         "OnComponentDisabled": null,
         "OnComponentEnabled": null,
@@ -287,6 +294,24 @@
         "OnComponentStart": null,
         "OnComponentUpdate": null,
         "Range": 1200
+      },
+      {
+        "__type": "LargeLadMeleeAttack",
+        "__guid": "baaf6897-d157-4b8e-a452-eac53335bf87",
+        "__enabled": true,
+        "Flags": 0,
+        "LargeLadCooldown": 0.85,
+        "LargeLadRange": 100,
+        "MinimumFacingDot": 0.35,
+        "MinionCooldown": 0.65,
+        "MinionDamage": 25,
+        "MinionRange": 80,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null
       },
       {
         "__type": "LargeLadHud",
@@ -324,7 +349,7 @@
             "__enabled": true,
             "Flags": 0,
             "AnimationGraph": null,
-            "BodyGroups": 341,
+            "BodyGroups": 5185,
             "BoneMergeTarget": null,
             "CreateAttachments": false,
             "CreateBoneObjects": false,
@@ -364,7 +389,77 @@
             "UseAnimGraph": true
           }
         ],
-        "Children": []
+        "Children": [
+          {
+            "__guid": "e754c60b-63c1-4663-b722-56b1b0f71dd2",
+            "__version": 2,
+            "Flags": 0,
+            "Name": "Clothing - y_front_pants_white",
+            "Position": "0,0,0",
+            "Rotation": "0,0,0,1",
+            "Scale": "1,1,1",
+            "Tags": "clothing",
+            "Enabled": true,
+            "NetworkMode": 2,
+            "NetworkFlags": 0,
+            "NetworkOrphaned": 0,
+            "NetworkTransmit": true,
+            "OwnerTransfer": 1,
+            "Components": [
+              {
+                "__type": "Sandbox.SkinnedModelRenderer",
+                "__guid": "bbd5213b-73eb-4cb1-85dc-fb76bc989a06",
+                "__enabled": true,
+                "Flags": 0,
+                "AnimationGraph": null,
+                "BodyGroups": 18446744073709551615,
+                "BoneMergeTarget": {
+                  "_type": "component",
+                  "component_id": "4173bfeb-7cf5-4fa1-8cac-1ae353f6cdac",
+                  "go": "663383c9-6bdb-48e2-9c7d-30bedec4b012",
+                  "component_type": "SkinnedModelRenderer"
+                },
+                "CreateAttachments": false,
+                "CreateBoneObjects": false,
+                "LodOverride": null,
+                "MaterialGroup": null,
+                "MaterialOverride": null,
+                "Materials": null,
+                "Model": "models/citizen_clothes/underwear/y_front_pants/models/y_front_pants_m_human.vmdl",
+                "Morphs": {},
+                "OnComponentDestroy": null,
+                "OnComponentDisabled": null,
+                "OnComponentEnabled": null,
+                "OnComponentFixedUpdate": null,
+                "OnComponentStart": null,
+                "OnComponentUpdate": null,
+                "Parameters": {
+                  "bools": {},
+                  "ints": {},
+                  "floats": {},
+                  "vectors": {},
+                  "rotations": {}
+                },
+                "PlaybackRate": 1,
+                "RenderOptions": {
+                  "GameLayer": true,
+                  "OverlayLayer": false,
+                  "BloomLayer": false,
+                  "AfterUILayer": false
+                },
+                "RenderType": "On",
+                "Sequence": {
+                  "Name": null,
+                  "Looping": true,
+                  "Blending": false
+                },
+                "Tint": "1,1,1,1",
+                "UseAnimGraph": true
+              }
+            ],
+            "Children": []
+          }
+        ]
       },
       {
         "__guid": "e7ce2dee-ae66-4b87-8126-bb42eabb501c",

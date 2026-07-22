@@ -11,6 +11,9 @@ public sealed class LargeLadHealth : Component
 	[Property]
 	public float LargeLadMaximumHealth { get; set; } = 500.0f;
 
+	[Property, Title( "Large Lad Incoming Damage Multiplier" )]
+	public float LargeLadDamageMultiplier { get; set; } = 0.25f;
+
 	[Property]
 	public float MinionMaximumHealth { get; set; } = 75.0f;
 
@@ -67,6 +70,13 @@ public sealed class LargeLadHealth : Component
 
 	public bool TakeDamage( float amount )
 	{
+		return TakeDamage( amount, out _ );
+	}
+
+	public bool TakeDamage( float amount, out float appliedDamage )
+	{
+		appliedDamage = 0.0f;
+
 		if ( !Networking.IsHost || IsDead || CurrentHealth <= 0.0f || amount <= 0.0f )
 			return false;
 
@@ -75,7 +85,16 @@ public sealed class LargeLadHealth : Component
 		if ( player is null || player.Role == LargeLadRole.Unassigned )
 			return false;
 
-		CurrentHealth = System.MathF.Max( 0.0f, CurrentHealth - amount );
+		var multiplier = player.Role == LargeLadRole.LargeLad
+			? System.MathF.Max( 0.0f, LargeLadDamageMultiplier )
+			: 1.0f;
+
+		appliedDamage = amount * multiplier;
+
+		if ( appliedDamage <= 0.0f )
+			return false;
+
+		CurrentHealth = System.MathF.Max( 0.0f, CurrentHealth - appliedDamage );
 		return CurrentHealth <= 0.0f;
 	}
 

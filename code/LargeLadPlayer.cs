@@ -8,6 +8,13 @@ public enum LargeLadRole
 	Minion
 }
 
+public enum LargeLadWeaponType
+{
+	None,
+	Melee,
+	PrototypeGun
+}
+
 public sealed class LargeLadPlayer : Component
 {
 	private const int TeleportSettleFrames = 2;
@@ -22,8 +29,15 @@ public sealed class LargeLadPlayer : Component
 	[Property, RequireComponent]
 	public LargeLadPrototypeWeapon PrototypeWeapon { get; set; }
 
+	[Property, RequireComponent]
+	public LargeLadMeleeAttack MeleeAttack { get; set; }
+
 	[Sync( SyncFlags.FromHost ), Change( nameof( OnRoleChanged ) )]
 	public LargeLadRole Role { get; set; } = LargeLadRole.Unassigned;
+
+	[Sync( SyncFlags.FromHost )]
+	public LargeLadWeaponType EquippedWeapon { get; private set; } =
+		LargeLadWeaponType.None;
 
 	[Sync( SyncFlags.FromHost ), Change( nameof( OnMovementLockedChanged ) )]
 	public bool MovementLocked { get; set; }
@@ -60,6 +74,11 @@ public sealed class LargeLadPlayer : Component
 
 	protected override void OnStart()
 	{
+		if ( Networking.IsHost )
+		{
+			EquipDefaultWeaponForRole( Role );
+		}
+
 		ApplyRole( Role );
 		RefreshMovementState();
 	}
@@ -90,8 +109,32 @@ public sealed class LargeLadPlayer : Component
 
 	private void OnRoleChanged( LargeLadRole oldRole, LargeLadRole newRole )
 	{
+		if ( Networking.IsHost )
+		{
+			EquipDefaultWeaponForRole( newRole );
+		}
+
 		ApplyRole( newRole );
 		Log.Info( $"{GameObject.Name} changed role from {oldRole} to {newRole}." );
+	}
+
+	public void EquipWeapon( LargeLadWeaponType weapon )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		EquippedWeapon = weapon;
+	}
+
+	private void EquipDefaultWeaponForRole( LargeLadRole role )
+	{
+		EquipWeapon( role switch
+		{
+			LargeLadRole.SkinnyKid => LargeLadWeaponType.PrototypeGun,
+			LargeLadRole.LargeLad => LargeLadWeaponType.Melee,
+			LargeLadRole.Minion => LargeLadWeaponType.Melee,
+			_ => LargeLadWeaponType.None
+		} );
 	}
 
 	private void OnMovementLockedChanged( bool oldValue, bool newValue )

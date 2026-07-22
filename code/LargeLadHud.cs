@@ -25,6 +25,7 @@ public sealed class LargeLadHud : Component
 		DrawRoundStatus( hud, round, player );
 		DrawLargeLadStatus( hud, round );
 		DrawRoleStatus( hud, player );
+		DrawCrosshair( hud, player );
 
 		if ( round.Phase == LargeLadRoundPhase.RoundOver )
 		{
@@ -164,6 +165,88 @@ public sealed class LargeLadHud : Component
 			TextFlag.Center );
 	}
 
+	private static void DrawCrosshair( HudPainter hud, LargeLadPlayer player )
+	{
+		if ( player.Health is null ||
+			player.Health.IsDead ||
+			player.EquippedWeapon == LargeLadWeaponType.None )
+		{
+			return;
+		}
+
+		var centerX = Screen.Width * 0.5f;
+		var centerY = Screen.Height * 0.5f;
+
+		if ( player.EquippedWeapon == LargeLadWeaponType.Melee )
+		{
+			DrawCrosshairSegment(
+				hud,
+				new Rect( centerX - 2.5f, centerY - 2.5f, 5.0f, 5.0f ) );
+			return;
+		}
+
+		if ( player.EquippedWeapon != LargeLadWeaponType.PrototypeGun )
+			return;
+
+		const float gap = 6.0f;
+		const float armLength = 10.0f;
+		const float thickness = 2.0f;
+		var halfThickness = thickness * 0.5f;
+
+		DrawCrosshairSegment(
+			hud,
+			new Rect(
+				centerX - gap - armLength,
+				centerY - halfThickness,
+				armLength,
+				thickness ) );
+		DrawCrosshairSegment(
+			hud,
+			new Rect(
+				centerX + gap,
+				centerY - halfThickness,
+				armLength,
+				thickness ) );
+		DrawCrosshairSegment(
+			hud,
+			new Rect(
+				centerX - halfThickness,
+				centerY - gap - armLength,
+				thickness,
+				armLength ) );
+		DrawCrosshairSegment(
+			hud,
+			new Rect(
+				centerX - halfThickness,
+				centerY + gap,
+				thickness,
+				armLength ) );
+	}
+
+	private static void DrawCrosshairSegment( HudPainter hud, Rect rect )
+	{
+		DrawSolidRect(
+			hud,
+			new Rect(
+				rect.Left - 1.0f,
+				rect.Top - 1.0f,
+				rect.Width + 2.0f,
+				rect.Height + 2.0f ),
+			new Color( 0.0f, 0.0f, 0.0f, 0.8f ) );
+
+		DrawSolidRect( hud, rect, Color.White );
+	}
+
+	private static void DrawSolidRect( HudPainter hud, Rect rect, Color color )
+	{
+		hud.DrawRect(
+			rect,
+			color,
+			new Vector4( 0.0f, 0.0f, 0.0f, 0.0f ),
+			new Vector4( 0.0f, 0.0f, 0.0f, 0.0f ),
+			new Color( 0.0f, 0.0f, 0.0f, 0.0f ) );
+	}
+
 	private static void DrawPanel( HudPainter hud, Rect rect, Color accent )
 	{
 		hud.DrawRect(
@@ -248,8 +331,8 @@ public sealed class LargeLadHud : Component
 		return role switch
 		{
 			LargeLadRole.SkinnyKid => "Survive the timer. Primary fire: test blaster.",
-			LargeLadRole.LargeLad => "Convert every Skinny Kid.",
-			LargeLadRole.Minion => "Help the Lad convert the remaining Skinny Kids.",
+			LargeLadRole.LargeLad => "Eat every Skinny Kid. Primary fire: melee.",
+			LargeLadRole.Minion => "Help the Lad eat the Skinny Kids. Primary fire: melee.",
 			_ => "A new round will begin shortly."
 		};
 	}

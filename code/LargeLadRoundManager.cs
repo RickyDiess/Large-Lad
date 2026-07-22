@@ -34,9 +34,6 @@ public sealed class LargeLadRoundManager : Component
 	public float IntermissionDuration { get; set; } = 5.0f;
 
 	[Property]
-	public float ConversionDistance { get; set; } = 48.0f;
-
-	[Property]
 	public float LargeLadRespawnDelay { get; set; } = 5.0f;
 
 	[Property]
@@ -118,7 +115,6 @@ public sealed class LargeLadRoundManager : Component
 
 				UpdateLargeLadRespawn( players );
 				UpdatePlayerRespawns( players );
-				ConvertTouchedSkinnyKids( players );
 
 				if ( EndRoundIfTeamIsMissing( players ) )
 					break;
@@ -380,45 +376,6 @@ public sealed class LargeLadRoundManager : Component
 			player.MovementLocked = false;
 
 			Log.Info( $"{player.GameObject.Name} respawned in the waiting area." );
-		}
-	}
-
-	private void ConvertTouchedSkinnyKids( List<LargeLadPlayer> players )
-	{
-		var hunters = players
-			.Where( player =>
-				(player.Role is LargeLadRole.LargeLad or LargeLadRole.Minion) &&
-				player.Health?.IsDead != true )
-			.ToList();
-
-		var skinnyKids = players
-			.Where( player =>
-				player.Role == LargeLadRole.SkinnyKid &&
-				player.Health?.IsDead != true )
-			.ToList();
-
-		var conversionDistanceSquared = ConversionDistance * ConversionDistance;
-
-		foreach ( var hunter in hunters )
-		{
-			foreach ( var skinnyKid in skinnyKids )
-			{
-				if ( skinnyKid.Role != LargeLadRole.SkinnyKid )
-					continue;
-
-				var distanceSquared = hunter.GameObject.WorldPosition
-					.DistanceSquared( skinnyKid.GameObject.WorldPosition );
-
-				if ( distanceSquared > conversionDistanceSquared )
-					continue;
-
-				BeginPlayerRespawn( skinnyKid, LargeLadRole.Minion, false );
-
-				Log.Info(
-					$"{hunter.GameObject.Name} ate {skinnyKid.GameObject.Name}. " +
-					$"They will respawn as a Minion in {PlayerRespawnDelay:0.#} seconds." );
-				break;
-			}
 		}
 	}
 
