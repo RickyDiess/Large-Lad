@@ -217,6 +217,33 @@
           "go": "8c34811f-2b97-4436-8681-3734efbb4beb",
           "component_type": "CameraComponent"
         }
+      },
+      {
+        "__type": "LargeLadPlayer",
+        "__guid": "eb58bc7a-2873-456a-b748-65fe43985fa6",
+        "__enabled": true,
+        "Flags": 0,
+        "BodyRenderer": {
+          "_type": "component",
+          "component_id": "4173bfeb-7cf5-4fa1-8cac-1ae353f6cdac",
+          "go": "663383c9-6bdb-48e2-9c7d-30bedec4b012",
+          "component_type": "SkinnedModelRenderer"
+        },
+        "LargeLadRunSpeed": 230,
+        "LargeLadTint": "1,0.25,0.05,1",
+        "LargeLadWalkSpeed": 85,
+        "MinionRunSpeed": 300,
+        "MinionTint": "0.55,0.15,0.75,1",
+        "MinionWalkSpeed": 110,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "RunnerRunSpeed": 320,
+        "RunnerTint": "1,1,1,1",
+        "RunnerWalkSpeed": 110
       }
     ],
     "Children": [
