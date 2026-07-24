@@ -6,6 +6,10 @@ public sealed class LargeLadKillVolume : Component, Component.ITriggerListener
 	[Property]
 	public Collider TriggerCollider { get; set; }
 
+	public HammerMesh TriggerMesh { get; private set; }
+
+	public bool HasTriggerShape => TriggerMesh is not null || TriggerCollider is not null;
+
 	[Property, Title( "Editor Gizmo Padding" )]
 	public float GizmoPadding { get; set; } = 2.0f;
 
@@ -16,25 +20,51 @@ public sealed class LargeLadKillVolume : Component, Component.ITriggerListener
 
 	protected override void OnStart()
 	{
+		LargeLadHammerPreview.HideAtRuntime( GameObject );
 		ResolveTriggerCollider();
+		ConfigureTriggerShape();
+	}
 
-		if ( TriggerCollider is not null )
-		{
-			TriggerCollider.IsTrigger = true;
-		}
+	protected override void OnUpdate()
+	{
+		// Tied Hammer meshes can arrive after this component during VMAP loading.
+		// Retry until the authored trigger shape has been resolved.
+		if ( HasTriggerShape )
+			return;
+
+		ResolveTriggerCollider();
+		ConfigureTriggerShape();
 	}
 
 	protected override void OnValidate()
 	{
 		ResolveTriggerCollider();
+		ConfigureTriggerShape();
 
-		if ( TriggerCollider is null )
-			Log.Warning( $"{GameObject.Name}: kill volume is missing its trigger collider reference." );
+		// The deferred whole-map validator handles a genuinely missing shape.
+		// Logging here creates a false warning before Hammer attaches its mesh.
 	}
 
 	private void ResolveTriggerCollider()
 	{
-		TriggerCollider ??= Components.Get<Collider>();
+		TriggerMesh = Components.Get<HammerMesh>( FindMode.EverythingInSelf );
+
+		if ( TriggerCollider is null || !TriggerCollider.IsValid )
+			TriggerCollider = Components.Get<Collider>( FindMode.EverythingInSelf );
+	}
+
+	private void ConfigureTriggerShape()
+	{
+		if ( TriggerMesh is not null )
+		{
+			TriggerMesh.UseCollision = true;
+			TriggerMesh.UseRenderer = false;
+			TriggerMesh.IsTrigger = true;
+			TriggerMesh.Static = true;
+		}
+
+		if ( TriggerCollider is not null )
+			TriggerCollider.IsTrigger = true;
 	}
 
 	public void OnTriggerEnter( Collider other )
@@ -63,15 +93,21 @@ public sealed class LargeLadKillVolume : Component, Component.ITriggerListener
 	{
 		ResolveTriggerCollider();
 
-		var colliderObject = TriggerCollider?.GameObject ?? GameObject;
+		// A tied Hammer brush is the authoritative, editable preview. Hammer
+		// already renders it at its exact bounds, so avoid a second offset box.
+		if ( TriggerMesh is not null )
+			return;
+
 		var padding = new Vector3( System.MathF.Max( 0.0f, GizmoPadding ) );
-		var localBounds = colliderObject.GetLocalBounds();
+		var worldBounds = TriggerCollider is not null
+			? TriggerCollider.GetWorldBounds()
+			: GameObject.GetBounds();
 		var paddedBounds = new BBox(
-			localBounds.Mins - padding,
-			localBounds.Maxs + padding );
+			worldBounds.Mins - padding,
+			worldBounds.Maxs + padding );
 		var color = new Color( 1.0f, 0.0f, 0.4f );
 
-		Gizmo.Transform = colliderObject.WorldTransform;
+		Gizmo.Transform = global::Transform.Zero;
 		Gizmo.Draw.IgnoreDepth = true;
 		Gizmo.Draw.Color = color.WithAlpha( 0.14f );
 		Gizmo.Draw.SolidBox( paddedBounds );
@@ -81,4 +117,5 @@ public sealed class LargeLadKillVolume : Component, Component.ITriggerListener
 		Gizmo.Draw.LineThickness = 1.0f;
 		Gizmo.Draw.IgnoreDepth = false;
 	}
+
 }

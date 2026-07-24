@@ -8,6 +8,88 @@ public enum LargeLadBarricadeMode
 	LadShortcut
 }
 
+/// <summary>
+/// The only networked part of a barricade. Hammer owns and loads the tied
+/// brush locally on every client; this lightweight child carries just the
+/// authoritative health and intact/destroyed state.
+/// </summary>
+public sealed class LargeLadBarricadeState : Component
+{
+	[Sync( SyncFlags.FromHost )]
+	public float CurrentHealth { get; private set; }
+
+	[Sync( SyncFlags.FromHost ), Change( nameof( OnDestroyedChanged ) )]
+	public bool IsDestroyed { get; private set; }
+
+	private bool? lastNotifiedDestroyedState;
+
+	protected override void OnAwake()
+	{
+		GameObject.IsStatic = true;
+		GameObject.NetworkMode = NetworkMode.Object;
+	}
+
+	protected override void OnStart()
+	{
+		NotifyBarricade( IsDestroyed, IsDestroyed );
+	}
+
+	protected override void OnUpdate()
+	{
+		// A network state child can arrive before its locally loaded Hammer
+		// parent has finished streaming. Retry until the two halves are paired.
+		if ( lastNotifiedDestroyedState != IsDestroyed )
+			NotifyBarricade( lastNotifiedDestroyedState ?? IsDestroyed, IsDestroyed );
+	}
+
+	public void Initialize( float maximumHealth )
+	{
+		if ( !Networking.IsHost || IsDestroyed || CurrentHealth > 0.0f )
+			return;
+
+		CurrentHealth = System.MathF.Max( 1.0f, maximumHealth );
+	}
+
+	public bool TryApplyDamage( float amount )
+	{
+		if ( !Networking.IsHost || IsDestroyed || CurrentHealth <= 0.0f || amount <= 0.0f )
+			return false;
+
+		CurrentHealth = System.MathF.Max( 0.0f, CurrentHealth - amount );
+
+		if ( CurrentHealth <= 0.0f )
+			IsDestroyed = true;
+
+		return true;
+	}
+
+	public void Reset( float maximumHealth )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		CurrentHealth = System.MathF.Max( 1.0f, maximumHealth );
+		IsDestroyed = false;
+	}
+
+	private void OnDestroyedChanged( bool oldValue, bool newValue )
+	{
+		NotifyBarricade( oldValue, newValue );
+	}
+
+	private void NotifyBarricade( bool oldValue, bool newValue )
+	{
+		var barricade = GameObject.Parent?.Components.Get<LargeLadBarricade>(
+			FindMode.EverythingInSelfAndAncestors );
+
+		if ( barricade is null )
+			return;
+
+		lastNotifiedDestroyedState = newValue;
+		barricade.HandleNetworkStateChanged( oldValue, newValue );
+	}
+}
+
 public sealed class LargeLadBarricade : Component,
 	ILargeLadDamageable,
 	ILargeLadRoundResettable
@@ -25,6 +107,28 @@ public sealed class LargeLadBarricade : Component,
 
 	public Collider BarricadeCollider { get; private set; }
 
+	public HammerMesh AuthoredHammerMesh { get; private set; }
+
+	public bool HasVisibleGeometry =>
+		(AuthoredHammerMesh is not null && AuthoredHammerMesh.UseRenderer) ||
+		BarricadeRenderer is not null;
+
+	public bool HasCollision =>
+		(AuthoredHammerMesh is not null && AuthoredHammerMesh.UseCollision) ||
+		BarricadeCollider is not null;
+
+	public bool HasRedundantBoxCollider
+	{
+		get
+		{
+			ResolveAuthoredParts();
+
+			return AuthoredHammerMesh is not null &&
+				AuthoredTarget.Components.Get<BoxCollider>(
+					FindMode.EverythingInSelf ) is not null;
+		}
+	}
+
 	[Property, Title( "Local Cosmetic Debris" )]
 	public List<GameObject> CosmeticDebris { get; set; } = new();
 
@@ -34,21 +138,28 @@ public sealed class LargeLadBarricade : Component,
 	[Property, Title( "Editor Gizmo Padding" )]
 	public float GizmoPadding { get; set; } = 2.0f;
 
-	[Sync( SyncFlags.FromHost )]
-	public float CurrentHealth { get; private set; }
+	public LargeLadBarricadeState NetworkState { get; private set; }
 
-	[Sync( SyncFlags.FromHost ), Change( nameof( OnDestroyedChanged ) )]
-	public bool IsDestroyed { get; private set; }
+	public float CurrentHealth => NetworkState?.CurrentHealth ?? 0.0f;
+
+	public bool IsDestroyed => NetworkState?.IsDestroyed == true;
+
+	public bool HasNetworkState => NetworkState is not null;
 
 	private bool? appliedDestroyedState;
+	private bool warnedAboutMissingState;
+	private const string DevVisualName = "Large Lad Barricade Dev Visual";
 
-	public GameObject AuthoredTarget => GameObject.Parent ?? GameObject;
+	public GameObject AuthoredTarget => GameObject;
 
 	public Vector3 GetClosestWorldPoint( Vector3 worldPoint )
 	{
+		if ( BarricadeCollider is not null )
+			return BarricadeCollider.FindClosestPoint( worldPoint );
+
 		var authoredObject = AuthoredTarget;
 		var localPoint = authoredObject.WorldTransform.PointToLocal( worldPoint );
-		var closestLocalPoint = authoredObject.GetLocalBounds().ClosestPoint( localPoint );
+		var closestLocalPoint = GetAuthoredLocalBounds().ClosestPoint( localPoint );
 		return authoredObject.WorldTransform.PointToWorld( closestLocalPoint );
 	}
 
@@ -76,23 +187,50 @@ public sealed class LargeLadBarricade : Component,
 	protected override void OnAwake()
 	{
 		ResolveAuthoredParts();
+		ResolveNetworkState();
+		ConfigureAuthoredObject();
 	}
 
 	protected override void OnStart()
 	{
 		ResolveAuthoredParts();
+		ResolveNetworkState();
+		ConfigureAuthoredObject();
+		CreateDevVisualIfNeeded();
+		ResolveAuthoredParts();
 		SetCosmeticDebrisEnabled( false );
 
-		if ( Networking.IsHost && CurrentHealth <= 0.0f && !IsDestroyed )
-		{
-			CurrentHealth = System.MathF.Max( 1.0f, MaximumHealth );
-		}
+		NetworkState?.Initialize( MaximumHealth );
 
 		ApplyDestroyedState();
 	}
 
 	protected override void OnUpdate()
 	{
+		if ( NetworkState is null )
+		{
+			ResolveNetworkState();
+			NetworkState?.Initialize( MaximumHealth );
+
+			if ( NetworkState is null && !warnedAboutMissingState )
+			{
+				warnedAboutMissingState = true;
+				Log.Error(
+					$"Barricade '{GameObject.Name}' has no LargeLadBarricadeState child. " +
+					"Repair or recreate it with the Large Lad Hammer menu." );
+			}
+		}
+
+		// A tied HammerMesh can be attached after this component's Awake/Start
+		// callbacks while the VMAP is streaming. Keep resolving until the brush
+		// exists so the same tied GameObject becomes the renderer and collider.
+		if ( !HasVisibleGeometry || !HasCollision )
+		{
+			ResolveAuthoredParts();
+			ConfigureAuthoredObject();
+			ApplyDestroyedState();
+		}
+
 		// The normal path is the Sync change callback. This also repairs the
 		// authored pieces after a hotload or a late network snapshot.
 		if ( appliedDestroyedState != IsDestroyed )
@@ -105,26 +243,31 @@ public sealed class LargeLadBarricade : Component,
 	protected override void OnValidate()
 	{
 		ResolveAuthoredParts();
+		ConfigureAuthoredObject();
 
 		if ( MaximumHealth <= 0.0f )
 			Log.Warning( $"{GameObject.Name}: barricade health must be positive." );
 
-		if ( GameObject.Parent is null )
-			Log.Warning( $"{GameObject.Name}: barricade state must be a child of its authored geometry." );
-
-		if ( BarricadeRenderer is null || BarricadeCollider is null )
-			Log.Warning( $"{GameObject.Name}: parent needs a MeshComponent, or a renderer and collider." );
+		// Geometry may not have been attached yet while Hammer is streaming this
+		// object. The deferred whole-map validator reports a real missing brush.
 	}
 
 	private void ResolveAuthoredParts()
 	{
-		var authoredObject = GameObject.Parent;
+		var authoredObject = AuthoredTarget;
 
+		AuthoredHammerMesh = authoredObject.Components.Get<HammerMesh>(
+			FindMode.EverythingInSelf );
 		BarricadeRenderer = null;
 		BarricadeCollider = null;
 
-		if ( authoredObject is null )
+		if ( AuthoredHammerMesh is not null )
+		{
+			BarricadeRenderer = AuthoredHammerMesh;
+			BarricadeCollider = authoredObject.Components.Get<Collider>(
+				FindMode.EverythingInSelf );
 			return;
+		}
 
 		// A destroyed barricade disables its authored components. Use an
 		// everything lookup so the host can still rediscover and re-enable them
@@ -141,9 +284,82 @@ public sealed class LargeLadBarricade : Component,
 
 		BarricadeRenderer = authoredObject.Components.Get<Renderer>(
 			FindMode.EverythingInSelf );
+		BarricadeRenderer ??= authoredObject.GetComponentInChildren<Renderer>( true );
 		BarricadeCollider = authoredObject.Components.Get<Collider>(
 			FindMode.EverythingInSelf );
 		BarricadeRenderer ??= BarricadeCollider;
+	}
+
+	private void ResolveNetworkState()
+	{
+		NetworkState = AuthoredTarget.GetComponentInChildren<LargeLadBarricadeState>( true );
+	}
+
+	private void ConfigureHammerMesh()
+	{
+		if ( AuthoredHammerMesh is null )
+			return;
+
+		AuthoredHammerMesh.UseRenderer = true;
+		AuthoredHammerMesh.UseCollision = true;
+		AuthoredHammerMesh.IsTrigger = false;
+		AuthoredHammerMesh.Static = true;
+	}
+
+	private void ConfigureAuthoredObject()
+	{
+		GameObject.IsStatic = true;
+		// The compiled Hammer model is map-local content. Networking this parent
+		// makes clients skip their locally generated copy and leaves them trying
+		// to render a generated model resource that was never network-distributed.
+		GameObject.NetworkMode = NetworkMode.Never;
+		ConfigureHammerMesh();
+	}
+
+	private void CreateDevVisualIfNeeded()
+	{
+		if ( AuthoredHammerMesh is not null || BarricadeRenderer is not null || BarricadeCollider is null )
+			return;
+
+		var authoredObject = AuthoredTarget;
+		var visual = authoredObject.Children.FirstOrDefault( child => child.Name == DevVisualName );
+
+		if ( visual is null )
+		{
+			var bounds = GetAuthoredLocalBounds();
+			visual = new GameObject( true, DevVisualName );
+			visual.SetParent( authoredObject, false );
+			visual.LocalPosition = bounds.Center;
+			visual.LocalScale = bounds.Size;
+		}
+
+		var renderer = visual.GetOrAddComponent<ModelRenderer>();
+		renderer.Model = Model.Load( "models/dev/box.vmdl" );
+		renderer.Tint = Mode == LargeLadBarricadeMode.SkinnyProgression
+			? new Color( 0.25f, 0.85f, 1.0f )
+			: new Color( 1.0f, 0.22f, 0.08f );
+		visual.LocalScale = ScaleModelToSize( renderer.Model, GetAuthoredLocalBounds().Size );
+	}
+
+	private static Vector3 ScaleModelToSize( Model model, Vector3 targetSize )
+	{
+		var size = model?.Bounds.Size ?? Vector3.One;
+
+		return new Vector3(
+			size.x > 0.001f ? targetSize.x / size.x : 1.0f,
+			size.y > 0.001f ? targetSize.y / size.y : 1.0f,
+			size.z > 0.001f ? targetSize.z / size.z : 1.0f );
+	}
+
+	private BBox GetAuthoredLocalBounds()
+	{
+		if ( BarricadeCollider is not null )
+			return BarricadeCollider.LocalBounds;
+
+		if ( AuthoredHammerMesh?.Model is not null )
+			return AuthoredHammerMesh.Model.Bounds;
+
+		return AuthoredTarget.GetLocalBounds();
 	}
 
 	public bool TryApplyDamage(
@@ -152,7 +368,7 @@ public sealed class LargeLadBarricade : Component,
 	{
 		appliedDamage = damage.WithAppliedDamage( 0.0f );
 
-		if ( !Networking.IsHost || IsDestroyed || CurrentHealth <= 0.0f )
+		if ( !Networking.IsHost || NetworkState is null || IsDestroyed || CurrentHealth <= 0.0f )
 			return false;
 
 		float amount;
@@ -181,14 +397,11 @@ public sealed class LargeLadBarricade : Component,
 		if ( amount <= 0.0f )
 			return false;
 
-		CurrentHealth = System.MathF.Max( 0.0f, CurrentHealth - amount );
-		appliedDamage = damage.WithAppliedDamage( amount );
+		if ( !NetworkState.TryApplyDamage( amount ) )
+			return false;
 
-		if ( CurrentHealth <= 0.0f )
-		{
-			IsDestroyed = true;
-			ApplyDestroyedState();
-		}
+		appliedDamage = damage.WithAppliedDamage( amount );
+		ApplyDestroyedState();
 
 		return true;
 	}
@@ -199,13 +412,20 @@ public sealed class LargeLadBarricade : Component,
 			return;
 
 		ResolveAuthoredParts();
-		CurrentHealth = System.MathF.Max( 1.0f, MaximumHealth );
-		IsDestroyed = false;
+		ResolveNetworkState();
+
+		if ( NetworkState is null )
+		{
+			Log.Error( $"Cannot reset barricade '{AuthoredTarget.Name}' without a network state child." );
+			return;
+		}
+
+		NetworkState.Reset( MaximumHealth );
 		ApplyDestroyedState();
 		Log.Info( $"Reset barricade '{AuthoredTarget.Name}' for the new round." );
 	}
 
-	private void OnDestroyedChanged( bool oldValue, bool newValue )
+	public void HandleNetworkStateChanged( bool oldValue, bool newValue )
 	{
 		ApplyDestroyedState();
 
@@ -218,6 +438,16 @@ public sealed class LargeLadBarricade : Component,
 	private void ApplyDestroyedState()
 	{
 		appliedDestroyedState = IsDestroyed;
+
+		if ( AuthoredHammerMesh is not null )
+		{
+			AuthoredHammerMesh.Enabled = !IsDestroyed;
+
+			if ( !IsDestroyed )
+				SetCosmeticDebrisEnabled( false );
+
+			return;
+		}
 
 		if ( BarricadeRenderer is not null )
 			BarricadeRenderer.Enabled = !IsDestroyed;
@@ -252,17 +482,24 @@ public sealed class LargeLadBarricade : Component,
 	{
 		ResolveAuthoredParts();
 
-		var authoredObject = AuthoredTarget;
+		// In Hammer, the tied brush is already the exact editable preview.
+		// Drawing another component-space box over it is both redundant and,
+		// because Hammer owns the brush transform, prone to being offset.
+		if ( AuthoredHammerMesh is not null )
+			return;
+
 		var padding = new Vector3( System.MathF.Max( 0.0f, GizmoPadding ) );
-		var localBounds = authoredObject.GetLocalBounds();
+		var worldBounds = BarricadeCollider is not null
+			? BarricadeCollider.GetWorldBounds()
+			: AuthoredTarget.GetBounds();
 		var paddedBounds = new BBox(
-			localBounds.Mins - padding,
-			localBounds.Maxs + padding );
+			worldBounds.Mins - padding,
+			worldBounds.Maxs + padding );
 		var color = Mode == LargeLadBarricadeMode.SkinnyProgression
 			? new Color( 0.25f, 0.85f, 1.0f )
 			: new Color( 1.0f, 0.22f, 0.08f );
 
-		Gizmo.Transform = authoredObject.WorldTransform;
+		Gizmo.Transform = global::Transform.Zero;
 		Gizmo.Draw.IgnoreDepth = true;
 		Gizmo.Draw.Color = color.WithAlpha( 0.16f );
 		Gizmo.Draw.SolidBox( paddedBounds );

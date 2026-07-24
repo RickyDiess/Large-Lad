@@ -1,84 +1,59 @@
 {
   "RootObject": {
-    "__guid": "4ec5f084-cef2-4cca-9d9d-3d3a4ba40ec5",
+    "__guid": "74741a15-9fb2-4554-bf17-073c14836fc6",
     "__version": 2,
     "Flags": 0,
-    "Name": "Large Lad Gameplay Bootstrap",
+    "Name": "Lobby Team Spawn",
     "Position": "0,0,0",
     "Rotation": "0,0,0,1",
     "Scale": "1,1,1",
     "Tags": "",
     "Enabled": true,
-    "NetworkMode": 1,
+    "NetworkMode": 2,
     "NetworkFlags": 0,
     "NetworkOrphaned": 0,
     "NetworkTransmit": true,
     "OwnerTransfer": 1,
     "Components": [
       {
-        "__type": "Sandbox.NetworkHelper",
-        "__guid": "13a94fea-a2de-45da-beb8-61e564e6e245",
+        "__type": "Sandbox.SpawnPoint",
+        "__guid": "d6fa6ddc-3caf-4566-a1e4-a8e954685c78",
         "__enabled": true,
         "Flags": 0,
-        "OnComponentDestroy": null,
-        "OnComponentDisabled": null,
-        "OnComponentEnabled": null,
-        "OnComponentFixedUpdate": null,
-        "OnComponentStart": null,
-        "OnComponentUpdate": null,
-        "PlayerPrefab": {
-          "_type": "gameobject",
-          "prefab": "prefabs/player controller.prefab"
-        },
-        "SpawnPoints": [],
-        "StartServer": true
-      },
-      {
-        "__type": "LargeLadRoundManager",
-        "__guid": "6ba98835-269e-4ca8-95a4-06e9faf5db59",
-        "__enabled": true,
-        "Flags": 0,
-        "HeadStartDuration": 10,
-        "IntermissionDuration": 5,
-        "LargeLadRespawnDelay": 5,
-        "MinimumPlayers": 2,
-        "OnComponentDestroy": null,
-        "OnComponentDisabled": null,
-        "OnComponentEnabled": null,
-        "OnComponentFixedUpdate": null,
-        "OnComponentStart": null,
-        "OnComponentUpdate": null,
-        "PlayerReadyDelay": 0.5,
-        "PlayerRespawnDelay": 5,
-        "RoundDuration": 60
-      },
-      {
-        "__type": "LargeLadMapDefinition",
-        "__guid": "54e8b1e3-56e4-53fc-8f6a-aeba626a6879",
-        "__enabled": true,
-        "Flags": 0,
-        "HeadStartDuration": 10,
-        "SurvivalDuration": 60,
-        "IntermissionDuration": 5,
-        "NetworkHelper": null,
-        "RoundManager": null,
+        "Color": "1,1,1,1",
         "OnComponentDestroy": null,
         "OnComponentDisabled": null,
         "OnComponentEnabled": null,
         "OnComponentFixedUpdate": null,
         "OnComponentStart": null,
         "OnComponentUpdate": null
+      },
+      {
+        "__type": "LargeLadTeamSpawn",
+        "__guid": "5da541b7-1245-4f6d-9d34-87b034f7d504",
+        "__enabled": true,
+        "Flags": 0,
+        "Group": "Lobby",
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "SpawnRadius": 160,
+        "Capacity": 16,
+        "MinimumSeparation": 48
       }
     ],
     "Children": [
       {
-        "__guid": "bcb0180b-312e-5d7f-aba6-61fea79ed4ab",
+        "__guid": "10eab289-5fee-5da5-b6b2-ae9092c85ccd",
         "__version": 2,
         "Flags": 0,
         "Name": "Large Lad Hammer Preview",
-        "Position": "0,0,24",
+        "Position": "0,0,0",
         "Rotation": "0,0,0,1",
-        "Scale": "0.35,0.35,0.35",
+        "Scale": "1,1,1",
         "Tags": "",
         "Enabled": true,
         "NetworkMode": 2,
@@ -89,12 +64,12 @@
         "Components": [
           {
             "__type": "Sandbox.ModelRenderer",
-            "__guid": "a019bf42-638f-502d-b9a3-0a9e4b907aae",
+            "__guid": "4befd9b7-a7aa-5941-9e06-90e29c0ee0f9",
             "__enabled": true,
             "Flags": 0,
             "BodyGroups": 18446744073709551615,
             "CreateAttachments": false,
-            "Model": "models/dev/sphere.vmdl",
+            "Model": "models/dev/playerstart_tint.vmdl",
             "RenderOptions": {
               "GameLayer": true,
               "OverlayLayer": false,
@@ -102,7 +77,7 @@
               "AfterUILayer": false
             },
             "RenderType": "On",
-            "Tint": "0.35,1,0.45,1"
+            "Tint": "1,1,1,1"
           }
         ],
         "Children": []
@@ -110,8 +85,8 @@
     ]
   },
   "ShowInMenu": true,
-  "MenuPath": "Large Lad/Gameplay Bootstrap",
-  "MenuIcon": "sports_kabaddi",
+  "MenuPath": "Large Lad/Spawns/Lobby Team Spawn",
+  "MenuIcon": "home",
   "DontBreakAsTemplate": false,
   "__references": [],
   "__version": 2

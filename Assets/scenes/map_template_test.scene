@@ -162,145 +162,9 @@
         "4ec5f084-cef2-4cca-9d9d-3d3a4ba40ec5": "aa10b5a1-0481-4ef8-8c62-e379d0895a12",
         "13a94fea-a2de-45da-beb8-61e564e6e245": "aa7cefe6-6ced-425e-aa54-fd3770f098d0",
         "6ba98835-269e-4ca8-95a4-06e9faf5db59": "aa9b884c-9a86-4973-8591-3c2a8e359656"
-      }
-    },
-    {
-      "__guid": "e44c163d-5ad5-48eb-bdb2-f215f95d7a36",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Skinny Kid Spawn",
-      "Position": "352,-608,168",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "ee02eaac-04c8-4a12-b185-1fee47f06e8e",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "0.06667,0,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "ae564632-05e4-4da9-a673-b7ddd3e96d48",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "SkinnyKid",
-          "Order": 0,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "0c6c284a-080e-4d18-88b0-567762ff8481",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Large Lad Spawn",
-      "Position": "0,0,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "1366a23b-aff9-4987-b1ca-b7ce3c62bcee",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,0,0,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "890eefef-c235-4226-bf2d-18b4f1ec9594",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Hunter",
-          "Order": 0,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "0804cfdc-b7ec-476e-8cdc-3c0060b3fbf5",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Initial Spawn",
-      "Position": "0,0,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "017e8df2-4e18-42bc-8095-a898003b8a9f",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,1,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "51defaec-b8a5-48a3-af6a-0d06f93405ae",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Lobby",
-          "Order": 0,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
+      },
+      "Children": [],
+      "Components": []
     },
     {
       "__guid": "5c0cb373-0509-452c-b248-e19c01fb019c",
@@ -336,2031 +200,44 @@
           "SurvivalDuration": 60
         }
       ],
-      "Children": []
-    },
-    {
-      "__guid": "11000001-a111-4a11-8a11-0000000006a5",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Lobby Spawn 02",
-      "Position": "48,0,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
+      "Children": [
         {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "11000001-b111-4b11-8b11-0000000006a5",
-          "__enabled": true,
+          "__guid": "c9514cf2-29b3-5770-8f5d-bc3ef7838bb7",
+          "__version": 2,
           "Flags": 0,
-          "Color": "1,1,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "11000001-c111-4c11-8c11-0000000006a5",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Lobby",
-          "Order": 1,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
+          "Name": "Large Lad Hammer Preview",
+          "Position": "0,0,24",
+          "Rotation": "0,0,0,1",
+          "Scale": "0.35,0.35,0.35",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [
+            {
+              "__type": "Sandbox.ModelRenderer",
+              "__guid": "0bdf34ff-5711-51b8-acb5-bcd6690ec26b",
+              "__enabled": true,
+              "Flags": 0,
+              "BodyGroups": 18446744073709551615,
+              "CreateAttachments": false,
+              "Model": "models/dev/sphere.vmdl",
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Tint": "0.35,1,0.45,1"
+            }
+          ],
+          "Children": []
         }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "11000002-a111-4a11-8a11-0000000006a6",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Lobby Spawn 03",
-      "Position": "96,0,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "11000002-b111-4b11-8b11-0000000006a6",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,1,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "11000002-c111-4c11-8c11-0000000006a6",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Lobby",
-          "Order": 2,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "11000003-a111-4a11-8a11-0000000006a7",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Lobby Spawn 04",
-      "Position": "144,0,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "11000003-b111-4b11-8b11-0000000006a7",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,1,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "11000003-c111-4c11-8c11-0000000006a7",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Lobby",
-          "Order": 3,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "11000004-a111-4a11-8a11-0000000006a8",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Lobby Spawn 05",
-      "Position": "0,48,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "11000004-b111-4b11-8b11-0000000006a8",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,1,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "11000004-c111-4c11-8c11-0000000006a8",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Lobby",
-          "Order": 4,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "11000005-a111-4a11-8a11-0000000006a9",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Lobby Spawn 06",
-      "Position": "48,48,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "11000005-b111-4b11-8b11-0000000006a9",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,1,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "11000005-c111-4c11-8c11-0000000006a9",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Lobby",
-          "Order": 5,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "11000006-a111-4a11-8a11-0000000006aa",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Lobby Spawn 07",
-      "Position": "96,48,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "11000006-b111-4b11-8b11-0000000006aa",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,1,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "11000006-c111-4c11-8c11-0000000006aa",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Lobby",
-          "Order": 6,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "11000007-a111-4a11-8a11-0000000006ab",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Lobby Spawn 08",
-      "Position": "144,48,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "11000007-b111-4b11-8b11-0000000006ab",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,1,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "11000007-c111-4c11-8c11-0000000006ab",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Lobby",
-          "Order": 7,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "11000008-a111-4a11-8a11-0000000006ac",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Lobby Spawn 09",
-      "Position": "0,96,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "11000008-b111-4b11-8b11-0000000006ac",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,1,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "11000008-c111-4c11-8c11-0000000006ac",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Lobby",
-          "Order": 8,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "11000009-a111-4a11-8a11-0000000006ad",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Lobby Spawn 10",
-      "Position": "48,96,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "11000009-b111-4b11-8b11-0000000006ad",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,1,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "11000009-c111-4c11-8c11-0000000006ad",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Lobby",
-          "Order": 9,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "1100000a-a111-4a11-8a11-0000000006ae",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Lobby Spawn 11",
-      "Position": "96,96,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "1100000a-b111-4b11-8b11-0000000006ae",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,1,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "1100000a-c111-4c11-8c11-0000000006ae",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Lobby",
-          "Order": 10,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "1100000b-a111-4a11-8a11-0000000006af",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Lobby Spawn 12",
-      "Position": "144,96,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "1100000b-b111-4b11-8b11-0000000006af",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,1,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "1100000b-c111-4c11-8c11-0000000006af",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Lobby",
-          "Order": 11,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "1100000c-a111-4a11-8a11-0000000006b0",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Lobby Spawn 13",
-      "Position": "0,144,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "1100000c-b111-4b11-8b11-0000000006b0",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,1,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "1100000c-c111-4c11-8c11-0000000006b0",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Lobby",
-          "Order": 12,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "1100000d-a111-4a11-8a11-0000000006b1",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Lobby Spawn 14",
-      "Position": "48,144,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "1100000d-b111-4b11-8b11-0000000006b1",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,1,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "1100000d-c111-4c11-8c11-0000000006b1",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Lobby",
-          "Order": 13,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "1100000e-a111-4a11-8a11-0000000006b2",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Lobby Spawn 15",
-      "Position": "96,144,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "1100000e-b111-4b11-8b11-0000000006b2",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,1,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "1100000e-c111-4c11-8c11-0000000006b2",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Lobby",
-          "Order": 14,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "1100000f-a111-4a11-8a11-0000000006b3",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Lobby Spawn 16",
-      "Position": "144,144,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "1100000f-b111-4b11-8b11-0000000006b3",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,1,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "1100000f-c111-4c11-8c11-0000000006b3",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Lobby",
-          "Order": 15,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "22000001-a111-4a11-8a11-000000000d49",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Skinny Kid Spawn 02",
-      "Position": "400,-608,168",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "22000001-b111-4b11-8b11-000000000d49",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "0.25,0.85,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "22000001-c111-4c11-8c11-000000000d49",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "SkinnyKid",
-          "Order": 1,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "22000002-a111-4a11-8a11-000000000d4a",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Skinny Kid Spawn 03",
-      "Position": "448,-608,168",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "22000002-b111-4b11-8b11-000000000d4a",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "0.25,0.85,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "22000002-c111-4c11-8c11-000000000d4a",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "SkinnyKid",
-          "Order": 2,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "22000003-a111-4a11-8a11-000000000d4b",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Skinny Kid Spawn 04",
-      "Position": "496,-608,168",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "22000003-b111-4b11-8b11-000000000d4b",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "0.25,0.85,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "22000003-c111-4c11-8c11-000000000d4b",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "SkinnyKid",
-          "Order": 3,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "22000004-a111-4a11-8a11-000000000d4c",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Skinny Kid Spawn 05",
-      "Position": "544,-608,168",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "22000004-b111-4b11-8b11-000000000d4c",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "0.25,0.85,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "22000004-c111-4c11-8c11-000000000d4c",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "SkinnyKid",
-          "Order": 4,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "22000005-a111-4a11-8a11-000000000d4d",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Skinny Kid Spawn 06",
-      "Position": "352,-560,168",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "22000005-b111-4b11-8b11-000000000d4d",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "0.25,0.85,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "22000005-c111-4c11-8c11-000000000d4d",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "SkinnyKid",
-          "Order": 5,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "22000006-a111-4a11-8a11-000000000d4e",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Skinny Kid Spawn 07",
-      "Position": "400,-560,168",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "22000006-b111-4b11-8b11-000000000d4e",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "0.25,0.85,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "22000006-c111-4c11-8c11-000000000d4e",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "SkinnyKid",
-          "Order": 6,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "22000007-a111-4a11-8a11-000000000d4f",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Skinny Kid Spawn 08",
-      "Position": "448,-560,168",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "22000007-b111-4b11-8b11-000000000d4f",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "0.25,0.85,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "22000007-c111-4c11-8c11-000000000d4f",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "SkinnyKid",
-          "Order": 7,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "22000008-a111-4a11-8a11-000000000d50",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Skinny Kid Spawn 09",
-      "Position": "496,-560,168",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "22000008-b111-4b11-8b11-000000000d50",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "0.25,0.85,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "22000008-c111-4c11-8c11-000000000d50",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "SkinnyKid",
-          "Order": 8,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "22000009-a111-4a11-8a11-000000000d51",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Skinny Kid Spawn 10",
-      "Position": "544,-560,168",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "22000009-b111-4b11-8b11-000000000d51",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "0.25,0.85,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "22000009-c111-4c11-8c11-000000000d51",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "SkinnyKid",
-          "Order": 9,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "2200000a-a111-4a11-8a11-000000000d52",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Skinny Kid Spawn 11",
-      "Position": "352,-512,168",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "2200000a-b111-4b11-8b11-000000000d52",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "0.25,0.85,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "2200000a-c111-4c11-8c11-000000000d52",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "SkinnyKid",
-          "Order": 10,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "2200000b-a111-4a11-8a11-000000000d53",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Skinny Kid Spawn 12",
-      "Position": "400,-512,168",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "2200000b-b111-4b11-8b11-000000000d53",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "0.25,0.85,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "2200000b-c111-4c11-8c11-000000000d53",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "SkinnyKid",
-          "Order": 11,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "2200000c-a111-4a11-8a11-000000000d54",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Skinny Kid Spawn 13",
-      "Position": "448,-512,168",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "2200000c-b111-4b11-8b11-000000000d54",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "0.25,0.85,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "2200000c-c111-4c11-8c11-000000000d54",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "SkinnyKid",
-          "Order": 12,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "2200000d-a111-4a11-8a11-000000000d55",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Skinny Kid Spawn 14",
-      "Position": "496,-512,168",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "2200000d-b111-4b11-8b11-000000000d55",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "0.25,0.85,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "2200000d-c111-4c11-8c11-000000000d55",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "SkinnyKid",
-          "Order": 13,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "2200000e-a111-4a11-8a11-000000000d56",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Skinny Kid Spawn 15",
-      "Position": "544,-512,168",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "2200000e-b111-4b11-8b11-000000000d56",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "0.25,0.85,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "2200000e-c111-4c11-8c11-000000000d56",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "SkinnyKid",
-          "Order": 14,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "33000001-a111-4a11-8a11-0000000013ed",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Hunter Spawn 02",
-      "Position": "48,0,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "33000001-b111-4b11-8b11-0000000013ed",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,0.22,0.08,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "33000001-c111-4c11-8c11-0000000013ed",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Hunter",
-          "Order": 1,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "33000002-a111-4a11-8a11-0000000013ee",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Hunter Spawn 03",
-      "Position": "96,0,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "33000002-b111-4b11-8b11-0000000013ee",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,0.22,0.08,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "33000002-c111-4c11-8c11-0000000013ee",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Hunter",
-          "Order": 2,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "33000003-a111-4a11-8a11-0000000013ef",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Hunter Spawn 04",
-      "Position": "144,0,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "33000003-b111-4b11-8b11-0000000013ef",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,0.22,0.08,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "33000003-c111-4c11-8c11-0000000013ef",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Hunter",
-          "Order": 3,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "33000004-a111-4a11-8a11-0000000013f0",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Hunter Spawn 05",
-      "Position": "0,48,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "33000004-b111-4b11-8b11-0000000013f0",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,0.22,0.08,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "33000004-c111-4c11-8c11-0000000013f0",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Hunter",
-          "Order": 4,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "33000005-a111-4a11-8a11-0000000013f1",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Hunter Spawn 06",
-      "Position": "48,48,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "33000005-b111-4b11-8b11-0000000013f1",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,0.22,0.08,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "33000005-c111-4c11-8c11-0000000013f1",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Hunter",
-          "Order": 5,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "33000006-a111-4a11-8a11-0000000013f2",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Hunter Spawn 07",
-      "Position": "96,48,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "33000006-b111-4b11-8b11-0000000013f2",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,0.22,0.08,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "33000006-c111-4c11-8c11-0000000013f2",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Hunter",
-          "Order": 6,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "33000007-a111-4a11-8a11-0000000013f3",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Hunter Spawn 08",
-      "Position": "144,48,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "33000007-b111-4b11-8b11-0000000013f3",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,0.22,0.08,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "33000007-c111-4c11-8c11-0000000013f3",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Hunter",
-          "Order": 7,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "33000008-a111-4a11-8a11-0000000013f4",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Hunter Spawn 09",
-      "Position": "0,96,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "33000008-b111-4b11-8b11-0000000013f4",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,0.22,0.08,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "33000008-c111-4c11-8c11-0000000013f4",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Hunter",
-          "Order": 8,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "33000009-a111-4a11-8a11-0000000013f5",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Hunter Spawn 10",
-      "Position": "48,96,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "33000009-b111-4b11-8b11-0000000013f5",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,0.22,0.08,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "33000009-c111-4c11-8c11-0000000013f5",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Hunter",
-          "Order": 9,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "3300000a-a111-4a11-8a11-0000000013f6",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Hunter Spawn 11",
-      "Position": "96,96,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "3300000a-b111-4b11-8b11-0000000013f6",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,0.22,0.08,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "3300000a-c111-4c11-8c11-0000000013f6",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Hunter",
-          "Order": 10,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "3300000b-a111-4a11-8a11-0000000013f7",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Hunter Spawn 12",
-      "Position": "144,96,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "3300000b-b111-4b11-8b11-0000000013f7",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,0.22,0.08,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "3300000b-c111-4c11-8c11-0000000013f7",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Hunter",
-          "Order": 11,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "3300000c-a111-4a11-8a11-0000000013f8",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Hunter Spawn 13",
-      "Position": "0,144,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "3300000c-b111-4b11-8b11-0000000013f8",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,0.22,0.08,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "3300000c-c111-4c11-8c11-0000000013f8",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Hunter",
-          "Order": 12,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "3300000d-a111-4a11-8a11-0000000013f9",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Hunter Spawn 14",
-      "Position": "48,144,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "3300000d-b111-4b11-8b11-0000000013f9",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,0.22,0.08,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "3300000d-c111-4c11-8c11-0000000013f9",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Hunter",
-          "Order": 13,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "3300000e-a111-4a11-8a11-0000000013fa",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Hunter Spawn 15",
-      "Position": "96,144,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "3300000e-b111-4b11-8b11-0000000013fa",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,0.22,0.08,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "3300000e-c111-4c11-8c11-0000000013fa",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Hunter",
-          "Order": 14,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "3300000f-a111-4a11-8a11-0000000013fb",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Hunter Spawn 16",
-      "Position": "144,144,32",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpawnPoint",
-          "__guid": "3300000f-b111-4b11-8b11-0000000013fb",
-          "__enabled": true,
-          "Flags": 0,
-          "Color": "1,0.22,0.08,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "LargeLadSpawnMarker",
-          "__guid": "3300000f-c111-4c11-8c11-0000000013fb",
-          "__enabled": true,
-          "Flags": 0,
-          "Group": "Hunter",
-          "Order": 15,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        }
-      ],
-      "Children": []
+      ]
     },
     {
       "__guid": "44000001-a111-4a11-8a11-000000001a91",
@@ -2425,7 +302,44 @@
           "OnComponentUpdate": null
         }
       ],
-      "Children": []
+      "Children": [
+        {
+          "__guid": "8c68347c-e754-59bd-a4ce-2075cd3a7ef9",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Large Lad Pickup Dev Visual",
+          "Position": "0,0,0",
+          "Rotation": "0,0,0,1",
+          "Scale": "0.5625,0.21875,0.125",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [
+            {
+              "__type": "Sandbox.ModelRenderer",
+              "__guid": "cbfce4f5-92f9-519c-90a5-b000c13b4348",
+              "__enabled": true,
+              "Flags": 0,
+              "BodyGroups": 18446744073709551615,
+              "CreateAttachments": false,
+              "Model": "models/dev/box.vmdl",
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Tint": "0.25,0.85,1,1"
+            }
+          ],
+          "Children": []
+        }
+      ]
     },
     {
       "__guid": "44000002-a111-4a11-8a11-000000001a92",
@@ -2490,7 +404,44 @@
           "OnComponentUpdate": null
         }
       ],
-      "Children": []
+      "Children": [
+        {
+          "__guid": "c38e7da2-1fbb-588f-9186-e75dc04a376f",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Large Lad Pickup Dev Visual",
+          "Position": "0,0,0",
+          "Rotation": "0,0,0,1",
+          "Scale": "0.5625,0.21875,0.125",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [
+            {
+              "__type": "Sandbox.ModelRenderer",
+              "__guid": "3d2b70f8-e1c0-5e27-9aa3-8fca6f04f32e",
+              "__enabled": true,
+              "Flags": 0,
+              "BodyGroups": 18446744073709551615,
+              "CreateAttachments": false,
+              "Model": "models/dev/box.vmdl",
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Tint": "1,0.78,0.18,1"
+            }
+          ],
+          "Children": []
+        }
+      ]
     },
     {
       "__guid": "44000003-a111-4a11-8a11-000000001a93",
@@ -2555,7 +506,44 @@
           "OnComponentUpdate": null
         }
       ],
-      "Children": []
+      "Children": [
+        {
+          "__guid": "c94aa6ff-92e9-5b71-b89e-904d11a30dd5",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Large Lad Ammo Dev Visual",
+          "Position": "0,0,0",
+          "Rotation": "0,0,0,1",
+          "Scale": "0.28125,0.21875,0.15625",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [
+            {
+              "__type": "Sandbox.ModelRenderer",
+              "__guid": "f5fcfafc-1f41-5842-b589-897d9ddb805d",
+              "__enabled": true,
+              "Flags": 0,
+              "BodyGroups": 18446744073709551615,
+              "CreateAttachments": false,
+              "Model": "models/dev/box.vmdl",
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Tint": "0.2,0.68,0.8,1"
+            }
+          ],
+          "Children": []
+        }
+      ]
     },
     {
       "__guid": "44000004-a111-4a11-8a11-000000001a94",
@@ -2620,7 +608,44 @@
           "OnComponentUpdate": null
         }
       ],
-      "Children": []
+      "Children": [
+        {
+          "__guid": "d6206e47-bb39-5d8f-93b1-b24e7a61c163",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Large Lad Ammo Dev Visual",
+          "Position": "0,0,0",
+          "Rotation": "0,0,0,1",
+          "Scale": "0.28125,0.21875,0.15625",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [
+            {
+              "__type": "Sandbox.ModelRenderer",
+              "__guid": "5f358ac1-da33-54ec-846e-53c77da87379",
+              "__enabled": true,
+              "Flags": 0,
+              "BodyGroups": 18446744073709551615,
+              "CreateAttachments": false,
+              "Model": "models/dev/box.vmdl",
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Tint": "0.8,0.624,0.144,1"
+            }
+          ],
+          "Children": []
+        }
+      ]
     },
     {
       "__guid": "55000001-a111-4a11-8a11-000000002131",
@@ -2683,7 +708,44 @@
           "OnComponentUpdate": null
         }
       ],
-      "Children": []
+      "Children": [
+        {
+          "__guid": "e791a792-68e0-5704-bcbd-40c875136578",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Large Lad Hammer Preview",
+          "Position": "0,0,0",
+          "Rotation": "0,0,0,1",
+          "Scale": "4,4,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [
+            {
+              "__type": "Sandbox.ModelRenderer",
+              "__guid": "97fe60ce-5533-5631-8f4e-aa8f1ddcd782",
+              "__enabled": true,
+              "Flags": 0,
+              "BodyGroups": 18446744073709551615,
+              "CreateAttachments": false,
+              "Model": "models/dev/box.vmdl",
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Tint": "1,0,0.4,0.3"
+            }
+          ],
+          "Children": []
+        }
+      ]
     },
     {
       "__guid": "66000002-a111-4a11-8a11-0000000028d2",
@@ -2739,7 +801,7 @@
           "Scale": "1,1,1",
           "Tags": "",
           "Enabled": true,
-          "NetworkMode": 1,
+          "NetworkMode": 0,
           "NetworkFlags": 0,
           "NetworkOrphaned": 0,
           "NetworkTransmit": true,
@@ -2763,7 +825,75 @@
               "OnComponentUpdate": null
             }
           ],
-          "Children": []
+          "Children": [
+            {
+              "__guid": "b078b223-815f-548d-beab-02f9fffa83e1",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Barricade Network State",
+              "Position": "0,0,0",
+              "Rotation": "0,0,0,1",
+              "Scale": "1,1,1",
+              "Tags": "",
+              "Enabled": true,
+              "NetworkMode": 1,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "LargeLadBarricadeState",
+                  "__guid": "de1e15da-15b6-514a-bd52-8f7bb38ecb44",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null
+                }
+              ],
+              "Children": []
+            },
+            {
+              "__guid": "790b190b-fcf2-5c56-80b2-4e625e2c32ff",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Large Lad Barricade Dev Visual",
+              "Position": "0,0,36",
+              "Rotation": "0,0,0,1",
+              "Scale": "3,0.5,2.25",
+              "Tags": "",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.ModelRenderer",
+                  "__guid": "7d9e28a1-3518-5b42-b133-820e16b4fe91",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "BodyGroups": 18446744073709551615,
+                  "CreateAttachments": false,
+                  "Model": "models/dev/box.vmdl",
+                  "RenderOptions": {
+                    "GameLayer": true,
+                    "OverlayLayer": false,
+                    "BloomLayer": false,
+                    "AfterUILayer": false
+                  },
+                  "RenderType": "On",
+                  "Tint": "0.25,0.85,1,1"
+                }
+              ],
+              "Children": []
+            }
+          ]
         }
       ]
     },
@@ -2821,7 +951,7 @@
           "Scale": "1,1,1",
           "Tags": "",
           "Enabled": true,
-          "NetworkMode": 1,
+          "NetworkMode": 0,
           "NetworkFlags": 0,
           "NetworkOrphaned": 0,
           "NetworkTransmit": true,
@@ -2843,6 +973,329 @@
               "OnComponentFixedUpdate": null,
               "OnComponentStart": null,
               "OnComponentUpdate": null
+            }
+          ],
+          "Children": [
+            {
+              "__guid": "017a1d33-a22b-5890-90af-309a546c8497",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Barricade Network State",
+              "Position": "0,0,0",
+              "Rotation": "0,0,0,1",
+              "Scale": "1,1,1",
+              "Tags": "",
+              "Enabled": true,
+              "NetworkMode": 1,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "LargeLadBarricadeState",
+                  "__guid": "44c93765-967c-599e-b2fd-56c100f297a5",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null
+                }
+              ],
+              "Children": []
+            },
+            {
+              "__guid": "566cc9d8-dc90-56ed-b6b9-f2ea4c4598a8",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Large Lad Barricade Dev Visual",
+              "Position": "0,0,36",
+              "Rotation": "0,0,0,1",
+              "Scale": "3,0.5,2.25",
+              "Tags": "",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.ModelRenderer",
+                  "__guid": "b7c3b834-46ac-57a0-a20c-7abb44b6deaf",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "BodyGroups": 18446744073709551615,
+                  "CreateAttachments": false,
+                  "Model": "models/dev/box.vmdl",
+                  "RenderOptions": {
+                    "GameLayer": true,
+                    "OverlayLayer": false,
+                    "BloomLayer": false,
+                    "AfterUILayer": false
+                  },
+                  "RenderType": "On",
+                  "Tint": "1,0.22,0.08,1"
+                }
+              ],
+              "Children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "__guid": "d336c53a-077f-5dc3-a0fc-77dd947df89e",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Lobby Team Spawn",
+      "Position": "72,72,32",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.SpawnPoint",
+          "__guid": "52ec7805-cb9f-503e-8e7b-cc147ae768de",
+          "__enabled": true,
+          "Flags": 0,
+          "Color": "1,1,1,1",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null
+        },
+        {
+          "__type": "LargeLadTeamSpawn",
+          "__guid": "5dab61c9-beb8-5018-814b-d66780600633",
+          "__enabled": true,
+          "Flags": 0,
+          "Group": "Lobby",
+          "SpawnRadius": 160,
+          "Capacity": 16,
+          "MinimumSeparation": 48,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null
+        }
+      ],
+      "Children": [
+        {
+          "__guid": "14d423b6-8dfa-5ddd-aec8-82ab06285925",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Large Lad Hammer Preview",
+          "Position": "0,0,0",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [
+            {
+              "__type": "Sandbox.ModelRenderer",
+              "__guid": "35d7fd2e-b2f2-52f9-bd0e-41d1ff8454e5",
+              "__enabled": true,
+              "Flags": 0,
+              "BodyGroups": 18446744073709551615,
+              "CreateAttachments": false,
+              "Model": "models/dev/playerstart_tint.vmdl",
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Tint": "1,1,1,1"
+            }
+          ],
+          "Children": []
+        }
+      ]
+    },
+    {
+      "__guid": "1a7c1a55-5828-5f97-802b-ec96c7fe66bc",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Skinny Kid Team Spawn",
+      "Position": "448,-560,168",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.SpawnPoint",
+          "__guid": "1be10dc4-7b0e-5148-8c33-c907b75c8dbe",
+          "__enabled": true,
+          "Flags": 0,
+          "Color": "0.25,0.85,1,1",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null
+        },
+        {
+          "__type": "LargeLadTeamSpawn",
+          "__guid": "ad409a68-2c91-5b9d-8837-9ec9a648a4d2",
+          "__enabled": true,
+          "Flags": 0,
+          "Group": "SkinnyKid",
+          "SpawnRadius": 160,
+          "Capacity": 16,
+          "MinimumSeparation": 48,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null
+        }
+      ],
+      "Children": [
+        {
+          "__guid": "4332d6a7-8c98-58ec-a845-511ddd08a19c",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Large Lad Hammer Preview",
+          "Position": "0,0,0",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [
+            {
+              "__type": "Sandbox.ModelRenderer",
+              "__guid": "277d93ea-ae2c-5e39-9c64-b8a1571a5cf8",
+              "__enabled": true,
+              "Flags": 0,
+              "BodyGroups": 18446744073709551615,
+              "CreateAttachments": false,
+              "Model": "models/dev/playerstart_tint.vmdl",
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Tint": "0.25,0.85,1,1"
+            }
+          ],
+          "Children": []
+        }
+      ]
+    },
+    {
+      "__guid": "ead19d52-dff8-5a68-9f57-e73f6db4693d",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Hunter Team Spawn",
+      "Position": "72,72,32",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.SpawnPoint",
+          "__guid": "cf150dee-1576-5d6a-aeca-cf8bf3a37ff5",
+          "__enabled": true,
+          "Flags": 0,
+          "Color": "1,0.22,0.08,1",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null
+        },
+        {
+          "__type": "LargeLadTeamSpawn",
+          "__guid": "abcfc665-1fd5-57d8-843f-0c2339c05fda",
+          "__enabled": true,
+          "Flags": 0,
+          "Group": "Hunter",
+          "SpawnRadius": 160,
+          "Capacity": 16,
+          "MinimumSeparation": 48,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null
+        }
+      ],
+      "Children": [
+        {
+          "__guid": "0039fbb8-a5a6-5fd3-a4a4-d7c24966f7b6",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Large Lad Hammer Preview",
+          "Position": "0,0,0",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [
+            {
+              "__type": "Sandbox.ModelRenderer",
+              "__guid": "52f3ae68-b478-5617-a63c-f2ce4b81d721",
+              "__enabled": true,
+              "Flags": 0,
+              "BodyGroups": 18446744073709551615,
+              "CreateAttachments": false,
+              "Model": "models/dev/playerstart_tint.vmdl",
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Tint": "1,0.22,0.08,1"
             }
           ],
           "Children": []

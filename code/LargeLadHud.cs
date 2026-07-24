@@ -147,7 +147,7 @@ public sealed class LargeLadHud : Component
 		var winnerText = round.Winner switch
 		{
 			LargeLadWinner.SkinnyKids => "SKINNY KIDS SURVIVED",
-			LargeLadWinner.LargeLadTeam => "LAD TEAM WINS",
+			LargeLadWinner.LargeLadTeam => "THE LAD ATE EVERYONE",
 			_ => "ROUND OVER"
 		};
 
@@ -375,7 +375,7 @@ public sealed class LargeLadHud : Component
 	{
 		return role switch
 		{
-			LargeLadRole.SkinnyKid => "Survive the timer. Find weapons placed in the map.",
+			LargeLadRole.SkinnyKid => "Don't get eaten. Find weapons placed in the map. Break barricades to progress.",
 			LargeLadRole.LargeLad => "Eat every Skinny Kid. Primary fire: melee.",
 			LargeLadRole.Minion => "Help the Lad eat the Skinny Kids. Primary fire: melee.",
 			_ => "A new round will begin shortly."

@@ -26,9 +26,17 @@ public sealed class LargeLadWeaponPickup : Component,
 	private bool hasAuthoredTransform;
 	private int droppedMagazine = -1;
 	private int droppedReserve = -1;
+	private const string DevVisualName = "Large Lad Pickup Dev Visual";
+
+	protected override void OnAwake()
+	{
+		ResolveAuthoredParts();
+	}
 
 	protected override void OnStart()
 	{
+		ResolveAuthoredParts();
+		CreateDevVisualIfNeeded();
 		authoredTransform = GameObject.WorldTransform;
 		hasAuthoredTransform = true;
 
@@ -42,10 +50,52 @@ public sealed class LargeLadWeaponPickup : Component,
 
 	protected override void OnValidate()
 	{
+		ResolveAuthoredParts();
+
 		if ( !LargeLadWeaponCatalog.IsFirearm( Weapon ) )
 		{
 			Log.Warning( $"{GameObject.Name}: weapon pickup must use a firearm definition." );
 		}
+	}
+
+	private void ResolveAuthoredParts()
+	{
+		PickupCollider ??= Components.Get<Collider>();
+		PickupRenderer ??= Components.Get<Renderer>();
+		PickupRenderer ??= GameObject.GetComponentInChildren<Renderer>( true );
+	}
+
+	private void CreateDevVisualIfNeeded()
+	{
+		var visual = GameObject.Children.FirstOrDefault( child => child.Name == DevVisualName );
+
+		if ( visual is null && PickupRenderer is not null )
+			return;
+
+		if ( visual is null )
+		{
+			visual = new GameObject( true, DevVisualName );
+			visual.SetParent( GameObject, false );
+			visual.LocalPosition = Vector3.Zero;
+		}
+
+		var renderer = visual.GetOrAddComponent<ModelRenderer>();
+		renderer.Model = Model.Load( "models/dev/box.vmdl" );
+		renderer.Tint = LargeLadWeaponCatalog.Get( Weapon ).PickupColor;
+		visual.LocalScale = ScaleModelToSize(
+			renderer.Model,
+			new Vector3( 18.0f, 7.0f, 4.0f ) );
+		PickupRenderer = renderer;
+	}
+
+	private static Vector3 ScaleModelToSize( Model model, Vector3 targetSize )
+	{
+		var size = model?.Bounds.Size ?? Vector3.One;
+
+		return new Vector3(
+			size.x > 0.001f ? targetSize.x / size.x : 1.0f,
+			size.y > 0.001f ? targetSize.y / size.y : 1.0f,
+			size.z > 0.001f ? targetSize.z / size.z : 1.0f );
 	}
 
 	public void OnTriggerEnter( Collider other )
@@ -176,6 +226,12 @@ public sealed class LargeLadAmmoPickup : Component,
 	public Collider PickupCollider { get; set; }
 
 	private readonly HashSet<GameObject> collectedPlayers = new();
+	private const string DevVisualName = "Large Lad Ammo Dev Visual";
+
+	protected override void OnAwake()
+	{
+		ResolveAuthoredParts();
+	}
 
 	public int ResolvedAmmoAmount
 	{
@@ -188,6 +244,9 @@ public sealed class LargeLadAmmoPickup : Component,
 
 	protected override void OnStart()
 	{
+		ResolveAuthoredParts();
+		CreateDevVisualIfNeeded();
+
 		if ( PickupCollider is not null )
 		{
 			PickupCollider.IsTrigger = true;
@@ -196,10 +255,46 @@ public sealed class LargeLadAmmoPickup : Component,
 
 	protected override void OnValidate()
 	{
+		ResolveAuthoredParts();
+
 		if ( !LargeLadWeaponCatalog.IsFirearm( Weapon ) )
 		{
 			Log.Warning( $"{GameObject.Name}: ammo pickup must target a firearm." );
 		}
+	}
+
+	private void ResolveAuthoredParts()
+	{
+		PickupCollider ??= Components.Get<Collider>();
+	}
+
+	private void CreateDevVisualIfNeeded()
+	{
+		var visual = GameObject.Children.FirstOrDefault( child => child.Name == DevVisualName );
+
+		if ( visual is null )
+		{
+			visual = new GameObject( true, DevVisualName );
+			visual.SetParent( GameObject, false );
+			visual.LocalPosition = Vector3.Zero;
+		}
+
+		var renderer = visual.GetOrAddComponent<ModelRenderer>();
+		renderer.Model = Model.Load( "models/dev/box.vmdl" );
+		renderer.Tint = LargeLadWeaponCatalog.Get( Weapon ).PickupColor.Darken( 0.2f );
+		visual.LocalScale = ScaleModelToSize(
+			renderer.Model,
+			new Vector3( 9.0f, 7.0f, 5.0f ) );
+	}
+
+	private static Vector3 ScaleModelToSize( Model model, Vector3 targetSize )
+	{
+		var size = model?.Bounds.Size ?? Vector3.One;
+
+		return new Vector3(
+			size.x > 0.001f ? targetSize.x / size.x : 1.0f,
+			size.y > 0.001f ? targetSize.y / size.y : 1.0f,
+			size.z > 0.001f ? targetSize.z / size.z : 1.0f );
 	}
 
 	public void OnTriggerEnter( Collider other )
