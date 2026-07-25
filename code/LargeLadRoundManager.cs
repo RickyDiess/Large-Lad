@@ -140,6 +140,12 @@ public sealed class LargeLadRoundManager : Component
 				if ( EndRoundIfTeamIsMissing( players ) )
 					break;
 
+				UpdateLargeLadRespawn( players );
+				UpdatePlayerRespawns( players );
+
+				if ( EndRoundIfTeamIsMissing( players ) )
+					break;
+
 				if ( TickPhaseTimer() )
 					BeginPlaying( players );
 				break;
@@ -186,7 +192,10 @@ public sealed class LargeLadRoundManager : Component
 		ResetMapState();
 
 		foreach ( var player in players )
+		{
+			player.ClearPendingRespawnRole();
 			player.Role = LargeLadRole.SkinnyKid;
+		}
 
 		Winner = LargeLadWinner.None;
 
@@ -194,9 +203,6 @@ public sealed class LargeLadRoundManager : Component
 		largeLad.Role = LargeLadRole.LargeLad;
 		nextLargeLadIndex = (nextLargeLadIndex + 1) % players.Count;
 		lobbyPlacedPlayers.Clear();
-
-		foreach ( var player in players )
-			player.Health?.ResetForCurrentRole();
 
 		foreach ( var player in players )
 		{
@@ -210,6 +216,9 @@ public sealed class LargeLadRoundManager : Component
 		TeleportPlayers(
 			players.Where( player => player.Role == LargeLadRole.SkinnyKid ).ToList(),
 			LargeLadSpawnGroup.SkinnyKid );
+
+		foreach ( var player in players )
+			player.Health?.ResetForCurrentRole();
 
 		PhaseTimeRemaining = HeadStartDuration;
 		Phase = LargeLadRoundPhase.HeadStart;
@@ -239,7 +248,6 @@ public sealed class LargeLadRoundManager : Component
 		Phase = LargeLadRoundPhase.RoundOver;
 
 		var players = Scene.GetAllComponents<LargeLadPlayer>().ToList();
-
 		var returningPlayers = new List<LargeLadPlayer>();
 
 		foreach ( var player in players )
@@ -247,6 +255,7 @@ public sealed class LargeLadRoundManager : Component
 			if ( player.Health?.IsDead == true )
 				continue;
 
+			player.ClearPendingRespawnRole();
 			player.Role = LargeLadRole.Unassigned;
 			player.MovementLocked = false;
 			player.Health?.ResetForCurrentRole();
@@ -282,23 +291,27 @@ public sealed class LargeLadRoundManager : Component
 	{
 		foreach ( var player in players.Where( player => player.Role == LargeLadRole.Unassigned ) )
 		{
+			player.ClearPendingRespawnRole();
 			player.Role = LargeLadRole.Minion;
-			player.MovementLocked = false;
-			player.Health?.ResetForCurrentRole();
+			player.MovementLocked = true;
 			TeleportPlayer( player, LargeLadSpawnGroup.Hunter );
+			player.Health?.ResetForCurrentRole();
+			player.MovementLocked = false;
 			Log.Info( $"{player.GameObject.Name} joined the active round as a Minion." );
 		}
 	}
 
 	private bool EndRoundIfTeamIsMissing( List<LargeLadPlayer> players )
 	{
-		if ( players.All( player => player.Role != LargeLadRole.LargeLad ) )
+		if ( players.All( player =>
+			GetEffectiveRoundRole( player ) != LargeLadRole.LargeLad ) )
 		{
 			EndRound( LargeLadWinner.SkinnyKids );
 			return true;
 		}
 
-		if ( players.All( player => player.Role != LargeLadRole.SkinnyKid ) )
+		if ( players.All( player =>
+			GetEffectiveRoundRole( player ) != LargeLadRole.SkinnyKid ) )
 		{
 			EndRound( LargeLadWinner.LargeLadTeam );
 			return true;
@@ -315,7 +328,7 @@ public sealed class LargeLadRoundManager : Component
 		if ( largeLad is null || health is null )
 			return;
 
-		if ( !health.IsDead && health.CurrentHealth <= 0.0f )
+		if ( !health.IsDead && health.HasPendingLethalDamage )
 		{
 			largeLad.Inventory?.HandleDeath( largeLad.GameObject.WorldPosition );
 			largeLad.MovementLocked = true;
@@ -330,7 +343,7 @@ public sealed class LargeLadRoundManager : Component
 		TeleportPlayer( largeLad, LargeLadSpawnGroup.Hunter );
 		health.ResetForCurrentRole();
 		largeLad.Inventory?.PrepareForRole( LargeLadRole.LargeLad );
-		largeLad.MovementLocked = false;
+		largeLad.MovementLocked = Phase == LargeLadRoundPhase.HeadStart;
 		Log.Info( "The Large Lad respawned." );
 	}
 
@@ -347,7 +360,7 @@ public sealed class LargeLadRoundManager : Component
 		if ( player.Role == LargeLadRole.SkinnyKid )
 			respawnRole = LargeLadRole.Minion;
 
-		player.Role = respawnRole;
+		player.SetPendingRespawnRole( respawnRole );
 		player.MovementLocked = true;
 		player.Health.BeginRespawnCountdown( PlayerRespawnDelay, useRagdoll );
 	}
@@ -387,7 +400,7 @@ public sealed class LargeLadRoundManager : Component
 			if ( health is null )
 				continue;
 
-			if ( !health.IsDead && health.CurrentHealth <= 0.0f )
+			if ( !health.IsDead && health.HasPendingLethalDamage )
 			{
 				BeginPlayerRespawn( player, player.Role, true );
 				continue;
@@ -396,14 +409,15 @@ public sealed class LargeLadRoundManager : Component
 			if ( !health.IsDead || !health.TickRespawnCountdown() )
 				continue;
 
-			var group = player.Role == LargeLadRole.Minion
+			var respawnRole = player.ApplyPendingRespawnRole();
+			var group = respawnRole == LargeLadRole.Minion
 				? LargeLadSpawnGroup.Hunter
 				: LargeLadSpawnGroup.SkinnyKid;
 			TeleportPlayer( player, group );
 			health.ResetForCurrentRole();
-			player.Inventory?.PrepareForRole( player.Role );
+			player.Inventory?.PrepareForRole( respawnRole );
 			player.MovementLocked = false;
-			Log.Info( $"{player.GameObject.Name} respawned as {GetRoleName( player.Role )}." );
+			Log.Info( $"{player.GameObject.Name} respawned as {GetRoleName( respawnRole )}." );
 		}
 	}
 
@@ -416,6 +430,7 @@ public sealed class LargeLadRoundManager : Component
 			if ( health is null || !health.IsDead || !health.TickRespawnCountdown() )
 				continue;
 
+			player.ClearPendingRespawnRole();
 			player.Role = LargeLadRole.Unassigned;
 			TeleportPlayer( player, LargeLadSpawnGroup.Lobby );
 			health.ResetForCurrentRole();
@@ -499,6 +514,7 @@ public sealed class LargeLadRoundManager : Component
 				continue;
 			}
 
+			player.BeginAuthoritativeTeleport();
 			player.TeleportTo( spawn.Position, spawn.Rotation );
 		}
 	}
@@ -514,12 +530,20 @@ public sealed class LargeLadRoundManager : Component
 			return;
 		}
 
+		player.BeginAuthoritativeTeleport();
 		player.TeleportTo( spawn.Position, spawn.Rotation );
 	}
 
 	private void OnPhaseChanged( LargeLadRoundPhase oldPhase, LargeLadRoundPhase newPhase )
 	{
 		Log.Info( $"Round phase changed from {oldPhase} to {newPhase}." );
+	}
+
+	private static LargeLadRole GetEffectiveRoundRole( LargeLadPlayer player )
+	{
+		return player.PendingRespawnRole != LargeLadRole.Unassigned
+			? player.PendingRespawnRole
+			: player.Role;
 	}
 
 	private static string GetRoleName( LargeLadRole role )

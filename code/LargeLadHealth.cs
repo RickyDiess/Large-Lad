@@ -30,6 +30,10 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 	public float RespawnTimeRemaining { get; private set; }
 
 	private GameObject deathRagdoll;
+	private bool hasPendingLethalDamage;
+
+	public bool HasPendingLethalDamage =>
+		Networking.IsHost && hasPendingLethalDamage;
 
 	public float MaximumHealth
 	{
@@ -64,6 +68,7 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 		CurrentHealth = MaximumHealth;
 		RespawnTimeRemaining = 0.0f;
 		UseRagdollForCurrentDeath = true;
+		hasPendingLethalDamage = false;
 		IsDead = false;
 		ApplyLifeState( false );
 	}
@@ -111,7 +116,8 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 
 		CurrentHealth = System.MathF.Max( 0.0f, CurrentHealth - amount );
 		appliedDamage = damage.WithAppliedDamage( amount );
-		return CurrentHealth <= 0.0f;
+		hasPendingLethalDamage = CurrentHealth <= 0.0f;
+		return hasPendingLethalDamage;
 	}
 
 	public void BeginRespawnCountdown( float duration, bool useRagdoll = true )
@@ -122,6 +128,7 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 		CurrentHealth = 0.0f;
 		RespawnTimeRemaining = System.MathF.Max( 0.0f, duration );
 		UseRagdollForCurrentDeath = useRagdoll;
+		hasPendingLethalDamage = false;
 		IsDead = true;
 		ApplyLifeState( true );
 	}

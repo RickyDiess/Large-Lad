@@ -11,10 +11,13 @@ public enum LargeLadRole
 public sealed class LargeLadPlayer : Component
 {
 	private const int TeleportSettleFrames = 2;
+	private const float KillVolumeTeleportGrace = 0.5f;
 
 	private Vector3 pendingTeleportPosition;
 	private Rotation pendingTeleportRotation;
 	private int pendingTeleportFrames;
+	private TimeSince timeSinceAuthoritativeTeleport;
+	private bool hasAuthoritativeTeleport;
 
 	[Property, RequireComponent]
 	public LargeLadHealth Health { get; set; }
@@ -30,6 +33,10 @@ public sealed class LargeLadPlayer : Component
 
 	[Sync( SyncFlags.FromHost ), Change( nameof( OnRoleChanged ) )]
 	public LargeLadRole Role { get; set; } = LargeLadRole.Unassigned;
+
+	[Sync( SyncFlags.FromHost )]
+	public LargeLadRole PendingRespawnRole { get; private set; } =
+		LargeLadRole.Unassigned;
 
 	public LargeLadWeaponId EquippedWeapon =>
 		Inventory?.EquippedWeapon ?? LargeLadWeaponId.None;
@@ -126,6 +133,52 @@ public sealed class LargeLadPlayer : Component
 	private void OnMovementLockedChanged( bool oldValue, bool newValue )
 	{
 		RefreshMovementState();
+	}
+
+	public void SetPendingRespawnRole( LargeLadRole role )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		PendingRespawnRole = role;
+	}
+
+	public LargeLadRole ApplyPendingRespawnRole()
+	{
+		if ( !Networking.IsHost )
+			return Role;
+
+		var role = PendingRespawnRole;
+		PendingRespawnRole = LargeLadRole.Unassigned;
+
+		if ( role != LargeLadRole.Unassigned )
+		{
+			Role = role;
+		}
+
+		return Role;
+	}
+
+	public void ClearPendingRespawnRole()
+	{
+		if ( Networking.IsHost )
+		{
+			PendingRespawnRole = LargeLadRole.Unassigned;
+		}
+	}
+
+	public bool HasKillVolumeTeleportGrace =>
+		Networking.IsHost &&
+		hasAuthoritativeTeleport &&
+		timeSinceAuthoritativeTeleport < KillVolumeTeleportGrace;
+
+	public void BeginAuthoritativeTeleport()
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		hasAuthoritativeTeleport = true;
+		timeSinceAuthoritativeTeleport = 0.0f;
 	}
 
 	private void ApplyRole( LargeLadRole role )
