@@ -242,7 +242,7 @@
           "component_type": "LargeLadInventory"
         },
         "LargeLadBodyScale": "1.25,1.45000005,1",
-        "LargeLadRunSpeed": 230,
+        "LargeLadRunSpeed": 100,
         "LargeLadTint": "1,0.25,0.05,1",
         "LargeLadWalkSpeed": 85,
         "MeleeAttack": {
@@ -252,7 +252,7 @@
           "component_type": "LargeLadMeleeAttack"
         },
         "MinionBodyScale": "1,1,1",
-        "MinionRunSpeed": 300,
+        "MinionRunSpeed": 325,
         "MinionTint": "0.55,0.15,0.75,1",
         "MinionWalkSpeed": 110,
         "OnComponentDestroy": null,
@@ -268,7 +268,7 @@
           "component_type": "LargeLadPrototypeWeapon"
         },
         "RunnerBodyScale": "1,1,1",
-        "RunnerRunSpeed": 320,
+        "RunnerRunSpeed": 300,
         "RunnerTint": "1,1,1,1",
         "RunnerWalkSpeed": 110
       },
@@ -306,15 +306,13 @@
         "__guid": "7ab7d5da-c1ae-4c15-853e-30de38e3d5a2",
         "__enabled": true,
         "Flags": 0,
-        "Cooldown": 0.35,
-        "Damage": 100,
+        "EnableFireDebug": false,
         "OnComponentDestroy": null,
         "OnComponentDisabled": null,
         "OnComponentEnabled": null,
         "OnComponentFixedUpdate": null,
         "OnComponentStart": null,
-        "OnComponentUpdate": null,
-        "Range": 1200
+        "OnComponentUpdate": null
       },
       {
         "__type": "LargeLadMeleeAttack",
@@ -412,7 +410,7 @@
         ],
         "Children": [
           {
-            "__guid": "04fa885f-3d15-43bd-a817-52899002066e",
+            "__guid": "be180356-216d-4d55-94a9-37578767f53e",
             "__version": 2,
             "Flags": 0,
             "Name": "Clothing - y_front_pants_white",
@@ -429,7 +427,7 @@
             "Components": [
               {
                 "__type": "Sandbox.SkinnedModelRenderer",
-                "__guid": "c098e829-cab5-4182-93c2-90b4eab17737",
+                "__guid": "ef72d083-c459-4703-af4e-67e8f7b2b602",
                 "__enabled": true,
                 "Flags": 0,
                 "AnimationGraph": null,

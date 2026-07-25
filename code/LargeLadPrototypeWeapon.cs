@@ -1,14 +1,42 @@
 using Sandbox;
 using System.Linq;
 
+public enum LargeLadShotResult
+{
+	AcceptedMiss,
+	PlayerHit,
+	BarricadeHit
+}
+
 /// <summary>
 /// Owner-aimed, host-validated firearm driver. The historical class name is
 /// retained so existing player prefabs keep their serialized component.
 /// </summary>
 public sealed class LargeLadPrototypeWeapon : Component
 {
+	// Requests may arrive this early relative to the host schedule. Accepted
+	// shots remain anchored to the existing schedule, so this tolerance absorbs
+	// frame/network jitter without shortening the sustained fire interval.
+	private const float HostCadenceTolerance = 0.025f;
+	private const float ConfirmedHitmarkerDuration = 0.14f;
+
 	private TimeSince timeSinceLocalShot;
-	private TimeSince timeSinceValidatedShot;
+	private TimeSince timeSinceConfirmedHit;
+	private int nextOwnerShotSequence;
+	private int lastHostShotSequence;
+	private int lastOwnerResultSequence;
+	private bool hasHostShotSchedule;
+	private float nextHostShotTime;
+	private bool hasConfirmedHit;
+
+	[Property, Title( "Fire Debug Output" )]
+	public bool EnableFireDebug { get; set; } = false;
+
+	public bool HasConfirmedHitmarker =>
+		hasConfirmedHit && timeSinceConfirmedHit < ConfirmedHitmarkerDuration;
+
+	public LargeLadShotResult LastShotResult { get; private set; } =
+		LargeLadShotResult.AcceptedMiss;
 
 	protected override void OnUpdate()
 	{
@@ -36,29 +64,41 @@ public sealed class LargeLadPrototypeWeapon : Component
 		if ( round?.Phase != LargeLadRoundPhase.Playing )
 			return;
 
-		timeSinceLocalShot = 0.0f;
-
 		var camera = Scene.Camera;
-		var start = camera is not null ? camera.WorldPosition : controller.EyePosition;
-		var forward = camera is not null
-			? camera.WorldRotation.Forward
-			: controller.EyeTransform.Rotation.Forward;
-		var trace = Scene.Trace
-			.Ray( start, start + forward * definition.Range )
-			.UseHitboxes( true )
-			.IgnoreGameObjectHierarchy( GameObject )
-			.Run();
 
-		// Send the point the owner aimed at, not a client-selected target object.
-		// The host replays the shot from the authoritative player eye position.
-		RequestFire( trace.EndPosition );
+		if ( !LargeLadAimResolver.TryResolveLocal(
+			Scene,
+			camera,
+			controller,
+			GameObject,
+			definition.Range,
+			out var aim ) )
+		{
+			DebugFire( "Local shot not sent: invalid aim." );
+			return;
+		}
+
+		timeSinceLocalShot = 0.0f;
+		nextOwnerShotSequence++;
+		RequestFire( nextOwnerShotSequence, aim.DesiredAimPoint );
 	}
 
 	[Rpc.Host( NetFlags.OwnerOnly )]
-	private void RequestFire( Vector3 claimedAimPoint )
+	private void RequestFire( int ownerShotSequence, Vector3 desiredAimPoint )
 	{
 		if ( !Networking.IsHost )
 			return;
+
+		if ( ownerShotSequence <= lastHostShotSequence )
+		{
+			DebugFire(
+				$"Shot {ownerShotSequence} rejected: duplicate or out-of-order sequence." );
+			return;
+		}
+
+		// Consume every new sequence even when its payload is invalid so the same
+		// malformed request cannot be replayed.
+		lastHostShotSequence = ownerShotSequence;
 
 		var attacker = Components.Get<LargeLadPlayer>();
 		var inventory = attacker?.Inventory;
@@ -69,35 +109,68 @@ public sealed class LargeLadPrototypeWeapon : Component
 
 		if ( attacker?.Role != LargeLadRole.SkinnyKid || inventory is null ||
 			definition is null || !LargeLadWeaponCatalog.IsFirearm( inventory.EquippedWeapon ) ||
-			attacker.Health?.IsDead == true || round?.Phase != LargeLadRoundPhase.Playing ||
-			timeSinceValidatedShot < definition.FireInterval )
+			attacker.Health?.IsDead == true || round?.Phase != LargeLadRoundPhase.Playing )
 		{
+			DebugFire( $"Shot {ownerShotSequence} rejected: firing state is not valid." );
+			return;
+		}
+
+		var controller = Components.Get<PlayerController>();
+
+		if ( !LargeLadAimResolver.TryResolveAuthoritative(
+			Scene,
+			controller,
+			GameObject,
+			definition.Range,
+			desiredAimPoint,
+			out var aim,
+			out var aimFailure ) )
+		{
+			DebugFire(
+				$"Shot {ownerShotSequence} rejected: invalid aim ({aimFailure})." );
+			return;
+		}
+
+		if ( inventory.IsReloading || inventory.EquippedMagazine <= 0 )
+		{
+			DebugFire(
+				$"Shot {ownerShotSequence} rejected: missing ammo or reload in progress." );
+
+			if ( inventory.EquippedMagazine <= 0 )
+			{
+				inventory.BeginReload();
+			}
+
+			return;
+		}
+
+		var hostNow = Time.Now;
+
+		if ( hasHostShotSchedule &&
+			hostNow + HostCadenceTolerance < nextHostShotTime )
+		{
+			var remaining = nextHostShotTime - hostNow;
+			DebugFire(
+				$"Shot {ownerShotSequence} rejected: cadence ({remaining:0.000}s remaining)." );
 			return;
 		}
 
 		if ( !inventory.TryConsumeShot( out definition ) )
 		{
+			DebugFire( $"Shot {ownerShotSequence} rejected: missing ammo." );
 			inventory.BeginReload();
 			return;
 		}
 
-		timeSinceValidatedShot = 0.0f;
+		CommitHostCadence( definition, hostNow );
 
-		var controller = Components.Get<PlayerController>();
-		var start = controller?.EyePosition ?? GameObject.WorldPosition + Vector3.Up * 64.0f;
-		var towardAimPoint = claimedAimPoint - start;
+		if ( aim.IsObstructed )
+		{
+			DebugFire(
+				$"Shot {ownerShotSequence}: obstruction before desired aim point." );
+		}
 
-		if ( towardAimPoint.LengthSquared < 0.001f )
-			return;
-
-		var traceDistance = System.MathF.Min( towardAimPoint.Length, definition.Range );
-		var targetPosition = start + towardAimPoint.Normal * traceDistance;
-		var trace = Scene.Trace
-			.Ray( start, targetPosition )
-			.UseHitboxes( true )
-			.IgnoreGameObjectHierarchy( GameObject )
-			.Run();
-
+		var trace = aim.ShotTrace;
 		var targetPlayer = trace.GameObject?.Components.Get<LargeLadPlayer>(
 			FindMode.EverythingInSelfAndAncestors );
 		var barricade = LargeLadBarricade.FindFor( Scene, trace.GameObject );
@@ -111,22 +184,81 @@ public sealed class LargeLadPrototypeWeapon : Component
 			BaseDamage = definition.Damage
 		};
 
-		if ( targetPlayer is not null )
-		{
-			if ( targetPlayer.Role is not (LargeLadRole.LargeLad or LargeLadRole.Minion) ||
-				targetPlayer.Health?.IsDead != false )
-			{
-				return;
-			}
+		var result = LargeLadShotResult.AcceptedMiss;
 
+		if ( targetPlayer is not null &&
+			targetPlayer.Role is LargeLadRole.LargeLad or LargeLadRole.Minion &&
+			targetPlayer.Health?.IsDead == false )
+		{
 			targetPlayer.Health.TryApplyDamage( damage, out var applied );
-			Log.Info( $"{GameObject.Name} hit {targetPlayer.GameObject.Name} for {applied.AppliedDamage:0.#} damage." );
+
+			if ( applied.AppliedDamage > 0.0f )
+			{
+				result = LargeLadShotResult.PlayerHit;
+				DebugFire(
+					$"Shot {ownerShotSequence}: confirmed player hit for " +
+					$"{applied.AppliedDamage:0.#} damage." );
+			}
+		}
+		else if ( barricade is not null &&
+			barricade.TryApplyDamage( damage, out var structuralDamage ) )
+		{
+			result = LargeLadShotResult.BarricadeHit;
+			DebugFire(
+				$"Shot {ownerShotSequence}: confirmed barricade hit for " +
+				$"{structuralDamage.AppliedDamage:0.#} damage." );
+		}
+
+		if ( result == LargeLadShotResult.AcceptedMiss )
+		{
+			DebugFire( $"Shot {ownerShotSequence}: accepted miss." );
+		}
+
+		ReceiveShotResult( ownerShotSequence, result );
+	}
+
+	private void CommitHostCadence(
+		LargeLadWeaponDefinition definition,
+		float hostNow )
+	{
+		if ( !hasHostShotSchedule )
+		{
+			hasHostShotSchedule = true;
+			nextHostShotTime = hostNow + definition.FireInterval;
 			return;
 		}
 
-		if ( barricade is not null && barricade.TryApplyDamage( damage, out var structuralDamage ) )
+		nextHostShotTime =
+			System.MathF.Max( hostNow, nextHostShotTime ) +
+			definition.FireInterval;
+	}
+
+	[Rpc.Owner( NetFlags.HostOnly )]
+	private void ReceiveShotResult(
+		int ownerShotSequence,
+		LargeLadShotResult result )
+	{
+		if ( ownerShotSequence <= lastOwnerResultSequence )
+			return;
+
+		lastOwnerResultSequence = ownerShotSequence;
+		LastShotResult = result;
+
+		if ( result is not (LargeLadShotResult.PlayerHit or
+			LargeLadShotResult.BarricadeHit) )
 		{
-			Log.Info( $"{GameObject.Name} damaged {barricade.GameObject.Name} for {structuralDamage.AppliedDamage:0.#}." );
+			return;
+		}
+
+		hasConfirmedHit = true;
+		timeSinceConfirmedHit = 0.0f;
+	}
+
+	private void DebugFire( string message )
+	{
+		if ( EnableFireDebug )
+		{
+			Log.Info( $"{GameObject.Name}: {message}" );
 		}
 	}
 }

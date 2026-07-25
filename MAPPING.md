@@ -1,12 +1,13 @@
 # Large Lad scene-mapping guide
 
-`Assets/scenes/minimal.scene` is the canonical greybox and the project's startup
-scene. Make future maps by duplicating that scene. Do not copy gameplay scripts
-between maps and do not add a second gameplay bootstrap.
+The project intentionally has no fixed startup scene, so editor play mode uses
+the scene that is currently open. Make future maps by duplicating
+`Assets/scenes/template.scene`. Do not copy gameplay scripts between maps and do
+not add a second gameplay bootstrap.
 
 ## Starting a map
 
-1. Duplicate `minimal.scene` and give the copy a map-specific name.
+1. Duplicate `template.scene` and give the copy a map-specific name.
 2. Keep its single `Large Lad Gameplay Bootstrap` prefab instance.
 3. Enter the editor's Mapping mode and build ordinary scene geometry.
 4. Place or duplicate the gameplay prefabs from `Assets/Prefabs/Gameplay`.

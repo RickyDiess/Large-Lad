@@ -27,6 +27,7 @@ public sealed class LargeLadHud : Component
 		DrawRoleStatus( hud, player );
 		DrawWeaponStatus( hud, player );
 		DrawCrosshair( hud, player );
+		DrawConfirmedHitmarker( hud, player );
 
 		if ( round.Phase == LargeLadRoundPhase.RoundOver )
 		{
@@ -225,6 +226,186 @@ public sealed class LargeLadHud : Component
 				centerY + gap,
 				thickness,
 				armLength ) );
+
+		var center = new Vector2( centerX, centerY );
+		var controller = player.Components.Get<PlayerController>();
+		var definition = player.Inventory.EquippedDefinition;
+		var validAim = LargeLadAimResolver.TryResolveLocal(
+			player.Scene,
+			player.Scene.Camera,
+			controller,
+			player.GameObject,
+			definition.Range,
+			out var aim );
+		var intentColor = !validAim
+			? new Color( 1.0f, 0.2f, 0.14f )
+			: aim.IsObstructed
+				? new Color( 1.0f, 0.72f, 0.12f )
+				: Color.White;
+
+		// This fixed marker is camera intent. In clear space it also represents
+		// the predicted eye-origin impact, so the two markers collapse into one.
+		DrawCrosshairSegment(
+			hud,
+			new Rect( centerX - 1.5f, centerY - 1.5f, 3.0f, 3.0f ),
+			intentColor );
+
+		if ( !validAim )
+		{
+			DrawInvalidAimMarker( hud, center );
+			return;
+		}
+
+		if ( !aim.IsObstructed )
+			return;
+
+		if ( !TryProjectImpactPoint(
+			player.Scene.Camera,
+			aim.ActualImpactPoint,
+			out var impactPosition ) )
+		{
+			DrawInvalidAimMarker( hud, center );
+			return;
+		}
+
+		DrawImpactMarker(
+			hud,
+			impactPosition,
+			new Color( 1.0f, 0.72f, 0.12f ) );
+	}
+
+	private static void DrawConfirmedHitmarker(
+		HudPainter hud,
+		LargeLadPlayer player )
+	{
+		var weapon = player.PrototypeWeapon;
+
+		if ( weapon?.HasConfirmedHitmarker != true )
+			return;
+
+		var center = new Vector2( Screen.Width * 0.5f, Screen.Height * 0.5f );
+		var color = weapon.LastShotResult == LargeLadShotResult.BarricadeHit
+			? new Color( 1.0f, 0.72f, 0.12f )
+			: Color.White;
+
+		DrawDiagonalMarker( hud, center, 8.0f, 14.0f, color );
+	}
+
+	private static bool TryProjectImpactPoint(
+		CameraComponent camera,
+		Vector3 impactPoint,
+		out Vector2 screenPosition )
+	{
+		screenPosition = default;
+
+		if ( camera is null || !LargeLadAimResolver.IsFinite( impactPoint ) )
+			return false;
+
+		var view = camera.View;
+		var towardImpact = impactPoint - view.Position;
+		var depth = Vector3.Dot( towardImpact, view.Rotation.Forward );
+
+		if ( !LargeLadAimResolver.IsFinite( view.Position ) ||
+			!LargeLadAimResolver.IsFinite( towardImpact ) ||
+			!float.IsFinite( depth ) || depth <= 0.001f ||
+			!float.IsFinite( view.FieldOfView ) ||
+			view.FieldOfView <= 0.0f || view.FieldOfView >= 179.0f ||
+			Screen.Width <= 0.0f || Screen.Height <= 0.0f )
+		{
+			return false;
+		}
+
+		var aspect = Screen.Width / Screen.Height;
+		var fieldOfViewTangent = System.MathF.Tan(
+			view.FieldOfView * System.MathF.PI / 360.0f );
+		var horizontalTangent = camera.FovAxis == CameraComponent.Axis.Horizontal
+			? fieldOfViewTangent
+			: fieldOfViewTangent * aspect;
+		var verticalTangent = camera.FovAxis == CameraComponent.Axis.Vertical
+			? fieldOfViewTangent
+			: fieldOfViewTangent / aspect;
+		var normalizedX = 0.5f +
+			Vector3.Dot( towardImpact, view.Rotation.Right ) /
+			(depth * horizontalTangent) * 0.5f;
+		var normalizedY = 0.5f -
+			Vector3.Dot( towardImpact, view.Rotation.Up ) /
+			(depth * verticalTangent) * 0.5f;
+
+		if ( !float.IsFinite( normalizedX ) || !float.IsFinite( normalizedY ) ||
+			normalizedX < 0.0f || normalizedX > 1.0f ||
+			normalizedY < 0.0f || normalizedY > 1.0f )
+		{
+			return false;
+		}
+
+		screenPosition = new Vector2(
+			normalizedX * Screen.Width,
+			normalizedY * Screen.Height );
+		return true;
+	}
+
+	private static void DrawImpactMarker(
+		HudPainter hud,
+		Vector2 center,
+		Color color )
+	{
+		const float gap = 4.0f;
+		const float length = 5.0f;
+		const float thickness = 2.0f;
+
+		DrawCrosshairSegment(
+			hud,
+			new Rect( center.x - gap - length, center.y - 1.0f, length, thickness ),
+			color );
+		DrawCrosshairSegment(
+			hud,
+			new Rect( center.x + gap, center.y - 1.0f, length, thickness ),
+			color );
+		DrawCrosshairSegment(
+			hud,
+			new Rect( center.x - 1.0f, center.y - gap - length, thickness, length ),
+			color );
+		DrawCrosshairSegment(
+			hud,
+			new Rect( center.x - 1.0f, center.y + gap, thickness, length ),
+			color );
+	}
+
+	private static void DrawInvalidAimMarker(
+		HudPainter hud,
+		Vector2 center )
+	{
+		DrawDiagonalMarker(
+			hud,
+			center,
+			4.0f,
+			9.0f,
+			new Color( 1.0f, 0.2f, 0.14f ) );
+	}
+
+	private static void DrawDiagonalMarker(
+		HudPainter hud,
+		Vector2 center,
+		float innerRadius,
+		float outerRadius,
+		Color color )
+	{
+		var directions = new[]
+		{
+			new Vector2( -1.0f, -1.0f ),
+			new Vector2( 1.0f, -1.0f ),
+			new Vector2( -1.0f, 1.0f ),
+			new Vector2( 1.0f, 1.0f )
+		};
+
+		foreach ( var direction in directions )
+		{
+			var normalized = direction.Normal;
+			var start = center + normalized * innerRadius;
+			var end = center + normalized * outerRadius;
+			hud.DrawLine( start, end, 4.0f, new Color( 0.0f, 0.0f, 0.0f, 0.8f ), default );
+			hud.DrawLine( start, end, 2.0f, color, default );
+		}
 	}
 
 	private static void DrawWeaponStatus( HudPainter hud, LargeLadPlayer player )
@@ -270,6 +451,14 @@ public sealed class LargeLadHud : Component
 
 	private static void DrawCrosshairSegment( HudPainter hud, Rect rect )
 	{
+		DrawCrosshairSegment( hud, rect, Color.White );
+	}
+
+	private static void DrawCrosshairSegment(
+		HudPainter hud,
+		Rect rect,
+		Color color )
+	{
 		DrawSolidRect(
 			hud,
 			new Rect(
@@ -279,7 +468,7 @@ public sealed class LargeLadHud : Component
 				rect.Height + 2.0f ),
 			new Color( 0.0f, 0.0f, 0.0f, 0.8f ) );
 
-		DrawSolidRect( hud, rect, Color.White );
+		DrawSolidRect( hud, rect, color );
 	}
 
 	private static void DrawSolidRect( HudPainter hud, Rect rect, Color color )
