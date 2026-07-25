@@ -1,0 +1,51 @@
+{
+  "RootObject": {
+    "__guid": "8a300001-0000-4000-8000-000000000001",
+    "__version": 2,
+    "Flags": 0,
+    "Name": "Kill Volume",
+    "Position": "0,0,0",
+    "Rotation": "0,0,0,1",
+    "Scale": "1,1,1",
+    "Tags": "",
+    "Enabled": true,
+    "NetworkMode": 2,
+    "NetworkFlags": 0,
+    "NetworkOrphaned": 0,
+    "NetworkTransmit": true,
+    "OwnerTransfer": 1,
+    "Components": [
+      {
+        "__type": "Sandbox.BoxCollider",
+        "__guid": "8a300001-0000-4000-8000-000000000002",
+        "__enabled": true,
+        "Flags": 0,
+        "Center": "0,0,0",
+        "ColliderFlags": 0,
+        "Elasticity": null,
+        "Friction": 0,
+        "IsTrigger": true,
+        "RollingResistance": null,
+        "Scale": "128,128,32",
+        "Static": true,
+        "Surface": null,
+        "SurfaceVelocity": "0,0,0"
+      },
+      {
+        "__type": "LargeLadKillVolume",
+        "__guid": "8a300001-0000-4000-8000-000000000003",
+        "__enabled": true,
+        "Flags": 0,
+        "TriggerCollider": null,
+        "GizmoPadding": 2
+      }
+    ],
+    "Children": []
+  },
+  "ShowInMenu": true,
+  "MenuPath": "Large Lad/Hazards/Kill Volume",
+  "MenuIcon": "dangerous",
+  "DontBreakAsTemplate": true,
+  "__references": [],
+  "__version": 2
+}

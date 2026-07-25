@@ -49,11 +49,13 @@ public sealed class LargeLadPrototypeWeapon : Component
 			.IgnoreGameObjectHierarchy( GameObject )
 			.Run();
 
-		RequestFire( trace.Hit ? trace.GameObject : null );
+		// Send the point the owner aimed at, not a client-selected target object.
+		// The host replays the shot from the authoritative player eye position.
+		RequestFire( trace.EndPosition );
 	}
 
 	[Rpc.Host( NetFlags.OwnerOnly )]
-	private void RequestFire( GameObject claimedTarget )
+	private void RequestFire( Vector3 claimedAimPoint )
 	{
 		if ( !Networking.IsHost )
 			return;
@@ -81,38 +83,24 @@ public sealed class LargeLadPrototypeWeapon : Component
 
 		timeSinceValidatedShot = 0.0f;
 
-		if ( claimedTarget is null )
-			return;
-
-		var targetPlayer = claimedTarget.Components.Get<LargeLadPlayer>(
-			FindMode.EverythingInSelfAndAncestors );
-		var barricade = LargeLadBarricade.FindFor( Scene, claimedTarget );
-
-		if ( targetPlayer is null && barricade is null )
-			return;
-
-		var resolvedTarget = targetPlayer?.GameObject ?? barricade.GameObject;
-
-		if ( GameObject.WorldPosition.DistanceSquared( resolvedTarget.WorldPosition ) >
-			definition.Range * definition.Range )
-		{
-			return;
-		}
-
 		var controller = Components.Get<PlayerController>();
 		var start = controller?.EyePosition ?? GameObject.WorldPosition + Vector3.Up * 64.0f;
-		var targetPosition = targetPlayer is not null
-			? targetPlayer.GameObject.WorldPosition + Vector3.Up * 36.0f
-			: barricade.GameObject.WorldPosition;
+		var towardAimPoint = claimedAimPoint - start;
+
+		if ( towardAimPoint.LengthSquared < 0.001f )
+			return;
+
+		var traceDistance = System.MathF.Min( towardAimPoint.Length, definition.Range );
+		var targetPosition = start + towardAimPoint.Normal * traceDistance;
 		var trace = Scene.Trace
 			.Ray( start, targetPosition )
 			.UseHitboxes( true )
 			.IgnoreGameObjectHierarchy( GameObject )
 			.Run();
 
-		var validatedPlayer = trace.GameObject?.Components.Get<LargeLadPlayer>(
+		var targetPlayer = trace.GameObject?.Components.Get<LargeLadPlayer>(
 			FindMode.EverythingInSelfAndAncestors );
-		var validatedBarricade = LargeLadBarricade.FindFor( Scene, trace.GameObject );
+		var barricade = LargeLadBarricade.FindFor( Scene, trace.GameObject );
 
 		var damage = new LargeLadDamageContext
 		{
@@ -125,8 +113,7 @@ public sealed class LargeLadPrototypeWeapon : Component
 
 		if ( targetPlayer is not null )
 		{
-			if ( validatedPlayer != targetPlayer ||
-				targetPlayer.Role is not (LargeLadRole.LargeLad or LargeLadRole.Minion) ||
+			if ( targetPlayer.Role is not (LargeLadRole.LargeLad or LargeLadRole.Minion) ||
 				targetPlayer.Health?.IsDead != false )
 			{
 				return;
@@ -137,8 +124,7 @@ public sealed class LargeLadPrototypeWeapon : Component
 			return;
 		}
 
-		if ( validatedBarricade == barricade &&
-			barricade.TryApplyDamage( damage, out var structuralDamage ) )
+		if ( barricade is not null && barricade.TryApplyDamage( damage, out var structuralDamage ) )
 		{
 			Log.Info( $"{GameObject.Name} damaged {barricade.GameObject.Name} for {structuralDamage.AppliedDamage:0.#}." );
 		}

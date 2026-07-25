@@ -16,6 +16,36 @@
     "OwnerTransfer": 1,
     "Components": [
       {
+        "__type": "LargeLadMapDefinition",
+        "__guid": "54e8b1e3-56e4-53fc-8f6a-aeba626a6879",
+        "__enabled": true,
+        "Flags": 0,
+        "HeadStartDuration": 10,
+        "SurvivalDuration": 60,
+        "IntermissionDuration": 5,
+        "NetworkHelper": null,
+        "RoundManager": null,
+        "SpawnAllocator": null,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null
+      },
+      {
+        "__type": "LargeLadSpawnAllocator",
+        "__guid": "71d9cc78-bf50-49ca-95cc-aa5a3f7a4900",
+        "__enabled": true,
+        "Flags": 0,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null
+      },
+      {
         "__type": "Sandbox.NetworkHelper",
         "__guid": "13a94fea-a2de-45da-beb8-61e564e6e245",
         "__enabled": true,
@@ -55,9 +85,9 @@
     ],
     "Children": []
   },
-  "ShowInMenu": false,
-  "MenuPath": null,
-  "MenuIcon": null,
+  "ShowInMenu": true,
+  "MenuPath": "Large Lad/Gameplay Bootstrap",
+  "MenuIcon": "sports_kabaddi",
   "DontBreakAsTemplate": true,
   "__references": [],
   "__version": 2

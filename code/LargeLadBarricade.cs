@@ -8,6 +8,10 @@ public enum LargeLadBarricadeMode
 	LadShortcut
 }
 
+/// <summary>
+/// A self-contained scene destructible. Put this component on the same
+/// GameObject as the scene mesh or renderer and collider.
+/// </summary>
 public sealed class LargeLadBarricade : Component,
 	ILargeLadDamageable,
 	ILargeLadRoundResettable
@@ -21,9 +25,11 @@ public sealed class LargeLadBarricade : Component,
 	[Property, Title( "Lad Structural Damage Per Swing" )]
 	public float LadStructuralDamage { get; set; } = 100.0f;
 
-	public Component BarricadeRenderer { get; private set; }
+	[Property]
+	public Component BarricadeRenderer { get; set; }
 
-	public Collider BarricadeCollider { get; private set; }
+	[Property]
+	public Collider BarricadeCollider { get; set; }
 
 	[Property, Title( "Local Cosmetic Debris" )]
 	public List<GameObject> CosmeticDebris { get; set; } = new();
@@ -40,16 +46,22 @@ public sealed class LargeLadBarricade : Component,
 	[Sync( SyncFlags.FromHost ), Change( nameof( OnDestroyedChanged ) )]
 	public bool IsDestroyed { get; private set; }
 
-	private bool? appliedDestroyedState;
+	public bool HasVisibleGeometry => BarricadeRenderer is not null;
 
-	public GameObject AuthoredTarget => GameObject.Parent ?? GameObject;
+	public bool HasCollision => BarricadeCollider is not null;
+
+	public GameObject AuthoredTarget => GameObject;
+
+	private bool? appliedDestroyedState;
 
 	public Vector3 GetClosestWorldPoint( Vector3 worldPoint )
 	{
-		var authoredObject = AuthoredTarget;
-		var localPoint = authoredObject.WorldTransform.PointToLocal( worldPoint );
-		var closestLocalPoint = authoredObject.GetLocalBounds().ClosestPoint( localPoint );
-		return authoredObject.WorldTransform.PointToWorld( closestLocalPoint );
+		if ( BarricadeCollider is not null )
+			return BarricadeCollider.FindClosestPoint( worldPoint );
+
+		var localPoint = GameObject.WorldTransform.PointToLocal( worldPoint );
+		var closest = GameObject.GetLocalBounds().ClosestPoint( localPoint );
+		return GameObject.WorldTransform.PointToWorld( closest );
 	}
 
 	public static LargeLadBarricade FindFor( Scene scene, GameObject target )
@@ -69,67 +81,63 @@ public sealed class LargeLadBarricade : Component,
 		return scene
 			.GetAllComponents<LargeLadBarricade>()
 			.FirstOrDefault( barricade =>
-				barricade.AuthoredTarget == target ||
-				(targetCollider is not null && barricade.BarricadeCollider == targetCollider) );
+				barricade.GameObject == target ||
+				(targetCollider is not null &&
+				barricade.BarricadeCollider == targetCollider) );
 	}
 
 	protected override void OnAwake()
 	{
+		ConfigureObject();
 		ResolveAuthoredParts();
 	}
 
 	protected override void OnStart()
 	{
+		ConfigureObject();
 		ResolveAuthoredParts();
 		SetCosmeticDebrisEnabled( false );
 
 		if ( Networking.IsHost && CurrentHealth <= 0.0f && !IsDestroyed )
-		{
 			CurrentHealth = System.MathF.Max( 1.0f, MaximumHealth );
-		}
 
 		ApplyDestroyedState();
 	}
 
 	protected override void OnUpdate()
 	{
-		// The normal path is the Sync change callback. This also repairs the
-		// authored pieces after a hotload or a late network snapshot.
-		if ( appliedDestroyedState != IsDestroyed )
-		{
-			ResolveAuthoredParts();
-			ApplyDestroyedState();
-		}
+		if ( appliedDestroyedState == IsDestroyed )
+			return;
+
+		ResolveAuthoredParts();
+		ApplyDestroyedState();
 	}
 
 	protected override void OnValidate()
 	{
+		ConfigureObject();
 		ResolveAuthoredParts();
 
 		if ( MaximumHealth <= 0.0f )
 			Log.Warning( $"{GameObject.Name}: barricade health must be positive." );
 
-		if ( GameObject.Parent is null )
-			Log.Warning( $"{GameObject.Name}: barricade state must be a child of its authored geometry." );
-
 		if ( BarricadeRenderer is null || BarricadeCollider is null )
-			Log.Warning( $"{GameObject.Name}: parent needs a MeshComponent, or a renderer and collider." );
+		{
+			Log.Warning(
+				$"{GameObject.Name}: add LargeLadBarricade to the same " +
+				"GameObject as its rendering and collision." );
+		}
+	}
+
+	private void ConfigureObject()
+	{
+		GameObject.NetworkMode = NetworkMode.Object;
+		GameObject.IsStatic = true;
 	}
 
 	private void ResolveAuthoredParts()
 	{
-		var authoredObject = GameObject.Parent;
-
-		BarricadeRenderer = null;
-		BarricadeCollider = null;
-
-		if ( authoredObject is null )
-			return;
-
-		// A destroyed barricade disables its authored components. Use an
-		// everything lookup so the host can still rediscover and re-enable them
-		// at the next round reset.
-		var editableMesh = authoredObject.Components.Get<MeshComponent>(
+		var editableMesh = Components.Get<MeshComponent>(
 			FindMode.EverythingInSelf );
 
 		if ( editableMesh is not null )
@@ -139,11 +147,10 @@ public sealed class LargeLadBarricade : Component,
 			return;
 		}
 
-		BarricadeRenderer = authoredObject.Components.Get<Renderer>(
+		BarricadeRenderer ??= Components.Get<Renderer>(
 			FindMode.EverythingInSelf );
-		BarricadeCollider = authoredObject.Components.Get<Collider>(
+		BarricadeCollider ??= Components.Get<Collider>(
 			FindMode.EverythingInSelf );
-		BarricadeRenderer ??= BarricadeCollider;
 	}
 
 	public bool TryApplyDamage(
@@ -202,7 +209,7 @@ public sealed class LargeLadBarricade : Component,
 		CurrentHealth = System.MathF.Max( 1.0f, MaximumHealth );
 		IsDestroyed = false;
 		ApplyDestroyedState();
-		Log.Info( $"Reset barricade '{AuthoredTarget.Name}' for the new round." );
+		Log.Info( $"Reset barricade '{GameObject.Name}' for the new round." );
 	}
 
 	private void OnDestroyedChanged( bool oldValue, bool newValue )
@@ -210,9 +217,7 @@ public sealed class LargeLadBarricade : Component,
 		ApplyDestroyedState();
 
 		if ( newValue && !oldValue )
-		{
 			PlayCosmeticDebris();
-		}
 	}
 
 	private void ApplyDestroyedState()
@@ -252,23 +257,24 @@ public sealed class LargeLadBarricade : Component,
 	{
 		ResolveAuthoredParts();
 
-		var authoredObject = AuthoredTarget;
 		var padding = new Vector3( System.MathF.Max( 0.0f, GizmoPadding ) );
-		var localBounds = authoredObject.GetLocalBounds();
-		var paddedBounds = new BBox(
-			localBounds.Mins - padding,
-			localBounds.Maxs + padding );
+		var bounds = BarricadeCollider is not null
+			? BarricadeCollider.GetWorldBounds()
+			: GameObject.GetBounds();
+		var padded = new BBox(
+			bounds.Mins - padding,
+			bounds.Maxs + padding );
 		var color = Mode == LargeLadBarricadeMode.SkinnyProgression
 			? new Color( 0.25f, 0.85f, 1.0f )
 			: new Color( 1.0f, 0.22f, 0.08f );
 
-		Gizmo.Transform = authoredObject.WorldTransform;
+		Gizmo.Transform = global::Transform.Zero;
 		Gizmo.Draw.IgnoreDepth = true;
 		Gizmo.Draw.Color = color.WithAlpha( 0.16f );
-		Gizmo.Draw.SolidBox( paddedBounds );
+		Gizmo.Draw.SolidBox( padded );
 		Gizmo.Draw.Color = color.WithAlpha( 0.95f );
 		Gizmo.Draw.LineThickness = 2.0f;
-		Gizmo.Draw.LineBBox( paddedBounds );
+		Gizmo.Draw.LineBBox( padded );
 		Gizmo.Draw.LineThickness = 1.0f;
 		Gizmo.Draw.IgnoreDepth = false;
 	}

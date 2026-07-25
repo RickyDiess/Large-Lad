@@ -1,84 +1,130 @@
-# Large Lad mapping contract
+# Large Lad scene-mapping guide
 
-Start a gameplay greybox by duplicating `Assets/scenes/minimal.scene`. Keep one
-instance of `Assets/Prefabs/large_lad_gameplay.prefab`, then place one
-`LargeLadMapDefinition` in the scene. A map is ready to test when its map
-definition reports no contract warnings.
+`Assets/scenes/minimal.scene` is the canonical greybox and the project's startup
+scene. Make future maps by duplicating that scene. Do not copy gameplay scripts
+between maps and do not add a second gameplay bootstrap.
 
-## Required scene structure
+## Starting a map
 
-```text
-Map
-├── Geometry and lighting
-├── Large Lad Gameplay Bootstrap
-│   ├── NetworkHelper
-│   └── LargeLadRoundManager
-├── Map Definition
-├── Waiting Room
-│   └── 16 ordered Lobby spawn markers
-├── Skinny Kid Starts
-│   └── 15 ordered SkinnyKid spawn markers
-├── Hunter Starts
-│   └── 16 ordered Hunter spawn markers
-├── Pickups
-├── Barricades
-└── Hazards
-```
+1. Duplicate `minimal.scene` and give the copy a map-specific name.
+2. Keep its single `Large Lad Gameplay Bootstrap` prefab instance.
+3. Enter the editor's Mapping mode and build ordinary scene geometry.
+4. Place or duplicate the gameplay prefabs from `Assets/Prefabs/Gameplay`.
+5. Run the scene and resolve every `Map contract:` warning before testing it.
 
-The hunter group is shared by the Large Lad, converted Minions, respawning
-Minions, and late joiners. Orders must be unique within each group. The map
-definition copies the lobby group into `NetworkHelper` and supplies all three
-groups to the round manager; gameplay code should never contain a map-specific
-spawn reference.
+The bootstrap contains `NetworkHelper`, `LargeLadRoundManager`,
+`LargeLadSpawnAllocator`, and `LargeLadMapDefinition`. The map definition owns
+the three per-map timing values and validates the scene. Its defaults are a
+10-second head start, a 60-second survival timer, and a 5-second intermission.
 
-## Stable player dimensions
+## Team spawns
 
-- Authoritative capsule: 32 units wide, 72 units tall.
+Use the three spawn presets:
+
+- `Lobby Team Spawn`
+- `Skinny Kid Team Spawn`
+- `Hunter Team Spawn`
+
+The hunter group is shared by the Large Lad, converted or respawning Minions,
+late joiners, and Large Lad respawns. A spawn component defines a horizontal
+circle rather than one exact position:
+
+- `SpawnRadius`: 160 units by default.
+- `Capacity`: 16 by default.
+- `MinimumSeparation`: 48 units by default.
+
+One point per group is enough when its full circle lies above clear floor.
+Multiple points may be used for unusually shaped rooms. There are no order
+numbers or hand-wired spawn lists. NetworkHelper's generated lobby positions
+appear as runtime children of the Lobby Team Spawn that produced them.
+
+At runtime the allocator probes downward for the floor, checks the 32-by-72
+player capsule, and reserves unique positions during batch spawns. Individual
+respawns prefer the valid point farthest from living players. If a circle is
+crowded it uses the least-crowded valid point; it never deliberately chooses a
+position inside geometry.
+
+The full map contract requires total configured capacity of 16 for Lobby, 15
+for Skinny Kids, and 16 for Hunter. The colored editor gizmos preview each
+circle and its configured capacity. Keep the circles out of walls even when the
+component's center is clear.
+
+## Stable player dimensions and movement
+
+- Authoritative capsule: 32 units wide and 72 units tall.
 - Step height: 18 units.
 - Skinny Kid movement: 110 walk, 320 run.
 - Large Lad movement: 85 walk, 230 run.
 - Minion movement: 110 walk, 300 run.
 - Large Lad melee reach: 100 units.
 - Minion melee reach: 80 units.
-- The Large Lad's wider body is visual only. Do not make routes depend on that
-  visual width.
 
-Useful greybox starting points are 96 units for a comfortable main corridor,
-64 units for a deliberately tight branch, 72 units for doors, and 96 units of
-clear headroom. Leave extra room at turns, spawn clusters, and melee choke
-points. Test the route at the real run speeds before adding detail.
+The Large Lad's width is visual only, so routes must fit the normal player
+capsule. Useful greybox starting points are a 96-unit comfortable main corridor,
+a 64-unit deliberately tight branch, a 72-unit doorway, and at least 96 units
+of clear headroom. Leave more room around turns, spawn circles, and melee choke
+points.
 
-## Authored gameplay objects
+## Barricades
 
-- `SkinnyProgression` barricades take damage only from Skinny Kid firearms.
-- `LadShortcut` barricades take 100 structural damage per Large Lad swing.
-  Minions can use an opened shortcut but cannot open it.
-- A barricade is one self-contained hierarchy. Keep its visible/collidable
-  `MeshComponent` on the static parent, then add one child named `Network State`
-  with Network Mode set to `Object` and a `LargeLadBarricade` component. The
-  component discovers its parent automatically; there are no renderer/collider
-  references to assign. Move, duplicate, or delete the parent as one unit.
-- Barricade and kill-volume gizmos follow their real collider bounds. Their
-  inspector padding defaults to 2 units, and their colored outlines remain
-  visible through nearby map geometry.
-- Core weapon and ammo pickups are independently collectible once per Skinny
-  Kid per round. One player's pickup never consumes another player's copy.
-- Globally exclusive pickups may have only one owner. They move to the owner's
-  death position with their remaining ammunition, then return to their authored
-  transform on round reset.
-- Kill volumes use the normal role respawn rules. A dead Skinny Kid converts to
-  a Minion; a Minion respawns at the hunter start; the Large Lad uses his own
-  death timer and returns to hunter spawn order 0.
+The two presets are:
 
-Every destructible and pickup must implement the shared round-reset contract.
-Map state is reset immediately before roles and positions are assigned for the
-next round.
+- `Skinny Progression Barricade`: 300 health; only Skinny Kid firearms damage it.
+- `Lad Shortcut Barricade`: 300 health; only Large Lad melee damages it, at
+  100 structural damage per swing. Minions can use the route after it opens but
+  cannot open it.
 
-## Default timing
+A barricade is one self-contained GameObject using Network Mode `Object`. Its
+visible mesh or renderer, collision, and `LargeLadBarricade` component all live
+on that same object. Health and destruction synchronize directly on the
+component; there is no network-state child or external controller.
 
-- Head start: 10 seconds.
-- Skinny Kid survival timer: 60 seconds.
-- Intermission: 5 seconds.
+For a custom Scene Mapping barrier:
 
-These values may be changed on the map definition. Map progress and branch
-selection do not alter the survival timer; Skinny Kids win only by surviving it.
+1. Create and texture the geometry in Mapping mode.
+2. Select the resulting mesh GameObject.
+3. Add `LargeLadBarricade` to that same object.
+4. Set Network Mode to `Object`.
+5. Choose `SkinnyProgression` or `LadShortcut`.
+
+The component automatically uses a same-object `MeshComponent`, or a
+same-object renderer and collider. Destruction disables rendering and collision
+on every client. Round reset restores both. Optional local cosmetic debris may
+be assigned in the component without adding networked physics debris.
+
+## Pickups and hazards
+
+The gameplay prefab folder contains pistol, SMG, pistol-ammo, SMG-ammo, and kill
+volume presets. Their temporary models are explicit scene content and can be
+replaced with production assets later.
+
+Core weapon pickups are independently collectible once by every Skinny Kid each
+round; one player does not consume the pickup for anyone else. Core weapons do
+not drop on infection. Ammo placements grant a finite weapon-specific refill
+once per Skinny Kid per round and reset for the next round.
+
+Globally exclusive bonus weapons are supported for later content. An exclusive
+weapon drops with its remaining ammunition when its owner dies, then its
+authored pickup returns on round reset.
+
+A kill volume is an ordinary GameObject with a trigger collider and
+`LargeLadKillVolume`. Resize the collider to cover the hazard. Skinny Kids killed
+by it become Minions, Minions use their normal respawn, and the Large Lad uses
+the Large Lad respawn timer.
+
+## Preflight checklist
+
+- Exactly one gameplay bootstrap exists.
+- At least one team-spawn component exists for each group.
+- Configured capacities meet 16 Lobby, 15 Skinny Kid, and 16 Hunter.
+- Spawn circles produce clear floor positions and do not cross walls.
+- Every barricade has same-object rendering and collision and uses Network Mode
+  `Object`.
+- Every pickup has a visible model and trigger collider.
+- Every kill volume has a trigger collider.
+- The scene reports no `Map contract:` warnings.
+- Host and remote clients complete a round, intermission, reset, late join,
+  conversion, and respawn test.
+
+Skinny Kids win only by surviving the timer. Route progress, weapon pickups, and
+destroying barricades do not change that rule.

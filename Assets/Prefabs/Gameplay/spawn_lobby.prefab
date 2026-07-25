@@ -1,0 +1,43 @@
+{
+  "RootObject": {
+    "__guid": "8a100001-0000-4000-8000-000000000001",
+    "__version": 2,
+    "Flags": 0,
+    "Name": "Lobby Team Spawn",
+    "Position": "0,0,0",
+    "Rotation": "0,0,0,1",
+    "Scale": "1,1,1",
+    "Tags": "",
+    "Enabled": true,
+    "NetworkMode": 2,
+    "NetworkFlags": 0,
+    "NetworkOrphaned": 0,
+    "NetworkTransmit": true,
+    "OwnerTransfer": 1,
+    "Components": [
+      {
+        "__type": "LargeLadTeamSpawn",
+        "__guid": "8a100001-0000-4000-8000-000000000002",
+        "__enabled": true,
+        "Flags": 0,
+        "Group": "Lobby",
+        "SpawnRadius": 160,
+        "Capacity": 16,
+        "MinimumSeparation": 48,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null
+      }
+    ],
+    "Children": []
+  },
+  "ShowInMenu": true,
+  "MenuPath": "Large Lad/Spawns/Lobby Team Spawn",
+  "MenuIcon": "home",
+  "DontBreakAsTemplate": true,
+  "__references": [],
+  "__version": 2
+}

@@ -1,0 +1,115 @@
+{
+  "RootObject": {
+    "__guid": "8a200002-0000-4000-8000-000000000001",
+    "__version": 2,
+    "Flags": 32768,
+    "Name": "barricade_lad_shortcut",
+    "Position": "0,0,0",
+    "Rotation": "0,0,0,1",
+    "Scale": "1,1,1",
+    "Tags": "world",
+    "Enabled": true,
+    "NetworkMode": 1,
+    "NetworkFlags": 0,
+    "NetworkOrphaned": 0,
+    "NetworkTransmit": true,
+    "OwnerTransfer": 1,
+    "Components": [
+      {
+        "__type": "Sandbox.MeshComponent",
+        "__guid": "eb0ff2f8-c5e7-4696-90f4-d70a26365517",
+        "__enabled": true,
+        "Flags": 0,
+        "ColliderFlags": 0,
+        "Collision": "Mesh",
+        "Color": "1,1,1,1",
+        "Elasticity": null,
+        "Friction": null,
+        "HideInGame": false,
+        "IsTrigger": false,
+        "Mesh": {
+          "Data": "AQAAAAcAAAAIAAAAdG9wb2xvZ3nEAQAACAAAABgAAAAGAAAAAAAAAAIAAAAEAAAABgAAAAgAAAAKAAAADAAAAA4AAAABAAAAAQAAAAIAAAAAAAAAAAAAAAAAAAARAAAABQAAAAIAAAADAAAABAAAAAAAAAABAAAAAgAAABQAAAADAAAAAwAAAAUAAAAGAAAAAAAAAAIAAAAEAAAAFwAAAAQAAAAAAAAABwAAAAAAAAAAAAAAAwAAAAYAAAASAAAAAgAAAAUAAAAJAAAACgAAAAEAAAAEAAAACAAAABMAAAAEAAAABgAAAAsAAAAMAAAAAQAAAAUAAAAKAAAAFgAAAAMAAAAHAAAADQAAAA4AAAABAAAABgAAAAwAAAAVAAAABQAAAAQAAAAPAAAACAAAAAEAAAAHAAAADgAAABAAAAACAAAAAAAAABEAAAAHAAAAAgAAAAcAAAAQAAAADQAAAAUAAAAEAAAAEwAAAA8AAAACAAAAAwAAABIAAAAFAAAABAAAAAYAAAAVAAAACwAAAAMAAAABAAAAFAAAAAEAAAAFAAAAAgAAABcAAAADAAAAAwAAAAUAAAAWAAAACQAAAAQAAAAGAAAADgAAABIAAAAWAAAAFwAAABUAAAAJAAAAcG9zaXRpb25zYAAAAAAAgMIAAAAAAAAAQwAAgEIAAAAAAAAAQwAAgEIAAABCAAAAQwAAgMIAAABCAAAAQwAAgMIAAABCAAAAAAAAgEIAAABCAAAAAAAAgEIAAAAAAAAAAAAAgMIAAAAAAAAAAAYAAABibGVuZHNgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABgAAAGNvbG9yc2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAdGV4Y29vcmTAAAAAAAAAPwAAAD8AAAC/AACAvwAAAD8AAIA+AAAAvwAAgL8AAAC/AACAPgAAAL8AAIC/AAAAvwAAAD8AAIA+AACAvwAAAD8AAIA+AAAAPwAAAAAAAAA/AAAAPwAAgL4AAAAAAAAAvwAAAD8AAAA/AAAAAAAAAL8AAIA+AAAAPwAAAAAAAAA/AACAvwAAAL8AAAAAAACAPgAAAAAAAAA/AACAvwAAAL8AAAAAAAAAPwAAgL8AAIC+AACAvwAAAL8AAAAADQAAAG1hdGVyaWFsaW5kZXgYAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAACQAAAGVkZ2VmbGFnc2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+          "Materials": [
+            "materials/dev/gray_grid_4.vmat",
+            "materials/dev/primary_red.vmat"
+          ]
+        },
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "OnObjectTriggerEnter": null,
+        "OnObjectTriggerExit": null,
+        "OnTriggerEnter": null,
+        "OnTriggerExit": null,
+        "RenderType": "On",
+        "RollingResistance": null,
+        "SmoothingAngle": 40,
+        "Static": true,
+        "Surface": null,
+        "SurfaceVelocity": "0,0,0"
+      },
+      {
+        "__type": "LargeLadBarricade",
+        "__guid": "7746ec38-c96a-4635-a973-ae102f415025",
+        "__enabled": true,
+        "Flags": 0,
+        "BarricadeCollider": {
+          "_type": "component",
+          "component_id": "eb0ff2f8-c5e7-4696-90f4-d70a26365517",
+          "go": "8a200002-0000-4000-8000-000000000001",
+          "component_type": "MeshComponent"
+        },
+        "BarricadeRenderer": {
+          "_type": "component",
+          "component_id": "eb0ff2f8-c5e7-4696-90f4-d70a26365517",
+          "go": "8a200002-0000-4000-8000-000000000001",
+          "component_type": "MeshComponent"
+        },
+        "CosmeticDebris": [],
+        "CosmeticDebrisLifetime": 1.5,
+        "GizmoPadding": 2,
+        "LadStructuralDamage": 100,
+        "MaximumHealth": 300,
+        "Mode": "LadShortcut",
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null
+      }
+    ],
+    "Children": [],
+    "__properties": {
+      "NetworkInterpolation": true,
+      "TimeScale": 1,
+      "WantsSystemScene": true,
+      "Metadata": {},
+      "NavMesh": {
+        "Enabled": false,
+        "IncludeStaticBodies": true,
+        "IncludeKeyframedBodies": true,
+        "EditorAutoUpdate": false,
+        "AgentHeight": 64,
+        "AgentRadius": 16,
+        "AgentStepSize": 18,
+        "AgentMaxSlope": 40,
+        "ExcludedBodies": "",
+        "IncludedBodies": "",
+        "DeferGeneration": false,
+        "CustomBounds": false
+      }
+    },
+    "__variables": []
+  },
+  "ResourceVersion": 2,
+  "ShowInMenu": true,
+  "MenuPath": "Large Lad/Barricades/Lad Shortcut",
+  "MenuIcon": "destruction",
+  "DontBreakAsTemplate": true,
+  "__references": [],
+  "__version": 2
+}

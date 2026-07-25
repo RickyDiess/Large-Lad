@@ -1,0 +1,150 @@
+{
+  "RootObject": {
+    "__guid": "8a400002-0000-4000-8000-000000000001",
+    "__version": 2,
+    "Flags": 0,
+    "Name": "pickup_smg",
+    "Position": "0,0,0",
+    "Rotation": "0,0,0,1",
+    "Scale": "1,1,1",
+    "Tags": "",
+    "Enabled": true,
+    "NetworkMode": 1,
+    "NetworkFlags": 0,
+    "NetworkOrphaned": 0,
+    "NetworkTransmit": true,
+    "OwnerTransfer": 1,
+    "Components": [
+      {
+        "__type": "Sandbox.BoxCollider",
+        "__guid": "8a400002-0000-4000-8000-000000000003",
+        "__enabled": true,
+        "Flags": 0,
+        "Center": "0,0,10",
+        "ColliderFlags": 0,
+        "Elasticity": null,
+        "Friction": null,
+        "IsTrigger": true,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "OnObjectTriggerEnter": null,
+        "OnObjectTriggerExit": null,
+        "OnTriggerEnter": null,
+        "OnTriggerExit": null,
+        "RollingResistance": null,
+        "Scale": "64,64,20",
+        "Static": true,
+        "Surface": null,
+        "SurfaceVelocity": "0,0,0"
+      },
+      {
+        "__type": "LargeLadWeaponPickup",
+        "__guid": "8a400002-0000-4000-8000-000000000004",
+        "__enabled": true,
+        "Flags": 0,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "PickupCollider": {
+          "_type": "component",
+          "component_id": "8a400002-0000-4000-8000-000000000003",
+          "go": "8a400002-0000-4000-8000-000000000001",
+          "component_type": "BoxCollider"
+        },
+        "PickupRenderer": {
+          "_type": "component",
+          "component_id": "c1db096c-9625-4cf5-86ae-7d13ae01183c",
+          "go": "8ceaf3e7-a031-4113-9e89-4aa6b75792af",
+          "component_type": "ModelRenderer"
+        },
+        "Policy": "CorePerPlayer",
+        "Weapon": "Smg"
+      }
+    ],
+    "Children": [
+      {
+        "__guid": "8ceaf3e7-a031-4113-9e89-4aa6b75792af",
+        "__version": 2,
+        "Flags": 0,
+        "Name": "model",
+        "Position": "0,0,0",
+        "Rotation": "0.707106769,0,0,0.707106769",
+        "Scale": "1,1,1",
+        "Tags": "",
+        "Enabled": true,
+        "NetworkMode": 2,
+        "NetworkFlags": 0,
+        "NetworkOrphaned": 0,
+        "NetworkTransmit": true,
+        "OwnerTransfer": 1,
+        "Components": [
+          {
+            "__type": "Sandbox.ModelRenderer",
+            "__guid": "c1db096c-9625-4cf5-86ae-7d13ae01183c",
+            "__enabled": true,
+            "Flags": 512,
+            "BodyGroups": 18446744073709551615,
+            "CreateAttachments": false,
+            "LodOverride": null,
+            "MaterialGroup": null,
+            "MaterialOverride": null,
+            "Materials": null,
+            "Model": "weapons/rust_smg/rust_smg.vmdl",
+            "OnComponentDestroy": null,
+            "OnComponentDisabled": null,
+            "OnComponentEnabled": null,
+            "OnComponentFixedUpdate": null,
+            "OnComponentStart": null,
+            "OnComponentUpdate": null,
+            "RenderOptions": {
+              "GameLayer": true,
+              "OverlayLayer": false,
+              "BloomLayer": false,
+              "AfterUILayer": false
+            },
+            "RenderType": "On",
+            "Tint": "1,1,1,1"
+          }
+        ],
+        "Children": []
+      }
+    ],
+    "__properties": {
+      "NetworkInterpolation": true,
+      "TimeScale": 1,
+      "WantsSystemScene": true,
+      "Metadata": {},
+      "NavMesh": {
+        "Enabled": false,
+        "IncludeStaticBodies": true,
+        "IncludeKeyframedBodies": true,
+        "EditorAutoUpdate": false,
+        "AgentHeight": 64,
+        "AgentRadius": 16,
+        "AgentStepSize": 18,
+        "AgentMaxSlope": 40,
+        "ExcludedBodies": "",
+        "IncludedBodies": "",
+        "DeferGeneration": false,
+        "CustomBounds": false
+      }
+    },
+    "__variables": []
+  },
+  "ResourceVersion": 2,
+  "ShowInMenu": true,
+  "MenuPath": "Large Lad/Pickups/SMG",
+  "MenuIcon": "my_location",
+  "DontBreakAsTemplate": true,
+  "__references": [
+    "rust.rust_smg#301195"
+  ],
+  "__version": 2
+}

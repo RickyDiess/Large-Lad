@@ -1,0 +1,1306 @@
+{
+  "__guid": "4fe6d994-91c5-4eb6-a3e3-44fce0364203",
+  "GameObjects": [
+    {
+      "__guid": "0e7ca1aa-49f5-45d1-aa32-0252f1a7af58",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Terrain",
+      "Position": "-9999.99902,-10000,-0.000366210938",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "hidden",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.Terrain",
+          "__guid": "1d3e4806-824c-4326-9f30-4a8a352b3761",
+          "__enabled": true,
+          "Flags": 0,
+          "__version": 1,
+          "ClipMapLodExtentTexels": 256,
+          "ClipMapLodLevels": 6,
+          "ColliderFlags": 0,
+          "Elasticity": null,
+          "EnableCollision": true,
+          "Friction": null,
+          "IsTrigger": false,
+          "MaterialOverride": null,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "RenderType": "Off",
+          "RollingResistance": null,
+          "Static": true,
+          "Storage": {
+            "$compiler": "embed",
+            "$source": null,
+            "data": {
+              "Maps": {
+                "$blob": "b89ccf42-eaae-4ac9-89fb-7ca5da37bec4"
+              },
+              "Resolution": 512,
+              "TerrainSize": 20000,
+              "TerrainHeight": 10000,
+              "Materials": [
+                "terrains/grass.tmat"
+              ],
+              "MaterialSettings": {
+                "HeightBlendEnabled": true,
+                "HeightBlendSharpness": 0.87,
+                "Sampler": {
+                  "Filter": "Anisotropic",
+                  "AddressModeU": "Wrap",
+                  "AddressModeV": "Wrap",
+                  "AddressModeW": "Wrap",
+                  "MipLodBias": 0,
+                  "MaxAnisotropy": 8,
+                  "BorderColor": "0,0,0,0"
+                }
+              },
+              "ResourceVersion": 3,
+              "__references": null
+            },
+            "compiled": null
+          },
+          "SubdivisionFactor": 1,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0",
+          "TerrainHeight": 10000,
+          "TerrainSize": 20000
+        }
+      ],
+      "Children": []
+    },
+    {
+      "__guid": "1b43344b-2458-48da-bdc5-c72569091a8f",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "2D Skybox",
+      "Position": "0,0,1024",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "skybox",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.SkyBox2D",
+          "__guid": "0983686a-8f5c-4c28-8477-815fbb9160b4",
+          "__enabled": true,
+          "Flags": 0,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "SkyIndirectLighting": true,
+          "SkyMaterial": "materials/skybox/skybox_day_01.vmat",
+          "Tint": "1,1,1,1"
+        }
+      ],
+      "Children": []
+    },
+    {
+      "__guid": "335c0591-f053-44b4-8802-14cbc8d41575",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Sun",
+      "Position": "0,0,1024",
+      "Rotation": "0.0333530605,0.0805213973,-0.381227225,0.920363903",
+      "Scale": "1,1,1",
+      "Tags": "light_directional,light",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.DirectionalLight",
+          "__guid": "4304da92-a7aa-4f5e-8cbd-83dbe1e54d48",
+          "__enabled": true,
+          "Flags": 0,
+          "ContactShadows": true,
+          "Contribution": "Diffuse, Specular, Transmissive",
+          "FogMode": "Enabled",
+          "FogStrength": 1,
+          "LightColor": "0.99054,1,0.71628,1",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "ShadowBias": 0.0005,
+          "ShadowCascadeCount": 4,
+          "ShadowCascadeSplitRatio": 0.91,
+          "ShadowHardness": 0,
+          "Shadows": true,
+          "SkyColor": "0.84186,0.98155,1,0.44",
+          "Visualizer": {}
+        }
+      ],
+      "Children": []
+    },
+    {
+      "__guid": "6cf089b6-1220-4af4-91bd-b51b3e37c6b1",
+      "__version": 2,
+      "__Prefab": "prefabs/large_lad_gameplay.prefab",
+      "__PrefabInstancePatch": {
+        "AddedObjects": [],
+        "RemovedObjects": [],
+        "PropertyOverrides": [
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "4ec5f084-cef2-4cca-9d9d-3d3a4ba40ec5"
+            },
+            "Property": "Name",
+            "Value": "Gameplay Bootstrap"
+          },
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "4ec5f084-cef2-4cca-9d9d-3d3a4ba40ec5"
+            },
+            "Property": "Position",
+            "Value": "0,0,1024"
+          }
+        ],
+        "MovedObjects": []
+      },
+      "__PrefabIdToInstanceId": {
+        "4ec5f084-cef2-4cca-9d9d-3d3a4ba40ec5": "6cf089b6-1220-4af4-91bd-b51b3e37c6b1",
+        "54e8b1e3-56e4-53fc-8f6a-aeba626a6879": "9415980f-6943-418c-ab85-74ef1a6a3824",
+        "71d9cc78-bf50-49ca-95cc-aa5a3f7a4900": "d7aef31a-404d-4f17-8917-c780a18eea07",
+        "13a94fea-a2de-45da-beb8-61e564e6e245": "1747379a-18a2-4121-aec0-b8739e555ffb",
+        "6ba98835-269e-4ca8-95a4-06e9faf5db59": "8055cde1-8039-472c-8454-1adce225beec"
+      }
+    },
+    {
+      "__guid": "154b2791-7962-4c4a-a531-02488cd73bf4",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "World",
+      "Position": "468.431824,3.13129044,124.869537",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [],
+      "Children": [
+        {
+          "__guid": "ad1a5ff3-13cd-4065-ae90-d177e067cf56",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Geometry",
+          "Position": "0,0,0",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [],
+          "Children": [
+            {
+              "__guid": "37f967dc-07be-4b1d-bc92-b887e1099da2",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Block",
+              "Position": "-1108.43176,-3.13116026,-12.8695297",
+              "Rotation": "0,0,1,-4.37113883E-08",
+              "Scale": "1,1,1",
+              "Tags": "world",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.MeshComponent",
+                  "__guid": "334a5c1a-7ef5-4f34-a1b3-1d5eb9026b1e",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "ColliderFlags": 0,
+                  "Collision": "Mesh",
+                  "Color": "1,1,1,1",
+                  "Elasticity": null,
+                  "Friction": null,
+                  "HideInGame": false,
+                  "IsTrigger": false,
+                  "Mesh": {
+                    "Data": {
+                      "$blob": "70c9a0f4-1cb3-477c-85a6-d84dbac0f3ae"
+                    },
+                    "Materials": [
+                      "materials/dev/gray_grid_4.vmat"
+                    ]
+                  },
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OnObjectTriggerEnter": null,
+                  "OnObjectTriggerExit": null,
+                  "OnTriggerEnter": null,
+                  "OnTriggerExit": null,
+                  "RenderType": "On",
+                  "RollingResistance": null,
+                  "SmoothingAngle": 40,
+                  "Static": true,
+                  "Surface": null,
+                  "SurfaceVelocity": "0,0,0"
+                }
+              ],
+              "Children": []
+            },
+            {
+              "__guid": "04d818d6-2bda-4346-a8d8-461ce59bc9a5",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Block",
+              "Position": "171.568115,-3.13133717,-12.8695297",
+              "Rotation": "0,0,0,1",
+              "Scale": "1,1,1",
+              "Tags": "world",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.MeshComponent",
+                  "__guid": "89045041-034a-490f-86c2-fde785a4dff3",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "ColliderFlags": 0,
+                  "Collision": "Mesh",
+                  "Color": "1,1,1,1",
+                  "Elasticity": null,
+                  "Friction": null,
+                  "HideInGame": false,
+                  "IsTrigger": false,
+                  "Mesh": {
+                    "Data": {
+                      "$blob": "7485e2f2-9a0f-4850-9450-d08e85ab8b51"
+                    },
+                    "Materials": [
+                      "materials/dev/gray_grid_4.vmat"
+                    ]
+                  },
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OnObjectTriggerEnter": null,
+                  "OnObjectTriggerExit": null,
+                  "OnTriggerEnter": null,
+                  "OnTriggerExit": null,
+                  "RenderType": "On",
+                  "RollingResistance": null,
+                  "SmoothingAngle": 40,
+                  "Static": true,
+                  "Surface": null,
+                  "SurfaceVelocity": "0,0,0"
+                }
+              ],
+              "Children": []
+            },
+            {
+              "__guid": "e6882c7f-7435-45c0-802c-62129eb89cf7",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Block",
+              "Position": "-468.431824,-3.13129044,-92.8695374",
+              "Rotation": "0,0,0,1",
+              "Scale": "1,1,1",
+              "Tags": "world",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.MeshComponent",
+                  "__guid": "c3dc74b3-9389-4159-aaf0-da65c46d93a8",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "ColliderFlags": 0,
+                  "Collision": "Mesh",
+                  "Color": "1,1,1,1",
+                  "Elasticity": null,
+                  "Friction": null,
+                  "HideInGame": false,
+                  "IsTrigger": false,
+                  "Mesh": {
+                    "Data": {
+                      "$blob": "3ea57f33-779e-427e-bb03-fa4b1f19a972"
+                    },
+                    "Materials": [
+                      "materials/dev/gray_grid_4.vmat"
+                    ]
+                  },
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OnObjectTriggerEnter": null,
+                  "OnObjectTriggerExit": null,
+                  "OnTriggerEnter": null,
+                  "OnTriggerExit": null,
+                  "RenderType": "On",
+                  "RollingResistance": null,
+                  "SmoothingAngle": 40,
+                  "Static": true,
+                  "Surface": null,
+                  "SurfaceVelocity": "0,0,0"
+                }
+              ],
+              "Children": []
+            },
+            {
+              "__guid": "f7608335-dbcb-4248-901c-e988d1f1915f",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Block",
+              "Position": "315.568176,-3.13129044,115.130463",
+              "Rotation": "0,0,0,1",
+              "Scale": "1,1,1",
+              "Tags": "world",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.MeshComponent",
+                  "__guid": "e87527ac-a73d-4853-9c5c-6387e3858107",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "ColliderFlags": 0,
+                  "Collision": "Mesh",
+                  "Color": "1,1,1,1",
+                  "Elasticity": null,
+                  "Friction": null,
+                  "HideInGame": false,
+                  "IsTrigger": false,
+                  "Mesh": {
+                    "Data": {
+                      "$blob": "f3d90842-9843-43bc-975b-aef59faafb3c"
+                    },
+                    "Materials": [
+                      "materials/dev/gray_grid_4.vmat"
+                    ]
+                  },
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OnObjectTriggerEnter": null,
+                  "OnObjectTriggerExit": null,
+                  "OnTriggerEnter": null,
+                  "OnTriggerExit": null,
+                  "RenderType": "On",
+                  "RollingResistance": null,
+                  "SmoothingAngle": 40,
+                  "Static": true,
+                  "Surface": null,
+                  "SurfaceVelocity": "0,0,0"
+                }
+              ],
+              "Children": []
+            },
+            {
+              "__guid": "56c69fd8-6a0a-4b26-a41d-a4c5049ddf0f",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Block",
+              "Position": "-468.431824,940.868713,115.130463",
+              "Rotation": "0,0,0,1",
+              "Scale": "1,1,1",
+              "Tags": "world",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.MeshComponent",
+                  "__guid": "ab65d5dc-15d6-4e7c-b577-d622a6a9e166",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "ColliderFlags": 0,
+                  "Collision": "Mesh",
+                  "Color": "1,1,1,1",
+                  "Elasticity": null,
+                  "Friction": null,
+                  "HideInGame": false,
+                  "IsTrigger": false,
+                  "Mesh": {
+                    "Data": {
+                      "$blob": "62b25ad2-3053-4713-b306-87989810896e"
+                    },
+                    "Materials": [
+                      "materials/dev/gray_grid_4.vmat"
+                    ]
+                  },
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OnObjectTriggerEnter": null,
+                  "OnObjectTriggerExit": null,
+                  "OnTriggerEnter": null,
+                  "OnTriggerExit": null,
+                  "RenderType": "On",
+                  "RollingResistance": null,
+                  "SmoothingAngle": 40,
+                  "Static": true,
+                  "Surface": null,
+                  "SurfaceVelocity": "0,0,0"
+                }
+              ],
+              "Children": []
+            },
+            {
+              "__guid": "ef956291-5574-4131-be0c-9baf66326251",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Block",
+              "Position": "-468.431824,-947.131287,115.130463",
+              "Rotation": "0,0,0,1",
+              "Scale": "1,1,1",
+              "Tags": "world",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.MeshComponent",
+                  "__guid": "88931acf-b4f4-41a7-bf47-1846be5859c5",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "ColliderFlags": 0,
+                  "Collision": "Mesh",
+                  "Color": "1,1,1,1",
+                  "Elasticity": null,
+                  "Friction": null,
+                  "HideInGame": false,
+                  "IsTrigger": false,
+                  "Mesh": {
+                    "Data": {
+                      "$blob": "8590f2ad-664d-4ff0-b9ba-a97ca5879686"
+                    },
+                    "Materials": [
+                      "materials/dev/gray_grid_4.vmat"
+                    ]
+                  },
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OnObjectTriggerEnter": null,
+                  "OnObjectTriggerExit": null,
+                  "OnTriggerEnter": null,
+                  "OnTriggerExit": null,
+                  "RenderType": "On",
+                  "RollingResistance": null,
+                  "SmoothingAngle": 40,
+                  "Static": true,
+                  "Surface": null,
+                  "SurfaceVelocity": "0,0,0"
+                }
+              ],
+              "Children": []
+            },
+            {
+              "__guid": "4392df99-e3a6-4352-b318-ce08e3bf8bef",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Block",
+              "Position": "-1252.43188,-3.13129044,115.130463",
+              "Rotation": "0,0,0,1",
+              "Scale": "1,1,1",
+              "Tags": "world",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.MeshComponent",
+                  "__guid": "0a4f7b10-f8d5-4e42-ad7e-fb61d1c7707d",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "ColliderFlags": 0,
+                  "Collision": "Mesh",
+                  "Color": "1,1,1,1",
+                  "Elasticity": null,
+                  "Friction": null,
+                  "HideInGame": false,
+                  "IsTrigger": false,
+                  "Mesh": {
+                    "Data": {
+                      "$blob": "072c0012-45a3-491e-8837-5de1470a9c67"
+                    },
+                    "Materials": [
+                      "materials/dev/gray_grid_4.vmat"
+                    ]
+                  },
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OnObjectTriggerEnter": null,
+                  "OnObjectTriggerExit": null,
+                  "OnTriggerEnter": null,
+                  "OnTriggerExit": null,
+                  "RenderType": "On",
+                  "RollingResistance": null,
+                  "SmoothingAngle": 40,
+                  "Static": true,
+                  "Surface": null,
+                  "SurfaceVelocity": "0,0,0"
+                }
+              ],
+              "Children": []
+            },
+            {
+              "__guid": "df13283a-8f25-4e3d-8633-8ccfa6ca4893",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Block",
+              "Position": "-468.431824,-3.13129044,371.130463",
+              "Rotation": "0,0,0,1",
+              "Scale": "1,1,1",
+              "Tags": "world",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.MeshComponent",
+                  "__guid": "396f3411-87e2-4aa5-afe1-59c85b38893e",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "ColliderFlags": 0,
+                  "Collision": "Mesh",
+                  "Color": "1,1,1,1",
+                  "Elasticity": null,
+                  "Friction": null,
+                  "HideInGame": false,
+                  "IsTrigger": false,
+                  "Mesh": {
+                    "Data": {
+                      "$blob": "60944a08-d1e1-477c-a576-c681baaebe4a"
+                    },
+                    "Materials": [
+                      "materials/dev/gray_grid_4.vmat"
+                    ]
+                  },
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OnObjectTriggerEnter": null,
+                  "OnObjectTriggerExit": null,
+                  "OnTriggerEnter": null,
+                  "OnTriggerExit": null,
+                  "RenderType": "On",
+                  "RollingResistance": null,
+                  "SmoothingAngle": 40,
+                  "Static": true,
+                  "Surface": null,
+                  "SurfaceVelocity": "0,0,0"
+                }
+              ],
+              "Children": []
+            },
+            {
+              "__guid": "350b9fd5-3808-4374-801c-67bd0cb2f8a8",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Block",
+              "Position": "-1300.43188,76.8687134,211.130463",
+              "Rotation": "0,0,0,1",
+              "Scale": "1,1,1",
+              "Tags": "world",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.MeshComponent",
+                  "__guid": "afa67930-7a28-4a0a-ae8f-70700cd2e96e",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "ColliderFlags": 0,
+                  "Collision": "Mesh",
+                  "Color": "1,1,1,1",
+                  "Elasticity": null,
+                  "Friction": null,
+                  "HideInGame": false,
+                  "IsTrigger": false,
+                  "Mesh": {
+                    "Data": {
+                      "$blob": "bc4c443a-aadd-4ede-a401-6e9ee06c4c10"
+                    },
+                    "Materials": [
+                      "materials/dev/gray_grid_4.vmat"
+                    ]
+                  },
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OnObjectTriggerEnter": null,
+                  "OnObjectTriggerExit": null,
+                  "OnTriggerEnter": null,
+                  "OnTriggerExit": null,
+                  "RenderType": "On",
+                  "RollingResistance": null,
+                  "SmoothingAngle": 40,
+                  "Static": true,
+                  "Surface": null,
+                  "SurfaceVelocity": "0,0,0"
+                }
+              ],
+              "Children": []
+            },
+            {
+              "__guid": "72e80189-f4c2-421e-91e6-833237e828e3",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Block",
+              "Position": "-868.431824,988.868713,211.130463",
+              "Rotation": "0,0,0,1",
+              "Scale": "1,1,1",
+              "Tags": "world",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.MeshComponent",
+                  "__guid": "3aeae774-0cb8-4c87-9091-ed9950ed8de6",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "ColliderFlags": 0,
+                  "Collision": "Mesh",
+                  "Color": "1,1,1,1",
+                  "Elasticity": null,
+                  "Friction": null,
+                  "HideInGame": false,
+                  "IsTrigger": false,
+                  "Mesh": {
+                    "Data": {
+                      "$blob": "959a7f6f-502a-41f4-9bec-df9f9d5862e8"
+                    },
+                    "Materials": [
+                      "materials/dev/gray_grid_4.vmat"
+                    ]
+                  },
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OnObjectTriggerEnter": null,
+                  "OnObjectTriggerExit": null,
+                  "OnTriggerEnter": null,
+                  "OnTriggerExit": null,
+                  "RenderType": "On",
+                  "RollingResistance": null,
+                  "SmoothingAngle": 40,
+                  "Static": true,
+                  "Surface": null,
+                  "SurfaceVelocity": "0,0,0"
+                }
+              ],
+              "Children": []
+            },
+            {
+              "__guid": "16cb0fcf-07df-4203-8c7e-68f27f350235",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Block",
+              "Position": "-1300.43188,-899.131287,131.130463",
+              "Rotation": "0,0,0,1",
+              "Scale": "1,1,1",
+              "Tags": "world",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.MeshComponent",
+                  "__guid": "79c59846-e9a0-46d0-a1f9-02dff83f7901",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "ColliderFlags": 0,
+                  "Collision": "Mesh",
+                  "Color": "1,1,1,1",
+                  "Elasticity": null,
+                  "Friction": null,
+                  "HideInGame": false,
+                  "IsTrigger": false,
+                  "Mesh": {
+                    "Data": {
+                      "$blob": "313ebf57-cfa2-4364-bd81-6cba0df2d70e"
+                    },
+                    "Materials": [
+                      "materials/dev/gray_grid_4.vmat"
+                    ]
+                  },
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OnObjectTriggerEnter": null,
+                  "OnObjectTriggerExit": null,
+                  "OnTriggerEnter": null,
+                  "OnTriggerExit": null,
+                  "RenderType": "On",
+                  "RollingResistance": null,
+                  "SmoothingAngle": 40,
+                  "Static": true,
+                  "Surface": null,
+                  "SurfaceVelocity": "0,0,0"
+                }
+              ],
+              "Children": []
+            }
+          ]
+        },
+        {
+          "__guid": "6a562033-86d4-47df-9587-79bcc70d3d79",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Spawnpoints",
+          "Position": "0,0,0",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [],
+          "Children": [
+            {
+              "__guid": "60564e71-5aef-4416-982f-8c5889949cb7",
+              "__version": 2,
+              "__Prefab": "prefabs/gameplay/spawn_hunter.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a100003-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Name",
+                    "Value": "Hunter Team Spawn"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a100003-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Position",
+                    "Value": "-468.431824,-707.131287,-92.8695374"
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "8a100003-0000-4000-8000-000000000001": "60564e71-5aef-4416-982f-8c5889949cb7",
+                "8a100003-0000-4000-8000-000000000002": "4e3c13ff-54f2-4e04-8fa2-3f87f40458cb"
+              }
+            },
+            {
+              "__guid": "90889a50-be3e-42d4-9555-b1b28c717604",
+              "__version": 2,
+              "__Prefab": "prefabs/gameplay/spawn_lobby.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a100001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Name",
+                    "Value": "Lobby Team Spawn"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a100001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Position",
+                    "Value": "-468.431824,-3.13129044,387.130463"
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "8a100001-0000-4000-8000-000000000001": "90889a50-be3e-42d4-9555-b1b28c717604",
+                "8a100001-0000-4000-8000-000000000002": "52ae8d79-86bb-404d-a8d2-bd57c75a54b8"
+              }
+            },
+            {
+              "__guid": "523534f8-54b2-4a6e-8562-828057a6440e",
+              "__version": 2,
+              "__Prefab": "prefabs/gameplay/spawn_skinny_kid.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a100002-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Name",
+                    "Value": "Skinny Kid Team Spawn"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a100002-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Position",
+                    "Value": "-468.431824,348.868713,-92.8695374"
+                  },
+                  {
+                    "Target": {
+                      "Type": "Component",
+                      "IdValue": "8a100002-0000-4000-8000-000000000002"
+                    },
+                    "Property": "SpawnRadius",
+                    "Value": 500
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "8a100002-0000-4000-8000-000000000001": "523534f8-54b2-4a6e-8562-828057a6440e",
+                "8a100002-0000-4000-8000-000000000002": "f32b242d-e247-4b70-b527-89f4bb30a499"
+              }
+            }
+          ]
+        },
+        {
+          "__guid": "68433b93-7539-4db1-afab-8a40d65fced8",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Barricades",
+          "Position": "-28.6196289,-4.99571609,-28.6500244",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [],
+          "Children": []
+        },
+        {
+          "__guid": "af69e0e6-72dc-4b48-b080-3e979b27055a",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Pickups",
+          "Position": "0,0,35.1304626",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [],
+          "Children": [
+            {
+              "__guid": "55c61d01-ee7c-40ed-915b-5285c65406ed",
+              "__version": 2,
+              "__Prefab": "prefabs/gameplay/ammo_pistol.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a500001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Name",
+                    "Value": "Pistol Ammo"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a500001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Position",
+                    "Value": "-244.431824,-483.131287,-124.869537"
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "8a500001-0000-4000-8000-000000000001": "55c61d01-ee7c-40ed-915b-5285c65406ed",
+                "8a500001-0000-4000-8000-000000000003": "3cbb49ec-94e8-4379-9c82-edc2361e0015",
+                "8a500001-0000-4000-8000-000000000004": "f1de1e9c-56f5-41a3-8001-b668358dff9f",
+                "64100653-d86f-413b-8761-0a4f866e264b": "9820674b-67d5-83dc-b0a3-c31f9aaa3c97",
+                "b880ad30-e0bb-4e18-9ba2-106ba016e2c7": "897a2993-b527-814d-8201-a1c700ebee40"
+              }
+            },
+            {
+              "__guid": "317e3519-2c6c-4fc0-8f91-a07f23d172fd",
+              "__version": 2,
+              "__Prefab": "prefabs/gameplay/ammo_smg.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a500002-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Name",
+                    "Value": "SMG Ammo"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a500002-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Position",
+                    "Value": "-244.431824,-387.131287,-124.869537"
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "8a500002-0000-4000-8000-000000000001": "317e3519-2c6c-4fc0-8f91-a07f23d172fd",
+                "8a500002-0000-4000-8000-000000000003": "dae51908-d1db-43d4-8f0c-dbf32c833b24",
+                "8a500002-0000-4000-8000-000000000004": "6fb4d185-2c75-4239-968b-96fef3245d38",
+                "35de6a17-06d4-462a-bdfc-5a97e69e40e7": "6c73aa4c-8645-8df6-b273-345c6fb952e0",
+                "3beb6fb8-eb2f-4aeb-a1be-db468c30b080": "7cb2ba39-c717-8c6c-a0ca-9d3b15b08c46"
+              }
+            },
+            {
+              "__guid": "e114fa88-973b-4f20-bf87-c79c92bef23e",
+              "__version": 2,
+              "__Prefab": "prefabs/gameplay/pickup_pistol.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Name",
+                    "Value": "Pistol"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Position",
+                    "Value": "-180.431824,-483.131287,-124.869537"
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "8a400001-0000-4000-8000-000000000001": "e114fa88-973b-4f20-bf87-c79c92bef23e",
+                "8a400001-0000-4000-8000-000000000003": "1a0e0158-60f1-4d28-b6eb-cf224390e4f0",
+                "8a400001-0000-4000-8000-000000000004": "850257db-0b35-4b45-8516-0f666d88a28e",
+                "11c6dbfc-0823-46cd-99d2-c87fcbbab35f": "3bb44e9c-d25a-8485-8d87-1a93c58d0767",
+                "921314e1-08ab-4513-abf5-392249118694": "3ce6a5c1-ef82-8067-83e0-735effd25596"
+              }
+            },
+            {
+              "__guid": "7bf6751e-970f-4ccf-bcee-e4f923b0877a",
+              "__version": 2,
+              "__Prefab": "prefabs/gameplay/pickup_smg.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400002-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Name",
+                    "Value": "SMG"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400002-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Position",
+                    "Value": "-180.431824,-387.131287,-124.869537"
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "8a400002-0000-4000-8000-000000000001": "7bf6751e-970f-4ccf-bcee-e4f923b0877a",
+                "8a400002-0000-4000-8000-000000000003": "51dc3046-921b-4123-a6ef-f22ccd2f159c",
+                "8a400002-0000-4000-8000-000000000004": "70f46bb4-2a4c-4fba-92e8-cba7bffaf199",
+                "8ceaf3e7-a031-4113-9e89-4aa6b75792af": "f5ef50bc-d3ab-8db0-a41a-4edb352e2e3a",
+                "c1db096c-9625-4cf5-86ae-7d13ae01183c": "42ab070b-0aff-8c6d-b47d-2c38d220d12e"
+              }
+            }
+          ]
+        },
+        {
+          "__guid": "209be95d-dd37-4461-8a7d-65cbb93c7b5f",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Ladders",
+          "Position": "0,0,0",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [],
+          "Children": [
+            {
+              "__guid": "8d7a8fea-cf67-4266-a6a0-ad65a707b155",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Ladder",
+              "Position": "-1300.43188,-879.131287,67.1304626",
+              "Rotation": "0,0,0,1",
+              "Scale": "1,1,1",
+              "Tags": "world,ladder",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.BoxCollider",
+                  "__guid": "bd4f22d0-3e3b-48ad-8743-e202cd90fd81",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "Center": "0,0,0",
+                  "ColliderFlags": 0,
+                  "Elasticity": null,
+                  "Friction": null,
+                  "IsTrigger": true,
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OnObjectTriggerEnter": null,
+                  "OnObjectTriggerExit": null,
+                  "OnTriggerEnter": null,
+                  "OnTriggerExit": null,
+                  "RollingResistance": null,
+                  "Scale": "48.000061,8,320",
+                  "Static": false,
+                  "Surface": null,
+                  "SurfaceVelocity": "0,0,0"
+                }
+              ],
+              "Children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "__guid": "5a0f81af-327e-4f51-bff5-63ca6402fc4e",
+      "__version": 2,
+      "__Prefab": "prefabs/gameplay/barricade_skinny_progression.prefab",
+      "__PrefabInstancePatch": {
+        "AddedObjects": [],
+        "RemovedObjects": [],
+        "PropertyOverrides": [
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a200001-0000-4000-8000-000000000001"
+            },
+            "Property": "Name",
+            "Value": "Skinny Progression"
+          },
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a200001-0000-4000-8000-000000000001"
+            },
+            "Property": "Position",
+            "Value": "152,-960,32"
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "aa69b01a-14c7-4256-ad87-ebeddf84d0a5"
+            },
+            "Property": "Mesh",
+            "Value": {
+              "Data": {
+                "$blob": "e397ea25-c21a-4510-a4e3-5078da71ec24"
+              },
+              "Materials": [
+                "materials/dev/gray_grid_4.vmat",
+                "materials/dev/green.vmat"
+              ]
+            }
+          }
+        ],
+        "MovedObjects": []
+      },
+      "__PrefabIdToInstanceId": {
+        "8a200001-0000-4000-8000-000000000001": "5a0f81af-327e-4f51-bff5-63ca6402fc4e",
+        "aa69b01a-14c7-4256-ad87-ebeddf84d0a5": "e92ae6cb-32ff-4e67-b73f-2006c90d8cc4",
+        "8a200001-0000-4000-8000-000000000004": "f63389ba-25f5-44fe-8dbb-5e1086b8ed74"
+      }
+    }
+  ],
+  "SceneProperties": {
+    "NetworkInterpolation": true,
+    "TimeScale": 1,
+    "WantsSystemScene": true,
+    "Metadata": {},
+    "NavMesh": {
+      "Enabled": false,
+      "IncludeStaticBodies": true,
+      "IncludeKeyframedBodies": true,
+      "EditorAutoUpdate": false,
+      "AgentHeight": 64,
+      "AgentRadius": 16,
+      "AgentStepSize": 18,
+      "AgentMaxSlope": 40,
+      "ExcludedBodies": "",
+      "IncludedBodies": "",
+      "DeferGeneration": false,
+      "CustomBounds": false
+    },
+    "GameObjectSystems": {
+      "Sandbox.Clutter.ClutterGridSystem": {
+        "Storage": {
+          "$blob": "2abd529b-bddb-4ef5-a9a4-d599ead35f95"
+        }
+      },
+      "Sandbox.SelectionSetsSystem": {
+        "Data": {
+          "SelectionSets": []
+        }
+      }
+    }
+  },
+  "ResourceVersion": 3,
+  "Title": null,
+  "Description": null,
+  "__references": [
+    "sourceengine.grass#204521"
+  ],
+  "__version": 3
+}

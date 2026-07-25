@@ -2,46 +2,9 @@ using Sandbox;
 using System.Collections.Generic;
 using System.Linq;
 
-public enum LargeLadSpawnGroup
-{
-	Lobby,
-	SkinnyKid,
-	Hunter
-}
-
-public sealed class LargeLadSpawnMarker : Component
-{
-	[Property]
-	public LargeLadSpawnGroup Group { get; set; }
-
-	[Property]
-	public int Order { get; set; }
-
-	public Color MarkerColor => Group switch
-	{
-		LargeLadSpawnGroup.Lobby => Color.White,
-		LargeLadSpawnGroup.SkinnyKid => new Color( 0.25f, 0.85f, 1.0f ),
-		LargeLadSpawnGroup.Hunter => new Color( 1.0f, 0.22f, 0.08f ),
-		_ => Color.Gray
-	};
-
-	protected override void DrawGizmos()
-	{
-		Gizmo.Draw.Color = MarkerColor.WithAlpha( 0.35f );
-		Gizmo.Draw.SolidCapsule(
-			Vector3.Up * 16.0f,
-			Vector3.Up * 56.0f,
-			16.0f,
-			8,
-			4 );
-		Gizmo.Draw.Color = MarkerColor;
-		Gizmo.Draw.Arrow( Vector3.Up * 54.0f, Vector3.Forward * 38.0f );
-	}
-}
-
 /// <summary>
-/// The authored contract for a Large Lad map. Gameplay code discovers this
-/// component, so duplicating a conforming scene never requires code changes.
+/// Per-scene match settings and validation. Spawn generation is delegated to
+/// LargeLadSpawnAllocator so this component stays focused on the map contract.
 /// </summary>
 public sealed class LargeLadMapDefinition : Component
 {
@@ -62,91 +25,164 @@ public sealed class LargeLadMapDefinition : Component
 	[Property]
 	public LargeLadRoundManager RoundManager { get; set; }
 
-	public IReadOnlyList<LargeLadSpawnMarker> LobbySpawns =>
-		GetOrderedSpawns( LargeLadSpawnGroup.Lobby );
-
-	public IReadOnlyList<LargeLadSpawnMarker> SkinnyKidSpawns =>
-		GetOrderedSpawns( LargeLadSpawnGroup.SkinnyKid );
-
-	public IReadOnlyList<LargeLadSpawnMarker> HunterSpawns =>
-		GetOrderedSpawns( LargeLadSpawnGroup.Hunter );
+	[Property]
+	public LargeLadSpawnAllocator SpawnAllocator { get; set; }
 
 	protected override void OnAwake()
 	{
-		ResolveManagers();
-		ConfigureGameplay();
+		ResolveGameplay();
 	}
 
 	protected override void OnStart()
 	{
-		ValidateMap( logResults: true );
+		ResolveGameplay();
+		ConfigureGameplay();
+		ValidateMap( logResults: true, validateGeometry: true );
 	}
 
 	protected override void OnValidate()
 	{
-		ResolveManagers();
-		ConfigureGameplay();
-		ValidateMap( logResults: true );
+		ResolveGameplay();
+		RoundManager?.UseMapDefinition( this );
+
+		// The bootstrap prefab is also compiled in isolation, where map-authored
+		// spawns intentionally do not exist. Full validation still always runs
+		// when a playable scene starts.
+		if ( Scene?.GetAllComponents<LargeLadTeamSpawn>().Any() != true )
+			return;
+
+		ValidateMap( logResults: true, validateGeometry: false );
 	}
 
-	public GameObject GetSpawn( LargeLadSpawnGroup group, int orderedIndex )
+	public IReadOnlyDictionary<LargeLadPlayer, LargeLadSpawnLocation> AllocateSpawnBatch(
+		LargeLadSpawnGroup group,
+		IReadOnlyList<LargeLadPlayer> players )
 	{
-		var spawns = GetOrderedSpawns( group );
-
-		if ( spawns.Count == 0 )
-			return null;
-
-		var index = System.Math.Abs( orderedIndex ) % spawns.Count;
-		return spawns[index].GameObject;
+		return SpawnAllocator?.AllocateBatch( group, players ) ??
+			new Dictionary<LargeLadPlayer, LargeLadSpawnLocation>();
 	}
 
-	public IReadOnlyList<string> ValidateMap( bool logResults )
+	public bool TryAllocateSpawn(
+		LargeLadSpawnGroup group,
+		LargeLadPlayer player,
+		out LargeLadSpawnLocation location )
+	{
+		if ( SpawnAllocator is not null )
+			return SpawnAllocator.TryAllocate( group, player, out location );
+
+		location = default;
+		return false;
+	}
+
+	public IReadOnlyList<string> ValidateMap(
+		bool logResults,
+		bool validateGeometry = false )
 	{
 		var issues = new List<string>();
-		ResolveManagers();
+		ResolveGameplay();
 
-		if ( NetworkHelper is null )
-			issues.Add( "Missing NetworkHelper." );
+		var networkHelpers = Scene?.GetAllComponents<NetworkHelper>().ToList() ?? new();
+		var roundManagers = Scene?.GetAllComponents<LargeLadRoundManager>().ToList() ?? new();
+		var definitions = Scene?.GetAllComponents<LargeLadMapDefinition>().ToList() ?? new();
+		var allocators = Scene?.GetAllComponents<LargeLadSpawnAllocator>().ToList() ?? new();
 
-		if ( RoundManager is null )
-			issues.Add( "Missing LargeLadRoundManager." );
+		if ( networkHelpers.Count != 1 )
+			issues.Add( $"Expected one NetworkHelper, found {networkHelpers.Count}." );
 
-		ValidateSpawnGroup( issues, LargeLadSpawnGroup.Lobby, TargetPlayerCount );
-		ValidateSpawnGroup( issues, LargeLadSpawnGroup.SkinnyKid, TargetPlayerCount - 1 );
-		ValidateSpawnGroup( issues, LargeLadSpawnGroup.Hunter, TargetPlayerCount );
+		if ( roundManagers.Count != 1 )
+			issues.Add( $"Expected one LargeLadRoundManager, found {roundManagers.Count}." );
 
-		foreach ( var pickup in Scene.GetAllComponents<LargeLadWeaponPickup>() )
+		if ( definitions.Count != 1 )
+			issues.Add( $"Expected one LargeLadMapDefinition, found {definitions.Count}." );
+
+		if ( allocators.Count != 1 )
+			issues.Add( $"Expected one LargeLadSpawnAllocator, found {allocators.Count}." );
+
+		if ( HeadStartDuration < 0.0f )
+			issues.Add( "Head-start duration cannot be negative." );
+
+		if ( SurvivalDuration <= 0.0f )
+			issues.Add( "Survival duration must be greater than zero." );
+
+		if ( IntermissionDuration < 0.0f )
+			issues.Add( "Intermission duration cannot be negative." );
+
+		ValidateSpawnGroup(
+			issues,
+			LargeLadSpawnGroup.Lobby,
+			TargetPlayerCount,
+			validateGeometry );
+		ValidateSpawnGroup(
+			issues,
+			LargeLadSpawnGroup.SkinnyKid,
+			TargetPlayerCount - 1,
+			validateGeometry );
+		ValidateSpawnGroup(
+			issues,
+			LargeLadSpawnGroup.Hunter,
+			TargetPlayerCount,
+			validateGeometry );
+
+		foreach ( var pickup in
+			Scene?.GetAllComponents<LargeLadWeaponPickup>() ??
+			Enumerable.Empty<LargeLadWeaponPickup>() )
 		{
 			if ( !LargeLadWeaponCatalog.IsFirearm( pickup.Weapon ) )
 				issues.Add( $"Weapon pickup '{pickup.GameObject.Name}' has no valid firearm." );
 
 			if ( pickup.PickupCollider is null )
-				issues.Add( $"Weapon pickup '{pickup.GameObject.Name}' is missing its trigger collider reference." );
+				issues.Add( $"Weapon pickup '{pickup.GameObject.Name}' needs a trigger collider." );
+
+			if ( pickup.PickupRenderer is null )
+				issues.Add( $"Weapon pickup '{pickup.GameObject.Name}' needs visible scene geometry." );
 		}
 
-		foreach ( var pickup in Scene.GetAllComponents<LargeLadAmmoPickup>() )
+		foreach ( var pickup in
+			Scene?.GetAllComponents<LargeLadAmmoPickup>() ??
+			Enumerable.Empty<LargeLadAmmoPickup>() )
 		{
 			if ( !LargeLadWeaponCatalog.IsFirearm( pickup.Weapon ) )
 				issues.Add( $"Ammo pickup '{pickup.GameObject.Name}' has no valid firearm." );
 
 			if ( pickup.PickupCollider is null )
-				issues.Add( $"Ammo pickup '{pickup.GameObject.Name}' is missing its trigger collider reference." );
+				issues.Add( $"Ammo pickup '{pickup.GameObject.Name}' needs a trigger collider." );
+
+			if ( pickup.PickupRenderer is null )
+				issues.Add( $"Ammo pickup '{pickup.GameObject.Name}' needs visible scene geometry." );
 		}
 
-		foreach ( var barricade in Scene.GetAllComponents<LargeLadBarricade>() )
+		foreach ( var barricade in
+			Scene?.GetAllComponents<LargeLadBarricade>() ??
+			Enumerable.Empty<LargeLadBarricade>() )
 		{
-			if ( barricade.GameObject.Parent is null )
-				issues.Add( $"Barricade '{barricade.GameObject.Name}' must be parented beneath its geometry." );
+			if ( !barricade.HasVisibleGeometry || !barricade.HasCollision )
+			{
+				issues.Add(
+					$"Barricade '{barricade.GameObject.Name}' needs rendering and collision." );
+			}
 
-			if ( barricade.BarricadeCollider is null || barricade.BarricadeRenderer is null )
-				issues.Add( $"Barricade '{barricade.GameObject.Name}' parent needs visible geometry and collision." );
+			if ( barricade.GameObject.NetworkMode != NetworkMode.Object )
+			{
+				issues.Add(
+					$"Barricade '{barricade.GameObject.Name}' must use Network Mode Object." );
+			}
+		}
+
+		foreach ( var killVolume in
+			Scene?.GetAllComponents<LargeLadKillVolume>() ??
+			Enumerable.Empty<LargeLadKillVolume>() )
+		{
+			if ( killVolume.TriggerCollider is null )
+				issues.Add( $"Kill volume '{killVolume.GameObject.Name}' needs a trigger collider." );
 		}
 
 		if ( logResults )
 		{
 			if ( issues.Count == 0 )
 			{
-				Log.Info( $"Map '{GameObject.Name}' passes the Large Lad 16-player contract." );
+				Log.Info(
+					$"Scene containing '{GameObject.Name}' " +
+					"passes the Large Lad map contract." );
 			}
 			else
 			{
@@ -158,52 +194,55 @@ public sealed class LargeLadMapDefinition : Component
 		return issues;
 	}
 
-	private void ResolveManagers()
+	private void ResolveGameplay()
 	{
 		NetworkHelper ??= Scene?.GetAllComponents<NetworkHelper>().FirstOrDefault();
 		RoundManager ??= Scene?.GetAllComponents<LargeLadRoundManager>().FirstOrDefault();
+		SpawnAllocator ??= Scene?.GetAllComponents<LargeLadSpawnAllocator>().FirstOrDefault();
 	}
 
 	private void ConfigureGameplay()
 	{
-		if ( NetworkHelper is not null )
-		{
-			NetworkHelper.SpawnPoints.Clear();
-			NetworkHelper.SpawnPoints.AddRange( LobbySpawns.Select( marker => marker.GameObject ) );
-		}
-
+		SpawnAllocator?.ConfigureNetworkHelper( NetworkHelper );
 		RoundManager?.UseMapDefinition( this );
-	}
-
-	private IReadOnlyList<LargeLadSpawnMarker> GetOrderedSpawns(
-		LargeLadSpawnGroup group )
-	{
-		if ( Scene is null )
-			return new List<LargeLadSpawnMarker>();
-
-		return Scene
-			.GetAllComponents<LargeLadSpawnMarker>()
-			.Where( marker => marker.Group == group )
-			.OrderBy( marker => marker.Order )
-			.ThenBy( marker => marker.GameObject.Name )
-			.ToList();
 	}
 
 	private void ValidateSpawnGroup(
 		List<string> issues,
 		LargeLadSpawnGroup group,
-		int requiredCount )
+		int requiredCapacity,
+		bool validateGeometry )
 	{
-		var markers = GetOrderedSpawns( group );
+		if ( SpawnAllocator is null )
+			return;
 
-		if ( markers.Count < requiredCount )
+		var spawns = SpawnAllocator.GetTeamSpawns( group );
+
+		if ( spawns.Count == 0 )
 		{
-			issues.Add( $"{group} has {markers.Count}/{requiredCount} required spawn markers." );
+			issues.Add( $"{group} needs at least one team spawn." );
+			return;
 		}
 
-		foreach ( var duplicate in markers.GroupBy( marker => marker.Order ).Where( set => set.Count() > 1 ) )
+		var capacity = SpawnAllocator.GetConfiguredCapacity( group );
+		if ( capacity < requiredCapacity )
 		{
-			issues.Add( $"{group} spawn order {duplicate.Key} is duplicated." );
+			issues.Add(
+				$"{group} spawn capacity is {capacity}/{requiredCapacity}." );
+		}
+
+		if ( !validateGeometry )
+			return;
+
+		var generated = SpawnAllocator.CountGeneratedCandidates( group );
+		if ( generated == 0 )
+		{
+			issues.Add( $"{group} produced no geometrically valid positions." );
+		}
+		else if ( generated < requiredCapacity )
+		{
+			issues.Add(
+				$"{group} produced {generated}/{requiredCapacity} clear positions." );
 		}
 	}
 }

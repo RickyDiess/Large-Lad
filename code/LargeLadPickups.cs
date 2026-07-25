@@ -27,8 +27,14 @@ public sealed class LargeLadWeaponPickup : Component,
 	private int droppedMagazine = -1;
 	private int droppedReserve = -1;
 
+	protected override void OnAwake()
+	{
+		ResolveAuthoredParts();
+	}
+
 	protected override void OnStart()
 	{
+		ResolveAuthoredParts();
 		authoredTransform = GameObject.WorldTransform;
 		hasAuthoredTransform = true;
 
@@ -42,10 +48,18 @@ public sealed class LargeLadWeaponPickup : Component,
 
 	protected override void OnValidate()
 	{
+		ResolveAuthoredParts();
+
 		if ( !LargeLadWeaponCatalog.IsFirearm( Weapon ) )
 		{
 			Log.Warning( $"{GameObject.Name}: weapon pickup must use a firearm definition." );
 		}
+	}
+
+	private void ResolveAuthoredParts()
+	{
+		PickupCollider ??= Components.Get<Collider>();
+		PickupRenderer ??= Components.Get<Renderer>();
 	}
 
 	public void OnTriggerEnter( Collider other )
@@ -175,7 +189,15 @@ public sealed class LargeLadAmmoPickup : Component,
 	[Property]
 	public Collider PickupCollider { get; set; }
 
+	[Property]
+	public Renderer PickupRenderer { get; set; }
+
 	private readonly HashSet<GameObject> collectedPlayers = new();
+
+	protected override void OnAwake()
+	{
+		ResolveAuthoredParts();
+	}
 
 	public int ResolvedAmmoAmount
 	{
@@ -188,6 +210,8 @@ public sealed class LargeLadAmmoPickup : Component,
 
 	protected override void OnStart()
 	{
+		ResolveAuthoredParts();
+
 		if ( PickupCollider is not null )
 		{
 			PickupCollider.IsTrigger = true;
@@ -196,10 +220,18 @@ public sealed class LargeLadAmmoPickup : Component,
 
 	protected override void OnValidate()
 	{
+		ResolveAuthoredParts();
+
 		if ( !LargeLadWeaponCatalog.IsFirearm( Weapon ) )
 		{
 			Log.Warning( $"{GameObject.Name}: ammo pickup must target a firearm." );
 		}
+	}
+
+	private void ResolveAuthoredParts()
+	{
+		PickupCollider ??= Components.Get<Collider>();
+		PickupRenderer ??= Components.Get<Renderer>();
 	}
 
 	public void OnTriggerEnter( Collider other )

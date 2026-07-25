@@ -1,0 +1,115 @@
+{
+  "RootObject": {
+    "__guid": "8a200001-0000-4000-8000-000000000001",
+    "__version": 2,
+    "Flags": 32768,
+    "Name": "barricade_skinny_progression",
+    "Position": "0,0,0",
+    "Rotation": "0,0,0,1",
+    "Scale": "1,1,1",
+    "Tags": "world",
+    "Enabled": true,
+    "NetworkMode": 1,
+    "NetworkFlags": 0,
+    "NetworkOrphaned": 0,
+    "NetworkTransmit": true,
+    "OwnerTransfer": 1,
+    "Components": [
+      {
+        "__type": "Sandbox.MeshComponent",
+        "__guid": "aa69b01a-14c7-4256-ad87-ebeddf84d0a5",
+        "__enabled": true,
+        "Flags": 0,
+        "ColliderFlags": 0,
+        "Collision": "Mesh",
+        "Color": "1,1,1,1",
+        "Elasticity": null,
+        "Friction": null,
+        "HideInGame": false,
+        "IsTrigger": false,
+        "Mesh": {
+          "Data": "AQAAAAcAAAAIAAAAdG9wb2xvZ3nEAQAACAAAABgAAAAGAAAAAAAAAAIAAAAEAAAABgAAAAgAAAAKAAAADAAAAA4AAAABAAAAAQAAAAIAAAAAAAAAAAAAAAAAAAARAAAABQAAAAIAAAADAAAABAAAAAAAAAABAAAAAgAAABQAAAADAAAAAwAAAAUAAAAGAAAAAAAAAAIAAAAEAAAAFwAAAAQAAAAAAAAABwAAAAAAAAAAAAAAAwAAAAYAAAASAAAAAgAAAAUAAAAJAAAACgAAAAEAAAAEAAAACAAAABMAAAAEAAAABgAAAAsAAAAMAAAAAQAAAAUAAAAKAAAAFgAAAAMAAAAHAAAADQAAAA4AAAABAAAABgAAAAwAAAAVAAAABQAAAAQAAAAPAAAACAAAAAEAAAAHAAAADgAAABAAAAACAAAAAAAAABEAAAAHAAAAAgAAAAcAAAAQAAAADQAAAAUAAAAEAAAAEwAAAA8AAAACAAAAAwAAABIAAAAFAAAABAAAAAYAAAAVAAAACwAAAAMAAAABAAAAFAAAAAEAAAAFAAAAAgAAABcAAAADAAAAAwAAAAUAAAAWAAAACQAAAAQAAAAGAAAADgAAABIAAAAWAAAAFwAAABUAAAAJAAAAcG9zaXRpb25zYAAAAAAAgMIAAAAAAAAAQwAAgEIAAAAAAAAAQwAAgEIAAABCAAAAQwAAgMIAAABCAAAAQwAAgMIAAABCAAAAAAAAgEIAAABCAAAAAAAAgEIAAAAAAAAAAAAAgMIAAAAAAAAAAAYAAABibGVuZHNgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABgAAAGNvbG9yc2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAdGV4Y29vcmTAAAAAAACAPgAAQD8AAEC/AACAvwAAgD4AAAA/AABAvwAAgL8AAEC/AAAAPwAAgL4AAIC/AABAvwAAQD8AAAA/AACAvwAAgD4AAAA/AABAPwAAAAAAAIA+AABAPwAAAL8AAAAAAABAvwAAQD8AAIA+AAAAAAAAQL8AAAA/AABAPwAAAAAAAEA/AACAvwAAQL8AAAAAAAAAPwAAAAAAAEA/AACAvwAAQL8AAAAAAACAPgAAgL8AAAC/AACAvwAAgL4AAAAADQAAAG1hdGVyaWFsaW5kZXgYAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAACQAAAGVkZ2VmbGFnc2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+          "Materials": [
+            "materials/dev/gray_grid_4.vmat",
+            "materials/dev/green.vmat"
+          ]
+        },
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "OnObjectTriggerEnter": null,
+        "OnObjectTriggerExit": null,
+        "OnTriggerEnter": null,
+        "OnTriggerExit": null,
+        "RenderType": "On",
+        "RollingResistance": null,
+        "SmoothingAngle": 40,
+        "Static": true,
+        "Surface": null,
+        "SurfaceVelocity": "0,0,0"
+      },
+      {
+        "__type": "LargeLadBarricade",
+        "__guid": "8a200001-0000-4000-8000-000000000004",
+        "__enabled": true,
+        "Flags": 0,
+        "BarricadeCollider": {
+          "_type": "component",
+          "component_id": "aa69b01a-14c7-4256-ad87-ebeddf84d0a5",
+          "go": "8a200001-0000-4000-8000-000000000001",
+          "component_type": "MeshComponent"
+        },
+        "BarricadeRenderer": {
+          "_type": "component",
+          "component_id": "aa69b01a-14c7-4256-ad87-ebeddf84d0a5",
+          "go": "8a200001-0000-4000-8000-000000000001",
+          "component_type": "MeshComponent"
+        },
+        "CosmeticDebris": [],
+        "CosmeticDebrisLifetime": 1.5,
+        "GizmoPadding": 2,
+        "LadStructuralDamage": 100,
+        "MaximumHealth": 300,
+        "Mode": "SkinnyProgression",
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null
+      }
+    ],
+    "Children": [],
+    "__properties": {
+      "NetworkInterpolation": true,
+      "TimeScale": 1,
+      "WantsSystemScene": true,
+      "Metadata": {},
+      "NavMesh": {
+        "Enabled": false,
+        "IncludeStaticBodies": true,
+        "IncludeKeyframedBodies": true,
+        "EditorAutoUpdate": false,
+        "AgentHeight": 64,
+        "AgentRadius": 16,
+        "AgentStepSize": 18,
+        "AgentMaxSlope": 40,
+        "ExcludedBodies": "",
+        "IncludedBodies": "",
+        "DeferGeneration": false,
+        "CustomBounds": false
+      }
+    },
+    "__variables": []
+  },
+  "ResourceVersion": 2,
+  "ShowInMenu": true,
+  "MenuPath": "Large Lad/Barricades/Skinny Progression",
+  "MenuIcon": "route",
+  "DontBreakAsTemplate": true,
+  "__references": [],
+  "__version": 2
+}
