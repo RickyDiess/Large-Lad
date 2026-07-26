@@ -260,7 +260,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "f9f2621e-9866-4904-9ea8-b71587d2fcfd"
+                      "$blob": "f5bdac8c-c189-4ae6-8c70-1a28a09b9836"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat"
@@ -316,7 +316,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "9c56d502-30f8-4ca8-ae25-07fbff48ee00"
+                      "$blob": "17610254-5819-4d1e-8699-9df727e98bcc"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat"
@@ -372,7 +372,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "ed0786f1-8a9d-4e1d-be1d-c79be317f47d"
+                      "$blob": "1ca1dfc6-cc32-4d4c-b3fd-2ee8e2d84ef8"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat"
@@ -428,7 +428,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "d6bd7bcb-da57-452f-9f13-3321c82b1224"
+                      "$blob": "2d9821e1-dfc8-4364-bb41-6d024f170b0a"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat"
@@ -628,7 +628,7 @@
                     "Property": "Mesh",
                     "Value": {
                       "Data": {
-                        "$blob": "62765ab5-4acd-42be-86d0-329ad90259f1"
+                        "$blob": "020b22b5-1475-4008-9891-128e3ac0ccbf"
                       },
                       "Materials": [
                         "materials/dev/gray_grid_4.vmat",
@@ -685,7 +685,7 @@
                     "Property": "Mesh",
                     "Value": {
                       "Data": {
-                        "$blob": "709bd529-a240-4eb1-9369-c380c8933abe"
+                        "$blob": "57c6fa34-1cd2-4033-aec2-b09cc8be6499"
                       },
                       "Materials": [
                         "materials/dev/gray_grid_4.vmat",

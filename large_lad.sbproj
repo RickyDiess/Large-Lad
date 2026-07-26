@@ -1,7 +1,7 @@
 {
   "Title": "Large Lad",
   "Type": "game",
-  "Org": "local",
+  "Org": "rokey",
   "Ident": "large_lad",
   "Schema": 1,
   "IncludeSourceFiles": false,
@@ -24,6 +24,11 @@
     "LeaderboardType": "None",
     "CsProjName": "",
     "StartupScene": "scenes/gym.scene",
-    "LaunchMode": "Normal"
+    "LaunchMode": "Normal",
+    "ControlModes": {
+      "Keyboard": true,
+      "VR": false,
+      "Gamepad": false
+    }
   }
 }

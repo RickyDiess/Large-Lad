@@ -74,7 +74,7 @@
         "__version": 2,
         "Flags": 0,
         "Name": "model",
-        "Position": "0,0,0",
+        "Position": "0,0,0.446343184",
         "Rotation": "0.707106769,0,0,0.707106769",
         "Scale": "1,1,1",
         "Tags": "",
@@ -90,13 +90,13 @@
             "__guid": "921314e1-08ab-4513-abf5-392249118694",
             "__enabled": true,
             "Flags": 512,
-            "BodyGroups": 18446744073709551615,
+            "BodyGroups": 23,
             "CreateAttachments": false,
             "LodOverride": null,
             "MaterialGroup": null,
             "MaterialOverride": null,
             "Materials": null,
-            "Model": "weapons/rust_pistol/rust_pistol.vmdl",
+            "Model": "models/weapons/sbox_pistol_usp/w_usp.vmdl",
             "OnComponentDestroy": null,
             "OnComponentDisabled": null,
             "OnComponentEnabled": null,
@@ -144,7 +144,7 @@
   "MenuIcon": "my_location",
   "DontBreakAsTemplate": true,
   "__references": [
-    "rust.rust_pistol#301649"
+    "facepunch.w_usp#278999"
   ],
   "__version": 2
 }

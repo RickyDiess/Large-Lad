@@ -74,7 +74,7 @@
         "__version": 2,
         "Flags": 0,
         "Name": "model",
-        "Position": "0,0,0",
+        "Position": "0,0,1.0140506",
         "Rotation": "0.707106769,0,0,0.707106769",
         "Scale": "1,1,1",
         "Tags": "",
@@ -90,13 +90,13 @@
             "__guid": "c1db096c-9625-4cf5-86ae-7d13ae01183c",
             "__enabled": true,
             "Flags": 512,
-            "BodyGroups": 18446744073709551615,
+            "BodyGroups": 11,
             "CreateAttachments": false,
             "LodOverride": null,
             "MaterialGroup": null,
             "MaterialOverride": null,
             "Materials": null,
-            "Model": "weapons/rust_smg/rust_smg.vmdl",
+            "Model": "models/weapons/sbox_smg_mp5/w_mp5.vmdl",
             "OnComponentDestroy": null,
             "OnComponentDisabled": null,
             "OnComponentEnabled": null,
@@ -144,7 +144,7 @@
   "MenuIcon": "my_location",
   "DontBreakAsTemplate": true,
   "__references": [
-    "rust.rust_smg#301195"
+    "facepunch.w_mp5#279124"
   ],
   "__version": 2
 }

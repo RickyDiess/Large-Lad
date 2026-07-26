@@ -1,9 +1,11 @@
 # Large Lad scene-mapping guide
 
-The project intentionally has no fixed startup scene, so editor play mode uses
-the scene that is currently open. Make future maps by duplicating
-`Assets/scenes/template.scene`. Do not copy gameplay scripts between maps and do
-not add a second gameplay bootstrap.
+`Assets/scenes/Gym.scene` is the current game-mode startup scene. A valid
+`StartupScene` is required because an empty setting falls back to the missing
+`start.scene`. Use normal editor Play for the scene that is currently open, and
+use Play in Game Mode when testing the configured startup flow. Make future maps
+by duplicating `Assets/scenes/template.scene`. Do not copy gameplay scripts
+between maps and do not add a second gameplay bootstrap.
 
 ## Starting a map
 
