@@ -1,0 +1,901 @@
+using Sandbox;
+using Sandbox.Citizen;
+using System.Linq;
+
+public enum LargeLadMeleeResult
+{
+	Miss,
+	PlayerHit,
+	BarricadeHit
+}
+
+/// <summary>
+/// Shared owner-input, host-validated melee system for every playable role.
+/// The owner only asks to swing; the host chooses and validates the target.
+/// </summary>
+public sealed class LargeLadMeleeSystem : Component
+{
+	private const float HostCadenceTolerance = 0.025f;
+	private const float ConfirmedHitmarkerDuration = 0.14f;
+
+	[Property, Group( "Skinny Kid" )]
+	public float SkinnyKidRange { get; set; } = 80.0f;
+
+	[Property, Group( "Skinny Kid" )]
+	public float SkinnyKidCooldown { get; set; } = 0.65f;
+
+	[Property, Group( "Skinny Kid" )]
+	public float SkinnyKidDamage { get; set; } = 25.0f;
+
+	[Property, Group( "Large Lad" )]
+	public float LargeLadRange { get; set; } = 100.0f;
+
+	[Property, Group( "Large Lad" )]
+	public float LargeLadCooldown { get; set; } = 0.1f;
+
+	[Property, Group( "Large Lad" ), Title( "Damage" )]
+	public float LargeLadDamage { get; set; } = 10.0f;
+
+	[Property, Group( "Large Lad" ), Title( "Use Aim Assist" )]
+	public bool LargeLadUseAimAssist { get; set; } = false;
+
+	[Property, Group( "Minion" )]
+	public float MinionRange { get; set; } = 80.0f;
+
+	[Property, Group( "Minion" )]
+	public float MinionCooldown { get; set; } = 0.65f;
+
+	[Property, Group( "Minion" )]
+	public float MinionDamage { get; set; } = 25.0f;
+
+	[Property, Group( "Targeting" ), Title( "Swing Trace Radius" )]
+	public float SwingTraceRadius { get; set; } = 18.0f;
+
+	[Property, Group( "Targeting" ), Title( "Aim Assist Facing Dot" )]
+	public float MinimumFacingDot { get; set; } = 0.55f;
+
+	[Property, Group( "Melee Model" )]
+	public Model MeleeModel { get; set; }
+
+	[Property, Group( "Melee Model" ), Title( "Skinny Kid Hold Bone" )]
+	public string MeleeModelBone { get; set; } = "hold_R";
+
+	[Property, Group( "Melee Model" ), Title( "Hold-relative Position" )]
+	public Vector3 MeleeModelPosition { get; set; } = Vector3.Zero;
+
+	[Property, Group( "Melee Model" ), Title( "Hold-relative Angles" )]
+	public Angles MeleeModelAngles { get; set; } =
+		new( 0.0f, 0.0f, 0.0f );
+
+	[Property, Group( "Melee Model" ), Title( "Model-space Grip Point" )]
+	public Vector3 MeleeModelGripPosition { get; set; } =
+		new( 0.0f, 0.0f, -18.0f );
+
+	[Property, Group( "Melee Model" )]
+	public float MeleeModelScale { get; set; } = 0.25f;
+
+	[Property, Group( "First Person" ), Title( "Show Melee Arms" )]
+	public bool ShowFirstPersonArms { get; set; } = true;
+
+	[Property, Group( "First Person" ), Title( "Camera-relative Adjustment" )]
+	public Vector3 FirstPersonArmsPosition { get; set; } = Vector3.Zero;
+
+	[Property, Group( "First Person" )]
+	public Angles FirstPersonArmsAngles { get; set; } = Angles.Zero;
+
+	private TimeSince timeSinceLocalSwing;
+	private TimeSince timeSinceConfirmedHit;
+	private int nextOwnerSwingSequence;
+	private int lastHostSwingSequence;
+	private int lastOwnerResultSequence;
+	private bool hasHostSwingSchedule;
+	private float nextHostSwingTime;
+	private bool hasConfirmedHit;
+	private GameObject meleeModelPivotObject;
+	private GameObject meleeModelObject;
+	private ModelRenderer meleeModelRenderer;
+	private Model appliedMeleeModel;
+	private GameObject firstPersonArmsObject;
+	private SkinnedModelRenderer firstPersonArmsRenderer;
+	private Model appliedFirstPersonArmsModel;
+
+	public bool HasConfirmedHitmarker =>
+		hasConfirmedHit && timeSinceConfirmedHit < ConfirmedHitmarkerDuration;
+
+	public LargeLadMeleeResult LastAttackResult { get; private set; } =
+		LargeLadMeleeResult.Miss;
+
+	protected override void OnUpdate()
+	{
+		UpdateMeleePose();
+		UpdateFirstPersonArms();
+		UpdateMeleeModel();
+
+		if ( IsProxy || !Input.Down( "Attack1" ) )
+			return;
+
+		var attacker = Components.Get<LargeLadPlayer>();
+		var controller = Components.Get<PlayerController>();
+
+		if ( !CanAttack( attacker, controller ) )
+			return;
+
+		var profile = GetProfile( attacker.Role );
+
+		if ( timeSinceLocalSwing < profile.Cooldown )
+			return;
+
+		timeSinceLocalSwing = 0.0f;
+		TriggerMeleeSwingAnimation();
+		nextOwnerSwingSequence++;
+		RequestMeleeAttack( nextOwnerSwingSequence );
+	}
+
+	protected override void OnDestroy()
+	{
+		DestroyMeleeModel();
+		DestroyFirstPersonArms();
+	}
+
+	protected override void OnValidate()
+	{
+		if ( SkinnyKidRange <= 0.0f || LargeLadRange <= 0.0f ||
+			MinionRange <= 0.0f )
+		{
+			Log.Warning( $"{GameObject.Name}: melee ranges must be positive." );
+		}
+
+		if ( SkinnyKidCooldown <= 0.0f || LargeLadCooldown <= 0.0f ||
+			MinionCooldown <= 0.0f )
+		{
+			Log.Warning( $"{GameObject.Name}: melee cooldowns must be positive." );
+		}
+
+		if ( SkinnyKidDamage <= 0.0f || LargeLadDamage <= 0.0f ||
+			MinionDamage <= 0.0f )
+		{
+			Log.Warning( $"{GameObject.Name}: melee damage must be positive." );
+		}
+	}
+
+	[Rpc.Host( NetFlags.OwnerOnly )]
+	private void RequestMeleeAttack( int ownerSwingSequence )
+	{
+		if ( !Networking.IsHost ||
+			ownerSwingSequence <= lastHostSwingSequence )
+		{
+			return;
+		}
+
+		// Consume every new sequence before validating its payload/state so it
+		// cannot be replayed later.
+		lastHostSwingSequence = ownerSwingSequence;
+
+		var attacker = Components.Get<LargeLadPlayer>();
+		var controller = Components.Get<PlayerController>();
+
+		if ( !CanAttack( attacker, controller ) )
+			return;
+
+		var profile = GetProfile( attacker.Role );
+		var hostNow = Time.Now;
+
+		if ( hasHostSwingSchedule &&
+			hostNow + HostCadenceTolerance < nextHostSwingTime )
+		{
+			return;
+		}
+
+		CommitHostCadence( profile.Cooldown, hostNow );
+		BroadcastMeleeSwingAnimation();
+
+		var target = FindMeleeTarget(
+			attacker,
+			controller,
+			profile.Range,
+			profile.UseAimAssist );
+		var result = ResolveAttack( attacker, target, profile.Damage );
+		ReceiveMeleeResult( ownerSwingSequence, result );
+	}
+
+	private LargeLadMeleeResult ResolveAttack(
+		LargeLadPlayer attacker,
+		MeleeTarget target,
+		float damageAmount )
+	{
+		if ( target is null )
+		{
+			Log.Info( $"{attacker.GameObject.Name} swung and missed." );
+			return LargeLadMeleeResult.Miss;
+		}
+
+		var damage = new LargeLadDamageContext
+		{
+			Attacker = GameObject,
+			AttackerRole = attacker.Role,
+			SourceWeapon = LargeLadWeaponId.Melee,
+			DamageType = LargeLadDamageType.Melee,
+			BaseDamage = damageAmount
+		};
+
+		if ( target.Barricade is not null )
+		{
+			if ( !target.Barricade.TryApplyDamage(
+				damage,
+				out var structuralDamage ) )
+			{
+				Log.Info(
+					$"{attacker.GameObject.Name} struck " +
+					$"{target.Barricade.AuthoredTarget.Name}, but could not damage it." );
+				return LargeLadMeleeResult.Miss;
+			}
+
+			Log.Info(
+				$"{attacker.GameObject.Name} damaged " +
+				$"{target.Barricade.AuthoredTarget.Name} for " +
+				$"{structuralDamage.AppliedDamage:0.#}." );
+			return LargeLadMeleeResult.BarricadeHit;
+		}
+
+		var victim = target.Player;
+
+		if ( victim is null )
+			return LargeLadMeleeResult.Miss;
+
+		var round = GetRoundManager();
+
+		var killed = victim.Health.TryApplyDamage(
+			damage,
+			out var appliedDamage );
+
+		if ( !killed )
+		{
+			Log.Info(
+				$"{attacker.GameObject.Name} hit {victim.GameObject.Name} for " +
+				$"{appliedDamage.AppliedDamage:0.#} damage. " +
+				$"{victim.Health.CurrentHealth:0.#}/" +
+				$"{victim.Health.MaximumHealth:0.#} health remains." );
+			return appliedDamage.AppliedDamage > 0.0f
+				? LargeLadMeleeResult.PlayerHit
+				: LargeLadMeleeResult.Miss;
+		}
+
+		if ( victim.Role != LargeLadRole.LargeLad )
+		{
+			var respawnRole = victim.Role == LargeLadRole.SkinnyKid
+				? LargeLadRole.Minion
+				: victim.Role;
+			round?.BeginPlayerRespawn(
+				victim,
+				respawnRole,
+				useRagdoll: true );
+		}
+
+		var conversionText = victim.Role == LargeLadRole.SkinnyKid
+			? " and converted them into a Minion"
+			: string.Empty;
+		Log.Info(
+			$"{attacker.GameObject.Name} killed {victim.GameObject.Name}" +
+			$"{conversionText}." );
+		return LargeLadMeleeResult.PlayerHit;
+	}
+
+	private MeleeTarget FindMeleeTarget(
+		LargeLadPlayer attacker,
+		PlayerController controller,
+		float range,
+		bool useAimAssist )
+	{
+		var start = controller.EyePosition;
+		var forward = controller.EyeTransform.Rotation.Forward;
+		var trace = Scene.Trace
+			.Ray( start, start + forward * range )
+			.Radius( System.MathF.Max( 0.0f, SwingTraceRadius ) )
+			.UseHitboxes( true )
+			.IgnoreGameObjectHierarchy( attacker.GameObject )
+			.Run();
+
+		if ( trace.Hit )
+		{
+			var directPlayer = trace.GameObject?.Components.Get<LargeLadPlayer>(
+				FindMode.EverythingInSelfAndAncestors );
+
+			if ( IsValidPlayerTarget( attacker, directPlayer ) )
+				return MeleeTarget.ForPlayer( directPlayer );
+
+			var directBarricade =
+				LargeLadBarricade.FindFor( Scene, trace.GameObject );
+
+			if ( directBarricade is not null && !directBarricade.IsDestroyed )
+				return MeleeTarget.ForBarricade( directBarricade );
+
+			// World geometry, friendly players, and unrelated colliders block
+			// aim assist from selecting something behind them.
+			return null;
+		}
+
+		return useAimAssist
+			? FindAimAssistedTarget( attacker, controller, range )
+			: null;
+	}
+
+	private MeleeTarget FindAimAssistedTarget(
+		LargeLadPlayer attacker,
+		PlayerController controller,
+		float range )
+	{
+		var start = controller.EyePosition;
+		var forward = controller.EyeTransform.Rotation.Forward;
+		MeleeTarget bestTarget = null;
+		var bestScore = float.MaxValue;
+
+		foreach ( var player in Scene.GetAllComponents<LargeLadPlayer>() )
+		{
+			if ( !IsValidPlayerTarget( attacker, player ) )
+				continue;
+
+			var targetPosition =
+				player.GameObject.WorldPosition + Vector3.Up * 48.0f;
+
+			if ( !TryScoreTarget(
+				start,
+				forward,
+				targetPosition,
+				range,
+				out var score ) ||
+				!HasLineOfSightToPlayer( attacker, player, start, targetPosition ) )
+			{
+				continue;
+			}
+
+			if ( score < bestScore )
+			{
+				bestScore = score;
+				bestTarget = MeleeTarget.ForPlayer( player );
+			}
+		}
+
+		foreach ( var barricade in Scene.GetAllComponents<LargeLadBarricade>() )
+		{
+			if ( barricade is null || barricade.IsDestroyed )
+				continue;
+
+			var targetPosition = barricade.GetClosestWorldPoint( start );
+
+			if ( !TryScoreTarget(
+				start,
+				forward,
+				targetPosition,
+				range,
+				out var score ) ||
+				!HasLineOfSightToBarricade(
+					attacker,
+					barricade,
+					start,
+					targetPosition ) )
+			{
+				continue;
+			}
+
+			if ( score < bestScore )
+			{
+				bestScore = score;
+				bestTarget = MeleeTarget.ForBarricade( barricade );
+			}
+		}
+
+		return bestTarget;
+	}
+
+	private bool TryScoreTarget(
+		Vector3 start,
+		Vector3 forward,
+		Vector3 targetPosition,
+		float range,
+		out float score )
+	{
+		score = float.MaxValue;
+		var toTarget = targetPosition - start;
+		var distanceSquared = toTarget.LengthSquared;
+
+		if ( distanceSquared > range * range )
+			return false;
+
+		if ( distanceSquared <= 0.001f )
+		{
+			score = 0.0f;
+			return true;
+		}
+
+		var facing = Vector3.Dot( forward, toTarget.Normal );
+
+		if ( facing < MinimumFacingDot )
+			return false;
+
+		var distance = System.MathF.Sqrt( distanceSquared );
+
+		// Centered targets win over off-axis targets, with distance breaking
+		// close calls. This keeps assistance predictable in crowded fights.
+		score = (1.0f - facing) * range * 2.0f + distance;
+		return true;
+	}
+
+	private bool HasLineOfSightToPlayer(
+		LargeLadPlayer attacker,
+		LargeLadPlayer target,
+		Vector3 start,
+		Vector3 targetPosition )
+	{
+		var trace = Scene.Trace
+			.Ray( start, targetPosition )
+			.UseHitboxes( true )
+			.IgnoreGameObjectHierarchy( attacker.GameObject )
+			.Run();
+		var hitPlayer = trace.GameObject?.Components.Get<LargeLadPlayer>(
+			FindMode.EverythingInSelfAndAncestors );
+
+		return hitPlayer == target;
+	}
+
+	private bool HasLineOfSightToBarricade(
+		LargeLadPlayer attacker,
+		LargeLadBarricade target,
+		Vector3 start,
+		Vector3 targetPosition )
+	{
+		var towardTarget = targetPosition - start;
+		var traceEnd = towardTarget.LengthSquared > 0.001f
+			? targetPosition + towardTarget.Normal * 4.0f
+			: targetPosition;
+		var trace = Scene.Trace
+			.Ray( start, traceEnd )
+			.UseHitboxes( true )
+			.IgnoreGameObjectHierarchy( attacker.GameObject )
+			.Run();
+
+		return LargeLadBarricade.FindFor( Scene, trace.GameObject ) == target;
+	}
+
+	private bool CanAttack(
+		LargeLadPlayer attacker,
+		PlayerController controller )
+	{
+		if ( attacker is null || controller is null ||
+			attacker.Role is not (LargeLadRole.SkinnyKid or
+				LargeLadRole.LargeLad or LargeLadRole.Minion) ||
+			attacker.EquippedWeapon != LargeLadWeaponId.Melee ||
+			attacker.Health?.IsDead != false ||
+			attacker.Health.CurrentHealth <= 0.0f ||
+			attacker.MovementLocked )
+		{
+			return false;
+		}
+
+		var phase = GetRoundManager()?.Phase;
+
+		if ( phase == LargeLadRoundPhase.Playing )
+			return true;
+
+		// Skinny Kids can use their head start to break early progression
+		// barricades. Hunters remain unable to attack until play begins.
+		return phase == LargeLadRoundPhase.HeadStart &&
+			attacker.Role == LargeLadRole.SkinnyKid;
+	}
+
+	private static bool IsValidPlayerTarget(
+		LargeLadPlayer attacker,
+		LargeLadPlayer target )
+	{
+		if ( attacker is null || target is null || target == attacker ||
+			target.Health?.IsDead != false ||
+			target.Health.CurrentHealth <= 0.0f )
+		{
+			return false;
+		}
+
+		return attacker.Role == LargeLadRole.SkinnyKid
+			? target.Role is LargeLadRole.LargeLad or LargeLadRole.Minion
+			: target.Role == LargeLadRole.SkinnyKid;
+	}
+
+	private MeleeProfile GetProfile( LargeLadRole role )
+	{
+		return role switch
+		{
+			LargeLadRole.SkinnyKid => new MeleeProfile(
+				SkinnyKidRange,
+				SkinnyKidCooldown,
+				SkinnyKidDamage,
+				useAimAssist: true ),
+			LargeLadRole.LargeLad => new MeleeProfile(
+				LargeLadRange,
+				LargeLadCooldown,
+				LargeLadDamage,
+				LargeLadUseAimAssist ),
+			LargeLadRole.Minion => new MeleeProfile(
+				MinionRange,
+				MinionCooldown,
+				MinionDamage,
+				useAimAssist: true ),
+			_ => new MeleeProfile(
+				0.0f,
+				float.MaxValue,
+				0.0f,
+				useAimAssist: false )
+		};
+	}
+
+	private void CommitHostCadence( float cooldown, float hostNow )
+	{
+		cooldown = System.MathF.Max( 0.01f, cooldown );
+
+		if ( !hasHostSwingSchedule )
+		{
+			hasHostSwingSchedule = true;
+			nextHostSwingTime = hostNow + cooldown;
+			return;
+		}
+
+		nextHostSwingTime =
+			System.MathF.Max( hostNow, nextHostSwingTime ) + cooldown;
+	}
+
+	[Rpc.Owner( NetFlags.HostOnly )]
+	private void ReceiveMeleeResult(
+		int ownerSwingSequence,
+		LargeLadMeleeResult result )
+	{
+		if ( ownerSwingSequence <= lastOwnerResultSequence )
+			return;
+
+		lastOwnerResultSequence = ownerSwingSequence;
+		LastAttackResult = result;
+
+		if ( result is not (LargeLadMeleeResult.PlayerHit or
+			LargeLadMeleeResult.BarricadeHit) )
+		{
+			return;
+		}
+
+		hasConfirmedHit = true;
+		timeSinceConfirmedHit = 0.0f;
+	}
+
+	private void UpdateMeleeModel()
+	{
+		var player = Components.Get<LargeLadPlayer>();
+
+		if ( player?.Role is LargeLadRole.LargeLad or
+			LargeLadRole.Minion )
+		{
+			DestroyMeleeModel();
+			return;
+		}
+
+		var shouldShow = MeleeModel is not null &&
+			player?.Role == LargeLadRole.SkinnyKid &&
+			player.EquippedWeapon == LargeLadWeaponId.Melee &&
+			player.Health?.IsDead == false;
+
+		if ( !shouldShow )
+		{
+			if ( meleeModelPivotObject is not null &&
+				meleeModelPivotObject.IsValid )
+			{
+				meleeModelPivotObject.Enabled = false;
+			}
+
+			return;
+		}
+
+		EnsureMeleeModel();
+
+		if ( meleeModelPivotObject is null ||
+			!meleeModelPivotObject.IsValid ||
+			meleeModelObject is null ||
+			!meleeModelObject.IsValid )
+		{
+			return;
+		}
+
+		meleeModelPivotObject.Enabled = true;
+
+		var controller = Components.Get<PlayerController>();
+		var useFirstPersonGrip = !IsProxy &&
+			controller?.ThirdPerson == false &&
+			firstPersonArmsObject is not null &&
+			firstPersonArmsObject.IsValid &&
+			firstPersonArmsObject.Enabled &&
+			firstPersonArmsRenderer is not null;
+		var holdRenderer = useFirstPersonGrip
+			? firstPersonArmsRenderer
+			: player.BodyRenderer;
+
+		if ( holdRenderer is null ||
+			string.IsNullOrWhiteSpace( MeleeModelBone ) ||
+			!holdRenderer.TryGetBoneTransform(
+				MeleeModelBone,
+				out var holdTransform ) )
+		{
+			meleeModelPivotObject.Enabled = false;
+			return;
+		}
+
+		var position = holdTransform.PointToWorld( MeleeModelPosition );
+		var rotation =
+			holdTransform.Rotation * MeleeModelAngles.ToRotation();
+
+		var scale = System.MathF.Max( 0.01f, MeleeModelScale );
+
+		meleeModelRenderer.RenderOptions.Game = !useFirstPersonGrip;
+		meleeModelRenderer.RenderOptions.Overlay = useFirstPersonGrip;
+
+		// Keep the authored grip point locked to the hand at every scale.
+		meleeModelPivotObject.WorldTransform = new Transform(
+			position,
+			rotation,
+			Vector3.One );
+		meleeModelObject.LocalTransform = new Transform(
+			-MeleeModelGripPosition * scale,
+			Rotation.Identity,
+			new Vector3( scale ) );
+	}
+
+	private void UpdateFirstPersonArms()
+	{
+		var player = Components.Get<LargeLadPlayer>();
+		var controller = Components.Get<PlayerController>();
+		var shouldShow = ShowFirstPersonArms &&
+			!IsProxy &&
+			controller?.ThirdPerson == false &&
+			(player?.Role is LargeLadRole.SkinnyKid or
+				LargeLadRole.LargeLad or LargeLadRole.Minion) &&
+			player.EquippedWeapon == LargeLadWeaponId.Melee &&
+			player.Health?.IsDead == false &&
+			player.BodyRenderer is not null;
+
+		if ( !shouldShow )
+		{
+			if ( firstPersonArmsObject is not null &&
+				firstPersonArmsObject.IsValid )
+			{
+				firstPersonArmsObject.Enabled = false;
+			}
+
+			return;
+		}
+
+		EnsureFirstPersonArms( player );
+
+		if ( firstPersonArmsObject is null ||
+			!firstPersonArmsObject.IsValid ||
+			firstPersonArmsRenderer is null )
+		{
+			return;
+		}
+
+		var bodyTransform = player.BodyRenderer.GameObject.WorldTransform;
+		var eyeTransform = controller.EyeTransform;
+		bodyTransform.Position +=
+			eyeTransform.Rotation.Forward * FirstPersonArmsPosition.x +
+			eyeTransform.Rotation.Right * FirstPersonArmsPosition.y +
+			eyeTransform.Rotation.Up * FirstPersonArmsPosition.z;
+		bodyTransform.Rotation *= FirstPersonArmsAngles.ToRotation();
+
+		firstPersonArmsObject.Enabled = true;
+		firstPersonArmsObject.WorldTransform = bodyTransform;
+		firstPersonArmsRenderer.BoneMergeTarget = player.BodyRenderer;
+		firstPersonArmsRenderer.Tint = player.BodyRenderer.Tint;
+	}
+
+	private void EnsureFirstPersonArms( LargeLadPlayer player )
+	{
+		var bodyRenderer = player?.BodyRenderer;
+		var bodyModel = bodyRenderer?.Model;
+
+		if ( bodyModel is null )
+			return;
+
+		if ( firstPersonArmsObject is null ||
+			!firstPersonArmsObject.IsValid )
+		{
+			firstPersonArmsObject = new GameObject(
+				GameObject,
+				true,
+				"First Person Melee Arms (Runtime)" )
+			{
+				NetworkMode = NetworkMode.Never
+			};
+			firstPersonArmsRenderer =
+				firstPersonArmsObject.Components
+					.Create<SkinnedModelRenderer>();
+			appliedFirstPersonArmsModel = null;
+		}
+
+		if ( firstPersonArmsRenderer is null ||
+			appliedFirstPersonArmsModel == bodyModel )
+		{
+			return;
+		}
+
+		firstPersonArmsRenderer.Model = bodyModel;
+		firstPersonArmsRenderer.BoneMergeTarget = bodyRenderer;
+		firstPersonArmsRenderer.SetBodyGroup( "Head", 5 );
+		firstPersonArmsRenderer.SetBodyGroup( "Chest", 0 );
+		firstPersonArmsRenderer.SetBodyGroup( "Legs", 1 );
+		firstPersonArmsRenderer.SetBodyGroup( "Hands", 0 );
+		firstPersonArmsRenderer.SetBodyGroup( "Feet", 1 );
+		firstPersonArmsRenderer.RenderOptions.Game = false;
+		firstPersonArmsRenderer.RenderOptions.Overlay = true;
+		firstPersonArmsRenderer.RenderOptions.Bloom = false;
+		firstPersonArmsRenderer.RenderOptions.AfterUI = false;
+		appliedFirstPersonArmsModel = bodyModel;
+	}
+
+	private void DestroyFirstPersonArms()
+	{
+		if ( firstPersonArmsObject is not null &&
+			firstPersonArmsObject.IsValid )
+		{
+			firstPersonArmsObject.Destroy();
+		}
+
+		firstPersonArmsObject = null;
+		firstPersonArmsRenderer = null;
+		appliedFirstPersonArmsModel = null;
+	}
+
+	private void UpdateMeleePose()
+	{
+		var player = Components.Get<LargeLadPlayer>();
+
+		if ( player?.BodyRenderer is null )
+			return;
+
+		var isMeleeReadied = player.EquippedWeapon ==
+			LargeLadWeaponId.Melee &&
+			player.Health?.IsDead == false;
+		var holdType = player.Role switch
+		{
+			LargeLadRole.SkinnyKid when isMeleeReadied =>
+				(int)CitizenAnimationHelper.HoldTypes.Swing,
+			LargeLadRole.LargeLad when isMeleeReadied =>
+				(int)CitizenAnimationHelper.HoldTypes.Punch,
+			LargeLadRole.Minion when isMeleeReadied =>
+				(int)CitizenAnimationHelper.HoldTypes.Punch,
+			_ => (int)CitizenAnimationHelper.HoldTypes.None
+		};
+
+		player.BodyRenderer.Set( "holdtype", holdType );
+	}
+
+	private void TriggerMeleeSwingAnimation()
+	{
+		var player = Components.Get<LargeLadPlayer>();
+		player?.BodyRenderer?.Set( "b_attack", true );
+	}
+
+	[Rpc.Broadcast]
+	private void BroadcastMeleeSwingAnimation()
+	{
+		// The owner already predicted this animation immediately on input.
+		if ( !IsProxy )
+			return;
+
+		TriggerMeleeSwingAnimation();
+	}
+
+	private void EnsureMeleeModel()
+	{
+		if ( MeleeModel is null )
+		{
+			if ( meleeModelPivotObject is not null &&
+				meleeModelPivotObject.IsValid )
+			{
+				meleeModelPivotObject.Enabled = false;
+			}
+
+			appliedMeleeModel = null;
+			return;
+		}
+
+		if ( meleeModelPivotObject is null ||
+			!meleeModelPivotObject.IsValid )
+		{
+			meleeModelPivotObject = new GameObject(
+				GameObject,
+				true,
+				"Melee Grip (Runtime)" )
+			{
+				NetworkMode = NetworkMode.Never
+			};
+			meleeModelObject = null;
+			meleeModelRenderer = null;
+			appliedMeleeModel = null;
+		}
+
+		if ( meleeModelObject is null || !meleeModelObject.IsValid )
+		{
+			meleeModelObject = new GameObject(
+				meleeModelPivotObject,
+				true,
+				"Melee Model (Runtime)" )
+			{
+				NetworkMode = NetworkMode.Never
+			};
+			meleeModelRenderer =
+				meleeModelObject.Components.Create<ModelRenderer>();
+			appliedMeleeModel = null;
+		}
+
+		if ( meleeModelRenderer is not null &&
+			appliedMeleeModel != MeleeModel )
+		{
+			meleeModelRenderer.Model = MeleeModel;
+			appliedMeleeModel = MeleeModel;
+		}
+	}
+
+	private void DestroyMeleeModel()
+	{
+		if ( meleeModelPivotObject is not null &&
+			meleeModelPivotObject.IsValid )
+		{
+			meleeModelPivotObject.Destroy();
+		}
+		else if ( meleeModelObject is not null &&
+			meleeModelObject.IsValid )
+		{
+			meleeModelObject.Destroy();
+		}
+
+		meleeModelPivotObject = null;
+		meleeModelObject = null;
+		meleeModelRenderer = null;
+		appliedMeleeModel = null;
+	}
+
+	private LargeLadRoundManager GetRoundManager()
+	{
+		return Scene
+			.GetAllComponents<LargeLadRoundManager>()
+			.FirstOrDefault();
+	}
+
+	private readonly struct MeleeProfile
+	{
+		public float Range { get; }
+		public float Cooldown { get; }
+		public float Damage { get; }
+		public bool UseAimAssist { get; }
+
+		public MeleeProfile(
+			float range,
+			float cooldown,
+			float damage,
+			bool useAimAssist )
+		{
+			Range = System.MathF.Max( 0.0f, range );
+			Cooldown = System.MathF.Max( 0.01f, cooldown );
+			Damage = System.MathF.Max( 0.0f, damage );
+			UseAimAssist = useAimAssist;
+		}
+	}
+
+	private sealed class MeleeTarget
+	{
+		public LargeLadPlayer Player { get; private init; }
+		public LargeLadBarricade Barricade { get; private init; }
+
+		public static MeleeTarget ForPlayer( LargeLadPlayer player )
+		{
+			return new MeleeTarget { Player = player };
+		}
+
+		public static MeleeTarget ForBarricade(
+			LargeLadBarricade barricade )
+		{
+			return new MeleeTarget { Barricade = barricade };
+		}
+	}
+}

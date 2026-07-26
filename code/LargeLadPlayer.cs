@@ -29,7 +29,7 @@ public sealed class LargeLadPlayer : Component
 	public LargeLadInventory Inventory { get; set; }
 
 	[Property, RequireComponent]
-	public LargeLadMeleeAttack MeleeAttack { get; set; }
+	public LargeLadMeleeSystem MeleeSystem { get; set; }
 
 	[Sync( SyncFlags.FromHost ), Change( nameof( OnRoleChanged ) )]
 	public LargeLadRole Role { get; set; } = LargeLadRole.Unassigned;

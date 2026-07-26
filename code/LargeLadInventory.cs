@@ -84,7 +84,8 @@ public sealed class LargeLadInventory : Component
 
 		ClearInventory( dropExclusive: false );
 
-		if ( role is LargeLadRole.LargeLad or LargeLadRole.Minion )
+		if ( role is LargeLadRole.SkinnyKid or
+			LargeLadRole.LargeLad or LargeLadRole.Minion )
 		{
 			SetSlot( 1, LargeLadWeaponId.Melee, 0, 0, null );
 			EquippedSlot = 1;
@@ -121,7 +122,10 @@ public sealed class LargeLadInventory : Component
 			startingReserve >= 0 ? startingReserve : definition.StartingReserve,
 			exclusiveSource );
 
-		if ( EquippedSlot == 0 )
+		// Skinny Kids always keep melee in slot 1. Preserve the old pickup
+		// behavior by equipping their first firearm automatically.
+		if ( EquippedSlot == 0 ||
+			!LargeLadWeaponCatalog.IsFirearm( EquippedWeapon ) )
 		{
 			EquippedSlot = slot;
 		}

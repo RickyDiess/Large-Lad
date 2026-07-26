@@ -245,11 +245,11 @@
         "LargeLadRunSpeed": 100,
         "LargeLadTint": "1,0.25,0.05,1",
         "LargeLadWalkSpeed": 85,
-        "MeleeAttack": {
+        "MeleeSystem": {
           "_type": "component",
-          "component_id": "baaf6897-d157-4b8e-a452-eac53335bf87",
+          "component_id": "f9fa267a-1412-4ddb-a419-79fa17a78854",
           "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
-          "component_type": "LargeLadMeleeAttack"
+          "component_type": "LargeLadMeleeSystem"
         },
         "MinionBodyScale": "1,1,1",
         "MinionRunSpeed": 325,
@@ -315,14 +315,24 @@
         "OnComponentUpdate": null
       },
       {
-        "__type": "LargeLadMeleeAttack",
-        "__guid": "baaf6897-d157-4b8e-a452-eac53335bf87",
+        "__type": "LargeLadMeleeSystem",
+        "__guid": "f9fa267a-1412-4ddb-a419-79fa17a78854",
         "__enabled": true,
         "Flags": 0,
-        "LargeLadCooldown": 0.85,
+        "FirstPersonArmsAngles": "0,0,0",
+        "FirstPersonArmsPosition": "0,0,0",
+        "LargeLadCooldown": 0.1,
+        "LargeLadDamage": 10,
         "LargeLadRange": 100,
-        "MinimumFacingDot": 0.35,
-        "MinionCooldown": 0.65,
+        "LargeLadUseAimAssist": false,
+        "MeleeModel": "models/citizen_props/crowbar01.vmdl",
+        "MeleeModelAngles": "0,0,0",
+        "MeleeModelBone": "hold_R",
+        "MeleeModelGripPosition": "0,0,0",
+        "MeleeModelPosition": "0,0,0",
+        "MeleeModelScale": 0.25,
+        "MinimumFacingDot": 0.55,
+        "MinionCooldown": 0.5,
         "MinionDamage": 25,
         "MinionRange": 80,
         "OnComponentDestroy": null,
@@ -330,7 +340,12 @@
         "OnComponentEnabled": null,
         "OnComponentFixedUpdate": null,
         "OnComponentStart": null,
-        "OnComponentUpdate": null
+        "OnComponentUpdate": null,
+        "ShowFirstPersonArms": true,
+        "SkinnyKidCooldown": 0.65,
+        "SkinnyKidDamage": 25,
+        "SkinnyKidRange": 80,
+        "SwingTraceRadius": 18
       },
       {
         "__type": "LargeLadHud",
@@ -410,7 +425,7 @@
         ],
         "Children": [
           {
-            "__guid": "be180356-216d-4d55-94a9-37578767f53e",
+            "__guid": "db5e1c97-462b-4443-a01d-df5f0e42423f",
             "__version": 2,
             "Flags": 0,
             "Name": "Clothing - y_front_pants_white",
@@ -427,7 +442,7 @@
             "Components": [
               {
                 "__type": "Sandbox.SkinnedModelRenderer",
-                "__guid": "ef72d083-c459-4703-af4e-67e8f7b2b602",
+                "__guid": "c67ebf9b-09f2-4ebb-9792-72e3d9d666f6",
                 "__enabled": true,
                 "Flags": 0,
                 "AnimationGraph": null,

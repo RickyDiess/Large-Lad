@@ -22,9 +22,6 @@ public sealed class LargeLadBarricade : Component,
 	[Property]
 	public float MaximumHealth { get; set; } = 300.0f;
 
-	[Property, Title( "Lad Structural Damage Per Swing" )]
-	public float LadStructuralDamage { get; set; } = 100.0f;
-
 	[Property]
 	public Component BarricadeRenderer { get; set; }
 
@@ -167,7 +164,8 @@ public sealed class LargeLadBarricade : Component,
 		if ( Mode == LargeLadBarricadeMode.SkinnyProgression )
 		{
 			if ( damage.AttackerRole != LargeLadRole.SkinnyKid ||
-				damage.DamageType != LargeLadDamageType.Firearm )
+				damage.DamageType is not (LargeLadDamageType.Firearm or
+					LargeLadDamageType.Melee) )
 			{
 				return false;
 			}
@@ -182,7 +180,7 @@ public sealed class LargeLadBarricade : Component,
 				return false;
 			}
 
-			amount = System.MathF.Max( 0.0f, LadStructuralDamage );
+			amount = System.MathF.Max( 0.0f, damage.BaseDamage );
 		}
 
 		if ( amount <= 0.0f )

@@ -278,6 +278,30 @@ public sealed class LargeLadHud : Component
 		HudPainter hud,
 		LargeLadPlayer player )
 	{
+		if ( player.EquippedWeapon == LargeLadWeaponId.Melee )
+		{
+			var melee = player.MeleeSystem;
+
+			if ( melee?.HasConfirmedHitmarker != true )
+				return;
+
+			var meleeCenter = new Vector2(
+				Screen.Width * 0.5f,
+				Screen.Height * 0.5f );
+			var meleeColor =
+				melee.LastAttackResult == LargeLadMeleeResult.BarricadeHit
+					? new Color( 1.0f, 0.72f, 0.12f )
+					: Color.White;
+
+			DrawDiagonalMarker(
+				hud,
+				meleeCenter,
+				8.0f,
+				14.0f,
+				meleeColor );
+			return;
+		}
+
 		var weapon = player.PrototypeWeapon;
 
 		if ( weapon?.HasConfirmedHitmarker != true )
@@ -564,7 +588,7 @@ public sealed class LargeLadHud : Component
 	{
 		return role switch
 		{
-			LargeLadRole.SkinnyKid => "Don't get eaten. Find weapons placed in the map. Break barricades to progress.",
+			LargeLadRole.SkinnyKid => "Melee through early barricades. Find mapped weapons and survive.",
 			LargeLadRole.LargeLad => "Eat every Skinny Kid. Primary fire: melee.",
 			LargeLadRole.Minion => "Help the Lad eat the Skinny Kids. Primary fire: melee.",
 			_ => "A new round will begin shortly."

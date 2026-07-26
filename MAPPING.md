@@ -59,6 +59,7 @@ component's center is clear.
 - Skinny Kid movement: 110 walk, 320 run.
 - Large Lad movement: 85 walk, 230 run.
 - Minion movement: 110 walk, 300 run.
+- Skinny Kid melee reach: 80 units.
 - Large Lad melee reach: 100 units.
 - Minion melee reach: 80 units.
 
@@ -72,10 +73,11 @@ points.
 
 The two presets are:
 
-- `Skinny Progression Barricade`: 300 health; only Skinny Kid firearms damage it.
-- `Lad Shortcut Barricade`: 300 health; only Large Lad melee damages it, at
-  100 structural damage per swing. Minions can use the route after it opens but
-  cannot open it.
+- `Skinny Progression Barricade`: 300 health; Skinny Kid melee and firearms
+  damage it. This lets maps place the first firearms beyond an opening melee
+  barricade.
+- `Lad Shortcut Barricade`: 300 health; only Large Lad melee damages it.
+  Minions can use the route after it opens but cannot open it.
 
 A barricade is one self-contained GameObject using Network Mode `Object`. Its
 visible mesh or renderer, collision, and `LargeLadBarricade` component all live
@@ -100,6 +102,30 @@ be assigned in the component without adding networked physics debris.
 The gameplay prefab folder contains pistol, SMG, pistol-ammo, SMG-ammo, and kill
 volume presets. Their temporary models are explicit scene content and can be
 replaced with production assets later.
+
+Every active role inherently receives melee in inventory slot 1. A Skinny Kid's
+first firearm pickup is automatically equipped, while melee remains selectable.
+Weapon placement controls when ranged combat becomes available; the typical
+route puts the first firearm pickups beyond the first Skinny Progression
+Barricade.
+
+Holding primary attack auto-swings melee for every role at that role's
+configured cooldown. The Large Lad defaults to 10 damage every 0.1 seconds and
+does not use fallback aim assist, so maintaining roughly one second of accurate
+contact drains a full-health Skinny Kid and converts them on death.
+
+The player prefab's `LargeLadMeleeSystem` has one optional Skinny Kid
+`MeleeModel`, attached to the Citizen `hold_R` grip bone with hold-relative
+position, angles, a model-space grip point, and scale settings. It currently
+uses the Citizen crowbar as a quarter-scale placeholder. The grip point remains
+locked to the hand when the model scale changes. Clear or replace it without
+changing combat logic. The Large Lad and Minions always attack unarmed and
+never display this model.
+
+In first-person mode the local player receives overlay-rendered melee arms,
+bone-merged to the same Citizen animation as the world body. The melee model
+uses those first-person hand bones, while third-person and remote players use
+the world body's hand bones.
 
 Core weapon pickups are independently collectible once by every Skinny Kid each
 round; one player does not consume the pickup for anyone else. Core weapons do
