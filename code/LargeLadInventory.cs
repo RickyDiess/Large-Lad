@@ -1,26 +1,46 @@
 using Sandbox;
+using System.Collections.Generic;
 
+/// <summary>
+/// Host-authoritative Skinny Kid firearm inventory. Core weapons live in a
+/// variable-size delta-synchronized collection; the one physical exclusive
+/// instance is synchronized separately. Large Lad and Minion melee remains a
+/// role ability owned by LargeLadPlayer, not an inventory entry.
+/// </summary>
 public sealed class LargeLadInventory : Component
 {
-	public const int SlotCount = 4;
+	private const float PickupFeedbackDuration = 2.75f;
+
+	private static readonly string[] DirectSelectionActions =
+	{
+		"Slot1",
+		"Slot2",
+		"Slot3",
+		"Slot4",
+		"Slot5",
+		"Slot6",
+		"Slot7",
+		"Slot8",
+		"Slot9",
+		"Slot0"
+	};
+
+	[Property, Group( "Starting Loadout" )]
+	public List<LargeLadWeaponId> SkinnyKidStartingCoreWeapons { get; set; } =
+		new();
 
 	[Sync( SyncFlags.FromHost )]
-	public int EquippedSlot { get; private set; }
+	public NetList<LargeLadWeaponState> CoreWeapons { get; private set; } =
+		new();
 
-	[Sync( SyncFlags.FromHost )] public LargeLadWeaponId Slot1Weapon { get; private set; }
-	[Sync( SyncFlags.FromHost )] public LargeLadWeaponId Slot2Weapon { get; private set; }
-	[Sync( SyncFlags.FromHost )] public LargeLadWeaponId Slot3Weapon { get; private set; }
-	[Sync( SyncFlags.FromHost )] public LargeLadWeaponId Slot4Weapon { get; private set; }
+	[Sync( SyncFlags.FromHost )]
+	public LargeLadWeaponState ExclusiveWeapon { get; private set; }
 
-	[Sync( SyncFlags.FromHost )] public int Slot1Magazine { get; private set; }
-	[Sync( SyncFlags.FromHost )] public int Slot2Magazine { get; private set; }
-	[Sync( SyncFlags.FromHost )] public int Slot3Magazine { get; private set; }
-	[Sync( SyncFlags.FromHost )] public int Slot4Magazine { get; private set; }
+	[Sync( SyncFlags.FromHost )]
+	public LargeLadWeaponSelection ActiveSelection { get; private set; }
 
-	[Sync( SyncFlags.FromHost )] public int Slot1Reserve { get; private set; }
-	[Sync( SyncFlags.FromHost )] public int Slot2Reserve { get; private set; }
-	[Sync( SyncFlags.FromHost )] public int Slot3Reserve { get; private set; }
-	[Sync( SyncFlags.FromHost )] public int Slot4Reserve { get; private set; }
+	[Sync( SyncFlags.FromHost )]
+	public LargeLadWeaponId LastSelectedCoreWeapon { get; private set; }
 
 	[Sync( SyncFlags.FromHost )]
 	public bool IsReloading { get; private set; }
@@ -28,59 +48,113 @@ public sealed class LargeLadInventory : Component
 	[Sync( SyncFlags.FromHost )]
 	public float ReloadEndTime { get; private set; }
 
-	private readonly LargeLadWeaponPickup[] exclusiveSources =
-		new LargeLadWeaponPickup[SlotCount];
+	private LargeLadWeaponPickup exclusiveSource;
+	private string pickupFeedback;
+	private bool hasPickupFeedback;
+	private TimeSince timeSincePickupFeedback;
 
-	public LargeLadWeaponId EquippedWeapon => GetWeapon( EquippedSlot );
+	public int OwnedWeaponCount =>
+		CoreWeapons.Count + (HasExclusiveWeapon ? 1 : 0);
+	public int WeaponSelectionCount => OwnedWeaponCount + 1;
+	public bool HasExclusiveWeapon =>
+		LargeLadInventoryRules.IsValidExclusiveState( ExclusiveWeapon );
+	public bool IsExclusiveEquipped =>
+		ActiveSelection.Kind == LargeLadWeaponSelectionKind.Exclusive &&
+		TryGetActiveState( out var state ) &&
+		LargeLadInventoryRules.IsValidExclusiveState( state );
+	public LargeLadWeaponId EquippedWeapon =>
+		ActiveSelection.Kind ==
+			LargeLadWeaponSelectionKind.RoleAbility
+			? LargeLadWeaponId.Melee
+			: TryGetActiveState( out var state )
+			? state.Weapon
+			: LargeLadWeaponId.None;
 	public LargeLadWeaponDefinition EquippedDefinition =>
 		LargeLadWeaponCatalog.Get( EquippedWeapon );
-	public int EquippedMagazine => GetMagazine( EquippedSlot );
-	public int EquippedReserve => GetReserve( EquippedSlot );
+	public int EquippedMagazine =>
+		TryGetActiveState( out var state ) ? state.Magazine : 0;
+	public int EquippedReserve =>
+		TryGetActiveState( out var state ) ? state.Reserve : 0;
+	public LargeLadAmmunitionMode EquippedAmmunitionMode =>
+		TryGetActiveState( out var state )
+			? state.AmmunitionMode
+			: LargeLadAmmunitionMode.FiniteReserve;
+	public bool EquippedHasInfiniteReserve =>
+		TryGetActiveState( out var state ) && state.HasInfiniteReserve;
 	public float ReloadTimeRemaining =>
 		IsReloading
 			? LargeLadGameplayRules.GetTimerTimeRemaining(
 				ReloadEndTime,
 				Time.Now )
 			: 0.0f;
+	public bool HasPickupFeedback =>
+		hasPickupFeedback &&
+		timeSincePickupFeedback < PickupFeedbackDuration;
+	public string PickupFeedback => HasPickupFeedback ? pickupFeedback : null;
 
 	protected override void OnUpdate()
 	{
 		if ( Networking.IsHost )
-		{
 			TickReload();
-		}
 
 		if ( IsProxy )
 			return;
 
-		if ( Input.Pressed( "Slot1" ) ) RequestEquipSlot( 1 );
-		if ( Input.Pressed( "Slot2" ) ) RequestEquipSlot( 2 );
-		if ( Input.Pressed( "Slot3" ) ) RequestEquipSlot( 3 );
-		if ( Input.Pressed( "Slot4" ) ) RequestEquipSlot( 4 );
-
-		if ( Input.MouseWheel.y > 0.0f )
+		for ( var index = 0;
+			index < DirectSelectionActions.Length;
+			index++ )
 		{
-			RequestCycleSlot( -1 );
+			if ( Input.Pressed( DirectSelectionActions[index] ) )
+				RequestSelectWeaponIndex( index );
 		}
-		else if ( Input.MouseWheel.y < 0.0f )
+
+		if ( Input.MouseWheel.y > 0.0f ||
+			Input.Pressed( "SlotPrev" ) )
 		{
-			RequestCycleSlot( 1 );
+			RequestCycleWeapon( -1 );
+		}
+		else if ( Input.MouseWheel.y < 0.0f ||
+			Input.Pressed( "SlotNext" ) )
+		{
+			RequestCycleWeapon( 1 );
 		}
 
 		if ( Input.Pressed( "Reload" ) )
-		{
 			RequestReload();
+
+		if ( Input.Pressed( "DropWeapon" ) )
+			RequestDropExclusive();
+	}
+
+	protected override void OnValidate()
+	{
+		var seen = new HashSet<LargeLadWeaponId>();
+
+		foreach ( var weapon in
+			SkinnyKidStartingCoreWeapons ??
+			new List<LargeLadWeaponId>() )
+		{
+			if ( !LargeLadWeaponCatalog.IsFirearm( weapon ) )
+			{
+				Log.Warning(
+					$"{GameObject.Name}: Skinny Kid starting loadout contains " +
+					$"invalid firearm '{weapon}'." );
+			}
+			else if ( !seen.Add( weapon ) )
+			{
+				Log.Warning(
+					$"{GameObject.Name}: Skinny Kid starting loadout contains " +
+					$"duplicate core firearm '{weapon}'." );
+			}
 		}
 	}
 
 	protected override void OnDestroy()
 	{
-		// A disconnected owner must not strand a globally exclusive weapon
-		// in an unavailable state until the next round.
 		if ( Networking.IsHost )
-		{
-			ReleaseExclusiveWeapons( GameObject.WorldPosition );
-		}
+			HandleDisconnect();
+
+		base.OnDestroy();
 	}
 
 	internal void PrepareForRole( LargeLadRole role )
@@ -88,84 +162,153 @@ public sealed class LargeLadInventory : Component
 		if ( !Networking.IsHost )
 			return;
 
-		ClearInventory( dropExclusive: false );
+		ReleaseExclusiveForLifecycle(
+			GameObject.WorldPosition,
+			preferForward: false );
+		ClearInventoryState();
 
-		if ( role is LargeLadRole.SkinnyKid or
-			LargeLadRole.LargeLad or LargeLadRole.Minion )
+		if ( role != LargeLadRole.SkinnyKid )
+			return;
+
+		SelectRoleMelee();
+
+		foreach ( var weapon in
+			SkinnyKidStartingCoreWeapons ??
+			new List<LargeLadWeaponId>() )
 		{
-			SetSlot( 1, LargeLadWeaponId.Melee, 0, 0, null );
-			EquippedSlot = 1;
+			TryGrantCoreWeapon( weapon );
 		}
 	}
 
-	public bool TryGrantWeapon(
-		LargeLadWeaponId weapon,
-		LargeLadWeaponPickup exclusiveSource = null,
-		int startingMagazine = -1,
-		int startingReserve = -1 )
+	public bool TryGrantCoreWeapon( LargeLadWeaponId weapon )
 	{
-		if ( !Networking.IsHost || !LargeLadWeaponCatalog.IsFirearm( weapon ) )
-			return false;
-
 		var player = Components.Get<LargeLadPlayer>();
 
-		if ( player?.Role != LargeLadRole.SkinnyKid || player.Health?.IsDead == true )
+		if ( !LargeLadInventoryRules.CanCollectCore(
+			isHost: Networking.IsHost,
+			player?.Role ?? LargeLadRole.Unassigned,
+			player?.Health?.IsDead != false,
+			CoreWeapons,
+			weapon ) )
 			return false;
 
-		var slot = LargeLadGameplayRules.FindWeaponGrantSlot(
-			weapon,
-			Slot1Weapon,
-			Slot2Weapon,
-			Slot3Weapon,
-			Slot4Weapon );
-
-		if ( slot <= 0 )
-			return false;
-
-		var definition = LargeLadWeaponCatalog.Get( weapon );
-		SetSlot(
-			slot,
-			weapon,
-			startingMagazine >= 0 ? startingMagazine : definition.MagazineSize,
-			startingReserve >= 0 ? startingReserve : definition.StartingReserve,
-			exclusiveSource );
-
-		// Skinny Kids always keep melee in slot 1. Preserve the old pickup
-		// behavior by equipping their first firearm automatically.
-		if ( EquippedSlot == 0 ||
-			!LargeLadWeaponCatalog.IsFirearm( EquippedWeapon ) )
+		if ( !LargeLadInventoryRules.TryAddCoreWeapon(
+			CoreWeapons,
+			weapon ) )
 		{
-			EquippedSlot = slot;
+			return false;
+		}
+
+		if ( ActiveSelection.Kind is
+			LargeLadWeaponSelectionKind.None or
+			LargeLadWeaponSelectionKind.RoleAbility )
+		{
+			SelectCore( weapon );
 		}
 
 		return true;
 	}
 
-	public bool TryAddAmmo( LargeLadWeaponId weapon, int amount )
+	internal bool CanAcceptExclusive(
+		LargeLadWeaponPickup source,
+		LargeLadWeaponState state,
+		bool pickupAvailable )
 	{
-		if ( !Networking.IsHost || amount <= 0 )
+		var player = Components.Get<LargeLadPlayer>();
+
+		return Networking.IsHost &&
+			source is not null &&
+			source.IsValid &&
+			LargeLadInventoryRules.CanAcceptExclusive(
+				player?.Role ?? LargeLadRole.Unassigned,
+				player?.Health?.IsDead != false,
+				HasExclusiveWeapon,
+				pickupAvailable,
+				state );
+	}
+
+	internal bool TryGrantExclusiveWeapon(
+		LargeLadWeaponPickup source,
+		LargeLadWeaponState state )
+	{
+		if ( !CanAcceptExclusive(
+			source,
+			state,
+			pickupAvailable: true ) )
+		{
 			return false;
+		}
 
-		var slot = FindWeaponSlot( weapon );
+		ExclusiveWeapon = state;
+		exclusiveSource = source;
 
-		if ( slot <= 0 )
-			return false;
+		if ( ActiveSelection.Kind is
+			LargeLadWeaponSelectionKind.None or
+			LargeLadWeaponSelectionKind.RoleAbility )
+		{
+			SelectState( state );
+		}
 
-		SetReserve( slot, GetReserve( slot ) + amount );
 		return true;
 	}
 
-	public bool TryConsumeShot( out LargeLadWeaponDefinition definition )
+	public bool TryGetWeaponAt(
+		int index,
+		out LargeLadWeaponState state )
+	{
+		return LargeLadInventoryRules.TryGetWeaponAt(
+			CoreWeapons,
+			ExclusiveWeapon,
+			index,
+			out state );
+	}
+
+	public bool TryGetActiveState( out LargeLadWeaponState state )
+	{
+		var index = LargeLadInventoryRules.GetSelectionIndex(
+			CoreWeapons,
+			ExclusiveWeapon,
+			ActiveSelection );
+		return TryGetWeaponAt( index, out state );
+	}
+
+	public bool TryConsumeShot(
+		out LargeLadWeaponDefinition definition )
 	{
 		definition = EquippedDefinition;
 
-		if ( !Networking.IsHost || !definition.UsesAmmo ||
-			IsReloading || EquippedMagazine <= 0 )
+		if ( !CanHostMutateLivingSkinnyKid() ||
+			IsReloading ||
+			!TryGetActiveState( out var state ) ||
+			!LargeLadInventoryRules.TryConsumeShot( ref state ) )
 		{
 			return false;
 		}
 
-		SetMagazine( EquippedSlot, EquippedMagazine - 1 );
+		SetOwnedState( state );
+		return true;
+	}
+
+	public bool BeginReload()
+	{
+		var player = Components.Get<LargeLadPlayer>();
+
+		if ( !TryGetActiveState( out var state ) ||
+			!LargeLadInventoryRules.CanReload(
+				isHost: Networking.IsHost,
+				ownerRequest: true,
+				player?.Role ?? LargeLadRole.Unassigned,
+				player?.Health?.IsDead != false,
+				IsReloading,
+				state ) )
+		{
+			return false;
+		}
+
+		IsReloading = true;
+		ReloadEndTime = LargeLadGameplayRules.GetTimerDeadline(
+			Time.Now,
+			LargeLadWeaponCatalog.Get( state.Weapon ).ReloadDuration );
 		return true;
 	}
 
@@ -174,71 +317,110 @@ public sealed class LargeLadInventory : Component
 		if ( !Networking.IsHost )
 			return;
 
-		ReleaseExclusiveWeapons( dropPosition );
-		ClearInventory( dropExclusive: false );
+		ReleaseExclusiveForLifecycle(
+			dropPosition,
+			preferForward: false );
+		ClearInventoryState();
 	}
 
-	private void ReleaseExclusiveWeapons( Vector3 dropPosition )
+	public void HandleDisconnect()
 	{
-		for ( var slot = 1; slot <= SlotCount; slot++ )
-		{
-			var source = exclusiveSources[slot - 1];
+		if ( !Networking.IsHost )
+			return;
 
-			if ( source is null || !source.IsValid )
-				continue;
-
-			source.ReleaseExclusive(
-				dropPosition,
-				GetMagazine( slot ),
-				GetReserve( slot ) );
-		}
+		ReleaseExclusiveForLifecycle(
+			GameObject.WorldPosition,
+			preferForward: false );
+		ClearInventoryState();
 	}
 
 	public void ClearForRoundReset()
 	{
+		if ( !Networking.IsHost )
+			return;
+
+		ResolveExclusiveSource()?.ReleaseCarrierForRoundReset( this );
+		ClearInventoryState();
+	}
+
+	internal void NotifyExclusiveSlotFull()
+	{
 		if ( Networking.IsHost )
 		{
-			ClearInventory( dropExclusive: false );
+			ReceivePickupFeedback(
+				"You can only carry one exclusive weapon." );
 		}
 	}
 
 	[Rpc.Host( NetFlags.OwnerOnly )]
-	private void RequestEquipSlot( int slot )
+	private void RequestSelectWeaponIndex( int index )
 	{
-		if ( !Networking.IsHost || slot < 1 || slot > SlotCount ||
-			GetWeapon( slot ) == LargeLadWeaponId.None )
+		TrySelectWeaponIndex( index );
+	}
+
+	internal bool TrySelectWeaponIndex( int index )
+	{
+		var player = Components.Get<LargeLadPlayer>();
+
+		if ( !LargeLadInventoryRules.CanProcessOwnerRequest(
+				isHost: Networking.IsHost,
+				ownerRequest: true,
+				player?.Role ?? LargeLadRole.Unassigned,
+				player?.Health?.IsDead != false ) )
 		{
-			return;
+			return false;
+		}
+
+		if ( index == 0 )
+		{
+			CancelReload();
+			SelectRoleMelee();
+			return true;
+		}
+
+		if ( !TryGetWeaponAt( index - 1, out var state ) ||
+			!LargeLadInventoryRules.CanSelect(
+				isHost: true,
+				ownerRequest: true,
+				player.Role,
+				isDead: false,
+				state ) )
+		{
+			return false;
 		}
 
 		CancelReload();
-		EquippedSlot = slot;
+		SelectState( state );
+		return true;
 	}
 
 	[Rpc.Host( NetFlags.OwnerOnly )]
-	private void RequestCycleSlot( int direction )
+	private void RequestCycleWeapon( int direction )
 	{
-		if ( !Networking.IsHost || direction == 0 )
-			return;
-
-		var start = EquippedSlot <= 0 ? 1 : EquippedSlot;
-
-		for ( var offset = 1; offset <= SlotCount; offset++ )
+		if ( !Networking.IsHost ||
+			!CanHostMutateLivingSkinnyKid() ||
+			direction == 0 )
 		{
-			var candidate = (start - 1 + direction * offset) % SlotCount;
-
-			if ( candidate < 0 )
-				candidate += SlotCount;
-
-			candidate++;
-
-			if ( GetWeapon( candidate ) == LargeLadWeaponId.None )
-				continue;
-
-			CancelReload();
-			EquippedSlot = candidate;
 			return;
 		}
+
+		var firearmIndex = LargeLadInventoryRules.GetSelectionIndex(
+				CoreWeapons,
+				ExclusiveWeapon,
+				ActiveSelection );
+		var current =
+			ActiveSelection.Kind ==
+				LargeLadWeaponSelectionKind.RoleAbility
+				? 0
+				: firearmIndex >= 0
+					? firearmIndex + 1
+					: -1;
+		var candidate = LargeLadInventoryRules.GetCycledIndex(
+			current,
+			WeaponSelectionCount,
+			direction );
+
+		TrySelectWeaponIndex( candidate );
 	}
 
 	[Rpc.Host( NetFlags.OwnerOnly )]
@@ -247,44 +429,248 @@ public sealed class LargeLadInventory : Component
 		BeginReload();
 	}
 
-	public bool BeginReload()
+	[Rpc.Host( NetFlags.OwnerOnly )]
+	private void RequestDropExclusive()
 	{
-		if ( !Networking.IsHost || IsReloading )
-			return false;
+		if ( !Networking.IsHost ||
+			!CanHostMutateLivingSkinnyKid() ||
+			!IsExclusiveEquipped )
+		{
+			return;
+		}
 
-		var definition = EquippedDefinition;
+		if ( !TryDropSelectedExclusive() )
+		{
+			ReceivePickupFeedback(
+				"No safe place to drop the exclusive weapon." );
+		}
+	}
 
-		if ( !definition.UsesAmmo || EquippedMagazine >= definition.MagazineSize ||
-			EquippedReserve <= 0 )
+	internal bool TryDropSelectedExclusive()
+	{
+		var player = Components.Get<LargeLadPlayer>();
+
+		if ( !Networking.IsHost ||
+			!LargeLadInventoryRules.CanDropExclusive(
+				isHost: true,
+				ownerRequest: true,
+				player?.Role ?? LargeLadRole.Unassigned,
+				player?.Health?.IsDead != false,
+				ExclusiveWeapon,
+				ActiveSelection ) ||
+			ResolveExclusiveSource() is not
+				LargeLadWeaponPickup source )
 		{
 			return false;
 		}
 
-		IsReloading = true;
-		ReloadEndTime = LargeLadGameplayRules.GetTimerDeadline(
-			Time.Now,
-			definition.ReloadDuration );
+		var controller = Components.Get<PlayerController>();
+		var forward = controller?.EyeTransform.Rotation.Forward ??
+			GameObject.WorldRotation.Forward;
+
+		if ( !source.TryDropFromCarrier(
+			this,
+			ExclusiveWeapon,
+			GameObject.WorldPosition,
+			forward,
+			out _ ) )
+		{
+			return false;
+		}
+
+		ClearExclusiveAndSelectFallback();
 		return true;
+	}
+
+	[Rpc.Owner( NetFlags.HostOnly )]
+	private void ReceivePickupFeedback( string message )
+	{
+		pickupFeedback = message;
+		hasPickupFeedback = !string.IsNullOrWhiteSpace( message );
+		timeSincePickupFeedback = 0.0f;
+	}
+
+	private bool CanHostMutateLivingSkinnyKid()
+	{
+		var player = Components.Get<LargeLadPlayer>();
+		return Networking.IsHost &&
+			LargeLadInventoryRules.CanUseFirearmInventory(
+				player?.Role ?? LargeLadRole.Unassigned,
+				player?.Health?.IsDead != false );
 	}
 
 	private void TickReload()
 	{
-		if ( !IsReloading )
-			return;
-
-		if ( !LargeLadGameplayRules.HasTimerReachedDeadline(
-			ReloadEndTime,
-			Time.Now ) )
+		if ( !IsReloading ||
+			!LargeLadGameplayRules.HasTimerReachedDeadline(
+				ReloadEndTime,
+				Time.Now ) )
 		{
 			return;
 		}
 
-		var definition = EquippedDefinition;
-		var needed = System.Math.Max( 0, definition.MagazineSize - EquippedMagazine );
-		var loaded = System.Math.Min( needed, EquippedReserve );
+		if ( !TryGetActiveState( out var state ) )
+		{
+			CancelReload();
+			return;
+		}
 
-		SetMagazine( EquippedSlot, EquippedMagazine + loaded );
-		SetReserve( EquippedSlot, EquippedReserve - loaded );
+		SetOwnedState(
+			LargeLadInventoryRules.CompleteReload( state ) );
+		CancelReload();
+	}
+
+	private bool SetOwnedState( LargeLadWeaponState state )
+	{
+		if ( LargeLadInventoryRules.IsValidExclusiveState( state ) )
+		{
+			if ( !HasExclusiveWeapon ||
+				ExclusiveWeapon.ExclusiveInstanceId !=
+					state.ExclusiveInstanceId )
+			{
+				return false;
+			}
+
+			ExclusiveWeapon = state;
+			return true;
+		}
+
+		if ( !LargeLadInventoryRules.IsValidCoreState( state ) )
+			return false;
+
+		var index = LargeLadInventoryRules.FindCoreWeapon(
+			CoreWeapons,
+			state.Weapon );
+
+		if ( index < 0 )
+			return false;
+
+		CoreWeapons[index] = state;
+		return true;
+	}
+
+	private void SelectState( LargeLadWeaponState state )
+	{
+		ActiveSelection = LargeLadInventoryRules.SelectionFor( state );
+
+		if ( ActiveSelection.Kind == LargeLadWeaponSelectionKind.Core )
+			LastSelectedCoreWeapon = state.Weapon;
+	}
+
+	private void SelectRoleMelee()
+	{
+		ActiveSelection =
+			LargeLadWeaponSelection.ForRoleMelee();
+	}
+
+	private void SelectCore( LargeLadWeaponId weapon )
+	{
+		var index = LargeLadInventoryRules.FindCoreWeapon(
+			CoreWeapons,
+			weapon );
+
+		if ( index >= 0 )
+			SelectState( CoreWeapons[index] );
+	}
+
+	private void ClearExclusiveAndSelectFallback()
+	{
+		CancelReload();
+		ExclusiveWeapon = default;
+		exclusiveSource = null;
+		ActiveSelection = LargeLadInventoryRules.GetCoreFallback(
+			CoreWeapons,
+			LastSelectedCoreWeapon );
+
+		if ( ActiveSelection.Kind == LargeLadWeaponSelectionKind.Core )
+			LastSelectedCoreWeapon = ActiveSelection.Weapon;
+	}
+
+	private void ReleaseExclusiveForLifecycle(
+		Vector3 dropPosition,
+		bool preferForward )
+	{
+		if ( !HasExclusiveWeapon )
+			return;
+
+		var source = ResolveExclusiveSource();
+
+		if ( source is null || !source.IsValid )
+		{
+			// A missing source is invalid map/runtime state. Clear the local
+			// reservation rather than leaving a disconnected owner armed.
+			ExclusiveWeapon = default;
+			exclusiveSource = null;
+			return;
+		}
+
+		var controller = Components.Get<PlayerController>();
+		var forward = preferForward
+			? controller?.EyeTransform.Rotation.Forward ??
+				GameObject.WorldRotation.Forward
+			: GameObject.WorldRotation.Forward;
+
+		if ( source.TryDropFromCarrier(
+			this,
+			ExclusiveWeapon,
+			dropPosition,
+			forward,
+			out _ ) )
+		{
+			ExclusiveWeapon = default;
+			exclusiveSource = null;
+			return;
+		}
+
+		// Death/disconnect must never strand the instance. Safe placement
+		// failure returns it to the authored origin with current ammunition.
+		source.ReturnCarrierToOrigin(
+			this,
+			ExclusiveWeapon );
+		ExclusiveWeapon = default;
+		exclusiveSource = null;
+	}
+
+	private LargeLadWeaponPickup ResolveExclusiveSource()
+	{
+		if ( !HasExclusiveWeapon )
+			return null;
+
+		if ( exclusiveSource is not null &&
+			exclusiveSource.IsValid &&
+			exclusiveSource.ExclusiveInstanceId ==
+				ExclusiveWeapon.ExclusiveInstanceId )
+		{
+			return exclusiveSource;
+		}
+
+		foreach ( var pickup in
+			Scene?.GetAllComponents<LargeLadWeaponPickup>() ??
+			System.Array.Empty<LargeLadWeaponPickup>() )
+		{
+			if ( pickup.PickupPolicy !=
+					LargeLadPickupPolicy.Exclusive ||
+				pickup.Weapon != ExclusiveWeapon.Weapon ||
+				pickup.ExclusiveInstanceId !=
+					ExclusiveWeapon.ExclusiveInstanceId )
+			{
+				continue;
+			}
+
+			exclusiveSource = pickup;
+			return pickup;
+		}
+
+		return null;
+	}
+
+	private void ClearInventoryState()
+	{
+		CoreWeapons.Clear();
+		ExclusiveWeapon = default;
+		exclusiveSource = null;
+		ActiveSelection = LargeLadWeaponSelection.None;
+		LastSelectedCoreWeapon = LargeLadWeaponId.None;
 		CancelReload();
 	}
 
@@ -292,119 +678,5 @@ public sealed class LargeLadInventory : Component
 	{
 		IsReloading = false;
 		ReloadEndTime = 0.0f;
-	}
-
-	private void ClearInventory( bool dropExclusive )
-	{
-		if ( dropExclusive )
-		{
-			HandleDeath( GameObject.WorldPosition );
-			return;
-		}
-
-		for ( var slot = 1; slot <= SlotCount; slot++ )
-		{
-			SetSlot( slot, LargeLadWeaponId.None, 0, 0, null );
-		}
-
-		EquippedSlot = 0;
-		CancelReload();
-	}
-
-	private int FindWeaponSlot( LargeLadWeaponId weapon )
-	{
-		for ( var slot = 1; slot <= SlotCount; slot++ )
-		{
-			if ( GetWeapon( slot ) == weapon )
-				return slot;
-		}
-
-		return 0;
-	}
-
-	private void SetSlot(
-		int slot,
-		LargeLadWeaponId weapon,
-		int magazine,
-		int reserve,
-		LargeLadWeaponPickup exclusiveSource )
-	{
-		switch ( slot )
-		{
-			case 1: Slot1Weapon = weapon; break;
-			case 2: Slot2Weapon = weapon; break;
-			case 3: Slot3Weapon = weapon; break;
-			case 4: Slot4Weapon = weapon; break;
-		}
-
-		SetMagazine( slot, magazine );
-		SetReserve( slot, reserve );
-
-		if ( slot >= 1 && slot <= SlotCount )
-		{
-			exclusiveSources[slot - 1] = exclusiveSource;
-		}
-	}
-
-	private LargeLadWeaponId GetWeapon( int slot )
-	{
-		return slot switch
-		{
-			1 => Slot1Weapon,
-			2 => Slot2Weapon,
-			3 => Slot3Weapon,
-			4 => Slot4Weapon,
-			_ => LargeLadWeaponId.None
-		};
-	}
-
-	private int GetMagazine( int slot )
-	{
-		return slot switch
-		{
-			1 => Slot1Magazine,
-			2 => Slot2Magazine,
-			3 => Slot3Magazine,
-			4 => Slot4Magazine,
-			_ => 0
-		};
-	}
-
-	private int GetReserve( int slot )
-	{
-		return slot switch
-		{
-			1 => Slot1Reserve,
-			2 => Slot2Reserve,
-			3 => Slot3Reserve,
-			4 => Slot4Reserve,
-			_ => 0
-		};
-	}
-
-	private void SetMagazine( int slot, int amount )
-	{
-		amount = System.Math.Max( 0, amount );
-
-		switch ( slot )
-		{
-			case 1: Slot1Magazine = amount; break;
-			case 2: Slot2Magazine = amount; break;
-			case 3: Slot3Magazine = amount; break;
-			case 4: Slot4Magazine = amount; break;
-		}
-	}
-
-	private void SetReserve( int slot, int amount )
-	{
-		amount = System.Math.Max( 0, amount );
-
-		switch ( slot )
-		{
-			case 1: Slot1Reserve = amount; break;
-			case 2: Slot2Reserve = amount; break;
-			case 3: Slot3Reserve = amount; break;
-			case 4: Slot4Reserve = amount; break;
-		}
 	}
 }

@@ -174,31 +174,6 @@ public static class LargeLadGameplayRules
 			damageType == LargeLadDamageType.Melee;
 	}
 
-	public static int FindWeaponGrantSlot(
-		LargeLadWeaponId weapon,
-		LargeLadWeaponId slot1,
-		LargeLadWeaponId slot2,
-		LargeLadWeaponId slot3,
-		LargeLadWeaponId slot4 )
-	{
-		if ( slot1 == weapon || slot2 == weapon ||
-			slot3 == weapon || slot4 == weapon )
-		{
-			return 0;
-		}
-
-		if ( slot1 == LargeLadWeaponId.None )
-			return 1;
-
-		if ( slot2 == LargeLadWeaponId.None )
-			return 2;
-
-		if ( slot3 == LargeLadWeaponId.None )
-			return 3;
-
-		return slot4 == LargeLadWeaponId.None ? 4 : 0;
-	}
-
 	public static LargeLadRoleProfile SelectRoleProfile(
 		LargeLadRole role,
 		LargeLadRoleProfile skinnyKid,

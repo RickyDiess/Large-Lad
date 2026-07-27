@@ -290,7 +290,8 @@
         "OnComponentEnabled": null,
         "OnComponentFixedUpdate": null,
         "OnComponentStart": null,
-        "OnComponentUpdate": null
+        "OnComponentUpdate": null,
+        "SkinnyKidStartingCoreWeapons": []
       },
       {
         "__type": "LargeLadPrototypeWeapon",

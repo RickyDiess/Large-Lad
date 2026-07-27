@@ -41,6 +41,7 @@ public sealed class LargeLadHud : Component
 		DrawLargeLadStatus( hud, round );
 		DrawRoleStatus( hud, player );
 		DrawWeaponStatus( hud, player );
+		DrawPickupFeedback( hud, player );
 		DrawCrosshair( hud, player, cachedController );
 		DrawConfirmedHitmarker( hud, player );
 
@@ -196,7 +197,8 @@ public sealed class LargeLadHud : Component
 		var centerX = Screen.Width * 0.5f;
 		var centerY = Screen.Height * 0.5f;
 
-		var crosshair = player.Inventory.EquippedDefinition.Crosshair;
+		var crosshair = LargeLadWeaponCatalog.Get(
+			player.EquippedWeapon ).Crosshair;
 
 		if ( crosshair == LargeLadCrosshairStyle.Dot )
 		{
@@ -451,41 +453,161 @@ public sealed class LargeLadHud : Component
 	{
 		var inventory = player.Inventory;
 
-		if ( player.Health?.IsDead != false || inventory is null ||
-			inventory.EquippedWeapon == LargeLadWeaponId.None )
+		if ( player.Health?.IsDead != false )
 		{
 			return;
 		}
 
-		var definition = inventory.EquippedDefinition;
-		var accent = definition.PickupColor;
+		if ( player.Role is LargeLadRole.LargeLad or
+			LargeLadRole.Minion )
+		{
+			DrawBuiltInMeleeStatus( hud );
+			return;
+		}
+
+		if ( player.Role != LargeLadRole.SkinnyKid ||
+			inventory is null )
+		{
+			return;
+		}
+
+		const float rowHeight = 29.0f;
+		const float panelWidth = 350.0f;
+		var panelHeight = 18.0f +
+			inventory.WeaponSelectionCount * rowHeight;
+		var panel = new Rect(
+			Screen.Width - panelWidth - 28.0f,
+			Screen.Height - panelHeight - 28.0f,
+			panelWidth,
+			panelHeight );
+		var panelAccent = inventory.IsExclusiveEquipped
+			? new Color( 1.0f, 0.58f, 0.16f )
+			: LargeLadWeaponCatalog.Get(
+				inventory.EquippedWeapon ).PickupColor;
+
+		DrawPanel( hud, panel, panelAccent );
+
+		for ( var index = 0;
+			index < inventory.WeaponSelectionCount;
+			index++ )
+		{
+			var isRoleAbility = index == 0;
+			var state = default( LargeLadWeaponState );
+
+			if ( !isRoleAbility &&
+				!inventory.TryGetWeaponAt( index - 1, out state ) )
+			{
+				continue;
+			}
+
+			var definition = LargeLadWeaponCatalog.Get(
+				isRoleAbility
+					? LargeLadWeaponId.Melee
+					: state.Weapon );
+			var selection = isRoleAbility
+				? LargeLadWeaponSelection.ForRoleMelee()
+				: LargeLadInventoryRules.SelectionFor( state );
+			var selected =
+				inventory.ActiveSelection == selection;
+			var rowTop = panel.Top + 9.0f + index * rowHeight;
+			var row = new Rect(
+				panel.Left + 9.0f,
+				rowTop,
+				panel.Width - 18.0f,
+				rowHeight - 3.0f );
+
+			if ( selected )
+			{
+				DrawSolidRect(
+					hud,
+					row,
+					definition.PickupColor.WithAlpha( 0.22f ) );
+			}
+
+			var name = $"{index + 1}. " +
+				definition.DisplayName.ToUpperInvariant();
+
+			if ( isRoleAbility )
+				name += "  [ROLE]";
+			else if ( state.IsExclusive )
+				name += "  [EXCLUSIVE]";
+
+			hud.DrawText(
+				name,
+				!isRoleAbility && state.IsExclusive
+					? 13.0f
+					: 14.0f,
+				selected ? definition.PickupColor : MutedTextColor,
+				new Vector2( row.Left + 8.0f, row.Center.y ),
+				TextFlag.LeftCenter );
+
+			if ( isRoleAbility )
+				continue;
+
+			var ammo = state.HasInfiniteReserve
+				? $"{state.Magazine} / ∞"
+				: $"{state.Magazine} / {state.Reserve}";
+
+			if ( selected && inventory.IsReloading )
+			{
+				ammo +=
+					$"  RELOADING {FormatSeconds( inventory.ReloadTimeRemaining )}";
+			}
+
+			hud.DrawText(
+				ammo,
+				14.0f,
+				selected ? Color.White : MutedTextColor,
+				new Vector2( row.Right - 8.0f, row.Center.y ),
+				TextFlag.RightCenter );
+		}
+	}
+
+	private static void DrawBuiltInMeleeStatus( HudPainter hud )
+	{
+		var definition =
+			LargeLadWeaponCatalog.Get( LargeLadWeaponId.Melee );
 		var panel = new Rect(
 			Screen.Width - 318.0f,
-			Screen.Height - 116.0f,
+			Screen.Height - 88.0f,
 			290.0f,
-			88.0f );
+			60.0f );
 
+		DrawPanel( hud, panel, definition.PickupColor );
+		hud.DrawText(
+			"BUILT-IN MELEE",
+			18.0f,
+			definition.PickupColor,
+			new Vector2( panel.Right - 18.0f, panel.Center.y ),
+			TextFlag.RightCenter );
+	}
+
+	private static void DrawPickupFeedback(
+		HudPainter hud,
+		LargeLadPlayer player )
+	{
+		var inventory = player.Inventory;
+
+		if ( inventory?.HasPickupFeedback != true ||
+			string.IsNullOrWhiteSpace( inventory.PickupFeedback ) )
+		{
+			return;
+		}
+
+		var centerX = Screen.Width * 0.5f;
+		var panel = new Rect(
+			centerX - 235.0f,
+			Screen.Height * 0.68f,
+			470.0f,
+			48.0f );
+		var accent = new Color( 1.0f, 0.58f, 0.16f );
 		DrawPanel( hud, panel, accent );
 		hud.DrawText(
-			definition.DisplayName.ToUpperInvariant(),
-			20.0f,
-			accent,
-			new Vector2( panel.Right - 18.0f, panel.Top + 24.0f ),
-			TextFlag.RightCenter );
-
-		if ( !definition.UsesAmmo )
-			return;
-
-		var ammoText = inventory.IsReloading
-			? $"RELOADING {FormatSeconds( inventory.ReloadTimeRemaining )}"
-			: $"{inventory.EquippedMagazine} / {inventory.EquippedReserve}";
-
-		hud.DrawText(
-			ammoText,
-			18.0f,
+			inventory.PickupFeedback,
+			16.0f,
 			Color.White,
-			new Vector2( panel.Right - 18.0f, panel.Top + 58.0f ),
-			TextFlag.RightCenter );
+			panel.Center,
+			TextFlag.Center );
 	}
 
 	private static void DrawCrosshairSegment( HudPainter hud, Rect rect )

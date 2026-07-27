@@ -46,7 +46,14 @@ public sealed class LargeLadPlayer : Component
 		LargeLadRole.Unassigned;
 
 	public LargeLadWeaponId EquippedWeapon =>
-		Inventory?.EquippedWeapon ?? LargeLadWeaponId.None;
+		Role switch
+		{
+			LargeLadRole.LargeLad or LargeLadRole.Minion =>
+				LargeLadWeaponId.Melee,
+			LargeLadRole.SkinnyKid =>
+				Inventory?.EquippedWeapon ?? LargeLadWeaponId.None,
+			_ => LargeLadWeaponId.None
+		};
 
 	[Sync( SyncFlags.FromHost ), Change( nameof( OnMovementLockedChanged ) )]
 	public bool MovementLocked { get; set; }

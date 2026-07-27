@@ -501,42 +501,393 @@ public sealed class BarricadeRulesTests
 public sealed class InventoryRulesTests
 {
 	[TestMethod]
-	public void Grant_UsesFirstEmptySlot()
+	public void CoreInventory_AddsMultipleDistinctWeaponsWithoutSlots()
 	{
-		Assert.AreEqual(
-			3,
-			LargeLadGameplayRules.FindWeaponGrantSlot(
-				LargeLadWeaponId.Smg,
-				LargeLadWeaponId.Melee,
-				LargeLadWeaponId.Pistol,
-				LargeLadWeaponId.None,
-				LargeLadWeaponId.None ) );
-	}
+		var core = new List<LargeLadWeaponState>();
 
-	[TestMethod]
-	public void Grant_RejectsDuplicateWeapon()
-	{
-		Assert.AreEqual(
-			0,
-			LargeLadGameplayRules.FindWeaponGrantSlot(
-				LargeLadWeaponId.Pistol,
-				LargeLadWeaponId.Melee,
-				LargeLadWeaponId.Pistol,
-				LargeLadWeaponId.None,
-				LargeLadWeaponId.None ) );
-	}
-
-	[TestMethod]
-	public void Grant_RejectsFullInventory()
-	{
-		Assert.AreEqual(
-			0,
-			LargeLadGameplayRules.FindWeaponGrantSlot(
-				LargeLadWeaponId.Smg,
-				LargeLadWeaponId.Melee,
-				LargeLadWeaponId.Pistol,
-				LargeLadWeaponId.Melee,
+		Assert.IsTrue(
+			LargeLadInventoryRules.TryAddCoreWeapon(
+				core,
 				LargeLadWeaponId.Pistol ) );
+		Assert.IsTrue(
+			LargeLadInventoryRules.TryAddCoreWeapon(
+				core,
+				LargeLadWeaponId.Smg ) );
+		Assert.AreEqual( 2, core.Count );
+		Assert.IsTrue(
+			LargeLadInventoryRules.IsValidCoreState( core[0] ) );
+		Assert.IsTrue(
+			LargeLadInventoryRules.IsValidCoreState( core[1] ) );
+	}
+
+	[TestMethod]
+	public void CoreInventory_RejectsDuplicateWeaponWithoutGrantingAmmo()
+	{
+		var core = new List<LargeLadWeaponState>();
+		LargeLadInventoryRules.TryAddCoreWeapon(
+			core,
+			LargeLadWeaponId.Pistol );
+		var before = core[0];
+
+		Assert.IsFalse(
+			LargeLadInventoryRules.TryAddCoreWeapon(
+				core,
+				LargeLadWeaponId.Pistol ) );
+		Assert.AreEqual( 1, core.Count );
+		Assert.AreEqual( before, core[0] );
+		Assert.AreEqual(
+			LargeLadAmmunitionMode.InfiniteReserve,
+			core[0].AmmunitionMode );
+		Assert.AreEqual(
+			0,
+			core[0].Reserve,
+			"Infinite reserve is a mode, never a fake or grantable count." );
+	}
+
+	[TestMethod]
+	public void CoreReload_FillsMagazineWithoutChangingReserve()
+	{
+		var state =
+			LargeLadWeaponState.CreateCore( LargeLadWeaponId.Pistol );
+		state.Magazine = 2;
+
+		Assert.IsTrue(
+			LargeLadInventoryRules.CanReload(
+				isHost: true,
+				ownerRequest: true,
+				LargeLadRole.SkinnyKid,
+				isDead: false,
+				isAlreadyReloading: false,
+				state ) );
+
+		state = LargeLadInventoryRules.CompleteReload( state );
+		Assert.AreEqual( 8, state.Magazine );
+		Assert.AreEqual( 0, state.Reserve );
+		Assert.IsTrue( state.HasInfiniteReserve );
+	}
+
+	[TestMethod]
+	public void CoreSwitching_PreservesEachMagazine()
+	{
+		var core = new List<LargeLadWeaponState>();
+		LargeLadInventoryRules.TryAddCoreWeapon(
+			core,
+			LargeLadWeaponId.Pistol );
+		LargeLadInventoryRules.TryAddCoreWeapon(
+			core,
+			LargeLadWeaponId.Smg );
+		var pistol = core[0];
+		pistol.Magazine = 3;
+		core[0] = pistol;
+
+		var smgSelection =
+			LargeLadWeaponSelection.ForCore( LargeLadWeaponId.Smg );
+		var pistolSelection =
+			LargeLadWeaponSelection.ForCore( LargeLadWeaponId.Pistol );
+
+		Assert.AreEqual(
+			1,
+			LargeLadInventoryRules.GetSelectionIndex(
+				core,
+				default,
+				smgSelection ) );
+		Assert.AreEqual(
+			0,
+			LargeLadInventoryRules.GetSelectionIndex(
+				core,
+				default,
+				pistolSelection ) );
+		Assert.AreEqual( 3, core[0].Magazine );
+	}
+
+	[TestMethod]
+	public void CorePickup_RemainsAvailableToDifferentPlayers()
+	{
+		var firstPlayer = new List<LargeLadWeaponState>();
+		var secondPlayer = new List<LargeLadWeaponState>();
+
+		Assert.IsTrue(
+			LargeLadInventoryRules.TryAddCoreWeapon(
+				firstPlayer,
+				LargeLadWeaponId.Pistol ) );
+		Assert.IsTrue(
+			LargeLadInventoryRules.TryAddCoreWeapon(
+				secondPlayer,
+				LargeLadWeaponId.Pistol ) );
+		Assert.AreEqual( 1, firstPlayer.Count );
+		Assert.AreEqual( 1, secondPlayer.Count );
+	}
+
+	[TestMethod]
+	public void ExclusiveInventory_AddsOneAndRejectsSecond()
+	{
+		var first = CreateExclusiveState( instanceId: 101 );
+		var second = CreateExclusiveState( instanceId: 102 );
+
+		Assert.IsTrue(
+			LargeLadInventoryRules.CanAcceptExclusive(
+				LargeLadRole.SkinnyKid,
+				isDead: false,
+				alreadyHasExclusive: false,
+				pickupAvailable: true,
+				first ) );
+		Assert.IsFalse(
+			LargeLadInventoryRules.CanAcceptExclusive(
+				LargeLadRole.SkinnyKid,
+				isDead: false,
+				alreadyHasExclusive: true,
+				pickupAvailable: true,
+				second ) );
+	}
+
+	[TestMethod]
+	public void ExclusiveInstance_IdentityAndAmmoSurviveDrop()
+	{
+		var carrier = new object();
+		var instance = CreateExclusiveInstance( instanceId: 321 );
+		Assert.IsTrue(
+			instance.TryCollectFromOrigin( carrier, out var state ) );
+		state.Magazine = 3;
+		state.Reserve = 11;
+
+		Assert.IsTrue( instance.TryDrop( carrier, state ) );
+		Assert.AreEqual( 321, instance.InstanceId );
+		Assert.AreEqual( 321, instance.State.ExclusiveInstanceId );
+		Assert.AreEqual( 3, instance.State.Magazine );
+		Assert.AreEqual( 11, instance.State.Reserve );
+		Assert.AreEqual(
+			LargeLadExclusiveLocation.Dropped,
+			instance.Location );
+	}
+
+	[TestMethod]
+	public void ExclusiveTransfer_DoesNotRefillAmmunition()
+	{
+		var firstCarrier = new object();
+		var secondCarrier = new object();
+		var instance = CreateExclusiveInstance( instanceId: 654 );
+		instance.TryCollectFromOrigin( firstCarrier, out var state );
+		state.Magazine = 2;
+		state.Reserve = 5;
+		instance.TryDrop( firstCarrier, state );
+
+		Assert.IsTrue(
+			instance.TryCollectDropped(
+				secondCarrier,
+				out var transferred ) );
+		Assert.AreEqual( 2, transferred.Magazine );
+		Assert.AreEqual( 5, transferred.Reserve );
+		Assert.AreEqual( 654, transferred.ExclusiveInstanceId );
+	}
+
+	[TestMethod]
+	public void ExclusiveFiniteReload_PreservesTotalAmmunition()
+	{
+		var state = CreateExclusiveState( instanceId: 777 );
+		state.Magazine = 2;
+		state.Reserve = 7;
+		var total = state.Magazine + state.Reserve;
+
+		state = LargeLadInventoryRules.CompleteReload( state );
+
+		Assert.AreEqual( 8, state.Magazine );
+		Assert.AreEqual( 1, state.Reserve );
+		Assert.AreEqual( total, state.Magazine + state.Reserve );
+	}
+
+	[TestMethod]
+	public void ExclusiveRoundReset_RestoresConfiguredFullAmmo()
+	{
+		var carrier = new object();
+		var instance = CreateExclusiveInstance( instanceId: 888 );
+		instance.TryCollectFromOrigin( carrier, out var state );
+		state.Magazine = 1;
+		state.Reserve = 0;
+		instance.TryDrop( carrier, state );
+
+		instance.ResetForRound();
+
+		Assert.AreEqual(
+			LargeLadExclusiveLocation.OriginAvailable,
+			instance.Location );
+		Assert.AreEqual( 8, instance.State.Magazine );
+		Assert.AreEqual( 18, instance.State.Reserve );
+	}
+
+	[TestMethod]
+	public void ExclusiveDeath_DropsWithRemainingAmmunition()
+	{
+		var carrier = new object();
+		var instance = CreateExclusiveInstance( instanceId: 901 );
+		instance.TryCollectFromOrigin( carrier, out var state );
+		state.Magazine = 4;
+		state.Reserve = 9;
+
+		Assert.IsTrue( instance.TryDrop( carrier, state ) );
+		Assert.AreEqual(
+			LargeLadExclusiveLocation.Dropped,
+			instance.Location );
+		Assert.AreEqual( 4, instance.State.Magazine );
+		Assert.AreEqual( 9, instance.State.Reserve );
+	}
+
+	[TestMethod]
+	public void ExclusiveDisconnect_CanRecoverToOriginWithoutReservation()
+	{
+		var carrier = new object();
+		var instance = CreateExclusiveInstance( instanceId: 902 );
+		instance.TryCollectFromOrigin( carrier, out var state );
+		state.Magazine = 5;
+		state.Reserve = 6;
+
+		Assert.IsTrue(
+			instance.ReturnCarrierToOrigin( carrier, state ) );
+		Assert.AreEqual(
+			LargeLadExclusiveLocation.OriginAvailable,
+			instance.Location );
+		Assert.IsNull( instance.Carrier );
+		Assert.AreEqual( 5, instance.State.Magazine );
+		Assert.AreEqual( 6, instance.State.Reserve );
+	}
+
+	[TestMethod]
+	public void DroppingExclusive_SelectsRememberedCoreFallback()
+	{
+		var core = new List<LargeLadWeaponState>();
+		LargeLadInventoryRules.TryAddCoreWeapon(
+			core,
+			LargeLadWeaponId.Pistol );
+		LargeLadInventoryRules.TryAddCoreWeapon(
+			core,
+			LargeLadWeaponId.Smg );
+
+		var fallback = LargeLadInventoryRules.GetCoreFallback(
+			core,
+			LargeLadWeaponId.Smg );
+
+		Assert.AreEqual(
+			LargeLadWeaponSelectionKind.Core,
+			fallback.Kind );
+		Assert.AreEqual( LargeLadWeaponId.Smg, fallback.Weapon );
+		Assert.AreEqual(
+			LargeLadWeaponSelection.None,
+			LargeLadInventoryRules.GetCoreFallback(
+				new List<LargeLadWeaponState>(),
+				LargeLadWeaponId.Pistol ) );
+	}
+
+	[TestMethod]
+	public void Ordering_IsCatalogStableWithExclusiveLast()
+	{
+		var core = new List<LargeLadWeaponState>();
+		LargeLadInventoryRules.TryAddCoreWeapon(
+			core,
+			LargeLadWeaponId.Smg );
+		LargeLadInventoryRules.TryAddCoreWeapon(
+			core,
+			LargeLadWeaponId.Pistol );
+		var exclusive = CreateExclusiveState( instanceId: 903 );
+
+		Assert.AreEqual( LargeLadWeaponId.Pistol, core[0].Weapon );
+		Assert.AreEqual( LargeLadWeaponId.Smg, core[1].Weapon );
+		Assert.IsTrue(
+			LargeLadInventoryRules.TryGetWeaponAt(
+				core,
+				exclusive,
+				2,
+				out var last ) );
+		Assert.AreEqual( exclusive, last );
+	}
+
+	[TestMethod]
+	public void RoleRestrictions_AllowOnlyLivingSkinnyKids()
+	{
+		foreach ( var role in System.Enum.GetValues<LargeLadRole>() )
+		{
+			Assert.AreEqual(
+				role == LargeLadRole.SkinnyKid,
+				LargeLadInventoryRules.CanUseFirearmInventory(
+					role,
+					isDead: false ),
+				role.ToString() );
+		}
+
+		Assert.IsFalse(
+			LargeLadInventoryRules.CanUseFirearmInventory(
+				LargeLadRole.SkinnyKid,
+				isDead: true ) );
+	}
+
+	[TestMethod]
+	public void HostValidation_RejectsInvalidPickupReloadSelectionAndDrop()
+	{
+		var core = new List<LargeLadWeaponState>();
+		var coreState =
+			LargeLadWeaponState.CreateCore( LargeLadWeaponId.Pistol );
+		coreState.Magazine = 1;
+		var exclusive = CreateExclusiveState( instanceId: 904 );
+		var exclusiveSelection =
+			LargeLadInventoryRules.SelectionFor( exclusive );
+
+		Assert.IsFalse(
+			LargeLadInventoryRules.CanCollectCore(
+				isHost: false,
+				LargeLadRole.SkinnyKid,
+				isDead: false,
+				core,
+				LargeLadWeaponId.Pistol ) );
+		Assert.IsFalse(
+			LargeLadInventoryRules.CanReload(
+				isHost: true,
+				ownerRequest: false,
+				LargeLadRole.SkinnyKid,
+				isDead: false,
+				isAlreadyReloading: false,
+				coreState ) );
+		Assert.IsFalse(
+			LargeLadInventoryRules.CanSelect(
+				isHost: false,
+				ownerRequest: true,
+				LargeLadRole.SkinnyKid,
+				isDead: false,
+				coreState ) );
+		Assert.IsFalse(
+			LargeLadInventoryRules.CanDropExclusive(
+				isHost: true,
+				ownerRequest: false,
+				LargeLadRole.SkinnyKid,
+				isDead: false,
+				exclusive,
+				exclusiveSelection ) );
+		Assert.IsFalse(
+			LargeLadInventoryRules.CanDropExclusive(
+				isHost: true,
+				ownerRequest: true,
+				LargeLadRole.SkinnyKid,
+				isDead: false,
+				exclusive,
+				LargeLadWeaponSelection.ForCore(
+					LargeLadWeaponId.Pistol ) ) );
+	}
+
+	private static LargeLadWeaponState CreateExclusiveState(
+		int instanceId )
+	{
+		return LargeLadWeaponState.CreateExclusive(
+			LargeLadWeaponId.Pistol,
+			instanceId,
+			magazine: 8,
+			reserve: 18 );
+	}
+
+	private static LargeLadExclusiveInstance CreateExclusiveInstance(
+		int instanceId )
+	{
+		return new LargeLadExclusiveInstance(
+			instanceId,
+			LargeLadWeaponId.Pistol,
+			fullMagazine: 8,
+			fullReserve: 18 );
 	}
 }
 

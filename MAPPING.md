@@ -136,18 +136,13 @@ be assigned in the component without adding networked physics debris.
 
 ## Pickups and hazards
 
-The gameplay prefab folder contains pistol, SMG, pistol-ammo, SMG-ammo, and kill
-volume presets. Their temporary models are explicit scene content and can be
-replaced with production assets later.
+The gameplay prefab folder contains pistol, SMG, and kill-volume presets. Loose
+ammunition pickups are not part of the map contract.
 
-Every active role inherently receives melee in inventory slot 1. A Skinny Kid's
-first firearm pickup is automatically equipped, while melee remains selectable.
-Weapon placement controls when ranged combat becomes available; the typical
-route puts the first firearm pickups beyond the first Skinny Progression
-Barricade.
-
-Holding primary attack auto-swings melee for every role at that role's
-cooldown in the authoritative role-profile resource:
+Only Skinny Kids have firearm inventory. Large Lad and Minions use their
+built-in melee role ability and never receive firearm entries. Holding primary
+attack auto-swings that role ability at the authoritative role-profile
+cooldown:
 
 | Role | Damage | Range | Cooldown | Fallback aim assist |
 | --- | ---: | ---: | ---: | --- |
@@ -159,35 +154,41 @@ All roles use an 18-unit swing-trace radius. Fallback aim assist requires a
 minimum facing dot of 0.55. Maintaining roughly one second of accurate Large
 Lad contact drains a full-health Skinny Kid and converts them on death.
 
-The player prefab's `LargeLadMeleePresentation` has one optional Skinny Kid
-`MeleeModel`. The verified attachment baseline is the Citizen crowbar
-(`models/citizen_props/crowbar01.vmdl`) on the `hold_R` bone, with hold-relative
-position `(0, 0, 0)`, angles `(0, 0, 0)`, model-space grip point `(0, 0, 0)`,
-and scale `0.25`. First-person melee arms are enabled with position and angles
-both `(0, 0, 0)`. The grip point remains locked to the hand when the model
-scale changes. Clear or replace the model without changing combat logic. The
-Large Lad and Minions always attack unarmed and never display this model.
-
-In first-person mode the local player receives overlay-rendered melee arms,
-bone-merged to the same Citizen animation as the world body. The melee model
-uses those first-person hand bones, while third-person and remote players use
-the world body's hand bones.
+Melee remains a role ability rather than a firearm entry. Skinny Kids can select
+their role melee before the catalog-ordered core weapons; Large Lad and Minions
+always have built-in melee selected because they have no firearm inventory. In
+first-person mode every active role receives overlay-rendered melee arms
+bone-merged to the Citizen body. The optional Skinny Kid melee model remains
+presentation-only; Large Lad and Minions attack unarmed.
 
 Pickup policy is configured on each `LargeLadWeaponPickup` placement, not in the
 weapon catalog. This lets the same pistol or SMG be a core pickup on one route
-and a globally exclusive bonus pickup elsewhere. The pistol and SMG prefab
-defaults use `Pickup Policy (Per Instance): CorePerPlayer`: they are independently
-collectible once by every Skinny Kid each round, one player does not consume the
-pickup for anyone else, and they do not drop on infection. Ammo placements grant
-a finite weapon-specific refill once per Skinny Kid per round and reset for the
-next round.
+and an exclusive physical instance elsewhere.
 
-For a bonus weapon with only one world copy, set that placement's
-`Pickup Policy (Per Instance)` to `GloballyExclusive` and keep its root at
-Network Mode `Object`. It becomes unavailable when collected, drops with its
-remaining ammunition when its owner dies, and returns to its authored position
-on round reset. Map validation reports an invalid policy or an exclusive pickup
-that is not networked as an object.
+The pistol and SMG prefab defaults use `Pickup Policy (Per Instance): Core`.
+Each living Skinny Kid may unlock the pickup independently. Core pickups never
+hide, duplicate touches do nothing, magazines are retained per weapon, and
+reserve ammunition is explicitly infinite. The HUD displays `magazine / ∞`.
+Core weapons cannot be dropped and are cleared on conversion or round reset.
+
+For a limited physical weapon, set that placement's
+`Pickup Policy (Per Instance)` to `Exclusive` and keep its root at Network Mode
+`Object`. Every authored placement creates its own instance, including multiple
+placements with the same weapon definition. An exclusive placement supplies
+one full magazine plus its configured finite reserve for the round. There are no
+ammo refills.
+
+While an exclusive is carried or dropped, its authored pickup stays hidden and
+reserved. Press the `Drop Exclusive Weapon` input (G by default) while it is
+selected to place a runtime pickup near the player. Magazine and reserve values
+survive switching, dropping, repicking, transfer, death, and disconnect. A
+Skinny Kid who already carries one receives local HUD feedback and cannot
+replace it. Round reset destroys any runtime drop, restores the authored pickup,
+and alone restores full configured ammunition.
+
+Skinny Kid starting loadouts are configured as a list of core weapon
+definitions on `LargeLadInventory`; they are not numeric slots. The HUD and
+scroll order use stable weapon-catalog order with the carried exclusive last.
 
 A kill volume is an ordinary GameObject with a trigger collider and
 `LargeLadKillVolume`. Resize the collider to cover the hazard. Skinny Kids killed
@@ -203,8 +204,7 @@ the Large Lad respawn timer.
 - Every barricade has same-object rendering and collision and uses Network Mode
   `Object`.
 - Every weapon pickup has a deliberate per-instance policy, visible model, and
-  trigger collider; globally exclusive pickups use Network Mode `Object`.
-- Every ammo pickup has a visible model and trigger collider.
+  trigger collider; exclusive pickups use Network Mode `Object`.
 - Every kill volume has a trigger collider.
 - The scene reports no `Map contract:` warnings.
 - Host and remote clients complete a round, intermission, reset, late join,

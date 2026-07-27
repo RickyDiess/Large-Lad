@@ -43,4 +43,34 @@ coverage that the pure rule tests cannot provide:
 6. Observe changed-role Skinny Kid-to-Minion conversion on both host and remote
    owner, then a same-role Minion respawn. Confirm movement and body presentation
    match the role profile in both cases, including for a late joiner. Confirm the
-   inventory is prepared once per `RespawnAs` (no duplicate melee or grants).
+   inventory is prepared once per `RespawnAs` (no duplicate core grants and no
+   firearm entries for Large Lad or Minions).
+
+## Release inventory multiplayer checklist
+
+Use a host and at least one remote client. Author one core pickup plus two
+exclusive placements; make the two exclusives use the same weapon definition to
+verify they remain independent physical instances.
+
+1. Let both Skinny Kids touch the same core pickup. Confirm both unlock it, the
+   pickup remains visible, and a second touch changes neither magazine nor HUD.
+2. Fire a partial core magazine, switch away and back, then reload. Confirm the
+   magazine persists, reload duration applies, and the HUD reads
+   `magazine / ∞`.
+3. Collect both authored exclusives with different Skinny Kids. Confirm both can
+   exist simultaneously. Attempt to collect another while carrying one and
+   confirm the local `You can only carry one exclusive weapon.` feedback.
+4. Fire an exclusive, switch weapons, drop it with G, and have the other player
+   repick it after dropping their own exclusive. Confirm magazine and reserve
+   remain exact through every transition and the exclusive is last in scrolling.
+5. Kill a Skinny Kid carrying an exclusive. Confirm the weapon drops near the
+   death location (or safely returns to origin when blocked), core inventory is
+   cleared, and the respawned Minion has built-in melee only.
+6. Disconnect a client while carrying an exclusive. Confirm the instance is
+   dropped or returned to its authored pickup and can be collected again.
+7. End the round with exclusives carried and dropped. Confirm every runtime drop
+   disappears, every authored exclusive returns, and its configured magazine and
+   reserve are full exactly once.
+8. Repeat selection, reload, pickup, and drop requests from the remote client
+   while dead and after conversion. Confirm the host rejects them without ammo,
+   ownership, visibility, or active-selection changes.

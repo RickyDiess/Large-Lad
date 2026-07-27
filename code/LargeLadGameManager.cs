@@ -397,6 +397,9 @@ public sealed class LargeLadGameManager : Component
 
 		// This is an explicit editor/startup map-contract audit. Runtime combat,
 		// HUD, and round reset use their lifecycle registries instead.
+		var exclusivePickupNamesById =
+			new Dictionary<int, string>();
+
 		foreach ( var pickup in
 			Scene?.GetAllComponents<LargeLadWeaponPickup>() ??
 			Enumerable.Empty<LargeLadWeaponPickup>() )
@@ -413,13 +416,42 @@ public sealed class LargeLadGameManager : Component
 					"per-instance pickup policy." );
 			}
 
-			if ( pickup.PickupPolicy == LargeLadPickupPolicy.GloballyExclusive &&
+			if ( pickup.PickupPolicy == LargeLadPickupPolicy.Exclusive &&
 				pickup.GameObject.NetworkMode != NetworkMode.Object )
 			{
 				issues.Add(
-					$"Globally exclusive weapon pickup '{pickup.GameObject.Name}' " +
-					"must use Network Mode Object so availability and dropped " +
-					"position replicate." );
+					$"Exclusive weapon pickup '{pickup.GameObject.Name}' " +
+					"must use Network Mode Object so availability replicates." );
+			}
+
+			if ( pickup.PickupPolicy ==
+				LargeLadPickupPolicy.Exclusive &&
+				Networking.IsHost )
+			{
+				pickup.EnsureExclusiveIdentityForHost();
+				var instanceId = pickup.ExclusiveInstanceId;
+
+				if ( instanceId <= 0 )
+				{
+					issues.Add(
+						$"Exclusive weapon pickup '{pickup.GameObject.Name}' " +
+						"could not establish a stable instance identity." );
+				}
+				else if ( exclusivePickupNamesById.TryGetValue(
+					instanceId,
+					out var existingName ) )
+				{
+					issues.Add(
+						$"Exclusive weapon pickups '{existingName}' and " +
+						$"'{pickup.GameObject.Name}' have the same runtime " +
+						$"instance id {instanceId}." );
+				}
+				else
+				{
+					exclusivePickupNamesById.Add(
+						instanceId,
+						pickup.GameObject.Name );
+				}
 			}
 
 			if ( pickup.PickupCollider is null )
@@ -427,20 +459,6 @@ public sealed class LargeLadGameManager : Component
 
 			if ( pickup.PickupRenderer is null )
 				issues.Add( $"Weapon pickup '{pickup.GameObject.Name}' needs visible scene geometry." );
-		}
-
-		foreach ( var pickup in
-			Scene?.GetAllComponents<LargeLadAmmoPickup>() ??
-			Enumerable.Empty<LargeLadAmmoPickup>() )
-		{
-			if ( !LargeLadWeaponCatalog.IsFirearm( pickup.Weapon ) )
-				issues.Add( $"Ammo pickup '{pickup.GameObject.Name}' has no valid firearm." );
-
-			if ( pickup.PickupCollider is null )
-				issues.Add( $"Ammo pickup '{pickup.GameObject.Name}' needs a trigger collider." );
-
-			if ( pickup.PickupRenderer is null )
-				issues.Add( $"Ammo pickup '{pickup.GameObject.Name}' needs visible scene geometry." );
 		}
 
 		foreach ( var barricade in
@@ -1013,6 +1031,9 @@ public sealed class LargeLadGameManager : Component
 	{
 		if ( player is null || !registeredPlayers.Remove( player ) )
 			return;
+
+		if ( Networking.IsHost )
+			player.Inventory?.HandleDisconnect();
 
 		activePlayers.Remove( player );
 

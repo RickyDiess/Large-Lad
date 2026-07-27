@@ -58,13 +58,13 @@
           "go": "8a400002-0000-4000-8000-000000000001",
           "component_type": "BoxCollider"
         },
+        "PickupPolicy": "Core",
         "PickupRenderer": {
           "_type": "component",
           "component_id": "c1db096c-9625-4cf5-86ae-7d13ae01183c",
           "go": "8ceaf3e7-a031-4113-9e89-4aa6b75792af",
           "component_type": "ModelRenderer"
         },
-        "PickupPolicy": "CorePerPlayer",
         "Weapon": "Smg"
       }
     ],

@@ -229,6 +229,24 @@
           "Children": []
         },
         {
+          "__guid": "4f19915f-0302-4a3b-8a6e-ea2d5114d4f6",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Props",
+          "Position": "12.2801514,-52.5376587,35.4681702",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [],
+          "Children": []
+        },
+        {
           "__guid": "659b8f11-1ee4-4de8-a117-5cbb005f67e9",
           "__version": 2,
           "Flags": 0,
@@ -397,76 +415,6 @@
           "Components": [],
           "Children": [
             {
-              "__guid": "55c61d01-ee7c-40ed-915b-5285c65406ed",
-              "__version": 2,
-              "__Prefab": "prefabs/gameplay/ammo_pistol.prefab",
-              "__PrefabInstancePatch": {
-                "AddedObjects": [],
-                "RemovedObjects": [],
-                "PropertyOverrides": [
-                  {
-                    "Target": {
-                      "Type": "GameObject",
-                      "IdValue": "8a500001-0000-4000-8000-000000000001"
-                    },
-                    "Property": "Name",
-                    "Value": "Pistol Ammo"
-                  },
-                  {
-                    "Target": {
-                      "Type": "GameObject",
-                      "IdValue": "8a500001-0000-4000-8000-000000000001"
-                    },
-                    "Property": "Position",
-                    "Value": "-244.431824,-483.131287,-124.869537"
-                  }
-                ],
-                "MovedObjects": []
-              },
-              "__PrefabIdToInstanceId": {
-                "8a500001-0000-4000-8000-000000000001": "55c61d01-ee7c-40ed-915b-5285c65406ed",
-                "8a500001-0000-4000-8000-000000000003": "3cbb49ec-94e8-4379-9c82-edc2361e0015",
-                "8a500001-0000-4000-8000-000000000004": "f1de1e9c-56f5-41a3-8001-b668358dff9f",
-                "64100653-d86f-413b-8761-0a4f866e264b": "9820674b-67d5-83dc-b0a3-c31f9aaa3c97",
-                "b880ad30-e0bb-4e18-9ba2-106ba016e2c7": "897a2993-b527-814d-8201-a1c700ebee40"
-              }
-            },
-            {
-              "__guid": "317e3519-2c6c-4fc0-8f91-a07f23d172fd",
-              "__version": 2,
-              "__Prefab": "prefabs/gameplay/ammo_smg.prefab",
-              "__PrefabInstancePatch": {
-                "AddedObjects": [],
-                "RemovedObjects": [],
-                "PropertyOverrides": [
-                  {
-                    "Target": {
-                      "Type": "GameObject",
-                      "IdValue": "8a500002-0000-4000-8000-000000000001"
-                    },
-                    "Property": "Name",
-                    "Value": "SMG Ammo"
-                  },
-                  {
-                    "Target": {
-                      "Type": "GameObject",
-                      "IdValue": "8a500002-0000-4000-8000-000000000001"
-                    },
-                    "Property": "Position",
-                    "Value": "-244.431824,-387.131287,-124.869537"
-                  }
-                ],
-                "MovedObjects": []
-              },
-              "__PrefabIdToInstanceId": {
-                "8a500002-0000-4000-8000-000000000001": "317e3519-2c6c-4fc0-8f91-a07f23d172fd",
-                "8a500002-0000-4000-8000-000000000003": "dae51908-d1db-43d4-8f0c-dbf32c833b24",
-                "8a500002-0000-4000-8000-000000000004": "6fb4d185-2c75-4239-968b-96fef3245d38",
-                "35de6a17-06d4-462a-bdfc-5a97e69e40e7": "6c73aa4c-8645-8df6-b273-345c6fb952e0",
-                "3beb6fb8-eb2f-4aeb-a1be-db468c30b080": "7cb2ba39-c717-8c6c-a0ca-9d3b15b08c46"
-              }
-            },
-            {
               "__guid": "e114fa88-973b-4f20-bf87-c79c92bef23e",
               "__version": 2,
               "__Prefab": "prefabs/gameplay/pickup_pistol.prefab",
@@ -537,26 +485,26 @@
               }
             }
           ]
+        },
+        {
+          "__guid": "ffd84611-39e0-4a0d-a732-e7ee4d04fe42",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Ladders",
+          "Position": "340.288879,107.563797,327.012238",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [],
+          "Children": []
         }
       ]
-    },
-    {
-      "__guid": "ffd84611-39e0-4a0d-a732-e7ee4d04fe42",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Ladders",
-      "Position": "808.720703,110.695091,451.881775",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [],
-      "Children": []
     }
   ],
   "SceneProperties": {

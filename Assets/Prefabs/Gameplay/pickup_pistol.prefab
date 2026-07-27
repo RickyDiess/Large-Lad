@@ -64,7 +64,7 @@
           "go": "11c6dbfc-0823-46cd-99d2-c87fcbbab35f",
           "component_type": "ModelRenderer"
         },
-        "PickupPolicy": "CorePerPlayer",
+        "PickupPolicy": "Core",
         "Weapon": "Pistol"
       }
     ],
