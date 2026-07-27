@@ -107,8 +107,9 @@ public sealed class LargeLadPlayer : Component
 
 	private void OnRoleChanged( LargeLadRole oldRole, LargeLadRole newRole )
 	{
-		// Role changes only maintain the replicated role index. RespawnAs owns
-		// all role-dependent lifecycle and presentation work.
+		// The synchronized role is sufficient to update presentation on every
+		// observer and movement settings on whichever peer owns this player.
+		ApplyRoleProfile( newRole );
 		LargeLadSceneRegistry.NotifyPlayerRoleChanged(
 			registeredScene,
 			this,
@@ -153,12 +154,17 @@ public sealed class LargeLadPlayer : Component
 		// value is applied below.
 		MovementLocked = true;
 		PendingRespawnRole = LargeLadRole.Unassigned;
+		var roleChanged = Role != role;
 		Role = role;
 
 		// A synchronized property callback does not run for same-role respawns,
-		// so every authoritative role-dependent reset is explicit here.
-		ApplyRoleProfile( role );
-		BroadcastRespawnRoleProfile( role );
+		// so only that case needs an explicit local and client reapplication.
+		if ( !roleChanged )
+		{
+			ApplyRoleProfile( role );
+			BroadcastSameRoleRespawnProfile( role );
+		}
+
 		Inventory?.PrepareForRole( role );
 		Health?.ResetForCurrentRole();
 
@@ -171,10 +177,10 @@ public sealed class LargeLadPlayer : Component
 	}
 
 	[Rpc.Broadcast]
-	private void BroadcastRespawnRoleProfile( LargeLadRole role )
+	private void BroadcastSameRoleRespawnProfile( LargeLadRole role )
 	{
-		// RespawnAs already applied the host copy. Every observing client runs
-		// this for both changed-role and same-role respawns.
+		// RespawnAs already applied the authoritative copy. Observers need this
+		// only when the synchronized role value itself did not change.
 		if ( Networking.IsHost )
 			return;
 

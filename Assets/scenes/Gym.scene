@@ -9,8 +9,8 @@
       "Position": "-9999.99902,-10000,-0.000366210938",
       "Rotation": "0,0,0,1",
       "Scale": "1,1,1",
-      "Tags": "hidden",
-      "Enabled": true,
+      "Tags": "",
+      "Enabled": false,
       "NetworkMode": 2,
       "NetworkFlags": 0,
       "NetworkOrphaned": 0,
@@ -112,8 +112,8 @@
           "OnComponentStart": null,
           "OnComponentUpdate": null,
           "SkyIndirectLighting": true,
-          "SkyMaterial": "materials/skybox/light_test_default.vmat",
-          "Tint": "0.25,0.25,0.25,1"
+          "SkyMaterial": "materials/skybox/skybox_dark_01.vmat",
+          "Tint": "0.09302,0.09302,0.09302,1"
         }
       ],
       "Children": []
@@ -225,7 +225,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "343abf09-8e02-4a19-9337-ed0618d1b504"
+                      "$blob": "4679350c-d2b2-46b0-8bc6-4df5b7e2e4a0"
                     },
                     "Materials": [
                       "materials/trimsheets/wood/wood_trim_02.vmat",
@@ -282,7 +282,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "7f598b46-f628-48e4-89d0-5415d0581cd8"
+                      "$blob": "484882eb-9110-4035-bb69-2dac45dcd664"
                     },
                     "Materials": [
                       "materials/trimsheets/wood/wood_trim_02.vmat",
@@ -339,7 +339,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "a82f8d30-e819-476c-9225-6f2bcf1f991e"
+                      "$blob": "86079f10-8684-4580-bdd7-04381659155a"
                     },
                     "Materials": [
                       "materials/wood/floor/wooden_flooring_b2.vmat"
@@ -395,7 +395,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "79c04d35-1dba-4441-8eec-0b9852dd3e01"
+                      "$blob": "a1f2ab69-8bbe-4d0a-95c3-9f90875027f0"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -452,7 +452,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "624b524d-f7b9-4236-bda9-527518ce2ce0"
+                      "$blob": "a41ce257-d8b9-41ca-bf59-c26631173c55"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -509,7 +509,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "38dbe41a-00ec-48a1-8205-c8183ce1e9b2"
+                      "$blob": "b5479b7a-7e5b-40b7-8fec-0d64a45726a9"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -567,7 +567,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "f33dc178-2052-4239-94af-1ec4ef92ce0f"
+                      "$blob": "27fe36e7-4c20-475a-83e6-03d93cf44cfa"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -625,7 +625,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "1e39f1ce-73b2-427c-a0a1-fd327490caf6"
+                      "$blob": "e7b0dc0a-a54e-4b36-b3bb-7c6e9b591372"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat"
@@ -681,7 +681,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "8e86b37e-5ee3-4d5b-baa9-54a46b42d06d"
+                      "$blob": "94c793ed-dbed-4b42-883d-b0605aaf3a0b"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -738,7 +738,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "0d1ee767-885c-41f4-8e72-fd2d18655357"
+                      "$blob": "f26adf09-8435-40c9-930a-381a9cfab951"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -761,6 +761,394 @@
                   "Static": true,
                   "Surface": null,
                   "SurfaceVelocity": "0,0,0"
+                }
+              ],
+              "Children": []
+            }
+          ]
+        },
+        {
+          "__guid": "f8d6671e-7e5b-4ae1-b0b3-fd4d73e6456e",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Lights",
+          "Position": "12.2801514,-52.5376587,35.4681702",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [],
+          "Children": [
+            {
+              "__guid": "34024fcd-b9b8-4a8a-9c61-3af0f103cbc3",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Spot Light",
+              "Position": "-480.711975,49.4063683,320.512115",
+              "Rotation": "0,0.707106709,0,0.707106709",
+              "Scale": "1,1,1",
+              "Tags": "light_spot,light",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.SpotLight",
+                  "__guid": "9252702d-35a2-472a-8863-369befabde01",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "Attenuation": 0.1,
+                  "ConeInner": 35,
+                  "ConeOuter": 73.3526,
+                  "Contribution": "Diffuse, Specular, Transmissive",
+                  "Cookie": null,
+                  "FogMode": "Enabled",
+                  "FogStrength": 1,
+                  "LightColor": "3.65492,3.92156,4,1",
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "Radius": 1500,
+                  "ShadowBias": 0.0005,
+                  "ShadowHardness": 0,
+                  "Shadows": true
+                }
+              ],
+              "Children": []
+            },
+            {
+              "__guid": "1c68892a-75c5-48cd-a38f-b33128e426ab",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Spot Light (1)",
+              "Position": "-480.711975,561.406372,320.512115",
+              "Rotation": "0,0.707106709,0,0.707106709",
+              "Scale": "1,1,1",
+              "Tags": "light_spot,light",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.SpotLight",
+                  "__guid": "9ed36624-1573-4dca-a3b2-761680ee2234",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "Attenuation": 0.1,
+                  "ConeInner": 35,
+                  "ConeOuter": 73.3526,
+                  "Contribution": "Diffuse, Specular, Transmissive",
+                  "Cookie": null,
+                  "FogMode": "Enabled",
+                  "FogStrength": 1,
+                  "LightColor": "3.65492,3.92156,4,1",
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "Radius": 1500,
+                  "ShadowBias": 0.0005,
+                  "ShadowHardness": 0,
+                  "Shadows": true
+                }
+              ],
+              "Children": []
+            },
+            {
+              "__guid": "624e0269-40e6-4b8c-b034-daecfa79bb68",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Spot Light (2)",
+              "Position": "-480.711975,-462.593628,320.512115",
+              "Rotation": "0,0.707106709,0,0.707106709",
+              "Scale": "1,1,1",
+              "Tags": "light_spot,light",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.SpotLight",
+                  "__guid": "9e741f87-e0de-4989-a6dd-5c6ceeab8730",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "Attenuation": 0.1,
+                  "ConeInner": 35,
+                  "ConeOuter": 73.3526,
+                  "Contribution": "Diffuse, Specular, Transmissive",
+                  "Cookie": null,
+                  "FogMode": "Enabled",
+                  "FogStrength": 1,
+                  "LightColor": "3.65492,3.92156,4,1",
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "Radius": 1500,
+                  "ShadowBias": 0.0005,
+                  "ShadowHardness": 0,
+                  "Shadows": true
+                }
+              ],
+              "Children": []
+            },
+            {
+              "__guid": "12130ca4-dab6-433c-83c4-2b4c39fc1164",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Point Light",
+              "Position": "-480.711975,-1126.97107,-0.33770752",
+              "Rotation": "0,0,0,1",
+              "Scale": "1,1,1",
+              "Tags": "light_point,light",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.PointLight",
+                  "__guid": "6ee7a03f-ba89-48a0-9a50-9f919882715e",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "Attenuation": 0.2,
+                  "Contribution": "Diffuse, Specular, Transmissive",
+                  "FogMode": "Enabled",
+                  "FogStrength": 1,
+                  "LightColor": "0.91373,0.98039,1,1",
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "Radius": 750,
+                  "ShadowBias": 0.0005,
+                  "ShadowHardness": 0,
+                  "Shadows": true
+                }
+              ],
+              "Children": []
+            },
+            {
+              "__guid": "28cbfd26-4b7b-4d5e-823c-1993a06f080d",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Point Light",
+              "Position": "575.288025,-1125.32703,63.6622925",
+              "Rotation": "0,0,0,1",
+              "Scale": "1,1,1",
+              "Tags": "light_point,light",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.PointLight",
+                  "__guid": "43f95849-bdf5-4426-8c3f-a7de4ba6c4e3",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "Attenuation": 0.2,
+                  "Contribution": "Diffuse, Specular, Transmissive",
+                  "FogMode": "Enabled",
+                  "FogStrength": 1,
+                  "LightColor": "0.91373,0.98039,1,1",
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "Radius": 750,
+                  "ShadowBias": 0.0005,
+                  "ShadowHardness": 0,
+                  "Shadows": true
+                }
+              ],
+              "Children": []
+            },
+            {
+              "__guid": "31084bfe-9cca-4c29-9513-f4cedb349d7b",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Point Light (1)",
+              "Position": "543.288025,-457.562988,159.662292",
+              "Rotation": "0,0,0,1",
+              "Scale": "1,1,1",
+              "Tags": "light_point,light",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.PointLight",
+                  "__guid": "d1308bc3-ccf3-4101-9f5c-092638cf4f30",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "Attenuation": 0.2,
+                  "Contribution": "Diffuse, Specular, Transmissive",
+                  "FogMode": "Enabled",
+                  "FogStrength": 1,
+                  "LightColor": "0.91373,0.98039,1,1",
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "Radius": 750,
+                  "ShadowBias": 0.0005,
+                  "ShadowHardness": 0,
+                  "Shadows": true
+                }
+              ],
+              "Children": []
+            },
+            {
+              "__guid": "10d8ac44-e8fa-42dc-a349-224b43d24766",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Point Light (2)",
+              "Position": "543.288025,321.406372,223.662292",
+              "Rotation": "0,0,0,1",
+              "Scale": "1,1,1",
+              "Tags": "light_point,light",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.PointLight",
+                  "__guid": "97b7bb7e-e9fa-4407-8c9d-5de078ac916e",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "Attenuation": 0.2,
+                  "Contribution": "Diffuse, Specular, Transmissive",
+                  "FogMode": "Enabled",
+                  "FogStrength": 1,
+                  "LightColor": "0.91373,0.98039,1,1",
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "Radius": 750,
+                  "ShadowBias": 0.0005,
+                  "ShadowHardness": 0,
+                  "Shadows": true
+                }
+              ],
+              "Children": []
+            },
+            {
+              "__guid": "84b179c6-4d76-4fe9-b2c9-1bfdfeb66f9b",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Point Light (3)",
+              "Position": "543.288025,1249.40637,239.662292",
+              "Rotation": "0,0,0,1",
+              "Scale": "1,1,1",
+              "Tags": "light_point,light",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.PointLight",
+                  "__guid": "901a7bd0-b122-48b1-b390-1a30ab77dc56",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "Attenuation": 0.2,
+                  "Contribution": "Diffuse, Specular, Transmissive",
+                  "FogMode": "Enabled",
+                  "FogStrength": 1,
+                  "LightColor": "0.91373,0.98039,1,1",
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "Radius": 750,
+                  "ShadowBias": 0.0005,
+                  "ShadowHardness": 0,
+                  "Shadows": true
+                }
+              ],
+              "Children": []
+            },
+            {
+              "__guid": "5c1f337a-ed03-44fd-896e-6cbf64863053",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Point Light (4)",
+              "Position": "-480.711975,1233.40637,351.666687",
+              "Rotation": "0,0,0,1",
+              "Scale": "1,1,1",
+              "Tags": "light_point,light",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.PointLight",
+                  "__guid": "e143952a-646a-4fd4-b545-ab13c4a40da0",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "Attenuation": 0.2,
+                  "Contribution": "Diffuse, Specular, Transmissive",
+                  "FogMode": "Enabled",
+                  "FogStrength": 1,
+                  "LightColor": "0.91373,0.98039,1,1",
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "Radius": 750,
+                  "ShadowBias": 0.0005,
+                  "ShadowHardness": 0,
+                  "Shadows": true
                 }
               ],
               "Children": []
@@ -947,7 +1335,7 @@
                     "Property": "Mesh",
                     "Value": {
                       "Data": {
-                        "$blob": "38f1461d-70ef-483a-95b7-6aabcaadf1e4"
+                        "$blob": "50f20c82-c9e7-41f3-b3b8-385892f20ff5"
                       },
                       "Materials": [
                         "materials/dev/gray_grid_4.vmat",
@@ -996,7 +1384,7 @@
                     "Property": "Mesh",
                     "Value": {
                       "Data": {
-                        "$blob": "744617b3-afc5-461b-a7c0-d43f61d4ca9c"
+                        "$blob": "956bbfe8-f762-46c3-aeb0-1539e856b433"
                       },
                       "Materials": [
                         "materials/glass/glass_a.vmat"
@@ -1044,7 +1432,7 @@
                     "Property": "Mesh",
                     "Value": {
                       "Data": {
-                        "$blob": "b446f443-5c28-4c65-915c-115fbaaf6140"
+                        "$blob": "57da5303-84b8-4b24-aa0c-d01afeaf5462"
                       },
                       "Materials": [
                         "materials/dev/gray_grid_4.vmat",
@@ -1321,375 +1709,6 @@
         "13a94fea-a2de-45da-beb8-61e564e6e245": "5b950835-13dd-41bd-9ca1-42619d2a0310",
         "6ba98835-269e-4ca8-95a4-06e9faf5db59": "9482c824-3f17-42fc-b774-9c38f188f92a"
       }
-    },
-    {
-      "__guid": "34024fcd-b9b8-4a8a-9c61-3af0f103cbc3",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Spot Light",
-      "Position": "0,0,480.849823",
-      "Rotation": "0,0.707106709,0,0.707106709",
-      "Scale": "1,1,1",
-      "Tags": "light_spot,light",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpotLight",
-          "__guid": "9252702d-35a2-472a-8863-369befabde01",
-          "__enabled": true,
-          "Flags": 0,
-          "Attenuation": 0.1,
-          "ConeInner": 35,
-          "ConeOuter": 85.31792,
-          "Contribution": "Diffuse, Specular, Transmissive",
-          "Cookie": null,
-          "FogMode": "Enabled",
-          "FogStrength": 1,
-          "LightColor": "3.65492,3.92156,4,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "Radius": 1250,
-          "ShadowBias": 0.0005,
-          "ShadowHardness": 0,
-          "Shadows": true
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "1c68892a-75c5-48cd-a38f-b33128e426ab",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Spot Light (1)",
-      "Position": "0,512,480.849823",
-      "Rotation": "0,0.707106709,0,0.707106709",
-      "Scale": "1,1,1",
-      "Tags": "light_spot,light",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpotLight",
-          "__guid": "9ed36624-1573-4dca-a3b2-761680ee2234",
-          "__enabled": true,
-          "Flags": 0,
-          "Attenuation": 0.1,
-          "ConeInner": 35,
-          "ConeOuter": 85.31792,
-          "Contribution": "Diffuse, Specular, Transmissive",
-          "Cookie": null,
-          "FogMode": "Enabled",
-          "FogStrength": 1,
-          "LightColor": "3.65492,3.92156,4,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "Radius": 1250,
-          "ShadowBias": 0.0005,
-          "ShadowHardness": 0,
-          "Shadows": true
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "624e0269-40e6-4b8c-b034-daecfa79bb68",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Spot Light (2)",
-      "Position": "0,-512,480.849823",
-      "Rotation": "0,0.707106709,0,0.707106709",
-      "Scale": "1,1,1",
-      "Tags": "light_spot,light",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SpotLight",
-          "__guid": "9e741f87-e0de-4989-a6dd-5c6ceeab8730",
-          "__enabled": true,
-          "Flags": 0,
-          "Attenuation": 0.1,
-          "ConeInner": 35,
-          "ConeOuter": 85.31792,
-          "Contribution": "Diffuse, Specular, Transmissive",
-          "Cookie": null,
-          "FogMode": "Enabled",
-          "FogStrength": 1,
-          "LightColor": "3.65492,3.92156,4,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "Radius": 1250,
-          "ShadowBias": 0.0005,
-          "ShadowHardness": 0,
-          "Shadows": true
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "12130ca4-dab6-433c-83c4-2b4c39fc1164",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Point Light",
-      "Position": "0,-1176.37744,160",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "light_point,light",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.PointLight",
-          "__guid": "6ee7a03f-ba89-48a0-9a50-9f919882715e",
-          "__enabled": true,
-          "Flags": 0,
-          "Attenuation": 0.2,
-          "Contribution": "Diffuse, Specular, Transmissive",
-          "FogMode": "Enabled",
-          "FogStrength": 1,
-          "LightColor": "0.91373,0.98039,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "Radius": 500,
-          "ShadowBias": 0.0005,
-          "ShadowHardness": 0,
-          "Shadows": true
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "28cbfd26-4b7b-4d5e-823c-1993a06f080d",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Point Light",
-      "Position": "1056,-1174.7334,224",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "light_point,light",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.PointLight",
-          "__guid": "43f95849-bdf5-4426-8c3f-a7de4ba6c4e3",
-          "__enabled": true,
-          "Flags": 0,
-          "Attenuation": 0.2,
-          "Contribution": "Diffuse, Specular, Transmissive",
-          "FogMode": "Enabled",
-          "FogStrength": 1,
-          "LightColor": "0.91373,0.98039,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "Radius": 500,
-          "ShadowBias": 0.0005,
-          "ShadowHardness": 0,
-          "Shadows": true
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "31084bfe-9cca-4c29-9513-f4cedb349d7b",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Point Light (1)",
-      "Position": "1024,-506.96936,320",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "light_point,light",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.PointLight",
-          "__guid": "d1308bc3-ccf3-4101-9f5c-092638cf4f30",
-          "__enabled": true,
-          "Flags": 0,
-          "Attenuation": 0.2,
-          "Contribution": "Diffuse, Specular, Transmissive",
-          "FogMode": "Enabled",
-          "FogStrength": 1,
-          "LightColor": "0.91373,0.98039,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "Radius": 500,
-          "ShadowBias": 0.0005,
-          "ShadowHardness": 0,
-          "Shadows": true
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "10d8ac44-e8fa-42dc-a349-224b43d24766",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Point Light (2)",
-      "Position": "1024,536.987793,384",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "light_point,light",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.PointLight",
-          "__guid": "97b7bb7e-e9fa-4407-8c9d-5de078ac916e",
-          "__enabled": true,
-          "Flags": 0,
-          "Attenuation": 0.2,
-          "Contribution": "Diffuse, Specular, Transmissive",
-          "FogMode": "Enabled",
-          "FogStrength": 1,
-          "LightColor": "0.91373,0.98039,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "Radius": 500,
-          "ShadowBias": 0.0005,
-          "ShadowHardness": 0,
-          "Shadows": true
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "84b179c6-4d76-4fe9-b2c9-1bfdfeb66f9b",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Point Light (3)",
-      "Position": "1024,1200,400",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "light_point,light",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.PointLight",
-          "__guid": "901a7bd0-b122-48b1-b390-1a30ab77dc56",
-          "__enabled": true,
-          "Flags": 0,
-          "Attenuation": 0.2,
-          "Contribution": "Diffuse, Specular, Transmissive",
-          "FogMode": "Enabled",
-          "FogStrength": 1,
-          "LightColor": "0.91373,0.98039,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "Radius": 500,
-          "ShadowBias": 0.0005,
-          "ShadowHardness": 0,
-          "Shadows": true
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "5c1f337a-ed03-44fd-896e-6cbf64863053",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Point Light (4)",
-      "Position": "0,1184,512.004395",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "light_point,light",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.PointLight",
-          "__guid": "e143952a-646a-4fd4-b545-ab13c4a40da0",
-          "__enabled": true,
-          "Flags": 0,
-          "Attenuation": 0.2,
-          "Contribution": "Diffuse, Specular, Transmissive",
-          "FogMode": "Enabled",
-          "FogStrength": 1,
-          "LightColor": "0.91373,0.98039,1,1",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "Radius": 500,
-          "ShadowBias": 0.0005,
-          "ShadowHardness": 0,
-          "Shadows": true
-        }
-      ],
-      "Children": []
     }
   ],
   "SceneProperties": {

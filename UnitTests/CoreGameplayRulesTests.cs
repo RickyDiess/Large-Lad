@@ -178,6 +178,53 @@ public sealed class RespawnRulesTests
 	}
 
 	[TestMethod]
+	public void LethalTransition_CommitsOnlyAfterManagerAcceptance()
+	{
+		Assert.IsTrue(
+			LargeLadGameplayRules.CanCommitLethalTransition(
+				previousHealth: 1.0f,
+				currentHealth: 0.0f,
+				alreadyReported: false,
+				managerAccepted: true ),
+			"An accepted first lethal edge commits." );
+		Assert.IsFalse(
+			LargeLadGameplayRules.CanCommitLethalTransition(
+				previousHealth: 1.0f,
+				currentHealth: 0.0f,
+				alreadyReported: false,
+				managerAccepted: false ),
+			"A rejected handoff must remain uncommitted and retryable." );
+		Assert.IsFalse(
+			LargeLadGameplayRules.CanCommitLethalTransition(
+				previousHealth: 1.0f,
+				currentHealth: 0.0f,
+				alreadyReported: true,
+				managerAccepted: true ),
+			"Manager acceptance cannot commit the same lethal edge twice." );
+	}
+
+	[TestMethod]
+	public void RespawnSpawnGroup_IsReconstructableFromPendingRole()
+	{
+		Assert.AreEqual(
+			LargeLadSpawnGroup.Hunter,
+			LargeLadGameplayRules.GetSpawnGroupForRole(
+				LargeLadRole.LargeLad ) );
+		Assert.AreEqual(
+			LargeLadSpawnGroup.Hunter,
+			LargeLadGameplayRules.GetSpawnGroupForRole(
+				LargeLadRole.Minion ) );
+		Assert.AreEqual(
+			LargeLadSpawnGroup.SkinnyKid,
+			LargeLadGameplayRules.GetSpawnGroupForRole(
+				LargeLadRole.SkinnyKid ) );
+		Assert.AreEqual(
+			LargeLadSpawnGroup.Lobby,
+			LargeLadGameplayRules.GetSpawnGroupForRole(
+				LargeLadRole.Unassigned ) );
+	}
+
+	[TestMethod]
 	public void EveryDamageSource_UsesAuthoritativeRoleDelayAndSpawnPolicy()
 	{
 		foreach ( var damageType in

@@ -83,6 +83,18 @@ public static class LargeLadGameplayRules
 			: currentRole;
 	}
 
+	public static LargeLadSpawnGroup GetSpawnGroupForRole(
+		LargeLadRole role )
+	{
+		return role switch
+		{
+			LargeLadRole.LargeLad or LargeLadRole.Minion =>
+				LargeLadSpawnGroup.Hunter,
+			LargeLadRole.SkinnyKid => LargeLadSpawnGroup.SkinnyKid,
+			_ => LargeLadSpawnGroup.Lobby
+		};
+	}
+
 	public static LargeLadDeathPlan ResolveDeathPlan(
 		LargeLadRole currentRole,
 		LargeLadDamageType damageType,
@@ -93,13 +105,7 @@ public static class LargeLadGameplayRules
 		var respawnDelay = currentRole == LargeLadRole.LargeLad
 			? largeLadRespawnDelay
 			: playerRespawnDelay;
-		var spawnGroup = resultingRole switch
-		{
-			LargeLadRole.LargeLad or LargeLadRole.Minion =>
-				LargeLadSpawnGroup.Hunter,
-			LargeLadRole.SkinnyKid => LargeLadSpawnGroup.SkinnyKid,
-			_ => LargeLadSpawnGroup.Lobby
-		};
+		var spawnGroup = GetSpawnGroupForRole( resultingRole );
 
 		return new LargeLadDeathPlan(
 			resultingRole,
@@ -116,6 +122,19 @@ public static class LargeLadGameplayRules
 		return !alreadyReported &&
 			previousHealth > 0.0f &&
 			currentHealth <= 0.0f;
+	}
+
+	public static bool CanCommitLethalTransition(
+		float previousHealth,
+		float currentHealth,
+		bool alreadyReported,
+		bool managerAccepted )
+	{
+		return managerAccepted &&
+			IsNewLethalTransition(
+				previousHealth,
+				currentHealth,
+				alreadyReported );
 	}
 
 	public static bool CanDamageBarricade(

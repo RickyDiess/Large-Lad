@@ -66,6 +66,8 @@ public sealed class LargeLadGameManager : Component
 	private int waitingPlayerCount = -1;
 	private float playerReadyTimeRemaining;
 	private bool spawnFailureReported;
+	private bool hasStarted;
+	private bool isHydratingRegistrations;
 	private Scene registeredScene;
 	private LargeLadPlayer currentLargeLad;
 	private readonly List<LargeLadPlayer> activePlayers = new();
@@ -85,8 +87,6 @@ public sealed class LargeLadGameManager : Component
 	private readonly HashSet<(
 		LargeLadPlayer Player,
 		LargeLadSpawnGroup Group)> reportedSpawnAllocationFailures = new();
-	private readonly Dictionary<LargeLadPlayer, LargeLadDeathPlan>
-		pendingDeathPlans = new();
 
 	/// <summary>
 	/// Enabled LargeLadPlayer components registered in this manager's scene.
@@ -171,7 +171,12 @@ public sealed class LargeLadGameManager : Component
 
 	protected override void OnStart()
 	{
+		hasStarted = true;
 		ResolveBootstrapReferences();
+
+		if ( !OwnsSceneGameplay() )
+			return;
+
 		SpawnAllocator?.ConfigureNetworkHelper( NetworkHelper );
 		ValidateMap( logResults: true, validateGeometry: true );
 	}
@@ -197,6 +202,10 @@ public sealed class LargeLadGameManager : Component
 	public void RebuildAndValidateSpawnCandidates()
 	{
 		ResolveBootstrapReferences();
+
+		if ( !OwnsSceneGameplay() )
+			return;
+
 		SpawnAllocator?.RebuildCandidatesAndRefreshLobbyPoints();
 		ValidateMap( logResults: true, validateGeometry: true );
 	}
@@ -205,6 +214,9 @@ public sealed class LargeLadGameManager : Component
 		LargeLadSpawnGroup group,
 		IReadOnlyList<LargeLadPlayer> players )
 	{
+		if ( !OwnsSceneGameplay() )
+			return new Dictionary<LargeLadPlayer, LargeLadSpawnLocation>();
+
 		return SpawnAllocator?.AllocateBatch( group, players ) ??
 			new Dictionary<LargeLadPlayer, LargeLadSpawnLocation>();
 	}
@@ -215,6 +227,9 @@ public sealed class LargeLadGameManager : Component
 		IReadOnlyCollection<LargeLadPlayer> additionallyRelocatingPlayers,
 		IReadOnlyList<Vector3> projectedOccupiedPositions )
 	{
+		if ( !OwnsSceneGameplay() )
+			return new Dictionary<LargeLadPlayer, LargeLadSpawnLocation>();
+
 		return SpawnAllocator?.AllocateBatch(
 			group,
 			players,
@@ -228,7 +243,7 @@ public sealed class LargeLadGameManager : Component
 		LargeLadPlayer player,
 		out LargeLadSpawnLocation location )
 	{
-		if ( SpawnAllocator is not null )
+		if ( OwnsSceneGameplay() && SpawnAllocator is not null )
 			return SpawnAllocator.TryAllocate( group, player, out location );
 
 		location = default;
@@ -236,21 +251,18 @@ public sealed class LargeLadGameManager : Component
 	}
 
 	/// <summary>
-	/// Returns only the spawn-contract failures that make a complete round
+	/// Returns bootstrap and spawn-contract failures that make a complete round
 	/// unsafe. Other map-contract warnings do not block round flow.
 	/// </summary>
 	public IReadOnlyList<string> GetBlockingRoundSpawnIssues()
 	{
 		var issues = new List<string>();
 		ResolveBootstrapReferences();
+		issues.AddRange(
+			LargeLadSceneRegistry.GetBlockingBootstrapIssues( Scene, this ) );
 
 		if ( SpawnAllocator is null )
-		{
-			issues.Add(
-				"No LargeLadSpawnAllocator is available. Keep exactly one " +
-				"Large Lad Gameplay Bootstrap in the scene." );
 			return issues;
-		}
 
 		ValidateSpawnGroup(
 			issues,
@@ -272,6 +284,11 @@ public sealed class LargeLadGameManager : Component
 
 	public bool CanSafelyStartRound( bool logFailures )
 	{
+		// The registry owns bootstrap diagnostics and logs them once per invalid
+		// scene state. A non-owner must never emit a second error or start work.
+		if ( !OwnsSceneGameplay() )
+			return false;
+
 		var issues = GetBlockingRoundSpawnIssues();
 
 		if ( issues.Count == 0 )
@@ -291,46 +308,12 @@ public sealed class LargeLadGameManager : Component
 		bool validateGeometry = false )
 	{
 		var issues = new List<string>();
+		var blockingBootstrapIssues =
+			LargeLadSceneRegistry.GetBlockingBootstrapIssues( Scene, this )
+				.ToList();
 		var blockingSpawnIssues = new List<string>();
 		ResolveBootstrapReferences();
-
-		var gameManagers =
-			Scene?.GetAllComponents<LargeLadGameManager>().ToList() ?? new();
-		var networkHelpers =
-			Scene?.GetAllComponents<NetworkHelper>().ToList() ?? new();
-		var allocators =
-			Scene?.GetAllComponents<LargeLadSpawnAllocator>().ToList() ?? new();
-
-		if ( gameManagers.Count != 1 )
-			issues.Add( $"Expected one LargeLadGameManager, found {gameManagers.Count}." );
-
-		if ( networkHelpers.Count != 1 )
-			issues.Add( $"Expected one NetworkHelper, found {networkHelpers.Count}." );
-
-		if ( allocators.Count != 1 )
-			issues.Add( $"Expected one LargeLadSpawnAllocator, found {allocators.Count}." );
-
-		if ( NetworkHelper is null )
-		{
-			issues.Add(
-				"LargeLadGameManager needs its bootstrap NetworkHelper reference." );
-		}
-		else if ( NetworkHelper.GameObject != GameObject )
-		{
-			issues.Add(
-				"LargeLadGameManager's NetworkHelper must be on the gameplay bootstrap." );
-		}
-
-		if ( SpawnAllocator is null )
-		{
-			issues.Add(
-				"LargeLadGameManager needs its bootstrap LargeLadSpawnAllocator reference." );
-		}
-		else if ( SpawnAllocator.GameObject != GameObject )
-		{
-			issues.Add(
-				"LargeLadGameManager's LargeLadSpawnAllocator must be on the gameplay bootstrap." );
-		}
+		issues.AddRange( blockingBootstrapIssues );
 
 		if ( MinimumPlayers < 2 )
 			issues.Add( "Minimum players must be at least two." );
@@ -441,7 +424,13 @@ public sealed class LargeLadGameManager : Component
 			{
 				foreach ( var issue in issues )
 				{
-					if ( blockingSpawnIssues.Contains( issue ) )
+					if ( blockingBootstrapIssues.Contains( issue ) )
+					{
+						// The scene registry owns the single fail-closed bootstrap
+						// diagnostic so duplicate managers cannot each report it.
+						continue;
+					}
+					else if ( blockingSpawnIssues.Contains( issue ) )
 					{
 						Log.Error(
 							$"Map contract blocks round start: {issue}" );
@@ -459,7 +448,7 @@ public sealed class LargeLadGameManager : Component
 
 	protected override void OnUpdate()
 	{
-		if ( !Networking.IsHost )
+		if ( !Networking.IsHost || !OwnsSceneGameplay() )
 			return;
 
 		var players = GetActivePlayerSnapshot();
@@ -580,7 +569,6 @@ public sealed class LargeLadGameManager : Component
 			player.Inventory?.ClearForRoundReset();
 
 		ResetMapState();
-		pendingDeathPlans.Clear();
 		Winner = LargeLadWinner.None;
 		nextLargeLadIndex = (nextLargeLadIndex + 1) % players.Count;
 		lobbyPlacedPlayers.Clear();
@@ -616,6 +604,7 @@ public sealed class LargeLadGameManager : Component
 	public void EndRound( LargeLadWinner winner )
 	{
 		if ( !Networking.IsHost ||
+			!OwnsSceneGameplay() ||
 			(Phase != LargeLadRoundPhase.HeadStart && Phase != LargeLadRoundPhase.Playing) )
 		{
 			return;
@@ -727,19 +716,19 @@ public sealed class LargeLadGameManager : Component
 			EndRound( winner );
 	}
 
-	internal void HandlePlayerLethalTransition(
+	internal bool HandlePlayerLethalTransition(
 		LargeLadPlayer player,
 		LargeLadDamageContext damage )
 	{
-		// TryBeginDeath is the final idempotency gate. The stored plan remains
-		// authoritative until this life reaches its spawn destination.
+		// TryBeginDeath is the final idempotency gate. All state required to
+		// reconstruct the respawn remains synchronized on the player and health.
 		if ( !Networking.IsHost ||
+			!OwnsSceneGameplay() ||
 			player?.Health is null ||
 			!registeredPlayers.Contains( player ) ||
-			player.Scene != Scene ||
-			pendingDeathPlans.ContainsKey( player ) )
+			player.Scene != Scene )
 		{
-			return;
+			return false;
 		}
 
 		var plan = LargeLadGameplayRules.ResolveDeathPlan(
@@ -752,11 +741,10 @@ public sealed class LargeLadGameManager : Component
 			plan.RespawnDelay,
 			plan.UseRagdoll ) )
 		{
-			return;
+			return false;
 		}
 
 		player.Inventory?.HandleDeath( player.GameObject.WorldPosition );
-		pendingDeathPlans.Add( player, plan );
 		player.SetPendingRespawnRole( plan.ResultingRole );
 		player.MovementLocked = true;
 
@@ -768,11 +756,13 @@ public sealed class LargeLadGameManager : Component
 			$"{conversion}; respawn in {plan.RespawnDelay:0.#} seconds." );
 
 		EvaluateWinnerAfterLifecycleChange();
+		return true;
 	}
 
 	public void RequestEnvironmentalDeath( LargeLadPlayer player )
 	{
 		if ( !Networking.IsHost ||
+			!OwnsSceneGameplay() ||
 			Phase is not (LargeLadRoundPhase.HeadStart or LargeLadRoundPhase.Playing) ||
 			player?.Health is null ||
 			!registeredPlayers.Contains( player ) ||
@@ -792,7 +782,6 @@ public sealed class LargeLadGameManager : Component
 
 			if ( health is null ||
 				!health.IsDead ||
-				!pendingDeathPlans.TryGetValue( player, out var plan ) ||
 				!health.TickRespawnCountdown() )
 			{
 				continue;
@@ -801,10 +790,10 @@ public sealed class LargeLadGameManager : Component
 			var roundIsActive =
 				Phase is LargeLadRoundPhase.HeadStart or LargeLadRoundPhase.Playing;
 			var respawnRole = roundIsActive
-				? plan.ResultingRole
+				? GetEffectiveRoundRole( player )
 				: LargeLadRole.Unassigned;
 			var spawnGroup = roundIsActive
-				? plan.SpawnGroup
+				? LargeLadGameplayRules.GetSpawnGroupForRole( respawnRole )
 				: LargeLadSpawnGroup.Lobby;
 
 			if ( !TryAllocatePlayerSpawn(
@@ -828,7 +817,6 @@ public sealed class LargeLadGameManager : Component
 			if ( !roundIsActive )
 				lobbyPlacedPlayers.Add( player );
 
-			pendingDeathPlans.Remove( player );
 			Log.Info( $"{player.GameObject.Name} respawned as {GetRoleName( respawnRole )}." );
 		}
 	}
@@ -855,6 +843,11 @@ public sealed class LargeLadGameManager : Component
 			player.RespawnAs( LargeLadRole.Unassigned, spawn );
 			lobbyPlacedPlayers.Add( player );
 		}
+	}
+
+	internal void ResolveBootstrapReferencesForRegistry()
+	{
+		ResolveBootstrapReferences();
 	}
 
 	private void ResolveBootstrapReferences()
@@ -955,7 +948,9 @@ public sealed class LargeLadGameManager : Component
 
 		activePlayers.Add( player );
 		IndexPlayerRole( player, player.Role );
-		EvaluateWinnerAfterLifecycleChange();
+
+		if ( !isHydratingRegistrations )
+			EvaluateWinnerAfterLifecycleChange();
 	}
 
 	internal void UnregisterPlayer( LargeLadPlayer player )
@@ -972,10 +967,11 @@ public sealed class LargeLadGameManager : Component
 			currentLargeLad = FindIndexedLargeLad();
 
 		lobbyPlacedPlayers.Remove( player );
-		pendingDeathPlans.Remove( player );
 		reportedSpawnAllocationFailures.RemoveWhere(
 			failure => failure.Player == player );
-		EvaluateWinnerAfterLifecycleChange();
+
+		if ( !isHydratingRegistrations )
+			EvaluateWinnerAfterLifecycleChange();
 	}
 
 	internal void UpdatePlayerRole(
@@ -998,7 +994,8 @@ public sealed class LargeLadGameManager : Component
 			currentLargeLad = FindIndexedLargeLad();
 		}
 
-		EvaluateWinnerAfterLifecycleChange();
+		if ( !isHydratingRegistrations )
+			EvaluateWinnerAfterLifecycleChange();
 	}
 
 	internal void RegisterRoundResettable(
@@ -1023,6 +1020,44 @@ public sealed class LargeLadGameManager : Component
 		}
 
 		roundResettables.Remove( resettable );
+	}
+
+	internal void AcquireSceneGameplayOwnership(
+		IReadOnlyList<LargeLadPlayer> players,
+		IReadOnlyList<ILargeLadRoundResettable> resettables )
+	{
+		ClearRegistrations();
+		isHydratingRegistrations = true;
+
+		try
+		{
+			foreach ( var player in players )
+				RegisterPlayer( player );
+
+			foreach ( var resettable in resettables )
+				RegisterRoundResettable( resettable );
+
+			ReconcilePlayerRoleIndexes();
+		}
+		finally
+		{
+			isHydratingRegistrations = false;
+		}
+
+		if ( hasStarted )
+		{
+			ResolveBootstrapReferences();
+			SpawnAllocator?.ConfigureNetworkHelper( NetworkHelper );
+		}
+
+		// Hydration is one lifecycle transaction. A partially restored role
+		// index must never be visible to the winner check.
+		EvaluateWinnerAfterLifecycleChange();
+	}
+
+	internal void ReleaseSceneGameplayOwnership()
+	{
+		ClearRegistrations();
 	}
 
 	private void AttachToSceneRegistry()
@@ -1059,7 +1094,6 @@ public sealed class LargeLadGameManager : Component
 		roundResettables.Clear();
 		registeredRoundResettables.Clear();
 		lobbyPlacedPlayers.Clear();
-		pendingDeathPlans.Clear();
 		reportedSpawnAllocationFailures.Clear();
 	}
 
@@ -1091,6 +1125,11 @@ public sealed class LargeLadGameManager : Component
 			UnregisterRoundResettable( resettable );
 		}
 
+		ReconcilePlayerRoleIndexes();
+	}
+
+	private void ReconcilePlayerRoleIndexes()
+	{
 		// Role change callbacks keep this index current during normal play.
 		// Reconcile from the already-registered player list as a defensive path
 		// for deserialization and network snapshot application.
@@ -1106,6 +1145,11 @@ public sealed class LargeLadGameManager : Component
 		}
 
 		currentLargeLad = FindIndexedLargeLad();
+	}
+
+	private bool OwnsSceneGameplay()
+	{
+		return LargeLadSceneRegistry.IsGameplayOwner( Scene, this );
 	}
 
 	private void IndexPlayerRole(

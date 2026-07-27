@@ -120,8 +120,24 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 			CurrentHealth,
 			hasReportedLethalTransition ) )
 		{
-			ReportLethalTransition( player, appliedDamage );
-			return true;
+			var managerAccepted =
+				TryReportLethalTransition( player, appliedDamage );
+
+			if ( LargeLadGameplayRules.CanCommitLethalTransition(
+				previousHealth,
+				CurrentHealth,
+				hasReportedLethalTransition,
+				managerAccepted ) )
+			{
+				hasReportedLethalTransition = true;
+				return true;
+			}
+
+			// The manager did not commit the death, so roll the damage
+			// transaction back to a valid living state. A later damage event can
+			// retry the same lethal edge after registry/bootstrap recovery.
+			CurrentHealth = previousHealth;
+			appliedDamage = damage.WithAppliedDamage( 0.0f );
 		}
 
 		return false;
@@ -156,8 +172,20 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 			return false;
 		}
 
-		ReportLethalTransition( player, death );
-		return true;
+		var managerAccepted = TryReportLethalTransition( player, death );
+
+		if ( LargeLadGameplayRules.CanCommitLethalTransition(
+			previousHealth,
+			CurrentHealth,
+			hasReportedLethalTransition,
+			managerAccepted ) )
+		{
+			hasReportedLethalTransition = true;
+			return true;
+		}
+
+		CurrentHealth = previousHealth;
+		return false;
 	}
 
 	internal bool TryBeginDeath( float duration, bool useRagdoll )
@@ -184,13 +212,19 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 		return RespawnTimeRemaining <= 0.0f;
 	}
 
-	private void ReportLethalTransition(
+	private bool TryReportLethalTransition(
 		LargeLadPlayer player,
 		LargeLadDamageContext damage )
 	{
-		hasReportedLethalTransition = true;
-		LargeLadGameManager.FindForScene( Scene )?
-			.HandlePlayerLethalTransition( player, damage );
+		var manager = LargeLadGameManager.FindForScene( Scene );
+
+		if ( manager is null ||
+			!manager.HandlePlayerLethalTransition( player, damage ) )
+		{
+			return false;
+		}
+
+		return true;
 	}
 
 	private void OnIsDeadChanged( bool oldValue, bool newValue )
