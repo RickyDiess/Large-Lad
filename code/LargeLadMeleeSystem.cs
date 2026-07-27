@@ -18,36 +18,6 @@ public sealed class LargeLadMeleeSystem : Component
 	private const float HostCadenceTolerance = 0.025f;
 	private const float ConfirmedHitmarkerDuration = 0.14f;
 
-	[Property, Group( "Skinny Kid" )]
-	public float SkinnyKidRange { get; set; } = 80.0f;
-
-	[Property, Group( "Skinny Kid" )]
-	public float SkinnyKidCooldown { get; set; } = 0.65f;
-
-	[Property, Group( "Skinny Kid" )]
-	public float SkinnyKidDamage { get; set; } = 25.0f;
-
-	[Property, Group( "Large Lad" )]
-	public float LargeLadRange { get; set; } = 100.0f;
-
-	[Property, Group( "Large Lad" )]
-	public float LargeLadCooldown { get; set; } = 0.1f;
-
-	[Property, Group( "Large Lad" ), Title( "Damage" )]
-	public float LargeLadDamage { get; set; } = 10.0f;
-
-	[Property, Group( "Large Lad" ), Title( "Use Aim Assist" )]
-	public bool LargeLadUseAimAssist { get; set; } = false;
-
-	[Property, Group( "Minion" )]
-	public float MinionRange { get; set; } = 80.0f;
-
-	[Property, Group( "Minion" )]
-	public float MinionCooldown { get; set; } = 0.65f;
-
-	[Property, Group( "Minion" )]
-	public float MinionDamage { get; set; } = 25.0f;
-
 	[Property, Group( "Targeting" ), Title( "Swing Trace Radius" )]
 	public float SwingTraceRadius { get; set; } = 18.0f;
 
@@ -55,7 +25,8 @@ public sealed class LargeLadMeleeSystem : Component
 	public float MinimumFacingDot { get; set; } = 0.55f;
 
 	[Property, Group( "Melee Model" )]
-	public Model MeleeModel { get; set; }
+	public Model MeleeModel { get; set; } =
+		Model.Load( "models/citizen_props/crowbar01.vmdl" );
 
 	[Property, Group( "Melee Model" ), Title( "Skinny Kid Hold Bone" )]
 	public string MeleeModelBone { get; set; } = "hold_R";
@@ -68,8 +39,7 @@ public sealed class LargeLadMeleeSystem : Component
 		new( 0.0f, 0.0f, 0.0f );
 
 	[Property, Group( "Melee Model" ), Title( "Model-space Grip Point" )]
-	public Vector3 MeleeModelGripPosition { get; set; } =
-		new( 0.0f, 0.0f, -18.0f );
+	public Vector3 MeleeModelGripPosition { get; set; } = Vector3.Zero;
 
 	[Property, Group( "Melee Model" )]
 	public float MeleeModelScale { get; set; } = 0.25f;
@@ -120,9 +90,10 @@ public sealed class LargeLadMeleeSystem : Component
 		if ( !CanAttack( attacker, controller ) )
 			return;
 
-		var profile = GetProfile( attacker.Role );
+		if ( !attacker.TryGetRoleProfile( attacker.Role, out var profile ) )
+			return;
 
-		if ( timeSinceLocalSwing < profile.Cooldown )
+		if ( timeSinceLocalSwing < profile.MeleeCooldown )
 			return;
 
 		timeSinceLocalSwing = 0.0f;
@@ -139,23 +110,11 @@ public sealed class LargeLadMeleeSystem : Component
 
 	protected override void OnValidate()
 	{
-		if ( SkinnyKidRange <= 0.0f || LargeLadRange <= 0.0f ||
-			MinionRange <= 0.0f )
-		{
-			Log.Warning( $"{GameObject.Name}: melee ranges must be positive." );
-		}
+		if ( SwingTraceRadius <= 0.0f )
+			Log.Warning( $"{GameObject.Name}: swing trace radius must be positive." );
 
-		if ( SkinnyKidCooldown <= 0.0f || LargeLadCooldown <= 0.0f ||
-			MinionCooldown <= 0.0f )
-		{
-			Log.Warning( $"{GameObject.Name}: melee cooldowns must be positive." );
-		}
-
-		if ( SkinnyKidDamage <= 0.0f || LargeLadDamage <= 0.0f ||
-			MinionDamage <= 0.0f )
-		{
-			Log.Warning( $"{GameObject.Name}: melee damage must be positive." );
-		}
+		if ( MinimumFacingDot < -1.0f || MinimumFacingDot > 1.0f )
+			Log.Warning( $"{GameObject.Name}: aim-assist facing dot must be -1 to 1." );
 	}
 
 	[Rpc.Host( NetFlags.OwnerOnly )]
@@ -177,7 +136,9 @@ public sealed class LargeLadMeleeSystem : Component
 		if ( !CanAttack( attacker, controller ) )
 			return;
 
-		var profile = GetProfile( attacker.Role );
+		if ( !attacker.TryGetRoleProfile( attacker.Role, out var profile ) )
+			return;
+
 		var hostNow = Time.Now;
 
 		if ( hasHostSwingSchedule &&
@@ -186,15 +147,15 @@ public sealed class LargeLadMeleeSystem : Component
 			return;
 		}
 
-		CommitHostCadence( profile.Cooldown, hostNow );
+		CommitHostCadence( profile.MeleeCooldown, hostNow );
 		BroadcastMeleeSwingAnimation();
 
 		var target = FindMeleeTarget(
 			attacker,
 			controller,
-			profile.Range,
-			profile.UseAimAssist );
-		var result = ResolveAttack( attacker, target, profile.Damage );
+			profile.MeleeRange,
+			profile.MeleeAimAssist );
+		var result = ResolveAttack( attacker, target, profile.MeleeDamage );
 		ReceiveMeleeResult( ownerSwingSequence, result );
 	}
 
@@ -496,33 +457,6 @@ public sealed class LargeLadMeleeSystem : Component
 		return attacker.Role == LargeLadRole.SkinnyKid
 			? target.Role is LargeLadRole.LargeLad or LargeLadRole.Minion
 			: target.Role == LargeLadRole.SkinnyKid;
-	}
-
-	private MeleeProfile GetProfile( LargeLadRole role )
-	{
-		return role switch
-		{
-			LargeLadRole.SkinnyKid => new MeleeProfile(
-				SkinnyKidRange,
-				SkinnyKidCooldown,
-				SkinnyKidDamage,
-				useAimAssist: true ),
-			LargeLadRole.LargeLad => new MeleeProfile(
-				LargeLadRange,
-				LargeLadCooldown,
-				LargeLadDamage,
-				LargeLadUseAimAssist ),
-			LargeLadRole.Minion => new MeleeProfile(
-				MinionRange,
-				MinionCooldown,
-				MinionDamage,
-				useAimAssist: true ),
-			_ => new MeleeProfile(
-				0.0f,
-				float.MaxValue,
-				0.0f,
-				useAimAssist: false )
-		};
 	}
 
 	private void CommitHostCadence( float cooldown, float hostNow )
@@ -860,26 +794,6 @@ public sealed class LargeLadMeleeSystem : Component
 		return Scene
 			.GetAllComponents<LargeLadRoundManager>()
 			.FirstOrDefault();
-	}
-
-	private readonly struct MeleeProfile
-	{
-		public float Range { get; }
-		public float Cooldown { get; }
-		public float Damage { get; }
-		public bool UseAimAssist { get; }
-
-		public MeleeProfile(
-			float range,
-			float cooldown,
-			float damage,
-			bool useAimAssist )
-		{
-			Range = System.MathF.Max( 0.0f, range );
-			Cooldown = System.MathF.Max( 0.01f, cooldown );
-			Damage = System.MathF.Max( 0.0f, damage );
-			UseAimAssist = useAimAssist;
-		}
 	}
 
 	private sealed class MeleeTarget

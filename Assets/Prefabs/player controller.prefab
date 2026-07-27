@@ -75,7 +75,7 @@
         "RotationAngleLimit": 45,
         "RotationSpeed": 1,
         "RunByDefault": false,
-        "RunSpeed": 320,
+        "RunSpeed": 300,
         "ShowColliderComponents": false,
         "ShowRigidbodyComponent": false,
         "ThirdPerson": true,
@@ -241,20 +241,12 @@
           "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
           "component_type": "LargeLadInventory"
         },
-        "LargeLadBodyScale": "1.25,1.45000005,1",
-        "LargeLadRunSpeed": 100,
-        "LargeLadTint": "1,0.25,0.05,1",
-        "LargeLadWalkSpeed": 85,
         "MeleeSystem": {
           "_type": "component",
           "component_id": "f9fa267a-1412-4ddb-a419-79fa17a78854",
           "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
           "component_type": "LargeLadMeleeSystem"
         },
-        "MinionBodyScale": "1,1,1",
-        "MinionRunSpeed": 325,
-        "MinionTint": "0.55,0.15,0.75,1",
-        "MinionWalkSpeed": 110,
         "OnComponentDestroy": null,
         "OnComponentDisabled": null,
         "OnComponentEnabled": null,
@@ -267,10 +259,7 @@
           "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
           "component_type": "LargeLadPrototypeWeapon"
         },
-        "RunnerBodyScale": "1,1,1",
-        "RunnerRunSpeed": 300,
-        "RunnerTint": "1,1,1,1",
-        "RunnerWalkSpeed": 110
+        "RoleProfiles": "gameplay/default_role_profiles.llroles"
       },
       {
         "__type": "LargeLadHealth",
@@ -278,16 +267,12 @@
         "__enabled": true,
         "Flags": 0,
         "CreateRagdollOnDeath": true,
-        "LargeLadDamageMultiplier": 0.1,
-        "LargeLadMaximumHealth": 500,
-        "MinionMaximumHealth": 75,
         "OnComponentDestroy": null,
         "OnComponentDisabled": null,
         "OnComponentEnabled": null,
         "OnComponentFixedUpdate": null,
         "OnComponentStart": null,
-        "OnComponentUpdate": null,
-        "SkinnyKidMaximumHealth": 100
+        "OnComponentUpdate": null
       },
       {
         "__type": "LargeLadInventory",
@@ -321,10 +306,6 @@
         "Flags": 0,
         "FirstPersonArmsAngles": "0,0,0",
         "FirstPersonArmsPosition": "0,0,0",
-        "LargeLadCooldown": 0.1,
-        "LargeLadDamage": 10,
-        "LargeLadRange": 100,
-        "LargeLadUseAimAssist": false,
         "MeleeModel": "models/citizen_props/crowbar01.vmdl",
         "MeleeModelAngles": "0,0,0",
         "MeleeModelBone": "hold_R",
@@ -332,9 +313,6 @@
         "MeleeModelPosition": "0,0,0",
         "MeleeModelScale": 0.25,
         "MinimumFacingDot": 0.55,
-        "MinionCooldown": 0.5,
-        "MinionDamage": 25,
-        "MinionRange": 80,
         "OnComponentDestroy": null,
         "OnComponentDisabled": null,
         "OnComponentEnabled": null,
@@ -342,9 +320,6 @@
         "OnComponentStart": null,
         "OnComponentUpdate": null,
         "ShowFirstPersonArms": true,
-        "SkinnyKidCooldown": 0.65,
-        "SkinnyKidDamage": 25,
-        "SkinnyKidRange": 80,
         "SwingTraceRadius": 18
       },
       {

@@ -12,6 +12,12 @@ Properties/*
 code/obj/*
 code/Properties/*
 
+# Automated test output
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
 # Auto-generated asset related files
 .sbox/*
 *.generated.*

@@ -1,0 +1,40 @@
+{
+  "SkinnyKid": {
+    "WalkSpeed": 110,
+    "RunSpeed": 300,
+    "MaximumHealth": 100,
+    "IncomingDamageMultiplier": 1,
+    "BodyTint": "1,1,1,1",
+    "BodyVisualScale": "1,1,1",
+    "MeleeRange": 80,
+    "MeleeCooldown": 0.65,
+    "MeleeDamage": 25,
+    "MeleeAimAssist": true
+  },
+  "LargeLad": {
+    "WalkSpeed": 85,
+    "RunSpeed": 100,
+    "MaximumHealth": 500,
+    "IncomingDamageMultiplier": 0.1,
+    "BodyTint": "1,1,1,1",
+    "BodyVisualScale": "1.25,1.45,1",
+    "MeleeRange": 100,
+    "MeleeCooldown": 0.1,
+    "MeleeDamage": 10,
+    "MeleeAimAssist": false
+  },
+  "Minion": {
+    "WalkSpeed": 110,
+    "RunSpeed": 325,
+    "MaximumHealth": 75,
+    "IncomingDamageMultiplier": 1,
+    "BodyTint": "1,1,1,1",
+    "BodyVisualScale": "1,1,1",
+    "MeleeRange": 80,
+    "MeleeCooldown": 0.5,
+    "MeleeDamage": 25,
+    "MeleeAimAssist": true
+  },
+  "__references": [],
+  "__version": 0
+}

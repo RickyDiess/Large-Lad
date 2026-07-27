@@ -114,7 +114,9 @@ public sealed class LargeLadRoundManager : Component
 				PlaceUnassignedPlayersInLobby( players );
 				UpdateInactiveRespawns( players );
 
-				if ( players.Count < MinimumPlayers )
+				if ( !LargeLadGameplayRules.HasMinimumPlayers(
+					players.Count,
+					MinimumPlayers ) )
 				{
 					waitingPlayerCount = players.Count;
 					playerReadyTimeRemaining = PlayerReadyDelay;
@@ -221,7 +223,7 @@ public sealed class LargeLadRoundManager : Component
 			player.Health?.ResetForCurrentRole();
 
 		PhaseTimeRemaining = HeadStartDuration;
-		Phase = LargeLadRoundPhase.HeadStart;
+		SetPhase( LargeLadRoundPhase.HeadStart );
 		Log.Info( $"Round started with {players.Count} players and a {HeadStartDuration:0.#}-second head start." );
 	}
 
@@ -231,7 +233,7 @@ public sealed class LargeLadRoundManager : Component
 			player.MovementLocked = false;
 
 		PhaseTimeRemaining = RoundDuration;
-		Phase = LargeLadRoundPhase.Playing;
+		SetPhase( LargeLadRoundPhase.Playing );
 		Log.Info( $"Head start finished. Skinny Kids must survive {RoundDuration:0.#} seconds." );
 	}
 
@@ -245,7 +247,7 @@ public sealed class LargeLadRoundManager : Component
 
 		Winner = winner;
 		PhaseTimeRemaining = IntermissionDuration;
-		Phase = LargeLadRoundPhase.RoundOver;
+		SetPhase( LargeLadRoundPhase.RoundOver );
 
 		var players = Scene.GetAllComponents<LargeLadPlayer>().ToList();
 		var returningPlayers = new List<LargeLadPlayer>();
@@ -277,13 +279,15 @@ public sealed class LargeLadRoundManager : Component
 		PhaseTimeRemaining = 0.0f;
 		Winner = LargeLadWinner.None;
 
-		if ( players.Count >= MinimumPlayers )
+		if ( LargeLadGameplayRules.HasMinimumPlayers(
+			players.Count,
+			MinimumPlayers ) )
 		{
 			StartRound( players );
 			return;
 		}
 
-		Phase = LargeLadRoundPhase.WaitingForPlayers;
+		SetPhase( LargeLadRoundPhase.WaitingForPlayers );
 		Log.Info( "Waiting for enough players to start the next round." );
 	}
 
@@ -303,21 +307,17 @@ public sealed class LargeLadRoundManager : Component
 
 	private bool EndRoundIfTeamIsMissing( List<LargeLadPlayer> players )
 	{
-		if ( players.All( player =>
-			GetEffectiveRoundRole( player ) != LargeLadRole.LargeLad ) )
-		{
-			EndRound( LargeLadWinner.SkinnyKids );
-			return true;
-		}
+		var winner = LargeLadGameplayRules.DetermineWinnerWhenTeamIsMissing(
+			players.Any( player =>
+				GetEffectiveRoundRole( player ) == LargeLadRole.LargeLad ),
+			players.Any( player =>
+				GetEffectiveRoundRole( player ) == LargeLadRole.SkinnyKid ) );
 
-		if ( players.All( player =>
-			GetEffectiveRoundRole( player ) != LargeLadRole.SkinnyKid ) )
-		{
-			EndRound( LargeLadWinner.LargeLadTeam );
-			return true;
-		}
+		if ( winner == LargeLadWinner.None )
+			return false;
 
-		return false;
+		EndRound( winner );
+		return true;
 	}
 
 	private void UpdateLargeLadRespawn( List<LargeLadPlayer> players )
@@ -327,6 +327,10 @@ public sealed class LargeLadRoundManager : Component
 
 		if ( largeLad is null || health is null )
 			return;
+
+		var respawnRole = LargeLadGameplayRules.ResolveRespawnRole(
+			largeLad.Role,
+			largeLad.Role );
 
 		if ( !health.IsDead && health.HasPendingLethalDamage )
 		{
@@ -342,7 +346,7 @@ public sealed class LargeLadRoundManager : Component
 
 		TeleportPlayer( largeLad, LargeLadSpawnGroup.Hunter );
 		health.ResetForCurrentRole();
-		largeLad.Inventory?.PrepareForRole( LargeLadRole.LargeLad );
+		largeLad.Inventory?.PrepareForRole( respawnRole );
 		largeLad.MovementLocked = Phase == LargeLadRoundPhase.HeadStart;
 		Log.Info( "The Large Lad respawned." );
 	}
@@ -357,8 +361,9 @@ public sealed class LargeLadRoundManager : Component
 
 		player.Inventory?.HandleDeath( player.GameObject.WorldPosition );
 
-		if ( player.Role == LargeLadRole.SkinnyKid )
-			respawnRole = LargeLadRole.Minion;
+		respawnRole = LargeLadGameplayRules.ResolveRespawnRole(
+			player.Role,
+			respawnRole );
 
 		player.SetPendingRespawnRole( respawnRole );
 		player.MovementLocked = true;
@@ -539,11 +544,23 @@ public sealed class LargeLadRoundManager : Component
 		Log.Info( $"Round phase changed from {oldPhase} to {newPhase}." );
 	}
 
+	private void SetPhase( LargeLadRoundPhase nextPhase )
+	{
+		if ( !LargeLadGameplayRules.CanTransitionRoundPhase( Phase, nextPhase ) )
+		{
+			Log.Warning(
+				$"Ignored invalid round phase transition from {Phase} to {nextPhase}." );
+			return;
+		}
+
+		Phase = nextPhase;
+	}
+
 	private static LargeLadRole GetEffectiveRoundRole( LargeLadPlayer player )
 	{
-		return player.PendingRespawnRole != LargeLadRole.Unassigned
-			? player.PendingRespawnRole
-			: player.Role;
+		return LargeLadGameplayRules.GetEffectiveRoundRole(
+			player.Role,
+			player.PendingRespawnRole );
 	}
 
 	private static string GetRoleName( LargeLadRole role )

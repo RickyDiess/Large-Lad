@@ -106,10 +106,12 @@ public sealed class LargeLadInventory : Component
 		if ( player?.Role != LargeLadRole.SkinnyKid || player.Health?.IsDead == true )
 			return false;
 
-		if ( FindWeaponSlot( weapon ) > 0 )
-			return false;
-
-		var slot = FindEmptySlot();
+		var slot = LargeLadGameplayRules.FindWeaponGrantSlot(
+			weapon,
+			Slot1Weapon,
+			Slot2Weapon,
+			Slot3Weapon,
+			Slot4Weapon );
 
 		if ( slot <= 0 )
 			return false;
@@ -306,17 +308,6 @@ public sealed class LargeLadInventory : Component
 		for ( var slot = 1; slot <= SlotCount; slot++ )
 		{
 			if ( GetWeapon( slot ) == weapon )
-				return slot;
-		}
-
-		return 0;
-	}
-
-	private int FindEmptySlot()
-	{
-		for ( var slot = 1; slot <= SlotCount; slot++ )
-		{
-			if ( GetWeapon( slot ) == LargeLadWeaponId.None )
 				return slot;
 		}
 

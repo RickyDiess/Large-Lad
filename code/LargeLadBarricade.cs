@@ -159,29 +159,15 @@ public sealed class LargeLadBarricade : Component,
 		if ( !Networking.IsHost || IsDestroyed || CurrentHealth <= 0.0f )
 			return false;
 
-		float amount;
-
-		if ( Mode == LargeLadBarricadeMode.SkinnyProgression )
+		if ( !LargeLadGameplayRules.CanDamageBarricade(
+			Mode,
+			damage.AttackerRole,
+			damage.DamageType ) )
 		{
-			if ( damage.AttackerRole != LargeLadRole.SkinnyKid ||
-				damage.DamageType is not (LargeLadDamageType.Firearm or
-					LargeLadDamageType.Melee) )
-			{
-				return false;
-			}
-
-			amount = System.MathF.Max( 0.0f, damage.BaseDamage );
+			return false;
 		}
-		else
-		{
-			if ( damage.AttackerRole != LargeLadRole.LargeLad ||
-				damage.DamageType != LargeLadDamageType.Melee )
-			{
-				return false;
-			}
 
-			amount = System.MathF.Max( 0.0f, damage.BaseDamage );
-		}
+		var amount = System.MathF.Max( 0.0f, damage.BaseDamage );
 
 		if ( amount <= 0.0f )
 			return false;

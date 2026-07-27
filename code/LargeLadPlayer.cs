@@ -31,6 +31,9 @@ public sealed class LargeLadPlayer : Component
 	[Property, RequireComponent]
 	public LargeLadMeleeSystem MeleeSystem { get; set; }
 
+	[Property]
+	public LargeLadRoleProfiles RoleProfiles { get; set; }
+
 	[Sync( SyncFlags.FromHost ), Change( nameof( OnRoleChanged ) )]
 	public LargeLadRole Role { get; set; } = LargeLadRole.Unassigned;
 
@@ -47,45 +50,10 @@ public sealed class LargeLadPlayer : Component
 	[Property]
 	public SkinnedModelRenderer BodyRenderer { get; set; }
 
-	[Property, Title( "Skinny Kid Tint" )]
-	public Color RunnerTint { get; set; } = Color.White;
-
-	[Property]
-	public Color LargeLadTint { get; set; } = new( 1.0f, 0.25f, 0.05f );
-
-	[Property]
-	public Color MinionTint { get; set; } = new( 0.55f, 0.15f, 0.75f );
-
-	[Property, Title( "Skinny Kid Body Scale" )]
-	public Vector3 RunnerBodyScale { get; set; } = Vector3.One;
-
-	[Property]
-	public Vector3 LargeLadBodyScale { get; set; } =
-		new( 1.25f, 1.45f, 1.0f );
-
-	[Property]
-	public Vector3 MinionBodyScale { get; set; } = Vector3.One;
-
-	[Property, Title( "Skinny Kid Walk Speed" )]
-	public float RunnerWalkSpeed { get; set; } = 110.0f;
-
-	[Property, Title( "Skinny Kid Run Speed" )]
-	public float RunnerRunSpeed { get; set; } = 320.0f;
-
-	[Property]
-	public float LargeLadWalkSpeed { get; set; } = 85.0f;
-
-	[Property]
-	public float LargeLadRunSpeed { get; set; } = 230.0f;
-
-	[Property]
-	public float MinionWalkSpeed { get; set; } = 110.0f;
-
-	[Property]
-	public float MinionRunSpeed { get; set; } = 300.0f;
-
 	protected override void OnStart()
 	{
+		LogRoleProfileWarnings();
+
 		if ( Networking.IsHost )
 		{
 			Inventory?.PrepareForRole( Role );
@@ -117,6 +85,11 @@ public sealed class LargeLadPlayer : Component
 		{
 			StopMovement();
 		}
+	}
+
+	protected override void OnValidate()
+	{
+		LogRoleProfileWarnings();
 	}
 
 	private void OnRoleChanged( LargeLadRole oldRole, LargeLadRole newRole )
@@ -183,45 +156,62 @@ public sealed class LargeLadPlayer : Component
 
 	private void ApplyRole( LargeLadRole role )
 	{
+		if ( !TryGetRoleProfile( role, out var profile ) )
+			return;
+
 		if ( BodyRenderer is not null )
 		{
-			BodyRenderer.Tint = role switch
-			{
-				LargeLadRole.LargeLad => LargeLadTint,
-				LargeLadRole.Minion => MinionTint,
-				_ => RunnerTint
-			};
+			BodyRenderer.Tint = profile.BodyTint;
 
 			// Scale only the rendered body hierarchy. Scaling the networked player
 			// root would also distort movement, camera offsets, and physics.
-			BodyRenderer.GameObject.LocalScale = role switch
-			{
-				LargeLadRole.LargeLad => LargeLadBodyScale,
-				LargeLadRole.Minion => MinionBodyScale,
-				_ => RunnerBodyScale
-			};
+			BodyRenderer.GameObject.LocalScale = profile.BodyVisualScale;
 		}
 
 		if ( !IsProxy )
 		{
-			ApplyLocalMovementSettings( role );
+			ApplyLocalMovementSettings( profile );
 		}
 
 	}
 
-	private void ApplyLocalMovementSettings( LargeLadRole role )
+	public bool TryGetRoleProfile(
+		LargeLadRole role,
+		out LargeLadRoleProfile profile )
+	{
+		if ( RoleProfiles is not null )
+			return RoleProfiles.TryGetProfile( role, out profile );
+
+		profile = null;
+		return false;
+	}
+
+	private void ApplyLocalMovementSettings( LargeLadRoleProfile profile )
 	{
 		var controller = Components.Get<PlayerController>();
 
 		if ( controller is null )
 			return;
 
-		( controller.WalkSpeed, controller.RunSpeed ) = role switch
+		controller.WalkSpeed = profile.WalkSpeed;
+		controller.RunSpeed = profile.RunSpeed;
+	}
+
+	private void LogRoleProfileWarnings()
+	{
+		if ( RoleProfiles is null )
 		{
-			LargeLadRole.LargeLad => ( LargeLadWalkSpeed, LargeLadRunSpeed ),
-			LargeLadRole.Minion => ( MinionWalkSpeed, MinionRunSpeed ),
-			_ => ( RunnerWalkSpeed, RunnerRunSpeed )
-		};
+			Log.Warning(
+				$"{GameObject.Name}: Large Lad role profiles are missing; " +
+				"movement, health, visuals, and melee have no role configuration." );
+			return;
+		}
+
+		foreach ( var warning in RoleProfiles.GetValidationWarnings() )
+		{
+			Log.Warning(
+				$"{GameObject.Name}: invalid Large Lad role profiles: {warning}" );
+		}
 	}
 
 	public void RefreshMovementState()

@@ -5,18 +5,6 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 	[Property]
 	public bool CreateRagdollOnDeath { get; set; } = true;
 
-	[Property, Title( "Skinny Kid Maximum Health" )]
-	public float SkinnyKidMaximumHealth { get; set; } = 100.0f;
-
-	[Property]
-	public float LargeLadMaximumHealth { get; set; } = 500.0f;
-
-	[Property, Title( "Large Lad Incoming Damage Multiplier" )]
-	public float LargeLadDamageMultiplier { get; set; } = 0.25f;
-
-	[Property]
-	public float MinionMaximumHealth { get; set; } = 75.0f;
-
 	[Sync( SyncFlags.FromHost )]
 	public float CurrentHealth { get; private set; }
 
@@ -41,12 +29,13 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 		{
 			var player = Components.Get<LargeLadPlayer>();
 
-			return player?.Role switch
+			if ( player is null ||
+				!player.TryGetRoleProfile( player.Role, out var profile ) )
 			{
-				LargeLadRole.LargeLad => LargeLadMaximumHealth,
-				LargeLadRole.Minion => MinionMaximumHealth,
-				_ => SkinnyKidMaximumHealth
-			};
+				return 0.0f;
+			}
+
+			return profile.MaximumHealth;
 		}
 	}
 
@@ -105,9 +94,11 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 		if ( player is null || player.Role == LargeLadRole.Unassigned )
 			return false;
 
-		var multiplier = player.Role == LargeLadRole.LargeLad
-			? System.MathF.Max( 0.0f, LargeLadDamageMultiplier )
-			: 1.0f;
+		if ( !player.TryGetRoleProfile( player.Role, out var profile ) )
+			return false;
+
+		var multiplier =
+			System.MathF.Max( 0.0f, profile.IncomingDamageMultiplier );
 
 		var amount = damage.BaseDamage * multiplier;
 

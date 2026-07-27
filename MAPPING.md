@@ -56,12 +56,27 @@ component's center is clear.
 
 - Authoritative capsule: 32 units wide and 72 units tall.
 - Step height: 18 units.
-- Skinny Kid movement: 110 walk, 320 run.
-- Large Lad movement: 85 walk, 230 run.
-- Minion movement: 110 walk, 300 run.
-- Skinny Kid melee reach: 80 units.
-- Large Lad melee reach: 100 units.
-- Minion melee reach: 80 units.
+
+The authoritative gameplay baseline is
+`Assets/Gameplay/default_role_profiles.llroles`:
+
+| Role | Walk | Run | Maximum health | Incoming damage | Body tint | Visual scale |
+| --- | ---: | ---: | ---: | ---: | --- | --- |
+| Skinny Kid | 110 | 300 | 100 | 1.0x | White `(1, 1, 1, 1)` | `(1, 1, 1)` |
+| Large Lad | 85 | 100 | 500 | 0.1x | White `(1, 1, 1, 1)` | `(1.25, 1.45, 1)` |
+| Minion | 110 | 325 | 75 | 1.0x | White `(1, 1, 1, 1)` | `(1, 1, 1)` |
+
+All three normalized body tints are identity white, so changing role does not
+add role coloring. Clothing colors remain unchanged.
+
+The player prefab's generic controller starts at 110 walk and 300 run.
+It references the role-profile resource once on `LargeLadPlayer`.
+`LargeLadPlayer` applies movement and body visuals at start and whenever its
+host-synchronized role changes. `LargeLadHealth` and `LargeLadMeleeSystem`
+resolve the current role through that player reference, so they do not contain
+their own role balance copies. Missing profiles, non-positive movement,
+health, scale, or melee values, and negative incoming-damage multipliers report
+`Large Lad role profiles` validation warnings.
 
 The Large Lad's width is visual only, so routes must fit the normal player
 capsule. Useful greybox starting points are a 96-unit comfortable main corridor,
@@ -110,17 +125,26 @@ route puts the first firearm pickups beyond the first Skinny Progression
 Barricade.
 
 Holding primary attack auto-swings melee for every role at that role's
-configured cooldown. The Large Lad defaults to 10 damage every 0.1 seconds and
-does not use fallback aim assist, so maintaining roughly one second of accurate
-contact drains a full-health Skinny Kid and converts them on death.
+cooldown in the authoritative role-profile resource:
+
+| Role | Damage | Range | Cooldown | Fallback aim assist |
+| --- | ---: | ---: | ---: | --- |
+| Skinny Kid | 25 | 80 | 0.65 seconds | On |
+| Large Lad | 10 | 100 | 0.1 seconds | Off |
+| Minion | 25 | 80 | 0.5 seconds | On |
+
+All roles use an 18-unit swing-trace radius. Fallback aim assist requires a
+minimum facing dot of 0.55. Maintaining roughly one second of accurate Large
+Lad contact drains a full-health Skinny Kid and converts them on death.
 
 The player prefab's `LargeLadMeleeSystem` has one optional Skinny Kid
-`MeleeModel`, attached to the Citizen `hold_R` grip bone with hold-relative
-position, angles, a model-space grip point, and scale settings. It currently
-uses the Citizen crowbar as a quarter-scale placeholder. The grip point remains
-locked to the hand when the model scale changes. Clear or replace it without
-changing combat logic. The Large Lad and Minions always attack unarmed and
-never display this model.
+`MeleeModel`. The verified attachment baseline is the Citizen crowbar
+(`models/citizen_props/crowbar01.vmdl`) on the `hold_R` bone, with hold-relative
+position `(0, 0, 0)`, angles `(0, 0, 0)`, model-space grip point `(0, 0, 0)`,
+and scale `0.25`. First-person melee arms are enabled with position and angles
+both `(0, 0, 0)`. The grip point remains locked to the hand when the model
+scale changes. Clear or replace the model without changing combat logic. The
+Large Lad and Minions always attack unarmed and never display this model.
 
 In first-person mode the local player receives overlay-rendered melee arms,
 bone-merged to the same Citizen animation as the world body. The melee model
