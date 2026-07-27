@@ -751,7 +751,7 @@ public sealed class InventoryRulesTests
 	}
 
 	[TestMethod]
-	public void DroppingExclusive_SelectsRememberedCoreFallback()
+	public void DroppingExclusive_WithRememberedCore_SelectsIt()
 	{
 		var core = new List<LargeLadWeaponState>();
 		LargeLadInventoryRules.TryAddCoreWeapon(
@@ -769,11 +769,50 @@ public sealed class InventoryRulesTests
 			LargeLadWeaponSelectionKind.Core,
 			fallback.Kind );
 		Assert.AreEqual( LargeLadWeaponId.Smg, fallback.Weapon );
+	}
+
+	[TestMethod]
+	public void DroppingExclusive_WithoutCore_SelectsRoleMelee()
+	{
+		var fallback = LargeLadInventoryRules.GetCoreFallback(
+			new List<LargeLadWeaponState>(),
+			LargeLadWeaponId.Pistol );
+
 		Assert.AreEqual(
-			LargeLadWeaponSelection.None,
-			LargeLadInventoryRules.GetCoreFallback(
-				new List<LargeLadWeaponState>(),
-				LargeLadWeaponId.Pistol ) );
+			LargeLadWeaponSelection.ForRoleMelee(),
+			fallback );
+	}
+
+	[TestMethod]
+	public void DroppingExclusive_CannotLeaveLivingSkinnyKidUnselected()
+	{
+		var exclusive = CreateExclusiveState( instanceId: 905 );
+		var exclusiveSelection =
+			LargeLadInventoryRules.SelectionFor( exclusive );
+
+		Assert.IsTrue(
+			LargeLadInventoryRules.CanDropExclusive(
+				isHost: true,
+				ownerRequest: true,
+				LargeLadRole.SkinnyKid,
+				isDead: false,
+				exclusive,
+				exclusiveSelection ) );
+
+		var fallback = LargeLadInventoryRules.GetCoreFallback(
+			new List<LargeLadWeaponState>
+			{
+				LargeLadWeaponState.CreateCore(
+					LargeLadWeaponId.Pistol )
+			},
+			LargeLadWeaponId.Smg );
+
+		Assert.AreNotEqual(
+			LargeLadWeaponSelectionKind.None,
+			fallback.Kind );
+		Assert.AreEqual(
+			LargeLadWeaponSelection.ForRoleMelee(),
+			fallback );
 	}
 
 	[TestMethod]

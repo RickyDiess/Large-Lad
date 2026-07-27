@@ -275,16 +275,18 @@ public static class LargeLadInventoryRules
 		IList<LargeLadWeaponState> coreWeapons,
 		LargeLadWeaponId lastSelectedCoreWeapon )
 	{
-		if ( coreWeapons is null || coreWeapons.Count == 0 )
-			return LargeLadWeaponSelection.None;
-
 		var remembered = FindCoreWeapon(
 			coreWeapons,
 			lastSelectedCoreWeapon );
-		var state = remembered >= 0
-			? coreWeapons[remembered]
-			: coreWeapons[0];
-		return LargeLadWeaponSelection.ForCore( state.Weapon );
+
+		if ( remembered >= 0 &&
+			IsValidCoreState( coreWeapons[remembered] ) )
+		{
+			return LargeLadWeaponSelection.ForCore(
+				coreWeapons[remembered].Weapon );
+		}
+
+		return LargeLadWeaponSelection.ForRoleMelee();
 	}
 
 	public static LargeLadWeaponSelection SelectionFor(

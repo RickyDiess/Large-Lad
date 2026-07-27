@@ -223,7 +223,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "c5653ffa-376b-485a-aa62-6ca6869eae9e"
+                      "$blob": "aa191547-4862-449f-854f-0cd455df7649"
                     },
                     "Materials": [
                       "materials/trimsheets/wood/wood_trim_02.vmat",
@@ -280,7 +280,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "ea887571-227d-446a-a44c-332dcce7e9c4"
+                      "$blob": "b732380c-fdbd-4b8f-905b-90ed86dc004f"
                     },
                     "Materials": [
                       "materials/trimsheets/wood/wood_trim_02.vmat",
@@ -337,7 +337,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "bed72c0b-b6a1-45b8-ba90-c47ea558ba7f"
+                      "$blob": "1f1dfe11-40d1-4906-b841-b2097b6d0e1b"
                     },
                     "Materials": [
                       "materials/wood/floor/wooden_flooring_b2.vmat"
@@ -393,7 +393,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "3f90a9f0-9378-4e05-94cd-85f0b361e4c0"
+                      "$blob": "c3f25951-9d22-438d-a70a-129b85653c5d"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -450,7 +450,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "c32f4ed5-8f32-4767-a6d5-960fbd7582b8"
+                      "$blob": "50a8bdc9-04c1-422e-b19f-ba163c1c7f87"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -507,7 +507,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "c7e3a398-49ec-4750-970f-49babab00e2b"
+                      "$blob": "f7656614-bd47-4cf1-9fb2-d39606f8992a"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -564,12 +564,13 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "a7cb3b3b-f0c0-4142-89ed-cf87726b7921"
+                      "$blob": "9dadf937-f1a9-4c09-980d-79663cb460eb"
                     },
                     "Materials": [
                       "materials/stone/tile/stone_brick_tile.vmat",
                       "materials/dev/gray_grid_4.vmat",
-                      "materials/generic/wall_brick_paint.vmat"
+                      "materials/generic/wall_brick_paint.vmat",
+                      "materials/trimsheets/metal/metal_trim_01.vmat"
                     ]
                   },
                   "OnComponentDestroy": null,
@@ -622,7 +623,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "17b09809-7320-4399-986b-5f66a426e28d"
+                      "$blob": "9fdd811c-abce-4b73-a079-41251b9624d5"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat"
@@ -678,7 +679,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "40f77d94-acc6-4ae2-9050-3ccc0873201c"
+                      "$blob": "ef73714b-1635-4172-bd77-53935b1fdad1"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -735,7 +736,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "3121edd4-193d-4f80-a80d-37037393924f"
+                      "$blob": "c8eb9118-2222-4e97-84b1-d8409082cffa"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -792,7 +793,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "03888e3c-4025-4559-8446-ac1a04025a76"
+                      "$blob": "4634b914-801e-4597-aa6b-db31feeccefc"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -2005,7 +2006,50 @@
               "__version": 2,
               "__Prefab": "prefabs/gameplay/barricade_skinny_progression.prefab",
               "__PrefabInstancePatch": {
-                "AddedObjects": [],
+                "AddedObjects": [
+                  {
+                    "Id": {
+                      "Type": "Component",
+                      "IdValue": "37f7bc2f-550f-4654-91da-5c54cc7ee9f9"
+                    },
+                    "Parent": {
+                      "Type": "GameObject",
+                      "IdValue": "8a200001-0000-4000-8000-000000000001"
+                    },
+                    "PreviousElement": {
+                      "Type": "Component",
+                      "IdValue": "8a200001-0000-4000-8000-000000000004"
+                    },
+                    "ContainerProperty": "Components",
+                    "IsContainerArray": true,
+                    "Data": {
+                      "__type": "Sandbox.BoxCollider",
+                      "__guid": "37f7bc2f-550f-4654-91da-5c54cc7ee9f9",
+                      "__enabled": true,
+                      "Flags": 0,
+                      "Center": "0,0,0",
+                      "ColliderFlags": 0,
+                      "Elasticity": null,
+                      "Friction": null,
+                      "IsTrigger": false,
+                      "OnComponentDestroy": null,
+                      "OnComponentDisabled": null,
+                      "OnComponentEnabled": null,
+                      "OnComponentFixedUpdate": null,
+                      "OnComponentStart": null,
+                      "OnComponentUpdate": null,
+                      "OnObjectTriggerEnter": null,
+                      "OnObjectTriggerExit": null,
+                      "OnTriggerEnter": null,
+                      "OnTriggerExit": null,
+                      "RollingResistance": null,
+                      "Scale": "50,50,50",
+                      "Static": true,
+                      "Surface": null,
+                      "SurfaceVelocity": "0,0,0"
+                    }
+                  }
+                ],
                 "RemovedObjects": [],
                 "PropertyOverrides": [
                   {
@@ -2022,7 +2066,15 @@
                       "IdValue": "8a200001-0000-4000-8000-000000000001"
                     },
                     "Property": "Position",
-                    "Value": "-311.812195,-958.135559,-64.2195129"
+                    "Value": "-311.812195,-950.135559,-64.2195129"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a200001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Tags",
+                    "Value": "world,ladder"
                   },
                   {
                     "Target": {
@@ -2032,7 +2084,7 @@
                     "Property": "Mesh",
                     "Value": {
                       "Data": {
-                        "$blob": "d64b6ab8-c5ef-475a-9ba2-03e8c084ff01"
+                        "$blob": "1ceeae58-6f35-4dcb-ba37-81a123b59d0a"
                       },
                       "Materials": [
                         "materials/dev/gray_grid_4.vmat",
@@ -2081,7 +2133,7 @@
                     "Property": "Mesh",
                     "Value": {
                       "Data": {
-                        "$blob": "a1ae4d5d-40b7-4c6e-be05-2a2b30bb0297"
+                        "$blob": "004d3152-b8a0-4ac0-bc2a-232b5e9cdd34"
                       },
                       "Materials": [
                         "materials/glass/glass_a.vmat"
@@ -2129,7 +2181,7 @@
                     "Property": "Mesh",
                     "Value": {
                       "Data": {
-                        "$blob": "5004b869-284c-4ce9-a542-3db2a0a12478"
+                        "$blob": "05fb08b6-b914-4820-87f6-45d35cb0d4a7"
                       },
                       "Materials": [
                         "materials/dev/gray_grid_4.vmat",
@@ -2358,6 +2410,46 @@
             },
             "Property": "Position",
             "Value": "0,0,512"
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "6ba98835-269e-4ca8-95a4-06e9faf5db59"
+            },
+            "Property": "EnableKillVolumeDebugLogging",
+            "Value": false
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "6ba98835-269e-4ca8-95a4-06e9faf5db59"
+            },
+            "Property": "EnableMapValidationDebugLogging",
+            "Value": false
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "6ba98835-269e-4ca8-95a4-06e9faf5db59"
+            },
+            "Property": "EnableMeleeDebugLogging",
+            "Value": false
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "6ba98835-269e-4ca8-95a4-06e9faf5db59"
+            },
+            "Property": "EnablePickupAndRoundResetDebugLogging",
+            "Value": false
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "6ba98835-269e-4ca8-95a4-06e9faf5db59"
+            },
+            "Property": "EnablePlayerLifecycleDebugLogging",
+            "Value": false
           }
         ],
         "MovedObjects": []
@@ -2461,6 +2553,51 @@
         }
       ],
       "Children": []
+    },
+    {
+      "__guid": "45acd4a6-9ce1-4477-a5c0-f217a6b13090",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Block",
+      "Position": "-240,-1184,200",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "world,ladder",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.BoxCollider",
+          "__guid": "f1603814-3918-475e-b951-feeda19e7414",
+          "__enabled": true,
+          "Flags": 0,
+          "Center": "0,0,16",
+          "ColliderFlags": 0,
+          "Elasticity": null,
+          "Friction": null,
+          "IsTrigger": true,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "RollingResistance": null,
+          "Scale": "16,64,128",
+          "Static": false,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
+        }
+      ],
+      "Children": []
     }
   ],
   "SceneProperties": {
@@ -2503,6 +2640,7 @@
     "ambi.computer_mouse#49614",
     "ambi.keyboard#49619",
     "facepunch.glass_a#293147",
+    "facepunch.metal_trim_01#274119",
     "facepunch.office_chair#308565",
     "facepunch.stonebricktile#313594",
     "facepunch.wall_brick_paint#291897",

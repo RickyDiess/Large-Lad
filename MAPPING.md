@@ -175,8 +175,9 @@ For a limited physical weapon, set that placement's
 `Pickup Policy (Per Instance)` to `Exclusive` and keep its root at Network Mode
 `Object`. Every authored placement creates its own instance, including multiple
 placements with the same weapon definition. An exclusive placement supplies
-one full magazine plus its configured finite reserve for the round. There are no
-ammo refills.
+one full magazine plus the finite reserve defined by that weapon catalog
+entry's `StartingReserve` for the round. Reserve ammunition is not configured
+independently per pickup placement, and there are no ammo refills.
 
 While an exclusive is carried or dropped, its authored pickup stays hidden and
 reserved. Press the `Drop Exclusive Weapon` input (G by default) while it is
@@ -184,7 +185,7 @@ selected to place a runtime pickup near the player. Magazine and reserve values
 survive switching, dropping, repicking, transfer, death, and disconnect. A
 Skinny Kid who already carries one receives local HUD feedback and cannot
 replace it. Round reset destroys any runtime drop, restores the authored pickup,
-and alone restores full configured ammunition.
+and alone restores a full magazine plus the catalog-defined `StartingReserve`.
 
 Skinny Kid starting loadouts are configured as a list of core weapon
 definitions on `LargeLadInventory`; they are not numeric slots. The HUD and
