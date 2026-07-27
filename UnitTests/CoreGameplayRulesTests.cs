@@ -2,6 +2,62 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 
 [TestClass]
+public sealed class TimerRulesTests
+{
+	[TestMethod]
+	public void Deadline_UsesClampedDuration()
+	{
+		Assert.AreEqual(
+			15.0f,
+			LargeLadGameplayRules.GetTimerDeadline(
+				now: 10.0f,
+				duration: 5.0f ) );
+		Assert.AreEqual(
+			10.0f,
+			LargeLadGameplayRules.GetTimerDeadline(
+				now: 10.0f,
+				duration: 0.0f ) );
+		Assert.AreEqual(
+			10.0f,
+			LargeLadGameplayRules.GetTimerDeadline(
+				now: 10.0f,
+				duration: -5.0f ) );
+	}
+
+	[TestMethod]
+	public void JoiningClient_CalculatesCurrentRemainingTimeFromDeadline()
+	{
+		Assert.AreEqual(
+			6.25f,
+			LargeLadGameplayRules.GetTimerTimeRemaining(
+				deadline: 20.0f,
+				now: 13.75f ) );
+		Assert.AreEqual(
+			0.0f,
+			LargeLadGameplayRules.GetTimerTimeRemaining(
+				deadline: 20.0f,
+				now: 21.0f ) );
+	}
+
+	[TestMethod]
+	public void Completion_BeginsAtAuthoritativeDeadline()
+	{
+		Assert.IsFalse(
+			LargeLadGameplayRules.HasTimerReachedDeadline(
+				deadline: 20.0f,
+				now: 19.999f ) );
+		Assert.IsTrue(
+			LargeLadGameplayRules.HasTimerReachedDeadline(
+				deadline: 20.0f,
+				now: 20.0f ) );
+		Assert.IsTrue(
+			LargeLadGameplayRules.HasTimerReachedDeadline(
+				deadline: 20.0f,
+				now: 21.0f ) );
+	}
+}
+
+[TestClass]
 public sealed class RoundRulesTests
 {
 	[TestMethod]

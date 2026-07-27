@@ -7,8 +7,12 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 	[Property]
 	public LargeLadWeaponId Weapon { get; set; } = LargeLadWeaponId.Pistol;
 
-	[Property]
-	public LargeLadPickupPolicy Policy { get; set; } =
+	/// <summary>
+	/// Per-placement ownership policy. This is intentionally not weapon-catalog
+	/// data: mappers may place the same weapon as core or globally exclusive.
+	/// </summary>
+	[Property, Title( "Pickup Policy (Per Instance)" )]
+	public LargeLadPickupPolicy PickupPolicy { get; set; } =
 		LargeLadPickupPolicy.CorePerPlayer;
 
 	[Property]
@@ -53,6 +57,21 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 		{
 			Log.Warning( $"{GameObject.Name}: weapon pickup must use a firearm definition." );
 		}
+
+		if ( !System.Enum.IsDefined(
+			typeof( LargeLadPickupPolicy ),
+			PickupPolicy ) )
+		{
+			Log.Warning( $"{GameObject.Name}: weapon pickup needs a valid pickup policy." );
+		}
+
+		if ( PickupPolicy == LargeLadPickupPolicy.GloballyExclusive &&
+			GameObject.NetworkMode != NetworkMode.Object )
+		{
+			Log.Warning(
+				$"{GameObject.Name}: a globally exclusive weapon pickup must use " +
+				"Network Mode Object." );
+		}
 	}
 
 	private void ResolveAuthoredParts()
@@ -72,13 +91,14 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 		if ( player?.Role != LargeLadRole.SkinnyKid || player.Health?.IsDead == true )
 			return;
 
-		if ( Policy == LargeLadPickupPolicy.CorePerPlayer &&
+		if ( PickupPolicy == LargeLadPickupPolicy.CorePerPlayer &&
 			collectedPlayers.Contains( player.GameObject ) )
 		{
 			return;
 		}
 
-		var exclusiveSource = Policy == LargeLadPickupPolicy.GloballyExclusive
+		var exclusiveSource =
+			PickupPolicy == LargeLadPickupPolicy.GloballyExclusive
 			? this
 			: null;
 
@@ -91,7 +111,7 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 			return;
 		}
 
-		if ( Policy == LargeLadPickupPolicy.CorePerPlayer )
+		if ( PickupPolicy == LargeLadPickupPolicy.CorePerPlayer )
 		{
 			collectedPlayers.Add( player.GameObject );
 		}
@@ -114,8 +134,11 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 		int remainingMagazine,
 		int remainingReserve )
 	{
-		if ( !Networking.IsHost || Policy != LargeLadPickupPolicy.GloballyExclusive )
+		if ( !Networking.IsHost ||
+			PickupPolicy != LargeLadPickupPolicy.GloballyExclusive )
+		{
 			return;
+		}
 
 		droppedMagazine = System.Math.Max( 0, remainingMagazine );
 		droppedReserve = System.Math.Max( 0, remainingReserve );
@@ -141,7 +164,7 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 		SetAvailable( true );
 		Log.Info(
 			$"Reset {LargeLadWeaponCatalog.Get( Weapon ).DisplayName} pickup " +
-			$"({Policy}) for the new round." );
+			$"({PickupPolicy}) for the new round." );
 	}
 
 	private void SetAvailable( bool available )

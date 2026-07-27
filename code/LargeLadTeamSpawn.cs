@@ -1,6 +1,5 @@
 using Sandbox;
 using System.Collections.Generic;
-using System.Linq;
 
 public enum LargeLadSpawnGroup
 {
@@ -27,6 +26,8 @@ public sealed class LargeLadTeamSpawn : Component
 	[Property]
 	public float MinimumSeparation { get; set; } = 48.0f;
 
+	private LargeLadSpawnAllocator cachedSpawnAllocator;
+
 	public Color MarkerColor => Group switch
 	{
 		LargeLadSpawnGroup.Lobby => Color.White,
@@ -34,6 +35,24 @@ public sealed class LargeLadTeamSpawn : Component
 		LargeLadSpawnGroup.Hunter => new Color( 1.0f, 0.22f, 0.08f ),
 		_ => Color.Gray
 	};
+
+	protected override void OnEnabled()
+	{
+		base.OnEnabled();
+		GetSpawnAllocator()?.InvalidateCandidateCache();
+	}
+
+	protected override void OnDisabled()
+	{
+		GetSpawnAllocator()?.InvalidateCandidateCache();
+		base.OnDisabled();
+	}
+
+	protected override void OnDestroy()
+	{
+		GetSpawnAllocator()?.InvalidateCandidateCache();
+		base.OnDestroy();
+	}
 
 	protected override void OnValidate()
 	{
@@ -133,9 +152,17 @@ public sealed class LargeLadTeamSpawn : Component
 
 	private LargeLadSpawnAllocator GetSpawnAllocator()
 	{
-		return Scene?
-			.GetAllComponents<LargeLadSpawnAllocator>()
-			.FirstOrDefault();
+		if ( cachedSpawnAllocator is not null &&
+			cachedSpawnAllocator.IsValid &&
+			cachedSpawnAllocator.Enabled &&
+			cachedSpawnAllocator.Scene == Scene )
+		{
+			return cachedSpawnAllocator;
+		}
+
+		cachedSpawnAllocator =
+			LargeLadGameManager.FindForScene( Scene )?.SpawnAllocator;
+		return cachedSpawnAllocator;
 	}
 
 	private static void DrawHorizontalCircle( float radius )

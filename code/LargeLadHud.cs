@@ -5,16 +5,34 @@ public sealed class LargeLadHud : Component
 {
 	private static readonly Color PanelColor = new( 0.025f, 0.03f, 0.045f, 0.88f );
 	private static readonly Color MutedTextColor = new( 0.75f, 0.78f, 0.84f, 1.0f );
+	private LargeLadPlayer cachedPlayer;
+	private PlayerController cachedController;
+	private LargeLadGameManager cachedGameManager;
+
+	protected override void OnAwake()
+	{
+		ResolveCachedReferences();
+	}
+
+	protected override void OnStart()
+	{
+		ResolveCachedReferences();
+	}
 
 	protected override void OnUpdate()
 	{
 		if ( IsProxy || Scene.Camera is null )
 			return;
 
-		var player = Components.Get<LargeLadPlayer>();
-		var round = LargeLadGameManager.FindForScene( Scene );
+		var player = cachedPlayer;
+		var round = cachedGameManager;
 
-		if ( player is null || round is null )
+		if ( player is null ||
+			round is null ||
+			!round.IsValid ||
+			!round.Enabled ||
+			round.Scene != Scene ||
+			!round.HasSceneGameplayOwnership )
 			return;
 
 		var hud = Scene.Camera.Hud;
@@ -23,7 +41,7 @@ public sealed class LargeLadHud : Component
 		DrawLargeLadStatus( hud, round );
 		DrawRoleStatus( hud, player );
 		DrawWeaponStatus( hud, player );
-		DrawCrosshair( hud, player );
+		DrawCrosshair( hud, player, cachedController );
 		DrawConfirmedHitmarker( hud, player );
 
 		if ( round.Phase == LargeLadRoundPhase.RoundOver )
@@ -162,7 +180,10 @@ public sealed class LargeLadHud : Component
 			TextFlag.Center );
 	}
 
-	private static void DrawCrosshair( HudPainter hud, LargeLadPlayer player )
+	private static void DrawCrosshair(
+		HudPainter hud,
+		LargeLadPlayer player,
+		PlayerController controller )
 	{
 		if ( player.Health is null ||
 			player.Health.IsDead ||
@@ -223,7 +244,6 @@ public sealed class LargeLadHud : Component
 				armLength ) );
 
 		var center = new Vector2( centerX, centerY );
-		var controller = player.Components.Get<PlayerController>();
 		var definition = player.Inventory.EquippedDefinition;
 		var validAim = LargeLadAimResolver.TryResolveLocal(
 			player.Scene,
@@ -275,7 +295,7 @@ public sealed class LargeLadHud : Component
 	{
 		if ( player.EquippedWeapon == LargeLadWeaponId.Melee )
 		{
-			var melee = player.MeleeSystem;
+			var melee = player.MeleeCombat;
 
 			if ( melee?.HasConfirmedHitmarker != true )
 				return;
@@ -593,5 +613,39 @@ public sealed class LargeLadHud : Component
 	private static string FormatSeconds( float seconds )
 	{
 		return $"{System.MathF.Max( 0.0f, System.MathF.Ceiling( seconds ) ):0}s";
+	}
+
+	private LargeLadGameManager GetGameManager()
+	{
+		if ( cachedGameManager is not null &&
+			cachedGameManager.IsValid &&
+			cachedGameManager.Enabled &&
+			cachedGameManager.Scene == Scene &&
+			cachedGameManager.HasSceneGameplayOwnership )
+		{
+			return cachedGameManager;
+		}
+
+		cachedGameManager = LargeLadGameManager.FindForScene( Scene );
+		return cachedGameManager;
+	}
+
+	private void ResolveCachedReferences()
+	{
+		if ( cachedPlayer is null ||
+			!cachedPlayer.IsValid ||
+			cachedPlayer.GameObject != GameObject )
+		{
+			cachedPlayer = Components.Get<LargeLadPlayer>();
+		}
+
+		if ( cachedController is null ||
+			!cachedController.IsValid ||
+			cachedController.GameObject != GameObject )
+		{
+			cachedController = Components.Get<PlayerController>();
+		}
+
+		GetGameManager();
 	}
 }

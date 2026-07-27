@@ -54,9 +54,7 @@
               "Resolution": 512,
               "TerrainSize": 20000,
               "TerrainHeight": 10000,
-              "Materials": [
-                "terrains/grass.tmat"
-              ],
+              "Materials": [],
               "MaterialSettings": {
                 "HeightBlendEnabled": true,
                 "HeightBlendSharpness": 0.87,
@@ -596,8 +594,6 @@
   "ResourceVersion": 3,
   "Title": null,
   "Description": null,
-  "__references": [
-    "sourceengine.grass#204521"
-  ],
+  "__references": [],
   "__version": 3
 }

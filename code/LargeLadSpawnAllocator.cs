@@ -77,6 +77,8 @@ public sealed class LargeLadSpawnAllocator : Component
 	private readonly Dictionary<
 		LargeLadSpawnGroup,
 		IReadOnlyList<LargeLadSpawnLocation>> candidatesByGroup = new();
+	private readonly List<LargeLadTeamSpawn> authoredTeamSpawns = new();
+	private bool authoredTeamSpawnCacheDirty = true;
 	private bool candidateCacheDirty = true;
 	private LargeLadGameManager gameManager;
 	private NetworkHelper configuredNetworkHelper;
@@ -97,6 +99,7 @@ public sealed class LargeLadSpawnAllocator : Component
 		ClearRuntimeLobbyPoints();
 		candidatesBySpawn.Clear();
 		candidatesByGroup.Clear();
+		authoredTeamSpawns.Clear();
 		gameManager = null;
 		configuredNetworkHelper = null;
 		configuredPlayerPrefab = null;
@@ -105,14 +108,24 @@ public sealed class LargeLadSpawnAllocator : Component
 	public IReadOnlyList<LargeLadTeamSpawn> GetTeamSpawns(
 		LargeLadSpawnGroup group )
 	{
-		if ( Scene is null )
-			return Array.Empty<LargeLadTeamSpawn>();
+		EnsureAuthoredTeamSpawnCache();
+		return GetCachedTeamSpawns( group );
+	}
 
-		return Scene
-			.GetAllComponents<LargeLadTeamSpawn>()
+	public IReadOnlyList<LargeLadTeamSpawn> AuthoredTeamSpawns
+	{
+		get
+		{
+			EnsureAuthoredTeamSpawnCache();
+			return authoredTeamSpawns;
+		}
+	}
+
+	private IReadOnlyList<LargeLadTeamSpawn> GetCachedTeamSpawns(
+		LargeLadSpawnGroup group )
+	{
+		return authoredTeamSpawns
 			.Where( spawn => spawn.Group == group )
-			.OrderBy( spawn => spawn.GameObject.Id )
-			.ThenBy( spawn => spawn.Id )
 			.ToList();
 	}
 
@@ -140,6 +153,7 @@ public sealed class LargeLadSpawnAllocator : Component
 	/// </summary>
 	public void InvalidateCandidateCache()
 	{
+		authoredTeamSpawnCacheDirty = true;
 		candidateCacheDirty = true;
 	}
 
@@ -416,12 +430,13 @@ public sealed class LargeLadSpawnAllocator : Component
 	{
 		candidatesBySpawn.Clear();
 		candidatesByGroup.Clear();
+		EnsureAuthoredTeamSpawnCache();
 
 		foreach ( var group in Enum.GetValues<LargeLadSpawnGroup>() )
 		{
 			var groupCandidates = new List<LargeLadSpawnLocation>();
 
-			foreach ( var spawn in GetTeamSpawns( group ) )
+			foreach ( var spawn in GetCachedTeamSpawns( group ) )
 			{
 				var spawnCandidates = GenerateCandidates(
 					spawn,
@@ -434,6 +449,31 @@ public sealed class LargeLadSpawnAllocator : Component
 		}
 
 		candidateCacheDirty = false;
+	}
+
+	private void EnsureAuthoredTeamSpawnCache()
+	{
+		if ( !authoredTeamSpawnCacheDirty )
+			return;
+
+		authoredTeamSpawns.Clear();
+
+		if ( Scene is not null )
+		{
+			// One authored-scene pass per invalidation. Group reads, validation,
+			// and round allocation reuse the cached list below.
+			authoredTeamSpawns.AddRange(
+				Scene.GetAllComponents<LargeLadTeamSpawn>()
+					.Where( spawn =>
+						spawn is not null &&
+						spawn.IsValid &&
+						spawn.Enabled &&
+						spawn.Scene == Scene )
+					.OrderBy( spawn => spawn.GameObject.Id )
+					.ThenBy( spawn => spawn.Id ) );
+		}
+
+		authoredTeamSpawnCacheDirty = false;
 	}
 
 	private List<LargeLadSpawnLocation> GenerateCandidates(

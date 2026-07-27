@@ -57,10 +57,17 @@ public sealed class LargeLadGameManager : Component
 		LargeLadRoundPhase.WaitingForPlayers;
 
 	[Sync( SyncFlags.FromHost )]
-	public float PhaseTimeRemaining { get; private set; }
+	public float PhaseEndTime { get; private set; }
 
 	[Sync( SyncFlags.FromHost )]
 	public LargeLadWinner Winner { get; private set; } = LargeLadWinner.None;
+
+	public float PhaseTimeRemaining =>
+		Phase == LargeLadRoundPhase.WaitingForPlayers
+			? 0.0f
+			: LargeLadGameplayRules.GetTimerTimeRemaining(
+				PhaseEndTime,
+				Time.Now );
 
 	private int nextLargeLadIndex;
 	private int waitingPlayerCount = -1;
@@ -68,6 +75,7 @@ public sealed class LargeLadGameManager : Component
 	private bool spawnFailureReported;
 	private bool hasStarted;
 	private bool isHydratingRegistrations;
+	private bool hasSceneGameplayOwnership;
 	private Scene registeredScene;
 	private LargeLadPlayer currentLargeLad;
 	private readonly List<LargeLadPlayer> activePlayers = new();
@@ -83,6 +91,8 @@ public sealed class LargeLadGameManager : Component
 	private readonly List<ILargeLadRoundResettable> roundResettables = new();
 	private readonly HashSet<ILargeLadRoundResettable> registeredRoundResettables =
 		new();
+	private readonly List<LargeLadBarricade> activeBarricades = new();
+	private readonly List<string> validatedBlockingBootstrapIssues = new();
 	private readonly HashSet<LargeLadPlayer> lobbyPlacedPlayers = new();
 	private readonly HashSet<(
 		LargeLadPlayer Player,
@@ -137,6 +147,23 @@ public sealed class LargeLadGameManager : Component
 	}
 
 	/// <summary>
+	/// Enabled barricades already participating in this scene's round-reset
+	/// registry. Combat targeting reads this index instead of enumerating the
+	/// scene for every swing.
+	/// </summary>
+	public IReadOnlyList<LargeLadBarricade> ActiveBarricades
+	{
+		get
+		{
+			PruneInvalidRegistrations();
+			return activeBarricades;
+		}
+	}
+
+	internal bool HasSceneGameplayOwnership =>
+		hasSceneGameplayOwnership;
+
+	/// <summary>
 	/// Finds the registered manager for one explicit scene. This intentionally
 	/// does not expose a process-wide current manager or singleton accessor.
 	/// </summary>
@@ -188,7 +215,8 @@ public sealed class LargeLadGameManager : Component
 		// The bootstrap prefab is also compiled in isolation, where map-authored
 		// spawns intentionally do not exist. Full validation still always runs
 		// when a playable scene starts.
-		if ( Scene?.GetAllComponents<LargeLadTeamSpawn>().Any() != true )
+		if ( SpawnAllocator is null ||
+			SpawnAllocator.AuthoredTeamSpawns.Count == 0 )
 			return;
 
 		ValidateMap( logResults: true, validateGeometry: false );
@@ -259,7 +287,13 @@ public sealed class LargeLadGameManager : Component
 		var issues = new List<string>();
 		ResolveBootstrapReferences();
 		issues.AddRange(
-			LargeLadSceneRegistry.GetBlockingBootstrapIssues( Scene, this ) );
+			LargeLadSceneRegistry.GetRuntimeBootstrapIssues( Scene, this ) );
+
+		foreach ( var issue in validatedBlockingBootstrapIssues )
+		{
+			if ( !issues.Contains( issue ) )
+				issues.Add( issue );
+		}
 
 		if ( SpawnAllocator is null )
 			return issues;
@@ -311,6 +345,8 @@ public sealed class LargeLadGameManager : Component
 		var blockingBootstrapIssues =
 			LargeLadSceneRegistry.GetBlockingBootstrapIssues( Scene, this )
 				.ToList();
+		validatedBlockingBootstrapIssues.Clear();
+		validatedBlockingBootstrapIssues.AddRange( blockingBootstrapIssues );
 		var blockingSpawnIssues = new List<string>();
 		ResolveBootstrapReferences();
 		issues.AddRange( blockingBootstrapIssues );
@@ -359,12 +395,32 @@ public sealed class LargeLadGameManager : Component
 			validateGeometry );
 		issues.AddRange( blockingSpawnIssues );
 
+		// This is an explicit editor/startup map-contract audit. Runtime combat,
+		// HUD, and round reset use their lifecycle registries instead.
 		foreach ( var pickup in
 			Scene?.GetAllComponents<LargeLadWeaponPickup>() ??
 			Enumerable.Empty<LargeLadWeaponPickup>() )
 		{
 			if ( !LargeLadWeaponCatalog.IsFirearm( pickup.Weapon ) )
 				issues.Add( $"Weapon pickup '{pickup.GameObject.Name}' has no valid firearm." );
+
+			if ( !System.Enum.IsDefined(
+				typeof( LargeLadPickupPolicy ),
+				pickup.PickupPolicy ) )
+			{
+				issues.Add(
+					$"Weapon pickup '{pickup.GameObject.Name}' has no valid " +
+					"per-instance pickup policy." );
+			}
+
+			if ( pickup.PickupPolicy == LargeLadPickupPolicy.GloballyExclusive &&
+				pickup.GameObject.NetworkMode != NetworkMode.Object )
+			{
+				issues.Add(
+					$"Globally exclusive weapon pickup '{pickup.GameObject.Name}' " +
+					"must use Network Mode Object so availability and dropped " +
+					"position replicate." );
+			}
 
 			if ( pickup.PickupCollider is null )
 				issues.Add( $"Weapon pickup '{pickup.GameObject.Name}' needs a trigger collider." );
@@ -585,7 +641,7 @@ public sealed class LargeLadGameManager : Component
 			keepMovementLocked: false );
 
 		spawnFailureReported = false;
-		PhaseTimeRemaining = HeadStartDuration;
+		SetPhaseDeadline( HeadStartDuration );
 		SetPhase( LargeLadRoundPhase.HeadStart );
 		Log.Info( $"Round started with {players.Count} players and a {HeadStartDuration:0.#}-second head start." );
 		return true;
@@ -596,7 +652,7 @@ public sealed class LargeLadGameManager : Component
 		foreach ( var player in players )
 			player.MovementLocked = false;
 
-		PhaseTimeRemaining = SurvivalDuration;
+		SetPhaseDeadline( SurvivalDuration );
 		SetPhase( LargeLadRoundPhase.Playing );
 		Log.Info( $"Head start finished. Skinny Kids must survive {SurvivalDuration:0.#} seconds." );
 	}
@@ -611,7 +667,7 @@ public sealed class LargeLadGameManager : Component
 		}
 
 		Winner = winner;
-		PhaseTimeRemaining = IntermissionDuration;
+		SetPhaseDeadline( IntermissionDuration );
 		SetPhase( LargeLadRoundPhase.RoundOver );
 
 		var players = GetActivePlayerSnapshot();
@@ -654,7 +710,7 @@ public sealed class LargeLadGameManager : Component
 
 	private void FinishIntermission( List<LargeLadPlayer> players )
 	{
-		PhaseTimeRemaining = 0.0f;
+		PhaseEndTime = 0.0f;
 		Winner = LargeLadWinner.None;
 
 		if ( LargeLadGameplayRules.HasMinimumPlayers(
@@ -1008,6 +1064,9 @@ public sealed class LargeLadGameManager : Component
 		}
 
 		roundResettables.Add( resettable );
+
+		if ( resettable is LargeLadBarricade barricade )
+			activeBarricades.Add( barricade );
 	}
 
 	internal void UnregisterRoundResettable(
@@ -1020,6 +1079,9 @@ public sealed class LargeLadGameManager : Component
 		}
 
 		roundResettables.Remove( resettable );
+
+		if ( resettable is LargeLadBarricade barricade )
+			activeBarricades.Remove( barricade );
 	}
 
 	internal void AcquireSceneGameplayOwnership(
@@ -1027,6 +1089,7 @@ public sealed class LargeLadGameManager : Component
 		IReadOnlyList<ILargeLadRoundResettable> resettables )
 	{
 		ClearRegistrations();
+		hasSceneGameplayOwnership = false;
 		isHydratingRegistrations = true;
 
 		try
@@ -1044,6 +1107,8 @@ public sealed class LargeLadGameManager : Component
 			isHydratingRegistrations = false;
 		}
 
+		hasSceneGameplayOwnership = true;
+
 		if ( hasStarted )
 		{
 			ResolveBootstrapReferences();
@@ -1057,6 +1122,7 @@ public sealed class LargeLadGameManager : Component
 
 	internal void ReleaseSceneGameplayOwnership()
 	{
+		hasSceneGameplayOwnership = false;
 		ClearRegistrations();
 	}
 
@@ -1079,6 +1145,7 @@ public sealed class LargeLadGameManager : Component
 			registeredScene = null;
 		}
 
+		hasSceneGameplayOwnership = false;
 		ClearRegistrations();
 	}
 
@@ -1093,6 +1160,7 @@ public sealed class LargeLadGameManager : Component
 		currentLargeLad = null;
 		roundResettables.Clear();
 		registeredRoundResettables.Clear();
+		activeBarricades.Clear();
 		lobbyPlacedPlayers.Clear();
 		reportedSpawnAllocationFailures.Clear();
 	}
@@ -1149,7 +1217,7 @@ public sealed class LargeLadGameManager : Component
 
 	private bool OwnsSceneGameplay()
 	{
-		return LargeLadSceneRegistry.IsGameplayOwner( Scene, this );
+		return hasSceneGameplayOwnership;
 	}
 
 	private void IndexPlayerRole(
@@ -1197,13 +1265,17 @@ public sealed class LargeLadGameManager : Component
 
 	private bool TickPhaseTimer()
 	{
-		PhaseTimeRemaining -= Time.Delta;
+		return Networking.IsHost &&
+			LargeLadGameplayRules.HasTimerReachedDeadline(
+				PhaseEndTime,
+				Time.Now );
+	}
 
-		if ( PhaseTimeRemaining > 0.0f )
-			return false;
-
-		PhaseTimeRemaining = 0.0f;
-		return true;
+	private void SetPhaseDeadline( float duration )
+	{
+		PhaseEndTime = LargeLadGameplayRules.GetTimerDeadline(
+			Time.Now,
+			duration );
 	}
 
 	private static void ApplyRespawnAllocations(

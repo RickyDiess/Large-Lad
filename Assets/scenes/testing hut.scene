@@ -2193,7 +2193,7 @@
             "go": "44000001-a111-4a11-8a11-000000001a91",
             "component_type": "ModelRenderer"
           },
-          "Policy": "CorePerPlayer",
+          "PickupPolicy": "CorePerPlayer",
           "Weapon": "Pistol"
         }
       ],
@@ -2291,7 +2291,7 @@
             "go": "44000002-a111-4a11-8a11-000000001a92",
             "component_type": "ModelRenderer"
           },
-          "Policy": "CorePerPlayer",
+          "PickupPolicy": "CorePerPlayer",
           "Weapon": "Smg"
         }
       ],

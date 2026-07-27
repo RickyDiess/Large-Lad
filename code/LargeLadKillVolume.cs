@@ -8,14 +8,18 @@ public sealed class LargeLadKillVolume : Component, Component.ITriggerListener
 	[Property, Title( "Editor Gizmo Padding" )]
 	public float GizmoPadding { get; set; } = 2.0f;
 
+	private LargeLadGameManager cachedGameManager;
+
 	protected override void OnAwake()
 	{
 		ResolveTriggerCollider();
+		ResolveGameManager();
 	}
 
 	protected override void OnStart()
 	{
 		ResolveTriggerCollider();
+		ResolveGameManager();
 
 		if ( TriggerCollider is not null )
 		{
@@ -58,7 +62,7 @@ public sealed class LargeLadKillVolume : Component, Component.ITriggerListener
 			$"{player.GameObject.Name} entered {GameObject.Name} at " +
 			$"{player.GameObject.WorldPosition}." );
 
-		LargeLadGameManager.FindForScene( Scene )?
+		GetGameManager()?
 			.RequestEnvironmentalDeath( player );
 	}
 
@@ -87,5 +91,25 @@ public sealed class LargeLadKillVolume : Component, Component.ITriggerListener
 		Gizmo.Draw.LineBBox( paddedBounds );
 		Gizmo.Draw.LineThickness = 1.0f;
 		Gizmo.Draw.IgnoreDepth = false;
+	}
+
+	private LargeLadGameManager GetGameManager()
+	{
+		if ( cachedGameManager is not null &&
+			cachedGameManager.IsValid &&
+			cachedGameManager.Enabled &&
+			cachedGameManager.Scene == Scene &&
+			cachedGameManager.HasSceneGameplayOwnership )
+		{
+			return cachedGameManager;
+		}
+
+		ResolveGameManager();
+		return cachedGameManager;
+	}
+
+	private void ResolveGameManager()
+	{
+		cachedGameManager = LargeLadGameManager.FindForScene( Scene );
 	}
 }

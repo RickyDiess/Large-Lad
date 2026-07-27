@@ -26,7 +26,7 @@ public sealed class LargeLadInventory : Component
 	public bool IsReloading { get; private set; }
 
 	[Sync( SyncFlags.FromHost )]
-	public float ReloadTimeRemaining { get; private set; }
+	public float ReloadEndTime { get; private set; }
 
 	private readonly LargeLadWeaponPickup[] exclusiveSources =
 		new LargeLadWeaponPickup[SlotCount];
@@ -36,6 +36,12 @@ public sealed class LargeLadInventory : Component
 		LargeLadWeaponCatalog.Get( EquippedWeapon );
 	public int EquippedMagazine => GetMagazine( EquippedSlot );
 	public int EquippedReserve => GetReserve( EquippedSlot );
+	public float ReloadTimeRemaining =>
+		IsReloading
+			? LargeLadGameplayRules.GetTimerTimeRemaining(
+				ReloadEndTime,
+				Time.Now )
+			: 0.0f;
 
 	protected override void OnUpdate()
 	{
@@ -255,7 +261,9 @@ public sealed class LargeLadInventory : Component
 		}
 
 		IsReloading = true;
-		ReloadTimeRemaining = definition.ReloadDuration;
+		ReloadEndTime = LargeLadGameplayRules.GetTimerDeadline(
+			Time.Now,
+			definition.ReloadDuration );
 		return true;
 	}
 
@@ -264,12 +272,12 @@ public sealed class LargeLadInventory : Component
 		if ( !IsReloading )
 			return;
 
-		ReloadTimeRemaining = System.MathF.Max(
-			0.0f,
-			ReloadTimeRemaining - Time.Delta );
-
-		if ( ReloadTimeRemaining > 0.0f )
+		if ( !LargeLadGameplayRules.HasTimerReachedDeadline(
+			ReloadEndTime,
+			Time.Now ) )
+		{
 			return;
+		}
 
 		var definition = EquippedDefinition;
 		var needed = System.Math.Max( 0, definition.MagazineSize - EquippedMagazine );
@@ -283,7 +291,7 @@ public sealed class LargeLadInventory : Component
 	private void CancelReload()
 	{
 		IsReloading = false;
-		ReloadTimeRemaining = 0.0f;
+		ReloadEndTime = 0.0f;
 	}
 
 	private void ClearInventory( bool dropExclusive )

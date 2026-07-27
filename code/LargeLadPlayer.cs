@@ -30,7 +30,10 @@ public sealed class LargeLadPlayer : Component
 	public LargeLadInventory Inventory { get; set; }
 
 	[Property, RequireComponent]
-	public LargeLadMeleeSystem MeleeSystem { get; set; }
+	public LargeLadMeleeCombat MeleeCombat { get; set; }
+
+	[Property, RequireComponent]
+	public LargeLadMeleePresentation MeleePresentation { get; set; }
 
 	[Property]
 	public LargeLadRoleProfiles RoleProfiles { get; set; }

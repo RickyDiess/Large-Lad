@@ -54,9 +54,7 @@
               "Resolution": 512,
               "TerrainSize": 20000,
               "TerrainHeight": 10000,
-              "Materials": [
-                "terrains/grass.tmat"
-              ],
+              "Materials": [],
               "MaterialSettings": {
                 "HeightBlendEnabled": true,
                 "HeightBlendSharpness": 0.87,
@@ -225,7 +223,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "4679350c-d2b2-46b0-8bc6-4df5b7e2e4a0"
+                      "$blob": "aee750d9-0f88-4bc7-a8ec-a63a39d04948"
                     },
                     "Materials": [
                       "materials/trimsheets/wood/wood_trim_02.vmat",
@@ -282,7 +280,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "484882eb-9110-4035-bb69-2dac45dcd664"
+                      "$blob": "54afac4d-1e33-40d6-9e0d-e72e6ea8b744"
                     },
                     "Materials": [
                       "materials/trimsheets/wood/wood_trim_02.vmat",
@@ -339,7 +337,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "86079f10-8684-4580-bdd7-04381659155a"
+                      "$blob": "3ebea269-fba5-4660-aef8-6982f4432f24"
                     },
                     "Materials": [
                       "materials/wood/floor/wooden_flooring_b2.vmat"
@@ -395,11 +393,11 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "a1f2ab69-8bbe-4d0a-95c3-9f90875027f0"
+                      "$blob": "cb54cafe-78cc-42f6-b345-7fc2c5da681c"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
-                      "materials/white-brick-wall/white-brick-wall_01.vmat"
+                      "materials/generic/wall_brick_paint.vmat"
                     ]
                   },
                   "OnComponentDestroy": null,
@@ -452,11 +450,11 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "a41ce257-d8b9-41ca-bf59-c26631173c55"
+                      "$blob": "0639ed36-6cea-46c2-933a-1d47918ab363"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
-                      "materials/white-brick-wall/white-brick-wall_01.vmat"
+                      "materials/generic/wall_brick_paint.vmat"
                     ]
                   },
                   "OnComponentDestroy": null,
@@ -509,12 +507,11 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "b5479b7a-7e5b-40b7-8fec-0d64a45726a9"
+                      "$blob": "02ca08a5-4513-42fa-8a53-b4163c26b68f"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
-                      "materials/white-brick-wall/white-brick-wall_01.vmat",
-                      "materials/tiles/ceiling/ceiling_tiles_a.vmat"
+                      "materials/generic/wall_brick_paint.vmat"
                     ]
                   },
                   "OnComponentDestroy": null,
@@ -567,12 +564,12 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "27fe36e7-4c20-475a-83e6-03d93cf44cfa"
+                      "$blob": "dbc6f490-1438-466c-b550-48556a25e7fc"
                     },
                     "Materials": [
+                      "materials/stone/tile/stone_brick_tile.vmat",
                       "materials/dev/gray_grid_4.vmat",
-                      "materials/white-brick-wall/white-brick-wall_01.vmat",
-                      "materials/ceramic_tile_floor/ceramic_tile_floor.vmat"
+                      "materials/generic/wall_brick_paint.vmat"
                     ]
                   },
                   "OnComponentDestroy": null,
@@ -625,7 +622,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "e7b0dc0a-a54e-4b36-b3bb-7c6e9b591372"
+                      "$blob": "45869307-1ac1-4055-af9f-9e1d34915fe8"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat"
@@ -681,11 +678,11 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "94c793ed-dbed-4b42-883d-b0605aaf3a0b"
+                      "$blob": "10b26c6f-af21-4e50-b566-6fc040c3bd25"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
-                      "materials/white-brick-wall/white-brick-wall_01.vmat"
+                      "materials/generic/wall_brick_paint.vmat"
                     ]
                   },
                   "OnComponentDestroy": null,
@@ -738,11 +735,11 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "f26adf09-8435-40c9-930a-381a9cfab951"
+                      "$blob": "77399a99-e2c9-48b6-8773-49a0bde01eec"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
-                      "materials/white-brick-wall/white-brick-wall_01.vmat"
+                      "materials/generic/wall_brick_paint.vmat"
                     ]
                   },
                   "OnComponentDestroy": null,
@@ -1335,7 +1332,7 @@
                     "Property": "Mesh",
                     "Value": {
                       "Data": {
-                        "$blob": "50f20c82-c9e7-41f3-b3b8-385892f20ff5"
+                        "$blob": "7110d4cf-72b9-41ee-b7af-ec13a6001521"
                       },
                       "Materials": [
                         "materials/dev/gray_grid_4.vmat",
@@ -1384,7 +1381,7 @@
                     "Property": "Mesh",
                     "Value": {
                       "Data": {
-                        "$blob": "956bbfe8-f762-46c3-aeb0-1539e856b433"
+                        "$blob": "ab244f52-2de3-4c6d-bf67-ea71741a523a"
                       },
                       "Materials": [
                         "materials/glass/glass_a.vmat"
@@ -1432,7 +1429,7 @@
                     "Property": "Mesh",
                     "Value": {
                       "Data": {
-                        "$blob": "57da5303-84b8-4b24-aa0c-d01afeaf5462"
+                        "$blob": "8e720c7d-b03c-4d88-a3cf-f8756aa270fe"
                       },
                       "Materials": [
                         "materials/dev/gray_grid_4.vmat",
@@ -1525,7 +1522,23 @@
                       "IdValue": "8a500002-0000-4000-8000-000000000001"
                     },
                     "Property": "Position",
-                    "Value": "-500.431824,1180.86865,160"
+                    "Value": "-661.498352,1316.86865,208"
+                  },
+                  {
+                    "Target": {
+                      "Type": "Component",
+                      "IdValue": "8a500002-0000-4000-8000-000000000003"
+                    },
+                    "Property": "Center",
+                    "Value": "32,0,5"
+                  },
+                  {
+                    "Target": {
+                      "Type": "Component",
+                      "IdValue": "8a500002-0000-4000-8000-000000000003"
+                    },
+                    "Property": "Scale",
+                    "Value": "128,64,10"
                   }
                 ],
                 "MovedObjects": []
@@ -1595,7 +1608,23 @@
                       "IdValue": "8a400002-0000-4000-8000-000000000001"
                     },
                     "Property": "Position",
-                    "Value": "-436.431824,1180.86865,160"
+                    "Value": "-660.431824,1180.86865,208"
+                  },
+                  {
+                    "Target": {
+                      "Type": "Component",
+                      "IdValue": "8a400002-0000-4000-8000-000000000003"
+                    },
+                    "Property": "Center",
+                    "Value": "32,0,10"
+                  },
+                  {
+                    "Target": {
+                      "Type": "Component",
+                      "IdValue": "8a400002-0000-4000-8000-000000000003"
+                    },
+                    "Property": "Scale",
+                    "Value": "128,64,20"
                   }
                 ],
                 "MovedObjects": []
@@ -1709,6 +1738,687 @@
         "13a94fea-a2de-45da-beb8-61e564e6e245": "5b950835-13dd-41bd-9ca1-42619d2a0310",
         "6ba98835-269e-4ca8-95a4-06e9faf5db59": "9482c824-3f17-42fc-b774-9c38f188f92a"
       }
+    },
+    {
+      "__guid": "7472e407-5434-47b5-9491-e58c4d17a8ec",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Block",
+      "Position": "-192,1192,344",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "world",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.MeshComponent",
+          "__guid": "da663a5f-a595-40b2-8f51-c33418f8579e",
+          "__enabled": true,
+          "Flags": 0,
+          "ColliderFlags": 0,
+          "Collision": "Mesh",
+          "Color": "1,1,1,1",
+          "Elasticity": null,
+          "Friction": null,
+          "HideInGame": false,
+          "IsTrigger": false,
+          "Mesh": {
+            "Data": {
+              "$blob": "19da1ddf-1f9e-4a4d-84ff-a33961e917c2"
+            },
+            "Materials": [
+              "materials/dev/gray_grid_4.vmat",
+              "materials/trimsheets/wood/wood_trim_02.vmat"
+            ]
+          },
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "RenderType": "On",
+          "RollingResistance": null,
+          "SmoothingAngle": 40,
+          "Static": true,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
+        }
+      ],
+      "Children": []
+    },
+    {
+      "__guid": "56afa2c7-338c-472f-8de9-acf0d01a11c5",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "office_chair",
+      "Position": "-141.04953,1258.16296,321.340088",
+      "Rotation": "0,0,-0.965925813,0.258819073",
+      "Scale": "1,1,1",
+      "Tags": "",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.Prop",
+          "__guid": "085bef2e-dc52-4599-b1a2-4ec42886c8a5",
+          "__enabled": true,
+          "Flags": 0,
+          "BodyGroups": 18446744073709551615,
+          "Health": 400,
+          "IsStatic": false,
+          "MaterialGroup": null,
+          "Model": "models/sbox_props/office_chair/office_chair.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnGibsCreated": null,
+          "OnPropBreak": null,
+          "OnPropTakeDamage": null,
+          "StartAsleep": false,
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.SkinnedModelRenderer",
+          "__guid": "99a93438-fc91-4583-9974-bb9054baac06",
+          "__enabled": true,
+          "Flags": 0,
+          "AnimationGraph": null,
+          "BodyGroups": 18446744073709551615,
+          "BoneMergeTarget": null,
+          "CreateAttachments": false,
+          "CreateBoneObjects": false,
+          "LodOverride": null,
+          "MaterialGroup": null,
+          "MaterialOverride": null,
+          "Materials": null,
+          "Model": "models/sbox_props/office_chair/office_chair.vmdl",
+          "Morphs": {},
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "Parameters": {
+            "bools": {},
+            "ints": {},
+            "floats": {},
+            "vectors": {},
+            "rotations": {}
+          },
+          "PlaybackRate": 1,
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Sequence": {
+            "Name": null,
+            "Looping": true,
+            "Blending": false
+          },
+          "Tint": "1,1,1,1",
+          "UseAnimGraph": true
+        },
+        {
+          "__type": "Sandbox.ModelPhysics",
+          "__guid": "bb0063ae-1505-4de7-b560-cddec3eaff81",
+          "__enabled": true,
+          "Flags": 0,
+          "Bodies": [],
+          "IgnoreRoot": false,
+          "Joints": [],
+          "Locking": {
+            "X": false,
+            "Y": false,
+            "Z": false,
+            "Pitch": false,
+            "Yaw": false,
+            "Roll": false
+          },
+          "Model": "models/sbox_props/office_chair/office_chair.vmdl",
+          "MotionEnabled": true,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "PhysicsWereCreated": false,
+          "Renderer": {
+            "_type": "component",
+            "component_id": "99a93438-fc91-4583-9974-bb9054baac06",
+            "go": "56afa2c7-338c-472f-8de9-acf0d01a11c5",
+            "component_type": "SkinnedModelRenderer"
+          },
+          "RigidbodyFlags": 0,
+          "StartAsleep": false
+        }
+      ],
+      "Children": []
+    },
+    {
+      "__guid": "01dc819b-514a-4ccd-b0f3-db801aea70ec",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "office_chair",
+      "Position": "-141.796265,1084.23877,321.340088",
+      "Rotation": "0,0,0.965925932,0.258819073",
+      "Scale": "1,1,1",
+      "Tags": "",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.Prop",
+          "__guid": "f2089b98-0375-4748-96e6-8868521e0374",
+          "__enabled": true,
+          "Flags": 0,
+          "BodyGroups": 18446744073709551615,
+          "Health": 400,
+          "IsStatic": false,
+          "MaterialGroup": null,
+          "Model": "models/sbox_props/office_chair/office_chair.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnGibsCreated": null,
+          "OnPropBreak": null,
+          "OnPropTakeDamage": null,
+          "StartAsleep": false,
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.SkinnedModelRenderer",
+          "__guid": "7467a51e-c39d-4be6-9f49-75d5b1bb41b9",
+          "__enabled": true,
+          "Flags": 0,
+          "AnimationGraph": null,
+          "BodyGroups": 18446744073709551615,
+          "BoneMergeTarget": null,
+          "CreateAttachments": false,
+          "CreateBoneObjects": false,
+          "LodOverride": null,
+          "MaterialGroup": null,
+          "MaterialOverride": null,
+          "Materials": null,
+          "Model": "models/sbox_props/office_chair/office_chair.vmdl",
+          "Morphs": {},
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "Parameters": {
+            "bools": {},
+            "ints": {},
+            "floats": {},
+            "vectors": {},
+            "rotations": {}
+          },
+          "PlaybackRate": 1,
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Sequence": {
+            "Name": null,
+            "Looping": true,
+            "Blending": false
+          },
+          "Tint": "1,1,1,1",
+          "UseAnimGraph": true
+        },
+        {
+          "__type": "Sandbox.ModelPhysics",
+          "__guid": "b3970d85-5b84-4a8a-9a83-e1638e327f3d",
+          "__enabled": true,
+          "Flags": 0,
+          "Bodies": [],
+          "IgnoreRoot": false,
+          "Joints": [],
+          "Locking": {
+            "X": false,
+            "Y": false,
+            "Z": false,
+            "Pitch": false,
+            "Yaw": false,
+            "Roll": false
+          },
+          "Model": "models/sbox_props/office_chair/office_chair.vmdl",
+          "MotionEnabled": true,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "PhysicsWereCreated": false,
+          "Renderer": {
+            "_type": "component",
+            "component_id": "7467a51e-c39d-4be6-9f49-75d5b1bb41b9",
+            "go": "01dc819b-514a-4ccd-b0f3-db801aea70ec",
+            "component_type": "SkinnedModelRenderer"
+          },
+          "RigidbodyFlags": 0,
+          "StartAsleep": false
+        }
+      ],
+      "Children": []
+    },
+    {
+      "__guid": "57636b72-f09b-42ac-92df-7351b651a889",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "computer_monitor",
+      "Position": "-198.596649,1246.58032,368",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.Prop",
+          "__guid": "f5cadd36-0b14-4717-a96f-242e9a010672",
+          "__enabled": true,
+          "Flags": 0,
+          "BodyGroups": 18446744073709551615,
+          "Health": 0,
+          "IsStatic": false,
+          "MaterialGroup": null,
+          "Model": "models/game_room/computer_monitor.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnGibsCreated": null,
+          "OnPropBreak": null,
+          "OnPropTakeDamage": null,
+          "StartAsleep": false,
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "b3f93962-831e-40b2-907b-3de90ad4ec1c",
+          "__enabled": true,
+          "Flags": 0,
+          "BodyGroups": 18446744073709551615,
+          "CreateAttachments": false,
+          "LodOverride": null,
+          "MaterialGroup": null,
+          "MaterialOverride": null,
+          "Materials": null,
+          "Model": "models/game_room/computer_monitor.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.ModelCollider",
+          "__guid": "e9bafac2-36c8-49d9-8984-26f631249f74",
+          "__enabled": true,
+          "Flags": 0,
+          "ColliderFlags": 0,
+          "Elasticity": null,
+          "Friction": null,
+          "IsTrigger": false,
+          "Model": "models/game_room/computer_monitor.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "RollingResistance": null,
+          "Static": false,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
+        },
+        {
+          "__type": "Sandbox.Rigidbody",
+          "__guid": "089af6ba-cc45-47ad-817a-390dc2f5295e",
+          "__enabled": true,
+          "Flags": 0,
+          "AngularDamping": 0,
+          "EnableImpactDamage": true,
+          "EnhancedCcd": false,
+          "Gravity": true,
+          "GravityScale": 1,
+          "ImpactDamage": 0,
+          "LinearDamping": 0,
+          "Locking": {
+            "X": false,
+            "Y": false,
+            "Z": false,
+            "Pitch": false,
+            "Yaw": false,
+            "Roll": false
+          },
+          "MassCenterOverride": "0,0,0",
+          "MassOverride": 0,
+          "MinImpactDamageSpeed": 500,
+          "MotionEnabled": true,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OverrideMassCenter": false,
+          "RigidbodyFlags": 0,
+          "SleepThreshold": 2,
+          "StartAsleep": false
+        }
+      ],
+      "Children": []
+    },
+    {
+      "__guid": "be627cf6-eaa4-4e7e-96e2-02cb2c21e5b5",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "computer_mouse",
+      "Position": "-175.134338,1273.28577,368.76416",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.Prop",
+          "__guid": "485e929e-9a9a-4a4a-9122-adc5632fc6f1",
+          "__enabled": true,
+          "Flags": 0,
+          "BodyGroups": 18446744073709551615,
+          "Health": 0,
+          "IsStatic": false,
+          "MaterialGroup": null,
+          "Model": "models/game_room/computer_mouse.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnGibsCreated": null,
+          "OnPropBreak": null,
+          "OnPropTakeDamage": null,
+          "StartAsleep": false,
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "6e3425c4-74da-4974-9478-10bf22e3ca39",
+          "__enabled": true,
+          "Flags": 0,
+          "BodyGroups": 18446744073709551615,
+          "CreateAttachments": false,
+          "LodOverride": null,
+          "MaterialGroup": null,
+          "MaterialOverride": null,
+          "Materials": null,
+          "Model": "models/game_room/computer_mouse.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.ModelCollider",
+          "__guid": "92912140-9743-4cf7-81e3-eb2ffa4deb2f",
+          "__enabled": true,
+          "Flags": 0,
+          "ColliderFlags": 0,
+          "Elasticity": null,
+          "Friction": null,
+          "IsTrigger": false,
+          "Model": "models/game_room/computer_mouse.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "RollingResistance": null,
+          "Static": false,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
+        },
+        {
+          "__type": "Sandbox.Rigidbody",
+          "__guid": "bb7ec889-6246-48c8-9b1e-f54a325f1863",
+          "__enabled": true,
+          "Flags": 0,
+          "AngularDamping": 0,
+          "EnableImpactDamage": true,
+          "EnhancedCcd": false,
+          "Gravity": true,
+          "GravityScale": 1,
+          "ImpactDamage": 0,
+          "LinearDamping": 0,
+          "Locking": {
+            "X": false,
+            "Y": false,
+            "Z": false,
+            "Pitch": false,
+            "Yaw": false,
+            "Roll": false
+          },
+          "MassCenterOverride": "0,0,0",
+          "MassOverride": 0,
+          "MinImpactDamageSpeed": 500,
+          "MotionEnabled": true,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OverrideMassCenter": false,
+          "RigidbodyFlags": 0,
+          "SleepThreshold": 2,
+          "StartAsleep": false
+        }
+      ],
+      "Children": []
+    },
+    {
+      "__guid": "b1d3c57d-7c2d-47b4-b1a8-14ec487f8802",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "keyboard",
+      "Position": "-174.251175,1247.60107,369.113678",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.Prop",
+          "__guid": "a4045f30-9f9c-4de2-8039-bdb548ce6f6f",
+          "__enabled": true,
+          "Flags": 0,
+          "BodyGroups": 18446744073709551615,
+          "Health": 0,
+          "IsStatic": false,
+          "MaterialGroup": null,
+          "Model": "models/game_room/keyboard.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnGibsCreated": null,
+          "OnPropBreak": null,
+          "OnPropTakeDamage": null,
+          "StartAsleep": false,
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "08bb2adf-b643-4731-b62f-c9dc2bfeff16",
+          "__enabled": true,
+          "Flags": 0,
+          "BodyGroups": 18446744073709551615,
+          "CreateAttachments": false,
+          "LodOverride": null,
+          "MaterialGroup": null,
+          "MaterialOverride": null,
+          "Materials": null,
+          "Model": "models/game_room/keyboard.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.ModelCollider",
+          "__guid": "e2b9a261-eab3-4020-b4d8-0fdea6d4ea08",
+          "__enabled": true,
+          "Flags": 0,
+          "ColliderFlags": 0,
+          "Elasticity": null,
+          "Friction": null,
+          "IsTrigger": false,
+          "Model": "models/game_room/keyboard.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "RollingResistance": null,
+          "Static": false,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
+        },
+        {
+          "__type": "Sandbox.Rigidbody",
+          "__guid": "3bdf1a1f-1b2b-4f5d-85d5-e02c94ee0c9c",
+          "__enabled": true,
+          "Flags": 0,
+          "AngularDamping": 0,
+          "EnableImpactDamage": true,
+          "EnhancedCcd": false,
+          "Gravity": true,
+          "GravityScale": 1,
+          "ImpactDamage": 0,
+          "LinearDamping": 0,
+          "Locking": {
+            "X": false,
+            "Y": false,
+            "Z": false,
+            "Pitch": false,
+            "Yaw": false,
+            "Roll": false
+          },
+          "MassCenterOverride": "0,0,0",
+          "MassOverride": 0,
+          "MinImpactDamageSpeed": 500,
+          "MotionEnabled": true,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OverrideMassCenter": false,
+          "RigidbodyFlags": 0,
+          "SleepThreshold": 2,
+          "StartAsleep": false
+        }
+      ],
+      "Children": []
     }
   ],
   "SceneProperties": {
@@ -1747,13 +2457,15 @@
   "Title": null,
   "Description": null,
   "__references": [
-    "facepunch.ceilingtilesa#314033",
+    "ambi.computer_monitor#49612",
+    "ambi.computer_mouse#49614",
+    "ambi.keyboard#49619",
     "facepunch.glass_a#293147",
+    "facepunch.office_chair#308565",
+    "facepunch.stonebricktile#313594",
+    "facepunch.wall_brick_paint#291897",
     "facepunch.wood_trim_02#274181",
-    "facepunch.woodenflooringblight#291852",
-    "fkeep.ceramic_tile_floor#41184",
-    "smallboxstudio.whitebrickwall01#161321",
-    "sourceengine.grass#204521"
+    "facepunch.woodenflooringblight#291852"
   ],
   "__version": 3
 }

@@ -1,6 +1,4 @@
 using Sandbox;
-using Sandbox.Citizen;
-using System.Linq;
 
 public enum LargeLadMeleeResult
 {
@@ -10,10 +8,10 @@ public enum LargeLadMeleeResult
 }
 
 /// <summary>
-/// Shared owner-input, host-validated melee system for every playable role.
+/// Owner-input, host-authoritative melee combat for every playable role.
 /// The owner only asks to swing; the host chooses and validates the target.
 /// </summary>
-public sealed class LargeLadMeleeSystem : Component
+public sealed class LargeLadMeleeCombat : Component
 {
 	private const float HostCadenceTolerance = 0.025f;
 	private const float ConfirmedHitmarkerDuration = 0.14f;
@@ -24,35 +22,6 @@ public sealed class LargeLadMeleeSystem : Component
 	[Property, Group( "Targeting" ), Title( "Aim Assist Facing Dot" )]
 	public float MinimumFacingDot { get; set; } = 0.55f;
 
-	[Property, Group( "Melee Model" )]
-	public Model MeleeModel { get; set; } =
-		Model.Load( "models/citizen_props/crowbar01.vmdl" );
-
-	[Property, Group( "Melee Model" ), Title( "Skinny Kid Hold Bone" )]
-	public string MeleeModelBone { get; set; } = "hold_R";
-
-	[Property, Group( "Melee Model" ), Title( "Hold-relative Position" )]
-	public Vector3 MeleeModelPosition { get; set; } = Vector3.Zero;
-
-	[Property, Group( "Melee Model" ), Title( "Hold-relative Angles" )]
-	public Angles MeleeModelAngles { get; set; } =
-		new( 0.0f, 0.0f, 0.0f );
-
-	[Property, Group( "Melee Model" ), Title( "Model-space Grip Point" )]
-	public Vector3 MeleeModelGripPosition { get; set; } = Vector3.Zero;
-
-	[Property, Group( "Melee Model" )]
-	public float MeleeModelScale { get; set; } = 0.25f;
-
-	[Property, Group( "First Person" ), Title( "Show Melee Arms" )]
-	public bool ShowFirstPersonArms { get; set; } = true;
-
-	[Property, Group( "First Person" ), Title( "Camera-relative Adjustment" )]
-	public Vector3 FirstPersonArmsPosition { get; set; } = Vector3.Zero;
-
-	[Property, Group( "First Person" )]
-	public Angles FirstPersonArmsAngles { get; set; } = Angles.Zero;
-
 	private TimeSince timeSinceLocalSwing;
 	private TimeSince timeSinceConfirmedHit;
 	private int nextOwnerSwingSequence;
@@ -61,13 +30,9 @@ public sealed class LargeLadMeleeSystem : Component
 	private bool hasHostSwingSchedule;
 	private float nextHostSwingTime;
 	private bool hasConfirmedHit;
-	private GameObject meleeModelPivotObject;
-	private GameObject meleeModelObject;
-	private ModelRenderer meleeModelRenderer;
-	private Model appliedMeleeModel;
-	private GameObject firstPersonArmsObject;
-	private SkinnedModelRenderer firstPersonArmsRenderer;
-	private Model appliedFirstPersonArmsModel;
+	private LargeLadPlayer cachedAttacker;
+	private PlayerController cachedController;
+	private LargeLadGameManager cachedGameManager;
 
 	public bool HasConfirmedHitmarker =>
 		hasConfirmedHit && timeSinceConfirmedHit < ConfirmedHitmarkerDuration;
@@ -75,17 +40,23 @@ public sealed class LargeLadMeleeSystem : Component
 	public LargeLadMeleeResult LastAttackResult { get; private set; } =
 		LargeLadMeleeResult.Miss;
 
+	protected override void OnAwake()
+	{
+		ResolveCachedReferences();
+	}
+
+	protected override void OnStart()
+	{
+		ResolveCachedReferences();
+	}
+
 	protected override void OnUpdate()
 	{
-		UpdateMeleePose();
-		UpdateFirstPersonArms();
-		UpdateMeleeModel();
-
 		if ( IsProxy || !Input.Down( "Attack1" ) )
 			return;
 
-		var attacker = Components.Get<LargeLadPlayer>();
-		var controller = Components.Get<PlayerController>();
+		var attacker = cachedAttacker;
+		var controller = cachedController;
 
 		if ( !CanAttack( attacker, controller ) )
 			return;
@@ -97,15 +68,9 @@ public sealed class LargeLadMeleeSystem : Component
 			return;
 
 		timeSinceLocalSwing = 0.0f;
-		TriggerMeleeSwingAnimation();
+		attacker.MeleePresentation?.TriggerPredictedSwing();
 		nextOwnerSwingSequence++;
 		RequestMeleeAttack( nextOwnerSwingSequence );
-	}
-
-	protected override void OnDestroy()
-	{
-		DestroyMeleeModel();
-		DestroyFirstPersonArms();
 	}
 
 	protected override void OnValidate()
@@ -130,8 +95,8 @@ public sealed class LargeLadMeleeSystem : Component
 		// cannot be replayed later.
 		lastHostSwingSequence = ownerSwingSequence;
 
-		var attacker = Components.Get<LargeLadPlayer>();
-		var controller = Components.Get<PlayerController>();
+		var attacker = cachedAttacker;
+		var controller = cachedController;
 
 		if ( !CanAttack( attacker, controller ) )
 			return;
@@ -148,7 +113,7 @@ public sealed class LargeLadMeleeSystem : Component
 		}
 
 		CommitHostCadence( profile.MeleeCooldown, hostNow );
-		BroadcastMeleeSwingAnimation();
+		attacker.MeleePresentation?.BroadcastSwing();
 
 		var target = FindMeleeTarget(
 			attacker,
@@ -248,7 +213,7 @@ public sealed class LargeLadMeleeSystem : Component
 				return MeleeTarget.ForPlayer( directPlayer );
 
 			var directBarricade =
-				LargeLadBarricade.FindFor( Scene, trace.GameObject );
+				LargeLadBarricade.FindFor( trace.GameObject );
 
 			if ( directBarricade is not null && !directBarricade.IsDestroyed )
 				return MeleeTarget.ForBarricade( directBarricade );
@@ -272,9 +237,10 @@ public sealed class LargeLadMeleeSystem : Component
 		var forward = controller.EyeTransform.Rotation.Forward;
 		MeleeTarget bestTarget = null;
 		var bestScore = float.MaxValue;
+		var gameManager = GetGameManager();
 
 		foreach ( var player in
-			GetGameManager()?.ActivePlayers ??
+			gameManager?.ActivePlayers ??
 			System.Array.Empty<LargeLadPlayer>() )
 		{
 			if ( !IsValidPlayerTarget( attacker, player ) )
@@ -301,7 +267,9 @@ public sealed class LargeLadMeleeSystem : Component
 			}
 		}
 
-		foreach ( var barricade in Scene.GetAllComponents<LargeLadBarricade>() )
+		foreach ( var barricade in
+			gameManager?.ActiveBarricades ??
+			System.Array.Empty<LargeLadBarricade>() )
 		{
 			if ( barricade is null || barricade.IsDestroyed )
 				continue;
@@ -399,7 +367,7 @@ public sealed class LargeLadMeleeSystem : Component
 			.IgnoreGameObjectHierarchy( attacker.GameObject )
 			.Run();
 
-		return LargeLadBarricade.FindFor( Scene, trace.GameObject ) == target;
+		return LargeLadBarricade.FindFor( trace.GameObject ) == target;
 	}
 
 	private bool CanAttack(
@@ -480,303 +448,38 @@ public sealed class LargeLadMeleeSystem : Component
 		timeSinceConfirmedHit = 0.0f;
 	}
 
-	private void UpdateMeleeModel()
-	{
-		var player = Components.Get<LargeLadPlayer>();
-
-		if ( player?.Role is LargeLadRole.LargeLad or
-			LargeLadRole.Minion )
-		{
-			DestroyMeleeModel();
-			return;
-		}
-
-		var shouldShow = MeleeModel is not null &&
-			player?.Role == LargeLadRole.SkinnyKid &&
-			player.EquippedWeapon == LargeLadWeaponId.Melee &&
-			player.Health?.IsDead == false;
-
-		if ( !shouldShow )
-		{
-			if ( meleeModelPivotObject is not null &&
-				meleeModelPivotObject.IsValid )
-			{
-				meleeModelPivotObject.Enabled = false;
-			}
-
-			return;
-		}
-
-		EnsureMeleeModel();
-
-		if ( meleeModelPivotObject is null ||
-			!meleeModelPivotObject.IsValid ||
-			meleeModelObject is null ||
-			!meleeModelObject.IsValid )
-		{
-			return;
-		}
-
-		meleeModelPivotObject.Enabled = true;
-
-		var controller = Components.Get<PlayerController>();
-		var useFirstPersonGrip = !IsProxy &&
-			controller?.ThirdPerson == false &&
-			firstPersonArmsObject is not null &&
-			firstPersonArmsObject.IsValid &&
-			firstPersonArmsObject.Enabled &&
-			firstPersonArmsRenderer is not null;
-		var holdRenderer = useFirstPersonGrip
-			? firstPersonArmsRenderer
-			: player.BodyRenderer;
-
-		if ( holdRenderer is null ||
-			string.IsNullOrWhiteSpace( MeleeModelBone ) ||
-			!holdRenderer.TryGetBoneTransform(
-				MeleeModelBone,
-				out var holdTransform ) )
-		{
-			meleeModelPivotObject.Enabled = false;
-			return;
-		}
-
-		var position = holdTransform.PointToWorld( MeleeModelPosition );
-		var rotation =
-			holdTransform.Rotation * MeleeModelAngles.ToRotation();
-
-		var scale = System.MathF.Max( 0.01f, MeleeModelScale );
-
-		meleeModelRenderer.RenderOptions.Game = !useFirstPersonGrip;
-		meleeModelRenderer.RenderOptions.Overlay = useFirstPersonGrip;
-
-		// Keep the authored grip point locked to the hand at every scale.
-		meleeModelPivotObject.WorldTransform = new Transform(
-			position,
-			rotation,
-			Vector3.One );
-		meleeModelObject.LocalTransform = new Transform(
-			-MeleeModelGripPosition * scale,
-			Rotation.Identity,
-			new Vector3( scale ) );
-	}
-
-	private void UpdateFirstPersonArms()
-	{
-		var player = Components.Get<LargeLadPlayer>();
-		var controller = Components.Get<PlayerController>();
-		var shouldShow = ShowFirstPersonArms &&
-			!IsProxy &&
-			controller?.ThirdPerson == false &&
-			(player?.Role is LargeLadRole.SkinnyKid or
-				LargeLadRole.LargeLad or LargeLadRole.Minion) &&
-			player.EquippedWeapon == LargeLadWeaponId.Melee &&
-			player.Health?.IsDead == false &&
-			player.BodyRenderer is not null;
-
-		if ( !shouldShow )
-		{
-			if ( firstPersonArmsObject is not null &&
-				firstPersonArmsObject.IsValid )
-			{
-				firstPersonArmsObject.Enabled = false;
-			}
-
-			return;
-		}
-
-		EnsureFirstPersonArms( player );
-
-		if ( firstPersonArmsObject is null ||
-			!firstPersonArmsObject.IsValid ||
-			firstPersonArmsRenderer is null )
-		{
-			return;
-		}
-
-		var bodyTransform = player.BodyRenderer.GameObject.WorldTransform;
-		var eyeTransform = controller.EyeTransform;
-		bodyTransform.Position +=
-			eyeTransform.Rotation.Forward * FirstPersonArmsPosition.x +
-			eyeTransform.Rotation.Right * FirstPersonArmsPosition.y +
-			eyeTransform.Rotation.Up * FirstPersonArmsPosition.z;
-		bodyTransform.Rotation *= FirstPersonArmsAngles.ToRotation();
-
-		firstPersonArmsObject.Enabled = true;
-		firstPersonArmsObject.WorldTransform = bodyTransform;
-		firstPersonArmsRenderer.BoneMergeTarget = player.BodyRenderer;
-		firstPersonArmsRenderer.Tint = player.BodyRenderer.Tint;
-	}
-
-	private void EnsureFirstPersonArms( LargeLadPlayer player )
-	{
-		var bodyRenderer = player?.BodyRenderer;
-		var bodyModel = bodyRenderer?.Model;
-
-		if ( bodyModel is null )
-			return;
-
-		if ( firstPersonArmsObject is null ||
-			!firstPersonArmsObject.IsValid )
-		{
-			firstPersonArmsObject = new GameObject(
-				GameObject,
-				true,
-				"First Person Melee Arms (Runtime)" )
-			{
-				NetworkMode = NetworkMode.Never
-			};
-			firstPersonArmsRenderer =
-				firstPersonArmsObject.Components
-					.Create<SkinnedModelRenderer>();
-			appliedFirstPersonArmsModel = null;
-		}
-
-		if ( firstPersonArmsRenderer is null ||
-			appliedFirstPersonArmsModel == bodyModel )
-		{
-			return;
-		}
-
-		firstPersonArmsRenderer.Model = bodyModel;
-		firstPersonArmsRenderer.BoneMergeTarget = bodyRenderer;
-		firstPersonArmsRenderer.SetBodyGroup( "Head", 5 );
-		firstPersonArmsRenderer.SetBodyGroup( "Chest", 0 );
-		firstPersonArmsRenderer.SetBodyGroup( "Legs", 1 );
-		firstPersonArmsRenderer.SetBodyGroup( "Hands", 0 );
-		firstPersonArmsRenderer.SetBodyGroup( "Feet", 1 );
-		firstPersonArmsRenderer.RenderOptions.Game = false;
-		firstPersonArmsRenderer.RenderOptions.Overlay = true;
-		firstPersonArmsRenderer.RenderOptions.Bloom = false;
-		firstPersonArmsRenderer.RenderOptions.AfterUI = false;
-		appliedFirstPersonArmsModel = bodyModel;
-	}
-
-	private void DestroyFirstPersonArms()
-	{
-		if ( firstPersonArmsObject is not null &&
-			firstPersonArmsObject.IsValid )
-		{
-			firstPersonArmsObject.Destroy();
-		}
-
-		firstPersonArmsObject = null;
-		firstPersonArmsRenderer = null;
-		appliedFirstPersonArmsModel = null;
-	}
-
-	private void UpdateMeleePose()
-	{
-		var player = Components.Get<LargeLadPlayer>();
-
-		if ( player?.BodyRenderer is null )
-			return;
-
-		var isMeleeReadied = player.EquippedWeapon ==
-			LargeLadWeaponId.Melee &&
-			player.Health?.IsDead == false;
-		var holdType = player.Role switch
-		{
-			LargeLadRole.SkinnyKid when isMeleeReadied =>
-				(int)CitizenAnimationHelper.HoldTypes.Swing,
-			LargeLadRole.LargeLad when isMeleeReadied =>
-				(int)CitizenAnimationHelper.HoldTypes.Punch,
-			LargeLadRole.Minion when isMeleeReadied =>
-				(int)CitizenAnimationHelper.HoldTypes.Punch,
-			_ => (int)CitizenAnimationHelper.HoldTypes.None
-		};
-
-		player.BodyRenderer.Set( "holdtype", holdType );
-	}
-
-	private void TriggerMeleeSwingAnimation()
-	{
-		var player = Components.Get<LargeLadPlayer>();
-		player?.BodyRenderer?.Set( "b_attack", true );
-	}
-
-	[Rpc.Broadcast]
-	private void BroadcastMeleeSwingAnimation()
-	{
-		// The owner already predicted this animation immediately on input.
-		if ( !IsProxy )
-			return;
-
-		TriggerMeleeSwingAnimation();
-	}
-
-	private void EnsureMeleeModel()
-	{
-		if ( MeleeModel is null )
-		{
-			if ( meleeModelPivotObject is not null &&
-				meleeModelPivotObject.IsValid )
-			{
-				meleeModelPivotObject.Enabled = false;
-			}
-
-			appliedMeleeModel = null;
-			return;
-		}
-
-		if ( meleeModelPivotObject is null ||
-			!meleeModelPivotObject.IsValid )
-		{
-			meleeModelPivotObject = new GameObject(
-				GameObject,
-				true,
-				"Melee Grip (Runtime)" )
-			{
-				NetworkMode = NetworkMode.Never
-			};
-			meleeModelObject = null;
-			meleeModelRenderer = null;
-			appliedMeleeModel = null;
-		}
-
-		if ( meleeModelObject is null || !meleeModelObject.IsValid )
-		{
-			meleeModelObject = new GameObject(
-				meleeModelPivotObject,
-				true,
-				"Melee Model (Runtime)" )
-			{
-				NetworkMode = NetworkMode.Never
-			};
-			meleeModelRenderer =
-				meleeModelObject.Components.Create<ModelRenderer>();
-			appliedMeleeModel = null;
-		}
-
-		if ( meleeModelRenderer is not null &&
-			appliedMeleeModel != MeleeModel )
-		{
-			meleeModelRenderer.Model = MeleeModel;
-			appliedMeleeModel = MeleeModel;
-		}
-	}
-
-	private void DestroyMeleeModel()
-	{
-		if ( meleeModelPivotObject is not null &&
-			meleeModelPivotObject.IsValid )
-		{
-			meleeModelPivotObject.Destroy();
-		}
-		else if ( meleeModelObject is not null &&
-			meleeModelObject.IsValid )
-		{
-			meleeModelObject.Destroy();
-		}
-
-		meleeModelPivotObject = null;
-		meleeModelObject = null;
-		meleeModelRenderer = null;
-		appliedMeleeModel = null;
-	}
-
 	private LargeLadGameManager GetGameManager()
 	{
-		return LargeLadGameManager.FindForScene( Scene );
+		if ( cachedGameManager is not null &&
+			cachedGameManager.IsValid &&
+			cachedGameManager.Enabled &&
+			cachedGameManager.Scene == Scene &&
+			cachedGameManager.HasSceneGameplayOwnership )
+		{
+			return cachedGameManager;
+		}
+
+		cachedGameManager = LargeLadGameManager.FindForScene( Scene );
+		return cachedGameManager;
+	}
+
+	private void ResolveCachedReferences()
+	{
+		if ( cachedAttacker is null ||
+			!cachedAttacker.IsValid ||
+			cachedAttacker.GameObject != GameObject )
+		{
+			cachedAttacker = Components.Get<LargeLadPlayer>();
+		}
+
+		if ( cachedController is null ||
+			!cachedController.IsValid ||
+			cachedController.GameObject != GameObject )
+		{
+			cachedController = Components.Get<PlayerController>();
+		}
+
+		GetGameManager();
 	}
 
 	private sealed class MeleeTarget

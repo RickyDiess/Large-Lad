@@ -19,6 +19,7 @@ internal static class LargeLadSceneRegistry
 			SuppressedPlayerPrefabs = new();
 		public LargeLadGameManager GameplayOwner;
 		public string LastBlockingBootstrapSignature;
+		public bool GameplayOwnershipDirty = true;
 	}
 
 	private static readonly ConditionalWeakTable<Scene, SceneRegistrations>
@@ -35,8 +36,11 @@ internal static class LargeLadSceneRegistry
 			scene,
 			_ => new SceneRegistrations() );
 		Prune( scene, registrations );
-		registrations.Managers.Add( manager );
-		ReconcileGameplayOwner( scene, registrations );
+
+		if ( registrations.Managers.Add( manager ) )
+			registrations.GameplayOwnershipDirty = true;
+
+		EnsureGameplayOwner( scene, registrations );
 	}
 
 	public static void UnregisterManager(
@@ -49,8 +53,10 @@ internal static class LargeLadSceneRegistry
 			return;
 		}
 
-		registrations.Managers.Remove( manager );
-		ReconcileGameplayOwner( scene, registrations );
+		if ( registrations.Managers.Remove( manager ) )
+			registrations.GameplayOwnershipDirty = true;
+
+		EnsureGameplayOwner( scene, registrations );
 	}
 
 	public static void RegisterPlayer(
@@ -73,7 +79,7 @@ internal static class LargeLadSceneRegistry
 		if ( registrations.Managers.Count == 0 )
 			return;
 
-		ReconcileGameplayOwner( scene, registrations );
+		EnsureGameplayOwner( scene, registrations );
 		registrations.GameplayOwner?.RegisterPlayer( player );
 	}
 
@@ -92,7 +98,6 @@ internal static class LargeLadSceneRegistry
 		if ( registrations.Managers.Count == 0 )
 			return;
 
-		ReconcileGameplayOwner( scene, registrations );
 		registrations.GameplayOwner?.UnregisterPlayer( player );
 	}
 
@@ -112,7 +117,6 @@ internal static class LargeLadSceneRegistry
 		if ( registrations.Managers.Count == 0 )
 			return;
 
-		ReconcileGameplayOwner( scene, registrations );
 		registrations.GameplayOwner?.UpdatePlayerRole(
 			player,
 			oldRole,
@@ -137,7 +141,7 @@ internal static class LargeLadSceneRegistry
 		if ( registrations.Managers.Count == 0 )
 			return;
 
-		ReconcileGameplayOwner( scene, registrations );
+		EnsureGameplayOwner( scene, registrations );
 		registrations.GameplayOwner?.RegisterRoundResettable( resettable );
 	}
 
@@ -156,7 +160,6 @@ internal static class LargeLadSceneRegistry
 		if ( registrations.Managers.Count == 0 )
 			return;
 
-		ReconcileGameplayOwner( scene, registrations );
 		registrations.GameplayOwner?.UnregisterRoundResettable( resettable );
 	}
 
@@ -168,28 +171,25 @@ internal static class LargeLadSceneRegistry
 			return null;
 		}
 
-		Prune( scene, registrations );
-
-		if ( registrations.Managers.Count == 0 )
-			return null;
-
-		ReconcileGameplayOwner( scene, registrations );
+		EnsureGameplayOwner( scene, registrations );
 		return registrations.GameplayOwner;
 	}
 
-	public static bool IsGameplayOwner(
+	public static IReadOnlyList<string> GetRuntimeBootstrapIssues(
 		Scene scene,
 		LargeLadGameManager manager )
 	{
-		if ( scene is null || manager is null ||
+		if ( scene is null ||
 			!RegistrationsByScene.TryGetValue( scene, out var registrations ) )
 		{
-			return false;
+			return new[]
+			{
+				"LargeLadGameManager is not attached to a registered scene."
+			};
 		}
 
-		Prune( scene, registrations );
-		ReconcileGameplayOwner( scene, registrations );
-		return registrations.GameplayOwner == manager;
+		EnsureGameplayOwner( scene, registrations );
+		return GetRuntimeBootstrapIssues( scene, registrations, manager );
 	}
 
 	public static IReadOnlyList<string> GetBlockingBootstrapIssues(
@@ -263,12 +263,35 @@ internal static class LargeLadSceneRegistry
 		Scene scene,
 		SceneRegistrations registrations )
 	{
+		var managerCount = registrations.Managers.Count;
 		registrations.Managers.RemoveWhere(
 			manager => !IsActiveInScene( manager, scene ) );
+
+		if ( registrations.Managers.Count != managerCount )
+			registrations.GameplayOwnershipDirty = true;
+
 		registrations.Players.RemoveWhere(
 			player => !IsActiveInScene( player, scene ) );
 		registrations.Resettables.RemoveWhere(
 			resettable => !IsActiveInScene( resettable, scene ) );
+	}
+
+	private static void EnsureGameplayOwner(
+		Scene scene,
+		SceneRegistrations registrations )
+	{
+		if ( !registrations.GameplayOwnershipDirty )
+		{
+			if ( registrations.GameplayOwner is null ||
+				IsActiveInScene( registrations.GameplayOwner, scene ) )
+			{
+				return;
+			}
+
+			registrations.GameplayOwnershipDirty = true;
+		}
+
+		ReconcileGameplayOwner( scene, registrations );
 	}
 
 	private static void ReconcileGameplayOwner(
@@ -276,12 +299,14 @@ internal static class LargeLadSceneRegistry
 		SceneRegistrations registrations )
 	{
 		Prune( scene, registrations );
-		var activeManagers = GetActiveComponents<LargeLadGameManager>( scene );
-		var candidate = activeManagers.Count == 1 &&
-			registrations.Managers.Contains( activeManagers[0] )
-				? activeManagers[0]
-				: null;
-		var bootstrapIssues = GetBlockingBootstrapIssues( scene, candidate );
+		var candidate = registrations.Managers.Count == 1
+			? registrations.Managers.First()
+			: null;
+		var bootstrapIssues = GetRuntimeBootstrapIssues(
+			scene,
+			registrations,
+			candidate );
+		registrations.GameplayOwnershipDirty = false;
 
 		if ( bootstrapIssues.Count > 0 )
 		{
@@ -320,6 +345,52 @@ internal static class LargeLadSceneRegistry
 			.ThenBy( resettable => ((Component)resettable).Id )
 			.ToList();
 		candidate.AcquireSceneGameplayOwnership( players, resettables );
+	}
+
+	private static IReadOnlyList<string> GetRuntimeBootstrapIssues(
+		Scene scene,
+		SceneRegistrations registrations,
+		LargeLadGameManager candidate )
+	{
+		var issues = new List<string>();
+		var managers = registrations.Managers
+			.Where( manager => IsActiveInScene( manager, scene ) )
+			.OrderBy( manager => manager.GameObject.Id )
+			.ThenBy( manager => manager.Id )
+			.ToList();
+		AddUniquenessIssue( issues, nameof( LargeLadGameManager ), managers );
+
+		if ( managers.Count != 1 )
+			return issues;
+
+		if ( candidate != managers[0] )
+		{
+			issues.Add(
+				"The requesting LargeLadGameManager is not the scene's sole " +
+				"registered manager." );
+			return issues;
+		}
+
+		candidate.ResolveBootstrapReferencesForRegistry();
+
+		if ( !IsActiveInScene( candidate.NetworkHelper, scene ) ||
+			candidate.NetworkHelper.GameObject != candidate.GameObject )
+		{
+			issues.Add(
+				"LargeLadGameManager needs an active bootstrap NetworkHelper " +
+				"reference on the same gameplay bootstrap object." );
+		}
+
+		if ( !IsActiveInScene( candidate.SpawnAllocator, scene ) ||
+			candidate.SpawnAllocator.GameObject != candidate.GameObject )
+		{
+			issues.Add(
+				"LargeLadGameManager needs an active bootstrap " +
+				"LargeLadSpawnAllocator reference on the same gameplay " +
+				"bootstrap object." );
+		}
+
+		return issues;
 	}
 
 	private static void SuppressPlayerSpawning(
@@ -371,6 +442,8 @@ internal static class LargeLadSceneRegistry
 	private static List<T> GetActiveComponents<T>( Scene scene )
 		where T : Component
 	{
+		// Reserved for explicit bootstrap validation and fail-closed suppression.
+		// Normal registry reads never enumerate the scene.
 		return scene.GetAllComponents<T>()
 			.Where( component => IsActiveInScene( component, scene ) )
 			.OrderBy( component => component.GameObject.Id )

@@ -24,6 +24,27 @@ public readonly struct LargeLadDeathPlan
 
 public static class LargeLadGameplayRules
 {
+	public static float GetTimerDeadline(
+		float now,
+		float duration )
+	{
+		return now + System.MathF.Max( 0.0f, duration );
+	}
+
+	public static float GetTimerTimeRemaining(
+		float deadline,
+		float now )
+	{
+		return System.MathF.Max( 0.0f, deadline - now );
+	}
+
+	public static bool HasTimerReachedDeadline(
+		float deadline,
+		float now )
+	{
+		return now >= deadline;
+	}
+
 	public static bool CanTransitionRoundPhase(
 		LargeLadRoundPhase current,
 		LargeLadRoundPhase next )

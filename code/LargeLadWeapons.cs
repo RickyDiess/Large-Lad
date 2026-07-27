@@ -22,9 +22,9 @@ public enum LargeLadPickupPolicy
 }
 
 /// <summary>
-/// Immutable gameplay data shared by inventories, pickups, firing, and HUD.
-/// Keeping the values here prevents maps from quietly creating incompatible
-/// copies of the same weapon.
+/// Immutable weapon behavior shared by inventories, firing, and HUD. Pickup
+/// ownership policy deliberately lives on each map-authored weapon pickup so
+/// different instances of the same weapon can use different policies.
 /// </summary>
 public sealed class LargeLadWeaponDefinition
 {
@@ -37,7 +37,6 @@ public sealed class LargeLadWeaponDefinition
 	public int StartingReserve { get; init; }
 	public float ReloadDuration { get; init; }
 	public LargeLadCrosshairStyle Crosshair { get; init; }
-	public LargeLadPickupPolicy PickupPolicy { get; init; }
 	public Color PickupColor { get; init; }
 	public bool UsesAmmo => MagazineSize > 0;
 }
@@ -74,7 +73,6 @@ public static class LargeLadWeaponCatalog
 		StartingReserve = 32,
 		ReloadDuration = 1.4f,
 		Crosshair = LargeLadCrosshairStyle.FourSegment,
-		PickupPolicy = LargeLadPickupPolicy.CorePerPlayer,
 		PickupColor = new Color( 0.25f, 0.85f, 1.0f )
 	};
 
@@ -89,7 +87,6 @@ public static class LargeLadWeaponCatalog
 		StartingReserve = 90,
 		ReloadDuration = 2.0f,
 		Crosshair = LargeLadCrosshairStyle.FourSegment,
-		PickupPolicy = LargeLadPickupPolicy.CorePerPlayer,
 		PickupColor = new Color( 1.0f, 0.78f, 0.18f )
 	};
 

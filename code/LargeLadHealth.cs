@@ -15,16 +15,26 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 	public bool IsDead { get; private set; }
 
 	[Sync( SyncFlags.FromHost )]
-	public float RespawnTimeRemaining { get; private set; }
+	public float RespawnEndTime { get; private set; }
 
 	private GameObject deathRagdoll;
 	private bool hasReportedLethalTransition;
+	private LargeLadPlayer cachedPlayer;
+	private PlayerController cachedController;
+	private LargeLadGameManager cachedGameManager;
+
+	public float RespawnTimeRemaining =>
+		IsDead
+			? LargeLadGameplayRules.GetTimerTimeRemaining(
+				RespawnEndTime,
+				Time.Now )
+			: 0.0f;
 
 	public float MaximumHealth
 	{
 		get
 		{
-			var player = Components.Get<LargeLadPlayer>();
+			var player = cachedPlayer;
 
 			if ( player is null ||
 				!player.TryGetRoleProfile( player.Role, out var profile ) )
@@ -36,8 +46,14 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 		}
 	}
 
+	protected override void OnAwake()
+	{
+		ResolveCachedReferences();
+	}
+
 	protected override void OnStart()
 	{
+		ResolveCachedReferences();
 		ApplyLifeState( IsDead );
 	}
 
@@ -52,7 +68,7 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 			return;
 
 		CurrentHealth = MaximumHealth;
-		RespawnTimeRemaining = 0.0f;
+		RespawnEndTime = 0.0f;
 		hasReportedLethalTransition = false;
 
 		var wasDead = IsDead;
@@ -95,7 +111,7 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 		if ( !Networking.IsHost || IsDead || CurrentHealth <= 0.0f || damage.BaseDamage <= 0.0f )
 			return false;
 
-		var player = Components.Get<LargeLadPlayer>();
+		var player = cachedPlayer;
 
 		if ( player is null || player.Role == LargeLadRole.Unassigned )
 			return false;
@@ -148,7 +164,7 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 		if ( !Networking.IsHost || IsDead || CurrentHealth <= 0.0f )
 			return false;
 
-		var player = Components.Get<LargeLadPlayer>();
+		var player = cachedPlayer;
 
 		if ( player is null || player.Role == LargeLadRole.Unassigned )
 			return false;
@@ -194,7 +210,9 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 			return false;
 
 		CurrentHealth = 0.0f;
-		RespawnTimeRemaining = System.MathF.Max( 0.0f, duration );
+		RespawnEndTime = LargeLadGameplayRules.GetTimerDeadline(
+			Time.Now,
+			duration );
 		UseRagdollForCurrentDeath = useRagdoll;
 		IsDead = true;
 		return true;
@@ -205,18 +223,16 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 		if ( !Networking.IsHost || !IsDead )
 			return false;
 
-		RespawnTimeRemaining = System.MathF.Max(
-			0.0f,
-			RespawnTimeRemaining - Time.Delta );
-
-		return RespawnTimeRemaining <= 0.0f;
+		return LargeLadGameplayRules.HasTimerReachedDeadline(
+			RespawnEndTime,
+			Time.Now );
 	}
 
 	private bool TryReportLethalTransition(
 		LargeLadPlayer player,
 		LargeLadDamageContext damage )
 	{
-		var manager = LargeLadGameManager.FindForScene( Scene );
+		var manager = GetGameManager();
 
 		if ( manager is null ||
 			!manager.HandlePlayerLethalTransition( player, damage ) )
@@ -242,8 +258,8 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 
 	private void ApplyLifeState( bool isDead )
 	{
-		var player = Components.Get<LargeLadPlayer>();
-		var controller = Components.Get<PlayerController>();
+		var player = cachedPlayer;
+		var controller = cachedController;
 
 		if ( isDead && CreateRagdollOnDeath && UseRagdollForCurrentDeath )
 		{
@@ -293,5 +309,39 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 		}
 
 		deathRagdoll = null;
+	}
+
+	private LargeLadGameManager GetGameManager()
+	{
+		if ( cachedGameManager is not null &&
+			cachedGameManager.IsValid &&
+			cachedGameManager.Enabled &&
+			cachedGameManager.Scene == Scene &&
+			cachedGameManager.HasSceneGameplayOwnership )
+		{
+			return cachedGameManager;
+		}
+
+		cachedGameManager = LargeLadGameManager.FindForScene( Scene );
+		return cachedGameManager;
+	}
+
+	private void ResolveCachedReferences()
+	{
+		if ( cachedPlayer is null ||
+			!cachedPlayer.IsValid ||
+			cachedPlayer.GameObject != GameObject )
+		{
+			cachedPlayer = Components.Get<LargeLadPlayer>();
+		}
+
+		if ( cachedController is null ||
+			!cachedController.IsValid ||
+			cachedController.GameObject != GameObject )
+		{
+			cachedController = Components.Get<PlayerController>();
+		}
+
+		GetGameManager();
 	}
 }

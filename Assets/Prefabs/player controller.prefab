@@ -241,11 +241,17 @@
           "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
           "component_type": "LargeLadInventory"
         },
-        "MeleeSystem": {
+        "MeleeCombat": {
           "_type": "component",
           "component_id": "f9fa267a-1412-4ddb-a419-79fa17a78854",
           "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
-          "component_type": "LargeLadMeleeSystem"
+          "component_type": "LargeLadMeleeCombat"
+        },
+        "MeleePresentation": {
+          "_type": "component",
+          "component_id": "4bb3c5ae-d748-4b8e-ada2-77094db073e8",
+          "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
+          "component_type": "LargeLadMeleePresentation"
         },
         "OnComponentDestroy": null,
         "OnComponentDisabled": null,
@@ -300,8 +306,22 @@
         "OnComponentUpdate": null
       },
       {
-        "__type": "LargeLadMeleeSystem",
+        "__type": "LargeLadMeleeCombat",
         "__guid": "f9fa267a-1412-4ddb-a419-79fa17a78854",
+        "__enabled": true,
+        "Flags": 0,
+        "MinimumFacingDot": 0.55,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "SwingTraceRadius": 18
+      },
+      {
+        "__type": "LargeLadMeleePresentation",
+        "__guid": "4bb3c5ae-d748-4b8e-ada2-77094db073e8",
         "__enabled": true,
         "Flags": 0,
         "FirstPersonArmsAngles": "0,0,0",
@@ -312,15 +332,13 @@
         "MeleeModelGripPosition": "0,0,0",
         "MeleeModelPosition": "0,0,0",
         "MeleeModelScale": 0.25,
-        "MinimumFacingDot": 0.55,
         "OnComponentDestroy": null,
         "OnComponentDisabled": null,
         "OnComponentEnabled": null,
         "OnComponentFixedUpdate": null,
         "OnComponentStart": null,
         "OnComponentUpdate": null,
-        "ShowFirstPersonArms": true,
-        "SwingTraceRadius": 18
+        "ShowFirstPersonArms": true
       },
       {
         "__type": "LargeLadHud",

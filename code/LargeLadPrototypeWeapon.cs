@@ -27,6 +27,9 @@ public sealed class LargeLadPrototypeWeapon : Component
 	private bool hasHostShotSchedule;
 	private float nextHostShotTime;
 	private bool hasConfirmedHit;
+	private LargeLadPlayer cachedPlayer;
+	private PlayerController cachedController;
+	private LargeLadGameManager cachedGameManager;
 
 	[Property, Title( "Fire Debug Output" )]
 	public bool EnableFireDebug { get; set; } = false;
@@ -37,13 +40,23 @@ public sealed class LargeLadPrototypeWeapon : Component
 	public LargeLadShotResult LastShotResult { get; private set; } =
 		LargeLadShotResult.AcceptedMiss;
 
+	protected override void OnAwake()
+	{
+		ResolveCachedReferences();
+	}
+
+	protected override void OnStart()
+	{
+		ResolveCachedReferences();
+	}
+
 	protected override void OnUpdate()
 	{
 		if ( IsProxy || !Input.Down( "Attack1" ) )
 			return;
 
-		var player = Components.Get<LargeLadPlayer>();
-		var controller = Components.Get<PlayerController>();
+		var player = cachedPlayer;
+		var controller = cachedController;
 		var inventory = player?.Inventory;
 		var definition = inventory?.EquippedDefinition;
 
@@ -56,7 +69,7 @@ public sealed class LargeLadPrototypeWeapon : Component
 			return;
 		}
 
-		var round = LargeLadGameManager.FindForScene( Scene );
+		var round = GetGameManager();
 
 		if ( round?.Phase != LargeLadRoundPhase.Playing )
 			return;
@@ -97,10 +110,10 @@ public sealed class LargeLadPrototypeWeapon : Component
 		// malformed request cannot be replayed.
 		lastHostShotSequence = ownerShotSequence;
 
-		var attacker = Components.Get<LargeLadPlayer>();
+		var attacker = cachedPlayer;
 		var inventory = attacker?.Inventory;
 		var definition = inventory?.EquippedDefinition;
-		var round = LargeLadGameManager.FindForScene( Scene );
+		var round = GetGameManager();
 
 		if ( attacker?.Role != LargeLadRole.SkinnyKid || inventory is null ||
 			definition is null || !LargeLadWeaponCatalog.IsFirearm( inventory.EquippedWeapon ) ||
@@ -110,7 +123,7 @@ public sealed class LargeLadPrototypeWeapon : Component
 			return;
 		}
 
-		var controller = Components.Get<PlayerController>();
+		var controller = cachedController;
 
 		if ( !LargeLadAimResolver.TryResolveAuthoritative(
 			Scene,
@@ -168,7 +181,7 @@ public sealed class LargeLadPrototypeWeapon : Component
 		var trace = aim.ShotTrace;
 		var targetPlayer = trace.GameObject?.Components.Get<LargeLadPlayer>(
 			FindMode.EverythingInSelfAndAncestors );
-		var barricade = LargeLadBarricade.FindFor( Scene, trace.GameObject );
+		var barricade = LargeLadBarricade.FindFor( trace.GameObject );
 
 		var damage = new LargeLadDamageContext
 		{
@@ -255,5 +268,39 @@ public sealed class LargeLadPrototypeWeapon : Component
 		{
 			Log.Info( $"{GameObject.Name}: {message}" );
 		}
+	}
+
+	private LargeLadGameManager GetGameManager()
+	{
+		if ( cachedGameManager is not null &&
+			cachedGameManager.IsValid &&
+			cachedGameManager.Enabled &&
+			cachedGameManager.Scene == Scene &&
+			cachedGameManager.HasSceneGameplayOwnership )
+		{
+			return cachedGameManager;
+		}
+
+		cachedGameManager = LargeLadGameManager.FindForScene( Scene );
+		return cachedGameManager;
+	}
+
+	private void ResolveCachedReferences()
+	{
+		if ( cachedPlayer is null ||
+			!cachedPlayer.IsValid ||
+			cachedPlayer.GameObject != GameObject )
+		{
+			cachedPlayer = Components.Get<LargeLadPlayer>();
+		}
+
+		if ( cachedController is null ||
+			!cachedController.IsValid ||
+			cachedController.GameObject != GameObject )
+		{
+			cachedController = Components.Get<PlayerController>();
+		}
+
+		GetGameManager();
 	}
 }

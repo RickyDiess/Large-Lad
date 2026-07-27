@@ -94,7 +94,7 @@ add role coloring. Clothing colors remain unchanged.
 The player prefab's generic controller starts at 110 walk and 300 run.
 It references the role-profile resource once on `LargeLadPlayer`.
 `LargeLadPlayer` applies movement and body visuals at start and whenever its
-host-synchronized role changes. `LargeLadHealth` and `LargeLadMeleeSystem`
+host-synchronized role changes. `LargeLadHealth` and `LargeLadMeleeCombat`
 resolve the current role through that player reference, so they do not contain
 their own role balance copies. Missing profiles, non-positive movement,
 health, scale, or melee values, and negative incoming-damage multipliers report
@@ -159,7 +159,7 @@ All roles use an 18-unit swing-trace radius. Fallback aim assist requires a
 minimum facing dot of 0.55. Maintaining roughly one second of accurate Large
 Lad contact drains a full-health Skinny Kid and converts them on death.
 
-The player prefab's `LargeLadMeleeSystem` has one optional Skinny Kid
+The player prefab's `LargeLadMeleePresentation` has one optional Skinny Kid
 `MeleeModel`. The verified attachment baseline is the Citizen crowbar
 (`models/citizen_props/crowbar01.vmdl`) on the `hold_R` bone, with hold-relative
 position `(0, 0, 0)`, angles `(0, 0, 0)`, model-space grip point `(0, 0, 0)`,
@@ -173,14 +173,21 @@ bone-merged to the same Citizen animation as the world body. The melee model
 uses those first-person hand bones, while third-person and remote players use
 the world body's hand bones.
 
-Core weapon pickups are independently collectible once by every Skinny Kid each
-round; one player does not consume the pickup for anyone else. Core weapons do
-not drop on infection. Ammo placements grant a finite weapon-specific refill
-once per Skinny Kid per round and reset for the next round.
+Pickup policy is configured on each `LargeLadWeaponPickup` placement, not in the
+weapon catalog. This lets the same pistol or SMG be a core pickup on one route
+and a globally exclusive bonus pickup elsewhere. The pistol and SMG prefab
+defaults use `Pickup Policy (Per Instance): CorePerPlayer`: they are independently
+collectible once by every Skinny Kid each round, one player does not consume the
+pickup for anyone else, and they do not drop on infection. Ammo placements grant
+a finite weapon-specific refill once per Skinny Kid per round and reset for the
+next round.
 
-Globally exclusive bonus weapons are supported for later content. An exclusive
-weapon drops with its remaining ammunition when its owner dies, then its
-authored pickup returns on round reset.
+For a bonus weapon with only one world copy, set that placement's
+`Pickup Policy (Per Instance)` to `GloballyExclusive` and keep its root at
+Network Mode `Object`. It becomes unavailable when collected, drops with its
+remaining ammunition when its owner dies, and returns to its authored position
+on round reset. Map validation reports an invalid policy or an exclusive pickup
+that is not networked as an object.
 
 A kill volume is an ordinary GameObject with a trigger collider and
 `LargeLadKillVolume`. Resize the collider to cover the hazard. Skinny Kids killed
@@ -195,7 +202,9 @@ the Large Lad respawn timer.
 - Spawn circles produce clear floor positions and do not cross walls.
 - Every barricade has same-object rendering and collision and uses Network Mode
   `Object`.
-- Every pickup has a visible model and trigger collider.
+- Every weapon pickup has a deliberate per-instance policy, visible model, and
+  trigger collider; globally exclusive pickups use Network Mode `Object`.
+- Every ammo pickup has a visible model and trigger collider.
 - Every kill volume has a trigger collider.
 - The scene reports no `Map contract:` warnings.
 - Host and remote clients complete a round, intermission, reset, late join,

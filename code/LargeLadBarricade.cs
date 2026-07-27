@@ -1,6 +1,5 @@
 using Sandbox;
 using System.Collections.Generic;
-using System.Linq;
 
 public enum LargeLadBarricadeMode
 {
@@ -60,26 +59,10 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 		return GameObject.WorldTransform.PointToWorld( closest );
 	}
 
-	public static LargeLadBarricade FindFor( Scene scene, GameObject target )
+	public static LargeLadBarricade FindFor( GameObject target )
 	{
-		if ( scene is null || target is null )
-			return null;
-
-		var direct = target.Components.Get<LargeLadBarricade>(
+		return target?.Components.Get<LargeLadBarricade>(
 			FindMode.EverythingInSelfAndAncestors );
-
-		if ( direct is not null )
-			return direct;
-
-		var targetCollider = target.Components.Get<Collider>(
-			FindMode.EverythingInSelfAndAncestors );
-
-		return scene
-			.GetAllComponents<LargeLadBarricade>()
-			.FirstOrDefault( barricade =>
-				barricade.GameObject == target ||
-				(targetCollider is not null &&
-				barricade.BarricadeCollider == targetCollider) );
 	}
 
 	protected override void OnAwake()
