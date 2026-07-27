@@ -128,7 +128,6 @@ public sealed class RespawnRulesTests
 		Assert.AreEqual(
 			LargeLadRole.Minion,
 			LargeLadGameplayRules.ResolveRespawnRole(
-				LargeLadRole.SkinnyKid,
 				LargeLadRole.SkinnyKid ) );
 	}
 
@@ -138,7 +137,6 @@ public sealed class RespawnRulesTests
 		Assert.AreEqual(
 			LargeLadRole.LargeLad,
 			LargeLadGameplayRules.ResolveRespawnRole(
-				LargeLadRole.LargeLad,
 				LargeLadRole.LargeLad ) );
 	}
 
@@ -148,8 +146,116 @@ public sealed class RespawnRulesTests
 		Assert.AreEqual(
 			LargeLadRole.Minion,
 			LargeLadGameplayRules.ResolveRespawnRole(
-				LargeLadRole.Minion,
 				LargeLadRole.Minion ) );
+	}
+
+	[TestMethod]
+	public void LethalTransition_IsReportedOnlyOnce()
+	{
+		Assert.IsTrue(
+			LargeLadGameplayRules.IsNewLethalTransition(
+				previousHealth: 1.0f,
+				currentHealth: 0.0f,
+				alreadyReported: false ) );
+		Assert.IsFalse(
+			LargeLadGameplayRules.IsNewLethalTransition(
+				previousHealth: 1.0f,
+				currentHealth: 0.0f,
+				alreadyReported: true ),
+			"The same lethal edge cannot be reported twice." );
+		Assert.IsFalse(
+			LargeLadGameplayRules.IsNewLethalTransition(
+				previousHealth: 0.0f,
+				currentHealth: 0.0f,
+				alreadyReported: false ),
+			"An already-dead player does not create a new lethal edge." );
+		Assert.IsFalse(
+			LargeLadGameplayRules.IsNewLethalTransition(
+				previousHealth: 2.0f,
+				currentHealth: 1.0f,
+				alreadyReported: false ),
+			"Nonlethal damage does not report a death." );
+	}
+
+	[TestMethod]
+	public void EveryDamageSource_UsesAuthoritativeRoleDelayAndSpawnPolicy()
+	{
+		foreach ( var damageType in
+			System.Enum.GetValues<LargeLadDamageType>() )
+		{
+			var largeLad = LargeLadGameplayRules.ResolveDeathPlan(
+				LargeLadRole.LargeLad,
+				damageType,
+				largeLadRespawnDelay: 7.0f,
+				playerRespawnDelay: 3.0f );
+			var skinnyKid = LargeLadGameplayRules.ResolveDeathPlan(
+				LargeLadRole.SkinnyKid,
+				damageType,
+				largeLadRespawnDelay: 7.0f,
+				playerRespawnDelay: 3.0f );
+			var minion = LargeLadGameplayRules.ResolveDeathPlan(
+				LargeLadRole.Minion,
+				damageType,
+				largeLadRespawnDelay: 7.0f,
+				playerRespawnDelay: 3.0f );
+
+			Assert.AreEqual( LargeLadRole.LargeLad, largeLad.ResultingRole );
+			Assert.AreEqual( 7.0f, largeLad.RespawnDelay );
+			Assert.AreEqual( LargeLadSpawnGroup.Hunter, largeLad.SpawnGroup );
+
+			Assert.AreEqual( LargeLadRole.Minion, skinnyKid.ResultingRole );
+			Assert.AreEqual( 3.0f, skinnyKid.RespawnDelay );
+			Assert.AreEqual( LargeLadSpawnGroup.Hunter, skinnyKid.SpawnGroup );
+
+			Assert.AreEqual( LargeLadRole.Minion, minion.ResultingRole );
+			Assert.AreEqual( 3.0f, minion.RespawnDelay );
+			Assert.AreEqual( LargeLadSpawnGroup.Hunter, minion.SpawnGroup );
+		}
+	}
+
+	[TestMethod]
+	public void EnvironmentDeath_SkipsRagdollWhileCombatDeathsUseIt()
+	{
+		var firearm = LargeLadGameplayRules.ResolveDeathPlan(
+			LargeLadRole.Minion,
+			LargeLadDamageType.Firearm,
+			largeLadRespawnDelay: 7.0f,
+			playerRespawnDelay: 3.0f );
+		var melee = LargeLadGameplayRules.ResolveDeathPlan(
+			LargeLadRole.Minion,
+			LargeLadDamageType.Melee,
+			largeLadRespawnDelay: 7.0f,
+			playerRespawnDelay: 3.0f );
+		var environment = LargeLadGameplayRules.ResolveDeathPlan(
+			LargeLadRole.Minion,
+			LargeLadDamageType.Environment,
+			largeLadRespawnDelay: 7.0f,
+			playerRespawnDelay: 3.0f );
+
+		Assert.IsTrue( firearm.UseRagdoll );
+		Assert.IsTrue( melee.UseRagdoll );
+		Assert.IsFalse( environment.UseRagdoll );
+	}
+
+	[TestMethod]
+	public void SkinnyKidDeathPlan_ChangesWinnerEligibilityImmediately()
+	{
+		var death = LargeLadGameplayRules.ResolveDeathPlan(
+			LargeLadRole.SkinnyKid,
+			LargeLadDamageType.Firearm,
+			largeLadRespawnDelay: 7.0f,
+			playerRespawnDelay: 3.0f );
+		var effectiveRole = LargeLadGameplayRules.GetEffectiveRoundRole(
+			LargeLadRole.SkinnyKid,
+			death.ResultingRole );
+
+		Assert.AreEqual( LargeLadRole.Minion, effectiveRole );
+		Assert.AreEqual(
+			LargeLadWinner.LargeLadTeam,
+			LargeLadGameplayRules.DetermineWinnerWhenTeamIsMissing(
+				hasLargeLad: true,
+				hasSkinnyKid:
+					effectiveRole == LargeLadRole.SkinnyKid ) );
 	}
 }
 

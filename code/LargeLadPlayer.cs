@@ -13,6 +13,7 @@ public sealed class LargeLadPlayer : Component
 	private const int TeleportSettleFrames = 2;
 	private const float KillVolumeTeleportGrace = 0.5f;
 
+	private Scene registeredScene;
 	private Vector3 pendingTeleportPosition;
 	private Rotation pendingTeleportRotation;
 	private int pendingTeleportFrames;
@@ -35,7 +36,7 @@ public sealed class LargeLadPlayer : Component
 	public LargeLadRoleProfiles RoleProfiles { get; set; }
 
 	[Sync( SyncFlags.FromHost ), Change( nameof( OnRoleChanged ) )]
-	public LargeLadRole Role { get; set; } = LargeLadRole.Unassigned;
+	public LargeLadRole Role { get; private set; } = LargeLadRole.Unassigned;
 
 	[Sync( SyncFlags.FromHost )]
 	public LargeLadRole PendingRespawnRole { get; private set; } =
@@ -50,16 +51,28 @@ public sealed class LargeLadPlayer : Component
 	[Property]
 	public SkinnedModelRenderer BodyRenderer { get; set; }
 
+	protected override void OnEnabled()
+	{
+		base.OnEnabled();
+		RegisterWithGameManager();
+	}
+
+	protected override void OnDisabled()
+	{
+		UnregisterFromGameManager();
+		base.OnDisabled();
+	}
+
+	protected override void OnDestroy()
+	{
+		UnregisterFromGameManager();
+		base.OnDestroy();
+	}
+
 	protected override void OnStart()
 	{
 		LogRoleProfileWarnings();
-
-		if ( Networking.IsHost )
-		{
-			Inventory?.PrepareForRole( Role );
-		}
-
-		ApplyRole( Role );
+		ApplyRoleProfile( Role );
 		RefreshMovementState();
 	}
 
@@ -94,12 +107,13 @@ public sealed class LargeLadPlayer : Component
 
 	private void OnRoleChanged( LargeLadRole oldRole, LargeLadRole newRole )
 	{
-		if ( Networking.IsHost )
-		{
-			Inventory?.PrepareForRole( newRole );
-		}
-
-		ApplyRole( newRole );
+		// Role changes only maintain the replicated role index. RespawnAs owns
+		// all role-dependent lifecycle and presentation work.
+		LargeLadSceneRegistry.NotifyPlayerRoleChanged(
+			registeredScene,
+			this,
+			oldRole,
+			newRole );
 		Log.Info( $"{GameObject.Name} changed role from {oldRole} to {newRole}." );
 	}
 
@@ -108,7 +122,7 @@ public sealed class LargeLadPlayer : Component
 		RefreshMovementState();
 	}
 
-	public void SetPendingRespawnRole( LargeLadRole role )
+	internal void SetPendingRespawnRole( LargeLadRole role )
 	{
 		if ( !Networking.IsHost )
 			return;
@@ -116,45 +130,58 @@ public sealed class LargeLadPlayer : Component
 		PendingRespawnRole = role;
 	}
 
-	public LargeLadRole ApplyPendingRespawnRole()
-	{
-		if ( !Networking.IsHost )
-			return Role;
-
-		var role = PendingRespawnRole;
-		PendingRespawnRole = LargeLadRole.Unassigned;
-
-		if ( role != LargeLadRole.Unassigned )
-		{
-			Role = role;
-		}
-
-		return Role;
-	}
-
-	public void ClearPendingRespawnRole()
-	{
-		if ( Networking.IsHost )
-		{
-			PendingRespawnRole = LargeLadRole.Unassigned;
-		}
-	}
-
 	public bool HasKillVolumeTeleportGrace =>
 		Networking.IsHost &&
 		hasAuthoritativeTeleport &&
 		timeSinceAuthoritativeTeleport < KillVolumeTeleportGrace;
 
-	public void BeginAuthoritativeTeleport()
+	/// <summary>
+	/// Applies one complete authoritative player spawn. This is the only host
+	/// lifecycle boundary that assigns a role, rebuilds its loadout, restores
+	/// life and presentation, and moves the player to a spawn location.
+	/// </summary>
+	public bool RespawnAs(
+		LargeLadRole role,
+		LargeLadSpawnLocation spawn,
+		bool keepMovementLocked = false )
 	{
 		if ( !Networking.IsHost )
-			return;
+			return false;
+
+		// Hold the controller still while health restores the live collider and
+		// visuals. Teleport settling keeps motion disabled after the final lock
+		// value is applied below.
+		MovementLocked = true;
+		PendingRespawnRole = LargeLadRole.Unassigned;
+		Role = role;
+
+		// A synchronized property callback does not run for same-role respawns,
+		// so every authoritative role-dependent reset is explicit here.
+		ApplyRoleProfile( role );
+		BroadcastRespawnRoleProfile( role );
+		Inventory?.PrepareForRole( role );
+		Health?.ResetForCurrentRole();
 
 		hasAuthoritativeTeleport = true;
 		timeSinceAuthoritativeTeleport = 0.0f;
+		ApplyRespawnTeleport( spawn.Position, spawn.Rotation );
+
+		MovementLocked = keepMovementLocked;
+		return true;
 	}
 
-	private void ApplyRole( LargeLadRole role )
+	[Rpc.Broadcast]
+	private void BroadcastRespawnRoleProfile( LargeLadRole role )
+	{
+		// RespawnAs already applied the host copy. Every observing client runs
+		// this for both changed-role and same-role respawns.
+		if ( Networking.IsHost )
+			return;
+
+		ApplyRoleProfile( role );
+	}
+
+	private void ApplyRoleProfile( LargeLadRole role )
 	{
 		if ( !TryGetRoleProfile( role, out var profile ) )
 			return;
@@ -241,7 +268,9 @@ public sealed class LargeLadPlayer : Component
 	}
 
 	[Rpc.Owner( NetFlags.HostOnly )]
-	public void TeleportTo( Vector3 worldPosition, Rotation worldRotation )
+	private void ApplyRespawnTeleport(
+		Vector3 worldPosition,
+		Rotation worldRotation )
 	{
 		pendingTeleportPosition = worldPosition;
 		pendingTeleportRotation = worldRotation;
@@ -281,5 +310,25 @@ public sealed class LargeLadPlayer : Component
 		controller.Body.ClearForces();
 		controller.Body.Velocity = Vector3.Zero;
 		controller.Body.AngularVelocity = Vector3.Zero;
+	}
+
+	private void RegisterWithGameManager()
+	{
+		if ( registeredScene is not null && registeredScene != Scene )
+		{
+			LargeLadSceneRegistry.UnregisterPlayer( registeredScene, this );
+		}
+
+		registeredScene = Scene;
+		LargeLadSceneRegistry.RegisterPlayer( registeredScene, this );
+	}
+
+	private void UnregisterFromGameManager()
+	{
+		if ( registeredScene is null )
+			return;
+
+		LargeLadSceneRegistry.UnregisterPlayer( registeredScene, this );
+		registeredScene = null;
 	}
 }

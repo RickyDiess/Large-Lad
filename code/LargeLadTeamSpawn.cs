@@ -41,7 +41,7 @@ public sealed class LargeLadTeamSpawn : Component
 		Capacity = System.Math.Clamp(
 			Capacity,
 			1,
-			LargeLadMapDefinition.TargetPlayerCount );
+			LargeLadGameManager.TargetPlayerCount );
 		MinimumSeparation = System.MathF.Max( 32.0f, MinimumSeparation );
 
 		GetSpawnAllocator()?.InvalidateCandidateCache();
@@ -71,7 +71,7 @@ public sealed class LargeLadTeamSpawn : Component
 		var previewCount = System.Math.Clamp(
 			Capacity,
 			1,
-			LargeLadMapDefinition.TargetPlayerCount );
+			LargeLadGameManager.TargetPlayerCount );
 		var color = MarkerColor;
 		IReadOnlyList<LargeLadSpawnLocation> cachedCandidates = null;
 		var allocator = GetSpawnAllocator();

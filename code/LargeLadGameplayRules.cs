@@ -2,6 +2,26 @@
 /// Deterministic gameplay decisions shared by the runtime and unit tests.
 /// Keep engine and networking side effects in their owning components.
 /// </summary>
+public readonly struct LargeLadDeathPlan
+{
+	public LargeLadDeathPlan(
+		LargeLadRole resultingRole,
+		float respawnDelay,
+		bool useRagdoll,
+		LargeLadSpawnGroup spawnGroup )
+	{
+		ResultingRole = resultingRole;
+		RespawnDelay = respawnDelay;
+		UseRagdoll = useRagdoll;
+		SpawnGroup = spawnGroup;
+	}
+
+	public LargeLadRole ResultingRole { get; }
+	public float RespawnDelay { get; }
+	public bool UseRagdoll { get; }
+	public LargeLadSpawnGroup SpawnGroup { get; }
+}
+
 public static class LargeLadGameplayRules
 {
 	public static bool CanTransitionRoundPhase(
@@ -56,12 +76,46 @@ public static class LargeLadGameplayRules
 	}
 
 	public static LargeLadRole ResolveRespawnRole(
-		LargeLadRole currentRole,
-		LargeLadRole requestedRespawnRole )
+		LargeLadRole currentRole )
 	{
 		return currentRole == LargeLadRole.SkinnyKid
 			? LargeLadRole.Minion
-			: requestedRespawnRole;
+			: currentRole;
+	}
+
+	public static LargeLadDeathPlan ResolveDeathPlan(
+		LargeLadRole currentRole,
+		LargeLadDamageType damageType,
+		float largeLadRespawnDelay,
+		float playerRespawnDelay )
+	{
+		var resultingRole = ResolveRespawnRole( currentRole );
+		var respawnDelay = currentRole == LargeLadRole.LargeLad
+			? largeLadRespawnDelay
+			: playerRespawnDelay;
+		var spawnGroup = resultingRole switch
+		{
+			LargeLadRole.LargeLad or LargeLadRole.Minion =>
+				LargeLadSpawnGroup.Hunter,
+			LargeLadRole.SkinnyKid => LargeLadSpawnGroup.SkinnyKid,
+			_ => LargeLadSpawnGroup.Lobby
+		};
+
+		return new LargeLadDeathPlan(
+			resultingRole,
+			System.MathF.Max( 0.0f, respawnDelay ),
+			damageType != LargeLadDamageType.Environment,
+			spawnGroup );
+	}
+
+	public static bool IsNewLethalTransition(
+		float previousHealth,
+		float currentHealth,
+		bool alreadyReported )
+	{
+		return !alreadyReported &&
+			previousHealth > 0.0f &&
+			currentHealth <= 0.0f;
 	}
 
 	public static bool CanDamageBarricade(

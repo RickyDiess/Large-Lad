@@ -1,0 +1,1242 @@
+using Sandbox;
+using System.Collections.Generic;
+using System.Linq;
+
+public enum LargeLadRoundPhase
+{
+	WaitingForPlayers,
+	HeadStart,
+	Playing,
+	RoundOver
+}
+
+public enum LargeLadWinner
+{
+	None,
+	SkinnyKids,
+	LargeLadTeam
+}
+
+/// <summary>
+/// Owns the complete Large Lad game lifecycle and map contract. The bootstrap
+/// keeps spawn generation in LargeLadSpawnAllocator as its one focused helper.
+/// </summary>
+public sealed class LargeLadGameManager : Component
+{
+	public const int TargetPlayerCount = 16;
+
+	[Property]
+	public int MinimumPlayers { get; set; } = 2;
+
+	[Property, Title( "Round Start Padding" )]
+	public float PlayerReadyDelay { get; set; } = 0.5f;
+
+	[Property]
+	public float HeadStartDuration { get; set; } = 10.0f;
+
+	[Property]
+	public float SurvivalDuration { get; set; } = 60.0f;
+
+	[Property, Title( "Between-Round Padding" )]
+	public float IntermissionDuration { get; set; } = 5.0f;
+
+	[Property]
+	public float LargeLadRespawnDelay { get; set; } = 5.0f;
+
+	[Property]
+	public float PlayerRespawnDelay { get; set; } = 5.0f;
+
+	[Property]
+	public NetworkHelper NetworkHelper { get; set; }
+
+	[Property]
+	public LargeLadSpawnAllocator SpawnAllocator { get; set; }
+
+	[Sync( SyncFlags.FromHost ), Change( nameof( OnPhaseChanged ) )]
+	public LargeLadRoundPhase Phase { get; private set; } =
+		LargeLadRoundPhase.WaitingForPlayers;
+
+	[Sync( SyncFlags.FromHost )]
+	public float PhaseTimeRemaining { get; private set; }
+
+	[Sync( SyncFlags.FromHost )]
+	public LargeLadWinner Winner { get; private set; } = LargeLadWinner.None;
+
+	private int nextLargeLadIndex;
+	private int waitingPlayerCount = -1;
+	private float playerReadyTimeRemaining;
+	private bool spawnFailureReported;
+	private Scene registeredScene;
+	private LargeLadPlayer currentLargeLad;
+	private readonly List<LargeLadPlayer> activePlayers = new();
+	private readonly HashSet<LargeLadPlayer> registeredPlayers = new();
+	private readonly Dictionary<LargeLadRole, List<LargeLadPlayer>> playersByRole =
+		new()
+		{
+			[LargeLadRole.Unassigned] = new(),
+			[LargeLadRole.SkinnyKid] = new(),
+			[LargeLadRole.LargeLad] = new(),
+			[LargeLadRole.Minion] = new()
+		};
+	private readonly List<ILargeLadRoundResettable> roundResettables = new();
+	private readonly HashSet<ILargeLadRoundResettable> registeredRoundResettables =
+		new();
+	private readonly HashSet<LargeLadPlayer> lobbyPlacedPlayers = new();
+	private readonly HashSet<(
+		LargeLadPlayer Player,
+		LargeLadSpawnGroup Group)> reportedSpawnAllocationFailures = new();
+	private readonly Dictionary<LargeLadPlayer, LargeLadDeathPlan>
+		pendingDeathPlans = new();
+
+	/// <summary>
+	/// Enabled LargeLadPlayer components registered in this manager's scene.
+	/// Invalid registrations are pruned without searching the scene.
+	/// </summary>
+	public IReadOnlyList<LargeLadPlayer> ActivePlayers
+	{
+		get
+		{
+			PruneInvalidRegistrations();
+			return activePlayers;
+		}
+	}
+
+	/// <summary>
+	/// The registered player whose current role is Large Lad.
+	/// </summary>
+	public LargeLadPlayer CurrentLargeLad
+	{
+		get
+		{
+			PruneInvalidRegistrations();
+			return currentLargeLad;
+		}
+	}
+
+	/// <summary>
+	/// Returns the active players currently indexed under the requested role.
+	/// </summary>
+	public IReadOnlyList<LargeLadPlayer> GetPlayersByRole( LargeLadRole role )
+	{
+		PruneInvalidRegistrations();
+		return playersByRole.TryGetValue( role, out var players )
+			? players
+			: System.Array.Empty<LargeLadPlayer>();
+	}
+
+	/// <summary>
+	/// Enabled round-reset participants registered in this manager's scene.
+	/// </summary>
+	public IReadOnlyList<ILargeLadRoundResettable> RoundResettables
+	{
+		get
+		{
+			PruneInvalidRegistrations();
+			return roundResettables;
+		}
+	}
+
+	/// <summary>
+	/// Finds the registered manager for one explicit scene. This intentionally
+	/// does not expose a process-wide current manager or singleton accessor.
+	/// </summary>
+	public static LargeLadGameManager FindForScene( Scene scene )
+	{
+		return LargeLadSceneRegistry.FindManager( scene );
+	}
+
+	protected override void OnEnabled()
+	{
+		base.OnEnabled();
+		AttachToSceneRegistry();
+	}
+
+	protected override void OnDisabled()
+	{
+		DetachFromSceneRegistry();
+		base.OnDisabled();
+	}
+
+	protected override void OnDestroy()
+	{
+		DetachFromSceneRegistry();
+		base.OnDestroy();
+	}
+
+	protected override void OnAwake()
+	{
+		AttachToSceneRegistry();
+		ResolveBootstrapReferences();
+	}
+
+	protected override void OnStart()
+	{
+		ResolveBootstrapReferences();
+		SpawnAllocator?.ConfigureNetworkHelper( NetworkHelper );
+		ValidateMap( logResults: true, validateGeometry: true );
+	}
+
+	protected override void OnValidate()
+	{
+		ResolveBootstrapReferences();
+
+		// The bootstrap prefab is also compiled in isolation, where map-authored
+		// spawns intentionally do not exist. Full validation still always runs
+		// when a playable scene starts.
+		if ( Scene?.GetAllComponents<LargeLadTeamSpawn>().Any() != true )
+			return;
+
+		ValidateMap( logResults: true, validateGeometry: false );
+	}
+
+	/// <summary>
+	/// Reprojects authored spawn candidates and validates those exact cached
+	/// positions against the full map contract.
+	/// </summary>
+	[Button]
+	public void RebuildAndValidateSpawnCandidates()
+	{
+		ResolveBootstrapReferences();
+		SpawnAllocator?.RebuildCandidatesAndRefreshLobbyPoints();
+		ValidateMap( logResults: true, validateGeometry: true );
+	}
+
+	public IReadOnlyDictionary<LargeLadPlayer, LargeLadSpawnLocation> AllocateSpawnBatch(
+		LargeLadSpawnGroup group,
+		IReadOnlyList<LargeLadPlayer> players )
+	{
+		return SpawnAllocator?.AllocateBatch( group, players ) ??
+			new Dictionary<LargeLadPlayer, LargeLadSpawnLocation>();
+	}
+
+	public IReadOnlyDictionary<LargeLadPlayer, LargeLadSpawnLocation> AllocateSpawnBatch(
+		LargeLadSpawnGroup group,
+		IReadOnlyList<LargeLadPlayer> players,
+		IReadOnlyCollection<LargeLadPlayer> additionallyRelocatingPlayers,
+		IReadOnlyList<Vector3> projectedOccupiedPositions )
+	{
+		return SpawnAllocator?.AllocateBatch(
+			group,
+			players,
+			additionallyRelocatingPlayers,
+			projectedOccupiedPositions ) ??
+			new Dictionary<LargeLadPlayer, LargeLadSpawnLocation>();
+	}
+
+	public bool TryAllocateSpawn(
+		LargeLadSpawnGroup group,
+		LargeLadPlayer player,
+		out LargeLadSpawnLocation location )
+	{
+		if ( SpawnAllocator is not null )
+			return SpawnAllocator.TryAllocate( group, player, out location );
+
+		location = default;
+		return false;
+	}
+
+	/// <summary>
+	/// Returns only the spawn-contract failures that make a complete round
+	/// unsafe. Other map-contract warnings do not block round flow.
+	/// </summary>
+	public IReadOnlyList<string> GetBlockingRoundSpawnIssues()
+	{
+		var issues = new List<string>();
+		ResolveBootstrapReferences();
+
+		if ( SpawnAllocator is null )
+		{
+			issues.Add(
+				"No LargeLadSpawnAllocator is available. Keep exactly one " +
+				"Large Lad Gameplay Bootstrap in the scene." );
+			return issues;
+		}
+
+		ValidateSpawnGroup(
+			issues,
+			LargeLadSpawnGroup.Lobby,
+			TargetPlayerCount,
+			validateGeometry: true );
+		ValidateSpawnGroup(
+			issues,
+			LargeLadSpawnGroup.SkinnyKid,
+			TargetPlayerCount - 1,
+			validateGeometry: true );
+		ValidateSpawnGroup(
+			issues,
+			LargeLadSpawnGroup.Hunter,
+			TargetPlayerCount,
+			validateGeometry: true );
+		return issues;
+	}
+
+	public bool CanSafelyStartRound( bool logFailures )
+	{
+		var issues = GetBlockingRoundSpawnIssues();
+
+		if ( issues.Count == 0 )
+			return true;
+
+		if ( logFailures )
+		{
+			foreach ( var issue in issues )
+				Log.Error( $"Round start blocked by map contract: {issue}" );
+		}
+
+		return false;
+	}
+
+	public IReadOnlyList<string> ValidateMap(
+		bool logResults,
+		bool validateGeometry = false )
+	{
+		var issues = new List<string>();
+		var blockingSpawnIssues = new List<string>();
+		ResolveBootstrapReferences();
+
+		var gameManagers =
+			Scene?.GetAllComponents<LargeLadGameManager>().ToList() ?? new();
+		var networkHelpers =
+			Scene?.GetAllComponents<NetworkHelper>().ToList() ?? new();
+		var allocators =
+			Scene?.GetAllComponents<LargeLadSpawnAllocator>().ToList() ?? new();
+
+		if ( gameManagers.Count != 1 )
+			issues.Add( $"Expected one LargeLadGameManager, found {gameManagers.Count}." );
+
+		if ( networkHelpers.Count != 1 )
+			issues.Add( $"Expected one NetworkHelper, found {networkHelpers.Count}." );
+
+		if ( allocators.Count != 1 )
+			issues.Add( $"Expected one LargeLadSpawnAllocator, found {allocators.Count}." );
+
+		if ( NetworkHelper is null )
+		{
+			issues.Add(
+				"LargeLadGameManager needs its bootstrap NetworkHelper reference." );
+		}
+		else if ( NetworkHelper.GameObject != GameObject )
+		{
+			issues.Add(
+				"LargeLadGameManager's NetworkHelper must be on the gameplay bootstrap." );
+		}
+
+		if ( SpawnAllocator is null )
+		{
+			issues.Add(
+				"LargeLadGameManager needs its bootstrap LargeLadSpawnAllocator reference." );
+		}
+		else if ( SpawnAllocator.GameObject != GameObject )
+		{
+			issues.Add(
+				"LargeLadGameManager's LargeLadSpawnAllocator must be on the gameplay bootstrap." );
+		}
+
+		if ( MinimumPlayers < 2 )
+			issues.Add( "Minimum players must be at least two." );
+
+		if ( MinimumPlayers > TargetPlayerCount )
+		{
+			issues.Add(
+				$"Minimum players cannot exceed the {TargetPlayerCount}-player map contract." );
+		}
+
+		if ( PlayerReadyDelay < 0.0f )
+			issues.Add( "Player-ready delay cannot be negative." );
+
+		if ( HeadStartDuration < 0.0f )
+			issues.Add( "Head-start duration cannot be negative." );
+
+		if ( SurvivalDuration <= 0.0f )
+			issues.Add( "Survival duration must be greater than zero." );
+
+		if ( IntermissionDuration < 0.0f )
+			issues.Add( "Intermission duration cannot be negative." );
+
+		if ( LargeLadRespawnDelay < 0.0f )
+			issues.Add( "Large Lad respawn delay cannot be negative." );
+
+		if ( PlayerRespawnDelay < 0.0f )
+			issues.Add( "Player respawn delay cannot be negative." );
+
+		ValidateSpawnGroup(
+			blockingSpawnIssues,
+			LargeLadSpawnGroup.Lobby,
+			TargetPlayerCount,
+			validateGeometry );
+		ValidateSpawnGroup(
+			blockingSpawnIssues,
+			LargeLadSpawnGroup.SkinnyKid,
+			TargetPlayerCount - 1,
+			validateGeometry );
+		ValidateSpawnGroup(
+			blockingSpawnIssues,
+			LargeLadSpawnGroup.Hunter,
+			TargetPlayerCount,
+			validateGeometry );
+		issues.AddRange( blockingSpawnIssues );
+
+		foreach ( var pickup in
+			Scene?.GetAllComponents<LargeLadWeaponPickup>() ??
+			Enumerable.Empty<LargeLadWeaponPickup>() )
+		{
+			if ( !LargeLadWeaponCatalog.IsFirearm( pickup.Weapon ) )
+				issues.Add( $"Weapon pickup '{pickup.GameObject.Name}' has no valid firearm." );
+
+			if ( pickup.PickupCollider is null )
+				issues.Add( $"Weapon pickup '{pickup.GameObject.Name}' needs a trigger collider." );
+
+			if ( pickup.PickupRenderer is null )
+				issues.Add( $"Weapon pickup '{pickup.GameObject.Name}' needs visible scene geometry." );
+		}
+
+		foreach ( var pickup in
+			Scene?.GetAllComponents<LargeLadAmmoPickup>() ??
+			Enumerable.Empty<LargeLadAmmoPickup>() )
+		{
+			if ( !LargeLadWeaponCatalog.IsFirearm( pickup.Weapon ) )
+				issues.Add( $"Ammo pickup '{pickup.GameObject.Name}' has no valid firearm." );
+
+			if ( pickup.PickupCollider is null )
+				issues.Add( $"Ammo pickup '{pickup.GameObject.Name}' needs a trigger collider." );
+
+			if ( pickup.PickupRenderer is null )
+				issues.Add( $"Ammo pickup '{pickup.GameObject.Name}' needs visible scene geometry." );
+		}
+
+		foreach ( var barricade in
+			Scene?.GetAllComponents<LargeLadBarricade>() ??
+			Enumerable.Empty<LargeLadBarricade>() )
+		{
+			if ( !barricade.HasVisibleGeometry || !barricade.HasCollision )
+			{
+				issues.Add(
+					$"Barricade '{barricade.GameObject.Name}' needs rendering and collision." );
+			}
+
+			if ( barricade.GameObject.NetworkMode != NetworkMode.Object )
+			{
+				issues.Add(
+					$"Barricade '{barricade.GameObject.Name}' must use Network Mode Object." );
+			}
+		}
+
+		foreach ( var killVolume in
+			Scene?.GetAllComponents<LargeLadKillVolume>() ??
+			Enumerable.Empty<LargeLadKillVolume>() )
+		{
+			if ( killVolume.TriggerCollider is null )
+				issues.Add( $"Kill volume '{killVolume.GameObject.Name}' needs a trigger collider." );
+		}
+
+		if ( logResults )
+		{
+			if ( issues.Count == 0 )
+			{
+				Log.Info(
+					$"Scene containing '{GameObject.Name}' " +
+					"passes the Large Lad map contract." );
+			}
+			else
+			{
+				foreach ( var issue in issues )
+				{
+					if ( blockingSpawnIssues.Contains( issue ) )
+					{
+						Log.Error(
+							$"Map contract blocks round start: {issue}" );
+					}
+					else
+					{
+						Log.Warning( $"Map contract: {issue}" );
+					}
+				}
+			}
+		}
+
+		return issues;
+	}
+
+	protected override void OnUpdate()
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		var players = GetActivePlayerSnapshot();
+		lobbyPlacedPlayers.RemoveWhere( player =>
+			!registeredPlayers.Contains( player ) ||
+			player.Role != LargeLadRole.Unassigned );
+		reportedSpawnAllocationFailures.RemoveWhere( failure =>
+			!registeredPlayers.Contains( failure.Player ) );
+
+		switch ( Phase )
+		{
+			case LargeLadRoundPhase.WaitingForPlayers:
+				PlaceUnassignedPlayersInLobby( players );
+				UpdateRespawns( players );
+
+				if ( !LargeLadGameplayRules.HasMinimumPlayers(
+					players.Count,
+					MinimumPlayers ) )
+				{
+					waitingPlayerCount = players.Count;
+					playerReadyTimeRemaining = PlayerReadyDelay;
+					break;
+				}
+
+				if ( waitingPlayerCount != players.Count )
+				{
+					waitingPlayerCount = players.Count;
+					playerReadyTimeRemaining = PlayerReadyDelay;
+					break;
+				}
+
+				playerReadyTimeRemaining -= Time.Delta;
+
+				if ( playerReadyTimeRemaining <= 0.0f )
+				{
+					if ( !StartRound( players ) )
+						playerReadyTimeRemaining = PlayerReadyDelay;
+				}
+				break;
+
+			case LargeLadRoundPhase.HeadStart:
+				AssignLateJoinersAsMinions( players );
+				UpdateRespawns( players );
+
+				if ( TickPhaseTimer() )
+					BeginPlaying( players );
+				break;
+
+			case LargeLadRoundPhase.Playing:
+				AssignLateJoinersAsMinions( players );
+				UpdateRespawns( players );
+
+				if ( TickPhaseTimer() )
+					EndRound( LargeLadWinner.SkinnyKids );
+				break;
+
+			case LargeLadRoundPhase.RoundOver:
+				PlaceUnassignedPlayersInLobby( players );
+				UpdateRespawns( players );
+
+				if ( TickPhaseTimer() )
+					FinishIntermission( players );
+				break;
+		}
+	}
+
+	private bool StartRound( List<LargeLadPlayer> players )
+	{
+		if ( !CanSafelyStartRound(
+			logFailures: !spawnFailureReported ) )
+		{
+			spawnFailureReported = true;
+			return false;
+		}
+
+		var largeLad = players[nextLargeLadIndex % players.Count];
+		var hunterPlayers = new List<LargeLadPlayer> { largeLad };
+		var skinnyKidPlayers = players
+			.Where( player => player != largeLad )
+			.ToList();
+		var hunterAllocations = AllocateSpawnBatch(
+			LargeLadSpawnGroup.Hunter,
+			hunterPlayers );
+		var projectedHunterPositions = hunterAllocations.Values
+			.Select( allocation => allocation.Position )
+			.ToList();
+		var skinnyKidAllocations = AllocateSpawnBatch(
+			LargeLadSpawnGroup.SkinnyKid,
+			skinnyKidPlayers,
+			hunterPlayers,
+			projectedHunterPositions );
+		var hunterComplete = LargeLadSpawnRules.HasCompleteBatchAllocation(
+			hunterPlayers,
+			hunterAllocations );
+		var skinnyKidComplete = LargeLadSpawnRules.HasCompleteBatchAllocation(
+			skinnyKidPlayers,
+			skinnyKidAllocations );
+
+		if ( !hunterComplete || !skinnyKidComplete )
+		{
+			if ( !spawnFailureReported )
+			{
+				Log.Error(
+					"Round start aborted before changing gameplay state: " +
+					$"Hunter allocations {hunterAllocations.Count}/" +
+					$"{hunterPlayers.Count}, Skinny Kid allocations " +
+					$"{skinnyKidAllocations.Count}/{skinnyKidPlayers.Count}. " +
+					"Fix the authored spawn areas and rebuild projected candidates." );
+			}
+
+			spawnFailureReported = true;
+			return false;
+		}
+
+		// Player-held exclusive items are cleared before their authored pickup
+		// returns, so a reset can never create a second copy.
+		foreach ( var player in players )
+			player.Inventory?.ClearForRoundReset();
+
+		ResetMapState();
+		pendingDeathPlans.Clear();
+		Winner = LargeLadWinner.None;
+		nextLargeLadIndex = (nextLargeLadIndex + 1) % players.Count;
+		lobbyPlacedPlayers.Clear();
+
+		ApplyRespawnAllocations(
+			hunterPlayers,
+			hunterAllocations,
+			LargeLadRole.LargeLad,
+			keepMovementLocked: true );
+		ApplyRespawnAllocations(
+			skinnyKidPlayers,
+			skinnyKidAllocations,
+			LargeLadRole.SkinnyKid,
+			keepMovementLocked: false );
+
+		spawnFailureReported = false;
+		PhaseTimeRemaining = HeadStartDuration;
+		SetPhase( LargeLadRoundPhase.HeadStart );
+		Log.Info( $"Round started with {players.Count} players and a {HeadStartDuration:0.#}-second head start." );
+		return true;
+	}
+
+	private void BeginPlaying( List<LargeLadPlayer> players )
+	{
+		foreach ( var player in players )
+			player.MovementLocked = false;
+
+		PhaseTimeRemaining = SurvivalDuration;
+		SetPhase( LargeLadRoundPhase.Playing );
+		Log.Info( $"Head start finished. Skinny Kids must survive {SurvivalDuration:0.#} seconds." );
+	}
+
+	public void EndRound( LargeLadWinner winner )
+	{
+		if ( !Networking.IsHost ||
+			(Phase != LargeLadRoundPhase.HeadStart && Phase != LargeLadRoundPhase.Playing) )
+		{
+			return;
+		}
+
+		Winner = winner;
+		PhaseTimeRemaining = IntermissionDuration;
+		SetPhase( LargeLadRoundPhase.RoundOver );
+
+		var players = GetActivePlayerSnapshot();
+		var returningPlayers = players
+			.Where( player => player.Health?.IsDead != true )
+			.ToList();
+		var lobbyAllocations = AllocateSpawnBatch(
+			LargeLadSpawnGroup.Lobby,
+			returningPlayers );
+
+		if ( LargeLadSpawnRules.HasCompleteBatchAllocation(
+			returningPlayers,
+			lobbyAllocations ) )
+		{
+			foreach ( var player in returningPlayers )
+			{
+				player.RespawnAs(
+					LargeLadRole.Unassigned,
+					lobbyAllocations[player] );
+				lobbyPlacedPlayers.Add( player );
+			}
+		}
+		else
+		{
+			foreach ( var player in returningPlayers )
+				player.MovementLocked = true;
+
+			Log.Error(
+				"Lobby return allocation failed at round end: received " +
+				$"{lobbyAllocations?.Count ?? 0}/{returningPlayers.Count} " +
+				"required positions. Player roles, health, and inventories " +
+				"were retained and movement remains locked." );
+		}
+
+		var winnerName = winner == LargeLadWinner.SkinnyKids
+			? "Skinny Kids"
+			: "Large Lad team";
+		Log.Info( $"Round over. {winnerName} won. Next round in {IntermissionDuration:0.#} seconds." );
+	}
+
+	private void FinishIntermission( List<LargeLadPlayer> players )
+	{
+		PhaseTimeRemaining = 0.0f;
+		Winner = LargeLadWinner.None;
+
+		if ( LargeLadGameplayRules.HasMinimumPlayers(
+			players.Count,
+			MinimumPlayers ) )
+		{
+			if ( StartRound( players ) )
+				return;
+
+			SetPhase( LargeLadRoundPhase.WaitingForPlayers );
+			waitingPlayerCount = players.Count;
+			playerReadyTimeRemaining = PlayerReadyDelay;
+			return;
+		}
+
+		SetPhase( LargeLadRoundPhase.WaitingForPlayers );
+		Log.Info( "Waiting for enough players to start the next round." );
+	}
+
+	private void AssignLateJoinersAsMinions( List<LargeLadPlayer> players )
+	{
+		foreach ( var player in players.Where( player => player.Role == LargeLadRole.Unassigned ) )
+		{
+			player.SetPendingRespawnRole( LargeLadRole.Minion );
+			player.MovementLocked = true;
+
+			if ( !TryAllocatePlayerSpawn(
+				player,
+				LargeLadSpawnGroup.Hunter,
+				"joining the active round as a Minion",
+				"unassigned, pending, and movement-locked",
+				out var spawn ) )
+			{
+				continue;
+			}
+
+			player.RespawnAs( LargeLadRole.Minion, spawn );
+			Log.Info( $"{player.GameObject.Name} joined the active round as a Minion." );
+		}
+	}
+
+	private void EvaluateWinnerAfterLifecycleChange()
+	{
+		if ( !Networking.IsHost ||
+			Phase is not (LargeLadRoundPhase.HeadStart or LargeLadRoundPhase.Playing) )
+		{
+			return;
+		}
+
+		var winner = LargeLadGameplayRules.DetermineWinnerWhenTeamIsMissing(
+			activePlayers.Any( player =>
+				registeredPlayers.Contains( player ) &&
+				GetEffectiveRoundRole( player ) == LargeLadRole.LargeLad ),
+			activePlayers.Any( player =>
+				registeredPlayers.Contains( player ) &&
+				GetEffectiveRoundRole( player ) == LargeLadRole.SkinnyKid ) );
+
+		if ( winner != LargeLadWinner.None )
+			EndRound( winner );
+	}
+
+	internal void HandlePlayerLethalTransition(
+		LargeLadPlayer player,
+		LargeLadDamageContext damage )
+	{
+		// TryBeginDeath is the final idempotency gate. The stored plan remains
+		// authoritative until this life reaches its spawn destination.
+		if ( !Networking.IsHost ||
+			player?.Health is null ||
+			!registeredPlayers.Contains( player ) ||
+			player.Scene != Scene ||
+			pendingDeathPlans.ContainsKey( player ) )
+		{
+			return;
+		}
+
+		var plan = LargeLadGameplayRules.ResolveDeathPlan(
+			player.Role,
+			damage.DamageType,
+			LargeLadRespawnDelay,
+			PlayerRespawnDelay );
+
+		if ( !player.Health.TryBeginDeath(
+			plan.RespawnDelay,
+			plan.UseRagdoll ) )
+		{
+			return;
+		}
+
+		player.Inventory?.HandleDeath( player.GameObject.WorldPosition );
+		pendingDeathPlans.Add( player, plan );
+		player.SetPendingRespawnRole( plan.ResultingRole );
+		player.MovementLocked = true;
+
+		var conversion = player.Role == LargeLadRole.SkinnyKid
+			? " and will convert to a Minion"
+			: string.Empty;
+		Log.Info(
+			$"{player.GameObject.Name} died from {damage.DamageType}" +
+			$"{conversion}; respawn in {plan.RespawnDelay:0.#} seconds." );
+
+		EvaluateWinnerAfterLifecycleChange();
+	}
+
+	public void RequestEnvironmentalDeath( LargeLadPlayer player )
+	{
+		if ( !Networking.IsHost ||
+			Phase is not (LargeLadRoundPhase.HeadStart or LargeLadRoundPhase.Playing) ||
+			player?.Health is null ||
+			!registeredPlayers.Contains( player ) ||
+			player.Scene != Scene )
+		{
+			return;
+		}
+
+		player.Health.RequestEnvironmentalDeath();
+	}
+
+	private void UpdateRespawns( IReadOnlyList<LargeLadPlayer> players )
+	{
+		foreach ( var player in players )
+		{
+			var health = player.Health;
+
+			if ( health is null ||
+				!health.IsDead ||
+				!pendingDeathPlans.TryGetValue( player, out var plan ) ||
+				!health.TickRespawnCountdown() )
+			{
+				continue;
+			}
+
+			var roundIsActive =
+				Phase is LargeLadRoundPhase.HeadStart or LargeLadRoundPhase.Playing;
+			var respawnRole = roundIsActive
+				? plan.ResultingRole
+				: LargeLadRole.Unassigned;
+			var spawnGroup = roundIsActive
+				? plan.SpawnGroup
+				: LargeLadSpawnGroup.Lobby;
+
+			if ( !TryAllocatePlayerSpawn(
+				player,
+				spawnGroup,
+				$"respawning as {GetRoleName( respawnRole )}",
+				"dead with its pending role intact and movement locked",
+				out var spawn ) )
+			{
+				continue;
+			}
+
+			player.RespawnAs(
+				respawnRole,
+				spawn,
+				keepMovementLocked:
+					roundIsActive &&
+					respawnRole == LargeLadRole.LargeLad &&
+					Phase == LargeLadRoundPhase.HeadStart );
+
+			if ( !roundIsActive )
+				lobbyPlacedPlayers.Add( player );
+
+			pendingDeathPlans.Remove( player );
+			Log.Info( $"{player.GameObject.Name} respawned as {GetRoleName( respawnRole )}." );
+		}
+	}
+
+	private void PlaceUnassignedPlayersInLobby( IReadOnlyList<LargeLadPlayer> players )
+	{
+		foreach ( var player in players.Where( player =>
+			player.Role == LargeLadRole.Unassigned &&
+			player.Health?.IsDead != true &&
+			!lobbyPlacedPlayers.Contains( player ) ) )
+		{
+			player.MovementLocked = true;
+
+			if ( !TryAllocatePlayerSpawn(
+				player,
+				LargeLadSpawnGroup.Lobby,
+				"entering the Lobby",
+				"unassigned and movement-locked",
+				out var spawn ) )
+			{
+				continue;
+			}
+
+			player.RespawnAs( LargeLadRole.Unassigned, spawn );
+			lobbyPlacedPlayers.Add( player );
+		}
+	}
+
+	private void ResolveBootstrapReferences()
+	{
+		if ( !IsUsableBootstrapComponent( NetworkHelper ) )
+			NetworkHelper = Components.Get<NetworkHelper>();
+
+		if ( !IsUsableBootstrapComponent( SpawnAllocator ) )
+			SpawnAllocator = Components.Get<LargeLadSpawnAllocator>();
+
+		SpawnAllocator?.ConfigureGameManager( this );
+	}
+
+	private void ValidateSpawnGroup(
+		List<string> issues,
+		LargeLadSpawnGroup group,
+		int requiredCapacity,
+		bool validateGeometry )
+	{
+		if ( SpawnAllocator is null )
+		{
+			issues.Add(
+				$"{group} cannot be validated because no LargeLadSpawnAllocator " +
+				"is available. Keep exactly one Large Lad Gameplay Bootstrap " +
+				"in the scene." );
+			return;
+		}
+
+		var spawns = SpawnAllocator.GetTeamSpawns( group );
+
+		if ( spawns.Count == 0 )
+		{
+			issues.Add(
+				$"{group} has no authored spawn object. Add a {group} Team Spawn " +
+				"prefab and rebuild projected candidates." );
+			return;
+		}
+
+		var capacity = SpawnAllocator.GetConfiguredCapacity( group );
+		if ( capacity < requiredCapacity )
+		{
+			var authoredCapacities = string.Join(
+				", ",
+				spawns.Select( spawn =>
+					$"'{spawn.GameObject.Name}' capacity {spawn.Capacity}" ) );
+			issues.Add(
+				$"{group} configured capacity is {capacity}/{requiredCapacity}. " +
+				$"Authored spawn objects: {authoredCapacities}. Increase capacity " +
+				"or add another authored spawn area." );
+		}
+
+		if ( !validateGeometry )
+			return;
+
+		var generated = SpawnAllocator.CountGeneratedCandidates( group );
+		if ( generated >= requiredCapacity )
+			return;
+
+		var generatedDescription = generated == 0
+			? "zero valid cached positions"
+			: $"{generated}/{requiredCapacity} valid cached positions";
+		issues.Add(
+			$"{group} produced {generatedDescription}; {requiredCapacity} are " +
+			"required for safe round flow. The round cannot start until the " +
+			"authored areas are fixed and rebuilt." );
+
+		foreach ( var spawn in spawns )
+		{
+			var spawnGenerated =
+				SpawnAllocator.CountGeneratedCandidates( spawn );
+			issues.Add(
+				$"{group} authored spawn '{spawn.GameObject.Name}': configured " +
+				$"capacity {spawn.Capacity}, generated {spawnGenerated} valid " +
+				"cached positions. Move or resize the area above walkable floor, " +
+				"clear nearby walls/ceilings, adjust MinimumSeparation if needed, " +
+				"then use Rebuild Projected Candidates." );
+		}
+	}
+
+	private void ResetMapState()
+	{
+		foreach ( var resettable in GetRoundResettableSnapshot() )
+		{
+			if ( IsActiveInManagerScene( resettable ) )
+				resettable.ResetForRound();
+			else
+				UnregisterRoundResettable( resettable );
+		}
+	}
+
+	internal void RegisterPlayer( LargeLadPlayer player )
+	{
+		if ( !IsActiveInManagerScene( player ) ||
+			!registeredPlayers.Add( player ) )
+		{
+			return;
+		}
+
+		activePlayers.Add( player );
+		IndexPlayerRole( player, player.Role );
+		EvaluateWinnerAfterLifecycleChange();
+	}
+
+	internal void UnregisterPlayer( LargeLadPlayer player )
+	{
+		if ( player is null || !registeredPlayers.Remove( player ) )
+			return;
+
+		activePlayers.Remove( player );
+
+		foreach ( var rolePlayers in playersByRole.Values )
+			rolePlayers.Remove( player );
+
+		if ( currentLargeLad == player )
+			currentLargeLad = FindIndexedLargeLad();
+
+		lobbyPlacedPlayers.Remove( player );
+		pendingDeathPlans.Remove( player );
+		reportedSpawnAllocationFailures.RemoveWhere(
+			failure => failure.Player == player );
+		EvaluateWinnerAfterLifecycleChange();
+	}
+
+	internal void UpdatePlayerRole(
+		LargeLadPlayer player,
+		LargeLadRole oldRole,
+		LargeLadRole newRole )
+	{
+		if ( player is null || !registeredPlayers.Contains( player ) )
+			return;
+
+		if ( playersByRole.TryGetValue( oldRole, out var oldRolePlayers ) )
+			oldRolePlayers.Remove( player );
+
+		IndexPlayerRole( player, newRole );
+
+		if ( oldRole == LargeLadRole.LargeLad &&
+			currentLargeLad == player &&
+			newRole != LargeLadRole.LargeLad )
+		{
+			currentLargeLad = FindIndexedLargeLad();
+		}
+
+		EvaluateWinnerAfterLifecycleChange();
+	}
+
+	internal void RegisterRoundResettable(
+		ILargeLadRoundResettable resettable )
+	{
+		if ( !IsActiveInManagerScene( resettable ) ||
+			!registeredRoundResettables.Add( resettable ) )
+		{
+			return;
+		}
+
+		roundResettables.Add( resettable );
+	}
+
+	internal void UnregisterRoundResettable(
+		ILargeLadRoundResettable resettable )
+	{
+		if ( resettable is null ||
+			!registeredRoundResettables.Remove( resettable ) )
+		{
+			return;
+		}
+
+		roundResettables.Remove( resettable );
+	}
+
+	private void AttachToSceneRegistry()
+	{
+		if ( registeredScene is not null && registeredScene != Scene )
+			DetachFromSceneRegistry();
+
+		registeredScene = Scene;
+		LargeLadSceneRegistry.RegisterManager( registeredScene, this );
+	}
+
+	private void DetachFromSceneRegistry()
+	{
+		if ( registeredScene is not null )
+		{
+			LargeLadSceneRegistry.UnregisterManager(
+				registeredScene,
+				this );
+			registeredScene = null;
+		}
+
+		ClearRegistrations();
+	}
+
+	private void ClearRegistrations()
+	{
+		activePlayers.Clear();
+		registeredPlayers.Clear();
+
+		foreach ( var rolePlayers in playersByRole.Values )
+			rolePlayers.Clear();
+
+		currentLargeLad = null;
+		roundResettables.Clear();
+		registeredRoundResettables.Clear();
+		lobbyPlacedPlayers.Clear();
+		pendingDeathPlans.Clear();
+		reportedSpawnAllocationFailures.Clear();
+	}
+
+	private List<LargeLadPlayer> GetActivePlayerSnapshot()
+	{
+		PruneInvalidRegistrations();
+		return activePlayers.ToList();
+	}
+
+	private List<ILargeLadRoundResettable> GetRoundResettableSnapshot()
+	{
+		PruneInvalidRegistrations();
+		return roundResettables.ToList();
+	}
+
+	private void PruneInvalidRegistrations()
+	{
+		foreach ( var player in activePlayers
+			.Where( player => !IsActiveInManagerScene( player ) )
+			.ToList() )
+		{
+			UnregisterPlayer( player );
+		}
+
+		foreach ( var resettable in roundResettables
+			.Where( resettable => !IsActiveInManagerScene( resettable ) )
+			.ToList() )
+		{
+			UnregisterRoundResettable( resettable );
+		}
+
+		// Role change callbacks keep this index current during normal play.
+		// Reconcile from the already-registered player list as a defensive path
+		// for deserialization and network snapshot application.
+		foreach ( var player in activePlayers )
+		{
+			foreach ( var roleEntry in playersByRole )
+			{
+				if ( roleEntry.Key != player.Role )
+					roleEntry.Value.Remove( player );
+			}
+
+			IndexPlayerRole( player, player.Role );
+		}
+
+		currentLargeLad = FindIndexedLargeLad();
+	}
+
+	private void IndexPlayerRole(
+		LargeLadPlayer player,
+		LargeLadRole role )
+	{
+		if ( !playersByRole.TryGetValue( role, out var rolePlayers ) )
+			return;
+
+		if ( !rolePlayers.Contains( player ) )
+			rolePlayers.Add( player );
+
+		if ( role == LargeLadRole.LargeLad )
+			currentLargeLad = player;
+	}
+
+	private LargeLadPlayer FindIndexedLargeLad()
+	{
+		return playersByRole[LargeLadRole.LargeLad]
+			.FirstOrDefault( player => IsActiveInManagerScene( player ) );
+	}
+
+	private bool IsActiveInManagerScene( Component component )
+	{
+		return component is not null &&
+			component.IsValid &&
+			component.Enabled &&
+			component.Scene == Scene;
+	}
+
+	private bool IsActiveInManagerScene(
+		ILargeLadRoundResettable resettable )
+	{
+		return resettable is Component component &&
+			IsActiveInManagerScene( component );
+	}
+
+	private bool IsUsableBootstrapComponent( Component component )
+	{
+		return component is not null &&
+			component.IsValid &&
+			component.Scene == Scene &&
+			component.GameObject == GameObject;
+	}
+
+	private bool TickPhaseTimer()
+	{
+		PhaseTimeRemaining -= Time.Delta;
+
+		if ( PhaseTimeRemaining > 0.0f )
+			return false;
+
+		PhaseTimeRemaining = 0.0f;
+		return true;
+	}
+
+	private static void ApplyRespawnAllocations(
+		IReadOnlyList<LargeLadPlayer> players,
+		IReadOnlyDictionary<LargeLadPlayer, LargeLadSpawnLocation> allocations,
+		LargeLadRole role,
+		bool keepMovementLocked )
+	{
+		// Allocation is manager policy; applying the spawn is player lifecycle.
+		foreach ( var player in players )
+		{
+			player.RespawnAs(
+				role,
+				allocations[player],
+				keepMovementLocked );
+		}
+	}
+
+	private bool TryAllocatePlayerSpawn(
+		LargeLadPlayer player,
+		LargeLadSpawnGroup group,
+		string action,
+		string retainedState,
+		out LargeLadSpawnLocation spawn )
+	{
+		if ( !TryAllocateSpawn( group, player, out spawn ) )
+		{
+			var failure = (Player: player, Group: group);
+
+			if ( reportedSpawnAllocationFailures.Add( failure ) )
+			{
+				Log.Error(
+					$"Spawn allocation failed for '{player.GameObject.Name}' " +
+					$"while {action}: no safe cached {group} position is " +
+					$"available. The player remains {retainedState}. Fix the " +
+					"authored spawn area and rebuild projected candidates." );
+			}
+
+			return false;
+		}
+
+		reportedSpawnAllocationFailures.Remove( (player, group) );
+		return true;
+	}
+
+	private void OnPhaseChanged( LargeLadRoundPhase oldPhase, LargeLadRoundPhase newPhase )
+	{
+		Log.Info( $"Round phase changed from {oldPhase} to {newPhase}." );
+	}
+
+	private void SetPhase( LargeLadRoundPhase nextPhase )
+	{
+		if ( !LargeLadGameplayRules.CanTransitionRoundPhase( Phase, nextPhase ) )
+		{
+			Log.Warning(
+				$"Ignored invalid round phase transition from {Phase} to {nextPhase}." );
+			return;
+		}
+
+		Phase = nextPhase;
+	}
+
+	private static LargeLadRole GetEffectiveRoundRole( LargeLadPlayer player )
+	{
+		return LargeLadGameplayRules.GetEffectiveRoundRole(
+			player.Role,
+			player.PendingRespawnRole );
+	}
+
+	private static string GetRoleName( LargeLadRole role )
+	{
+		return role switch
+		{
+			LargeLadRole.SkinnyKid => "a Skinny Kid",
+			LargeLadRole.Minion => "a Minion",
+			LargeLadRole.LargeLad => "the Large Lad",
+			_ => "unassigned"
+		};
+	}
+}

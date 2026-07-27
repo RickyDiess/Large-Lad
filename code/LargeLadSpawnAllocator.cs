@@ -78,6 +78,7 @@ public sealed class LargeLadSpawnAllocator : Component
 		LargeLadSpawnGroup,
 		IReadOnlyList<LargeLadSpawnLocation>> candidatesByGroup = new();
 	private bool candidateCacheDirty = true;
+	private LargeLadGameManager gameManager;
 	private NetworkHelper configuredNetworkHelper;
 	private GameObject configuredPlayerPrefab;
 
@@ -96,6 +97,7 @@ public sealed class LargeLadSpawnAllocator : Component
 		ClearRuntimeLobbyPoints();
 		candidatesBySpawn.Clear();
 		candidatesByGroup.Clear();
+		gameManager = null;
 		configuredNetworkHelper = null;
 		configuredPlayerPrefab = null;
 	}
@@ -192,6 +194,12 @@ public sealed class LargeLadSpawnAllocator : Component
 		RefreshNetworkHelperLobbyPoints();
 	}
 
+	public void ConfigureGameManager( LargeLadGameManager manager )
+	{
+		if ( manager is not null && manager.Scene == Scene )
+			gameManager = manager;
+	}
+
 	private void BuildRuntimeLobbyPoints( NetworkHelper helper )
 	{
 		ClearRuntimeLobbyPoints();
@@ -207,7 +215,7 @@ public sealed class LargeLadSpawnAllocator : Component
 				candidateParents.Add( (candidate, spawn) );
 		}
 
-		if ( candidateParents.Count < LargeLadMapDefinition.TargetPlayerCount )
+		if ( candidateParents.Count < LargeLadGameManager.TargetPlayerCount )
 		{
 			// NetworkHelper otherwise falls back to its own transform and stacks
 			// connecting players, or repeatedly selects an undersized set. An
@@ -217,7 +225,7 @@ public sealed class LargeLadSpawnAllocator : Component
 			helper.SpawnPoints.Clear();
 			Log.Error(
 				$"Lobby has {candidateParents.Count}/" +
-				$"{LargeLadMapDefinition.TargetPlayerCount} required valid " +
+				$"{LargeLadGameManager.TargetPlayerCount} required valid " +
 				"cached spawn positions. " +
 				"NetworkHelper player spawning is disabled until the spawn " +
 				"areas or surrounding geometry are fixed and rebuilt." );
@@ -287,8 +295,7 @@ public sealed class LargeLadSpawnAllocator : Component
 			return allocations;
 		}
 
-		var occupied = Scene
-			.GetAllComponents<LargeLadPlayer>()
+		var occupied = GetActivePlayers()
 			.Where( player =>
 				!batch.Contains( player ) &&
 				player.Health?.IsDead != true )
@@ -357,8 +364,7 @@ public sealed class LargeLadSpawnAllocator : Component
 			return false;
 		}
 
-		var occupied = Scene
-			.GetAllComponents<LargeLadPlayer>()
+		var occupied = GetActivePlayers()
 			.Where( other => other != player && other.Health?.IsDead != true )
 			.Select( other => other.GameObject.WorldPosition )
 			.ToList();
@@ -384,6 +390,20 @@ public sealed class LargeLadSpawnAllocator : Component
 		return candidatesByGroup.TryGetValue( group, out var candidates )
 			? candidates
 			: Array.Empty<LargeLadSpawnLocation>();
+	}
+
+	private IReadOnlyList<LargeLadPlayer> GetActivePlayers()
+	{
+		if ( gameManager is null ||
+			!gameManager.IsValid ||
+			!gameManager.Enabled ||
+			gameManager.Scene != Scene )
+		{
+			gameManager = LargeLadGameManager.FindForScene( Scene );
+		}
+
+		return gameManager?.ActivePlayers ??
+			Array.Empty<LargeLadPlayer>();
 	}
 
 	private void EnsureCandidateCache()
@@ -423,7 +443,7 @@ public sealed class LargeLadSpawnAllocator : Component
 		var desiredCount = System.Math.Clamp(
 			spawn.Capacity,
 			1,
-			LargeLadMapDefinition.TargetPlayerCount );
+			LargeLadGameManager.TargetPlayerCount );
 		var radius = System.MathF.Max( 0.0f, spawn.SpawnRadius );
 		var separation = System.MathF.Max(
 			PlayerRadius * 2.0f,

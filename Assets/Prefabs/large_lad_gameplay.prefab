@@ -16,22 +16,35 @@
     "OwnerTransfer": 1,
     "Components": [
       {
-        "__type": "LargeLadMapDefinition",
-        "__guid": "54e8b1e3-56e4-53fc-8f6a-aeba626a6879",
+        "__type": "LargeLadGameManager",
+        "__guid": "6ba98835-269e-4ca8-95a4-06e9faf5db59",
         "__enabled": true,
         "Flags": 0,
         "HeadStartDuration": 10,
-        "SurvivalDuration": 60,
         "IntermissionDuration": 5,
-        "NetworkHelper": null,
-        "RoundManager": null,
-        "SpawnAllocator": null,
+        "LargeLadRespawnDelay": 5,
+        "MinimumPlayers": 2,
+        "NetworkHelper": {
+          "_type": "component",
+          "component_id": "13a94fea-a2de-45da-beb8-61e564e6e245",
+          "go": "4ec5f084-cef2-4cca-9d9d-3d3a4ba40ec5",
+          "component_type": "NetworkHelper"
+        },
         "OnComponentDestroy": null,
         "OnComponentDisabled": null,
         "OnComponentEnabled": null,
         "OnComponentFixedUpdate": null,
         "OnComponentStart": null,
-        "OnComponentUpdate": null
+        "OnComponentUpdate": null,
+        "PlayerReadyDelay": 0.5,
+        "PlayerRespawnDelay": 5,
+        "SpawnAllocator": {
+          "_type": "component",
+          "component_id": "71d9cc78-bf50-49ca-95cc-aa5a3f7a4900",
+          "go": "4ec5f084-cef2-4cca-9d9d-3d3a4ba40ec5",
+          "component_type": "LargeLadSpawnAllocator"
+        },
+        "SurvivalDuration": 60
       },
       {
         "__type": "LargeLadSpawnAllocator",
@@ -62,25 +75,6 @@
         },
         "SpawnPoints": [],
         "StartServer": true
-      },
-      {
-        "__type": "LargeLadRoundManager",
-        "__guid": "6ba98835-269e-4ca8-95a4-06e9faf5db59",
-        "__enabled": true,
-        "Flags": 0,
-        "HeadStartDuration": 10,
-        "IntermissionDuration": 5,
-        "LargeLadRespawnDelay": 5,
-        "MinimumPlayers": 2,
-        "OnComponentDestroy": null,
-        "OnComponentDisabled": null,
-        "OnComponentEnabled": null,
-        "OnComponentFixedUpdate": null,
-        "OnComponentStart": null,
-        "OnComponentUpdate": null,
-        "PlayerReadyDelay": 0.5,
-        "PlayerRespawnDelay": 5,
-        "RoundDuration": 60
       }
     ],
     "Children": []

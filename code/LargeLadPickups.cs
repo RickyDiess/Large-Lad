@@ -1,9 +1,8 @@
 using Sandbox;
 using System.Collections.Generic;
 
-public sealed class LargeLadWeaponPickup : Component,
-	Component.ITriggerListener,
-	ILargeLadRoundResettable
+public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
+	Component.ITriggerListener
 {
 	[Property]
 	public LargeLadWeaponId Weapon { get; set; } = LargeLadWeaponId.Pistol;
@@ -124,7 +123,7 @@ public sealed class LargeLadWeaponPickup : Component,
 		SetAvailable( true );
 	}
 
-	public void ResetForRound()
+	public override void ResetForRound()
 	{
 		if ( !Networking.IsHost )
 			return;
@@ -176,9 +175,8 @@ public sealed class LargeLadWeaponPickup : Component,
 	}
 }
 
-public sealed class LargeLadAmmoPickup : Component,
-	Component.ITriggerListener,
-	ILargeLadRoundResettable
+public sealed class LargeLadAmmoPickup : LargeLadRoundResettableComponent,
+	Component.ITriggerListener
 {
 	[Property]
 	public LargeLadWeaponId Weapon { get; set; } = LargeLadWeaponId.Pistol;
@@ -259,7 +257,7 @@ public sealed class LargeLadAmmoPickup : Component,
 	{
 	}
 
-	public void ResetForRound()
+	public override void ResetForRound()
 	{
 		if ( Networking.IsHost )
 		{

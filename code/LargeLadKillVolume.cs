@@ -1,5 +1,4 @@
 using Sandbox;
-using System.Linq;
 
 public sealed class LargeLadKillVolume : Component, Component.ITriggerListener
 {
@@ -59,11 +58,8 @@ public sealed class LargeLadKillVolume : Component, Component.ITriggerListener
 			$"{player.GameObject.Name} entered {GameObject.Name} at " +
 			$"{player.GameObject.WorldPosition}." );
 
-		var round = Scene
-			.GetAllComponents<LargeLadRoundManager>()
-			.FirstOrDefault();
-
-		round?.HandleKillVolumeDeath( player );
+		LargeLadGameManager.FindForScene( Scene )?
+			.RequestEnvironmentalDeath( player );
 	}
 
 	public void OnTriggerExit( Collider other )

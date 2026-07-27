@@ -203,8 +203,6 @@ public sealed class LargeLadMeleeSystem : Component
 		if ( victim is null )
 			return LargeLadMeleeResult.Miss;
 
-		var round = GetRoundManager();
-
 		var killed = victim.Health.TryApplyDamage(
 			damage,
 			out var appliedDamage );
@@ -221,23 +219,8 @@ public sealed class LargeLadMeleeSystem : Component
 				: LargeLadMeleeResult.Miss;
 		}
 
-		if ( victim.Role != LargeLadRole.LargeLad )
-		{
-			var respawnRole = victim.Role == LargeLadRole.SkinnyKid
-				? LargeLadRole.Minion
-				: victim.Role;
-			round?.BeginPlayerRespawn(
-				victim,
-				respawnRole,
-				useRagdoll: true );
-		}
-
-		var conversionText = victim.Role == LargeLadRole.SkinnyKid
-			? " and converted them into a Minion"
-			: string.Empty;
 		Log.Info(
-			$"{attacker.GameObject.Name} killed {victim.GameObject.Name}" +
-			$"{conversionText}." );
+			$"{attacker.GameObject.Name} killed {victim.GameObject.Name}." );
 		return LargeLadMeleeResult.PlayerHit;
 	}
 
@@ -290,7 +273,9 @@ public sealed class LargeLadMeleeSystem : Component
 		MeleeTarget bestTarget = null;
 		var bestScore = float.MaxValue;
 
-		foreach ( var player in Scene.GetAllComponents<LargeLadPlayer>() )
+		foreach ( var player in
+			GetGameManager()?.ActivePlayers ??
+			System.Array.Empty<LargeLadPlayer>() )
 		{
 			if ( !IsValidPlayerTarget( attacker, player ) )
 				continue;
@@ -432,7 +417,7 @@ public sealed class LargeLadMeleeSystem : Component
 			return false;
 		}
 
-		var phase = GetRoundManager()?.Phase;
+		var phase = GetGameManager()?.Phase;
 
 		if ( phase == LargeLadRoundPhase.Playing )
 			return true;
@@ -789,11 +774,9 @@ public sealed class LargeLadMeleeSystem : Component
 		appliedMeleeModel = null;
 	}
 
-	private LargeLadRoundManager GetRoundManager()
+	private LargeLadGameManager GetGameManager()
 	{
-		return Scene
-			.GetAllComponents<LargeLadRoundManager>()
-			.FirstOrDefault();
+		return LargeLadGameManager.FindForScene( Scene );
 	}
 
 	private sealed class MeleeTarget

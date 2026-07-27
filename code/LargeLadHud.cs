@@ -1,6 +1,5 @@
 using Sandbox;
 using Sandbox.Rendering;
-using System.Linq;
 
 public sealed class LargeLadHud : Component
 {
@@ -13,9 +12,7 @@ public sealed class LargeLadHud : Component
 			return;
 
 		var player = Components.Get<LargeLadPlayer>();
-		var round = Scene
-			.GetAllComponents<LargeLadRoundManager>()
-			.FirstOrDefault();
+		var round = LargeLadGameManager.FindForScene( Scene );
 
 		if ( player is null || round is null )
 			return;
@@ -37,7 +34,7 @@ public sealed class LargeLadHud : Component
 
 	private static void DrawLargeLadStatus(
 		HudPainter hud,
-		LargeLadRoundManager round )
+		LargeLadGameManager round )
 	{
 		if ( round.Phase != LargeLadRoundPhase.HeadStart &&
 			round.Phase != LargeLadRoundPhase.Playing )
@@ -45,9 +42,7 @@ public sealed class LargeLadHud : Component
 			return;
 		}
 
-		var largeLad = round.Scene
-			.GetAllComponents<LargeLadPlayer>()
-			.FirstOrDefault( player => player.Role == LargeLadRole.LargeLad );
+		var largeLad = round.CurrentLargeLad;
 		var health = largeLad?.Health;
 
 		if ( health is null )
@@ -73,7 +68,7 @@ public sealed class LargeLadHud : Component
 
 	private static void DrawRoundStatus(
 		HudPainter hud,
-		LargeLadRoundManager round,
+		LargeLadGameManager round,
 		LargeLadPlayer player )
 	{
 		var centerX = Screen.Width * 0.5f;
@@ -135,7 +130,7 @@ public sealed class LargeLadHud : Component
 			TextFlag.LeftCenter );
 	}
 
-	private static void DrawWinnerBanner( HudPainter hud, LargeLadRoundManager round )
+	private static void DrawWinnerBanner( HudPainter hud, LargeLadGameManager round )
 	{
 		var center = new Vector2( Screen.Width * 0.5f, Screen.Height * 0.42f );
 		var accent = round.Winner == LargeLadWinner.SkinnyKids
@@ -515,7 +510,7 @@ public sealed class LargeLadHud : Component
 			accent.WithAlpha( 0.8f ) );
 	}
 
-	private static string GetPhaseTitle( LargeLadRoundManager round )
+	private static string GetPhaseTitle( LargeLadGameManager round )
 	{
 		return round.Phase switch
 		{
@@ -528,7 +523,7 @@ public sealed class LargeLadHud : Component
 	}
 
 	private static string GetPhaseSubtitle(
-		LargeLadRoundManager round,
+		LargeLadGameManager round,
 		LargeLadPlayer player )
 	{
 		return round.Phase switch
@@ -548,7 +543,7 @@ public sealed class LargeLadHud : Component
 		};
 	}
 
-	private static Color GetPhaseColor( LargeLadRoundManager round )
+	private static Color GetPhaseColor( LargeLadGameManager round )
 	{
 		return round.Phase switch
 		{

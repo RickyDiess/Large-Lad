@@ -77,7 +77,7 @@ public sealed class LargeLadInventory : Component
 		}
 	}
 
-	public void PrepareForRole( LargeLadRole role )
+	internal void PrepareForRole( LargeLadRole role )
 	{
 		if ( !Networking.IsHost )
 			return;

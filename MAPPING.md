@@ -15,10 +15,12 @@ between maps and do not add a second gameplay bootstrap.
 4. Place or duplicate the gameplay prefabs from `Assets/Prefabs/Gameplay`.
 5. Run the scene and resolve every `Map contract:` warning before testing it.
 
-The bootstrap contains `NetworkHelper`, `LargeLadRoundManager`,
-`LargeLadSpawnAllocator`, and `LargeLadMapDefinition`. The map definition owns
-the three per-map timing values and validates the scene. Its defaults are a
-10-second head start, a 60-second survival timer, and a 5-second intermission.
+The bootstrap contains `NetworkHelper`, `LargeLadSpawnAllocator`, and one
+`LargeLadGameManager`. The game manager is the single owner of round state,
+transitions, minimum-player rules, timing, bootstrap references, and map
+validation. Its defaults are two minimum players, a 0.5-second player-ready
+delay, a 10-second head start, a 60-second survival timer, a 5-second
+intermission, and 5-second Large Lad and other-player respawn delays.
 
 ## Team spawns
 
@@ -61,7 +63,7 @@ capacity, generated valid count, and the geometry or settings to check.
 Changing a team spawn's authored properties invalidates the cache
 automatically. After changing static floor or wall geometry, select any team
 spawn and use `Rebuild Projected Candidates`, or use
-`Rebuild And Validate Spawn Candidates` on the map definition. The colored
+`Rebuild And Validate Spawn Candidates` on the game manager. The colored
 gizmos show the cached projected capsules when an allocator is available.
 Ordinary validation, allocation, candidate-count, and gizmo reads only ensure
 the data cache; runtime NetworkHelper GameObjects are refreshed explicitly by

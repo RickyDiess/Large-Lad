@@ -18,10 +18,7 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 	public float RespawnTimeRemaining { get; private set; }
 
 	private GameObject deathRagdoll;
-	private bool hasPendingLethalDamage;
-
-	public bool HasPendingLethalDamage =>
-		Networking.IsHost && hasPendingLethalDamage;
+	private bool hasReportedLethalTransition;
 
 	public float MaximumHealth
 	{
@@ -49,17 +46,26 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 		RemoveDeathRagdoll();
 	}
 
-	public void ResetForCurrentRole()
+	internal void ResetForCurrentRole()
 	{
 		if ( !Networking.IsHost )
 			return;
 
 		CurrentHealth = MaximumHealth;
 		RespawnTimeRemaining = 0.0f;
-		UseRagdollForCurrentDeath = true;
-		hasPendingLethalDamage = false;
+		hasReportedLethalTransition = false;
+
+		var wasDead = IsDead;
 		IsDead = false;
-		ApplyLifeState( false );
+		UseRagdollForCurrentDeath = true;
+
+		// The synchronized change callback restores presentation when a dead
+		// player becomes alive. Round/lobby spawns may already be alive, so they
+		// need one explicit reapplication instead.
+		if ( !wasDead )
+		{
+			ApplyLifeState( false );
+		}
 	}
 
 	public bool TakeDamage( float amount )
@@ -105,26 +111,68 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 		if ( amount <= 0.0f )
 			return false;
 
-		CurrentHealth = System.MathF.Max( 0.0f, CurrentHealth - amount );
+		var previousHealth = CurrentHealth;
+		CurrentHealth = System.MathF.Max( 0.0f, previousHealth - amount );
 		appliedDamage = damage.WithAppliedDamage( amount );
-		hasPendingLethalDamage = CurrentHealth <= 0.0f;
-		return hasPendingLethalDamage;
+
+		if ( LargeLadGameplayRules.IsNewLethalTransition(
+			previousHealth,
+			CurrentHealth,
+			hasReportedLethalTransition ) )
+		{
+			ReportLethalTransition( player, appliedDamage );
+			return true;
+		}
+
+		return false;
 	}
 
-	public void BeginRespawnCountdown( float duration, bool useRagdoll = true )
+	internal bool RequestEnvironmentalDeath()
 	{
-		if ( !Networking.IsHost || IsDead )
-			return;
+		if ( !Networking.IsHost || IsDead || CurrentHealth <= 0.0f )
+			return false;
+
+		var player = Components.Get<LargeLadPlayer>();
+
+		if ( player is null || player.Role == LargeLadRole.Unassigned )
+			return false;
+
+		var previousHealth = CurrentHealth;
+		CurrentHealth = 0.0f;
+		var death = new LargeLadDamageContext
+		{
+			AttackerRole = LargeLadRole.Unassigned,
+			SourceWeapon = LargeLadWeaponId.None,
+			DamageType = LargeLadDamageType.Environment,
+			BaseDamage = previousHealth,
+			AppliedDamage = previousHealth
+		};
+
+		if ( !LargeLadGameplayRules.IsNewLethalTransition(
+			previousHealth,
+			CurrentHealth,
+			hasReportedLethalTransition ) )
+		{
+			return false;
+		}
+
+		ReportLethalTransition( player, death );
+		return true;
+	}
+
+	internal bool TryBeginDeath( float duration, bool useRagdoll )
+	{
+		if ( !Networking.IsHost || IsDead || CurrentHealth > 0.0f )
+			return false;
 
 		CurrentHealth = 0.0f;
 		RespawnTimeRemaining = System.MathF.Max( 0.0f, duration );
 		UseRagdollForCurrentDeath = useRagdoll;
-		hasPendingLethalDamage = false;
 		IsDead = true;
-		ApplyLifeState( true );
+		return true;
 	}
 
-	public bool TickRespawnCountdown()
+	internal bool TickRespawnCountdown()
 	{
 		if ( !Networking.IsHost || !IsDead )
 			return false;
@@ -134,6 +182,15 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 			RespawnTimeRemaining - Time.Delta );
 
 		return RespawnTimeRemaining <= 0.0f;
+	}
+
+	private void ReportLethalTransition(
+		LargeLadPlayer player,
+		LargeLadDamageContext damage )
+	{
+		hasReportedLethalTransition = true;
+		LargeLadGameManager.FindForScene( Scene )?
+			.HandlePlayerLethalTransition( player, damage );
 	}
 
 	private void OnIsDeadChanged( bool oldValue, bool newValue )

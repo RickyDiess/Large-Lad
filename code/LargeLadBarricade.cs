@@ -12,9 +12,8 @@ public enum LargeLadBarricadeMode
 /// A self-contained scene destructible. Put this component on the same
 /// GameObject as the scene mesh or renderer and collider.
 /// </summary>
-public sealed class LargeLadBarricade : Component,
-	ILargeLadDamageable,
-	ILargeLadRoundResettable
+public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
+	ILargeLadDamageable
 {
 	[Property]
 	public LargeLadBarricadeMode Mode { get; set; }
@@ -184,7 +183,7 @@ public sealed class LargeLadBarricade : Component,
 		return true;
 	}
 
-	public void ResetForRound()
+	public override void ResetForRound()
 	{
 		if ( !Networking.IsHost )
 			return;

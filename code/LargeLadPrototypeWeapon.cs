@@ -1,5 +1,4 @@
 using Sandbox;
-using System.Linq;
 
 public enum LargeLadShotResult
 {
@@ -57,9 +56,7 @@ public sealed class LargeLadPrototypeWeapon : Component
 			return;
 		}
 
-		var round = Scene
-			.GetAllComponents<LargeLadRoundManager>()
-			.FirstOrDefault();
+		var round = LargeLadGameManager.FindForScene( Scene );
 
 		if ( round?.Phase != LargeLadRoundPhase.Playing )
 			return;
@@ -103,9 +100,7 @@ public sealed class LargeLadPrototypeWeapon : Component
 		var attacker = Components.Get<LargeLadPlayer>();
 		var inventory = attacker?.Inventory;
 		var definition = inventory?.EquippedDefinition;
-		var round = Scene
-			.GetAllComponents<LargeLadRoundManager>()
-			.FirstOrDefault();
+		var round = LargeLadGameManager.FindForScene( Scene );
 
 		if ( attacker?.Role != LargeLadRole.SkinnyKid || inventory is null ||
 			definition is null || !LargeLadWeaponCatalog.IsFirearm( inventory.EquippedWeapon ) ||
