@@ -175,7 +175,13 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 		CurrentHealth = System.MathF.Max( 1.0f, MaximumHealth );
 		IsDestroyed = false;
 		ApplyDestroyedState();
-		Log.Info( $"Reset barricade '{GameObject.Name}' for the new round." );
+
+		if ( LargeLadGameManager.FindForScene( Scene )?
+			.EnablePickupAndRoundResetDebugLogging == true )
+		{
+			Log.Info(
+				$"[Debug/Round Reset] Reset barricade '{GameObject.Name}'." );
+		}
 	}
 
 	private void OnDestroyedChanged( bool oldValue, bool newValue )

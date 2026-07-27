@@ -131,7 +131,7 @@ public sealed class LargeLadMeleeCombat : Component
 	{
 		if ( target is null )
 		{
-			Log.Info( $"{attacker.GameObject.Name} swung and missed." );
+			LogMeleeDebug( $"{attacker.GameObject.Name} swung and missed." );
 			return LargeLadMeleeResult.Miss;
 		}
 
@@ -150,13 +150,13 @@ public sealed class LargeLadMeleeCombat : Component
 				damage,
 				out var structuralDamage ) )
 			{
-				Log.Info(
+				LogMeleeDebug(
 					$"{attacker.GameObject.Name} struck " +
 					$"{target.Barricade.AuthoredTarget.Name}, but could not damage it." );
 				return LargeLadMeleeResult.Miss;
 			}
 
-			Log.Info(
+			LogMeleeDebug(
 				$"{attacker.GameObject.Name} damaged " +
 				$"{target.Barricade.AuthoredTarget.Name} for " +
 				$"{structuralDamage.AppliedDamage:0.#}." );
@@ -174,7 +174,7 @@ public sealed class LargeLadMeleeCombat : Component
 
 		if ( !killed )
 		{
-			Log.Info(
+			LogMeleeDebug(
 				$"{attacker.GameObject.Name} hit {victim.GameObject.Name} for " +
 				$"{appliedDamage.AppliedDamage:0.#} damage. " +
 				$"{victim.Health.CurrentHealth:0.#}/" +
@@ -184,9 +184,15 @@ public sealed class LargeLadMeleeCombat : Component
 				: LargeLadMeleeResult.Miss;
 		}
 
-		Log.Info(
+		LogMeleeDebug(
 			$"{attacker.GameObject.Name} killed {victim.GameObject.Name}." );
 		return LargeLadMeleeResult.PlayerHit;
+	}
+
+	private void LogMeleeDebug( string message )
+	{
+		if ( GetGameManager()?.EnableMeleeDebugLogging == true )
+			Log.Info( $"[Debug/Melee] {message}" );
 	}
 
 	private MeleeTarget FindMeleeTarget(

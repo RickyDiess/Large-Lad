@@ -51,19 +51,28 @@ public sealed class LargeLadKillVolume : Component, Component.ITriggerListener
 		if ( player?.Health is null || player.Health.IsDead )
 			return;
 
+		var gameManager = GetGameManager();
+
 		if ( player.HasKillVolumeTeleportGrace )
 		{
-			Log.Info(
-				$"{GameObject.Name} ignored {player.GameObject.Name} during teleport settle." );
+			if ( gameManager?.EnableKillVolumeDebugLogging == true )
+			{
+				Log.Info(
+					$"[Debug/Kill Volume] {GameObject.Name} ignored " +
+					$"{player.GameObject.Name} during teleport settle." );
+			}
+
 			return;
 		}
 
-		Log.Info(
-			$"{player.GameObject.Name} entered {GameObject.Name} at " +
-			$"{player.GameObject.WorldPosition}." );
+		if ( gameManager?.EnableKillVolumeDebugLogging == true )
+		{
+			Log.Info(
+				$"[Debug/Kill Volume] {player.GameObject.Name} entered " +
+				$"{GameObject.Name} at {player.GameObject.WorldPosition}." );
+		}
 
-		GetGameManager()?
-			.RequestEnvironmentalDeath( player );
+		gameManager?.RequestEnvironmentalDeath( player );
 	}
 
 	public void OnTriggerExit( Collider other )

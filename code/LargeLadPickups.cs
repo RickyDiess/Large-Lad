@@ -104,7 +104,13 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 		{
 			// Duplicate ownership is rejected by the inventory. The authored
 			// pickup remains visible and available in either outcome.
-			inventory.TryGrantCoreWeapon( Weapon );
+			if ( inventory.TryGrantCoreWeapon( Weapon ) )
+			{
+				LogPickupDebug(
+					$"{player.GameObject.Name} collected core {Weapon} from " +
+					$"'{GameObject.Name}'." );
+			}
+
 			return;
 		}
 
@@ -294,6 +300,9 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 
 		droppedInstance = null;
 		dropped.GameObject.Destroy();
+		LogPickupDebug(
+			$"{player.GameObject.Name} collected dropped exclusive {Weapon} " +
+			$"from '{GameObject.Name}'." );
 	}
 
 	internal void HandleDroppedDestroyed(
@@ -328,6 +337,8 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 		exclusiveInstance?.ResetForRound();
 		RestoreAuthoredTransform();
 		SetAvailable( true );
+		LogRoundResetDebug(
+			$"Reset pickup '{GameObject.Name}' ({PickupPolicy} {Weapon})." );
 	}
 
 	private void TryCollectExclusiveFromOrigin(
@@ -363,6 +374,27 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 		}
 
 		SetAvailable( false );
+		LogPickupDebug(
+			$"{inventory.GameObject.Name} collected exclusive {Weapon} from " +
+			$"'{GameObject.Name}'." );
+	}
+
+	private void LogPickupDebug( string message )
+	{
+		if ( LargeLadGameManager.FindForScene( Scene )?
+			.EnablePickupAndRoundResetDebugLogging == true )
+		{
+			Log.Info( $"[Debug/Pickup] {message}" );
+		}
+	}
+
+	private void LogRoundResetDebug( string message )
+	{
+		if ( LargeLadGameManager.FindForScene( Scene )?
+			.EnablePickupAndRoundResetDebugLogging == true )
+		{
+			Log.Info( $"[Debug/Round Reset] {message}" );
+		}
 	}
 
 	private LargeLadDroppedExclusiveWeapon CreateDroppedRuntime(

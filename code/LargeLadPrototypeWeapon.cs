@@ -31,8 +31,8 @@ public sealed class LargeLadPrototypeWeapon : Component
 	private PlayerController cachedController;
 	private LargeLadGameManager cachedGameManager;
 
-	[Property, Title( "Fire Debug Output" )]
-	public bool EnableFireDebug { get; set; } = false;
+	[Property, Title( "Firearm Debug Logging" )]
+	public bool EnableFireDebug { get; set; }
 
 	public bool HasConfirmedHitmarker =>
 		hasConfirmedHit && timeSinceConfirmedHit < ConfirmedHitmarkerDuration;
@@ -266,7 +266,7 @@ public sealed class LargeLadPrototypeWeapon : Component
 	{
 		if ( EnableFireDebug )
 		{
-			Log.Info( $"{GameObject.Name}: {message}" );
+			Log.Info( $"[Debug/Firearm] {GameObject.Name}: {message}" );
 		}
 	}
 

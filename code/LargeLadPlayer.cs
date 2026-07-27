@@ -125,7 +125,14 @@ public sealed class LargeLadPlayer : Component
 			this,
 			oldRole,
 			newRole );
-		Log.Info( $"{GameObject.Name} changed role from {oldRole} to {newRole}." );
+
+		if ( LargeLadGameManager.FindForScene( Scene )?
+			.EnablePlayerLifecycleDebugLogging == true )
+		{
+			Log.Info(
+				$"[Debug/Player Lifecycle] {GameObject.Name} changed role " +
+				$"from {oldRole} to {newRole}." );
+		}
 	}
 
 	private void OnMovementLockedChanged( bool oldValue, bool newValue )

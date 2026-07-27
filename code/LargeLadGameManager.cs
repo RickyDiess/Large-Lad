@@ -52,6 +52,21 @@ public sealed class LargeLadGameManager : Component
 	[Property]
 	public LargeLadSpawnAllocator SpawnAllocator { get; set; }
 
+	[Property, Group( "Debug Logging" ), Title( "Melee" )]
+	public bool EnableMeleeDebugLogging { get; set; } = false;
+
+	[Property, Group( "Debug Logging" ), Title( "Pickups and Round Resets" )]
+	public bool EnablePickupAndRoundResetDebugLogging { get; set; } = false;
+
+	[Property, Group( "Debug Logging" ), Title( "Kill Volumes" )]
+	public bool EnableKillVolumeDebugLogging { get; set; } = false;
+
+	[Property, Group( "Debug Logging" ), Title( "Player Lifecycle" )]
+	public bool EnablePlayerLifecycleDebugLogging { get; set; } = false;
+
+	[Property, Group( "Debug Logging" ), Title( "Successful Map Validation" )]
+	public bool EnableMapValidationDebugLogging { get; set; } = false;
+
 	[Sync( SyncFlags.FromHost ), Change( nameof( OnPhaseChanged ) )]
 	public LargeLadRoundPhase Phase { get; private set; } =
 		LargeLadRoundPhase.WaitingForPlayers;
@@ -490,9 +505,12 @@ public sealed class LargeLadGameManager : Component
 		{
 			if ( issues.Count == 0 )
 			{
-				Log.Info(
-					$"Scene containing '{GameObject.Name}' " +
-					"passes the Large Lad map contract." );
+				if ( EnableMapValidationDebugLogging )
+				{
+					Log.Info(
+						$"[Debug/Map Validation] Scene containing " +
+						$"'{GameObject.Name}' passes the Large Lad map contract." );
+				}
 			}
 			else
 			{
@@ -766,7 +784,13 @@ public sealed class LargeLadGameManager : Component
 			}
 
 			player.RespawnAs( LargeLadRole.Minion, spawn );
-			Log.Info( $"{player.GameObject.Name} joined the active round as a Minion." );
+
+			if ( EnablePlayerLifecycleDebugLogging )
+			{
+				Log.Info(
+					$"[Debug/Player Lifecycle] {player.GameObject.Name} " +
+					"joined the active round as a Minion." );
+			}
 		}
 	}
 
@@ -825,9 +849,14 @@ public sealed class LargeLadGameManager : Component
 		var conversion = player.Role == LargeLadRole.SkinnyKid
 			? " and will convert to a Minion"
 			: string.Empty;
-		Log.Info(
-			$"{player.GameObject.Name} died from {damage.DamageType}" +
-			$"{conversion}; respawn in {plan.RespawnDelay:0.#} seconds." );
+
+		if ( EnablePlayerLifecycleDebugLogging )
+		{
+			Log.Info(
+				$"[Debug/Player Lifecycle] {player.GameObject.Name} died " +
+				$"from {damage.DamageType}{conversion}; respawn in " +
+				$"{plan.RespawnDelay:0.#} seconds." );
+		}
 
 		EvaluateWinnerAfterLifecycleChange();
 		return true;
@@ -891,7 +920,12 @@ public sealed class LargeLadGameManager : Component
 			if ( !roundIsActive )
 				lobbyPlacedPlayers.Add( player );
 
-			Log.Info( $"{player.GameObject.Name} respawned as {GetRoleName( respawnRole )}." );
+			if ( EnablePlayerLifecycleDebugLogging )
+			{
+				Log.Info(
+					$"[Debug/Player Lifecycle] {player.GameObject.Name} " +
+					$"respawned as {GetRoleName( respawnRole )}." );
+			}
 		}
 	}
 
