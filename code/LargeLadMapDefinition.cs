@@ -62,7 +62,7 @@ public sealed class LargeLadMapDefinition : Component
 	public void RebuildAndValidateSpawnCandidates()
 	{
 		ResolveGameplay();
-		SpawnAllocator?.RebuildCandidateCache();
+		SpawnAllocator?.RebuildCandidatesAndRefreshLobbyPoints();
 		ValidateMap( logResults: true, validateGeometry: true );
 	}
 
@@ -71,6 +71,20 @@ public sealed class LargeLadMapDefinition : Component
 		IReadOnlyList<LargeLadPlayer> players )
 	{
 		return SpawnAllocator?.AllocateBatch( group, players ) ??
+			new Dictionary<LargeLadPlayer, LargeLadSpawnLocation>();
+	}
+
+	public IReadOnlyDictionary<LargeLadPlayer, LargeLadSpawnLocation> AllocateSpawnBatch(
+		LargeLadSpawnGroup group,
+		IReadOnlyList<LargeLadPlayer> players,
+		IReadOnlyCollection<LargeLadPlayer> additionallyRelocatingPlayers,
+		IReadOnlyList<Vector3> projectedOccupiedPositions )
+	{
+		return SpawnAllocator?.AllocateBatch(
+			group,
+			players,
+			additionallyRelocatingPlayers,
+			projectedOccupiedPositions ) ??
 			new Dictionary<LargeLadPlayer, LargeLadSpawnLocation>();
 	}
 

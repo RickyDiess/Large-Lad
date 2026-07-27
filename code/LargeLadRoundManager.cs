@@ -58,6 +58,9 @@ public sealed class LargeLadRoundManager : Component
 	private float playerReadyTimeRemaining;
 	private bool spawnFailureReported;
 	private readonly HashSet<LargeLadPlayer> lobbyPlacedPlayers = new();
+	private readonly HashSet<(
+		LargeLadPlayer Player,
+		LargeLadSpawnGroup Group)> reportedSpawnAllocationFailures = new();
 
 	protected override void OnStart()
 	{
@@ -109,6 +112,8 @@ public sealed class LargeLadRoundManager : Component
 			.ToList();
 		lobbyPlacedPlayers.RemoveWhere( player =>
 			player is null || !players.Contains( player ) || player.Role != LargeLadRole.Unassigned );
+		reportedSpawnAllocationFailures.RemoveWhere( failure =>
+			failure.Player is null || !players.Contains( failure.Player ) );
 
 		switch ( Phase )
 		{
@@ -198,7 +203,44 @@ public sealed class LargeLadRoundManager : Component
 			return false;
 		}
 
-		spawnFailureReported = false;
+		var largeLad = players[nextLargeLadIndex % players.Count];
+		var hunterPlayers = new List<LargeLadPlayer> { largeLad };
+		var skinnyKidPlayers = players
+			.Where( player => player != largeLad )
+			.ToList();
+		var hunterAllocations = MapDefinition.AllocateSpawnBatch(
+			LargeLadSpawnGroup.Hunter,
+			hunterPlayers );
+		var projectedHunterPositions = hunterAllocations.Values
+			.Select( allocation => allocation.Position )
+			.ToList();
+		var skinnyKidAllocations = MapDefinition.AllocateSpawnBatch(
+			LargeLadSpawnGroup.SkinnyKid,
+			skinnyKidPlayers,
+			hunterPlayers,
+			projectedHunterPositions );
+		var hunterComplete = LargeLadSpawnRules.HasCompleteBatchAllocation(
+			hunterPlayers,
+			hunterAllocations );
+		var skinnyKidComplete = LargeLadSpawnRules.HasCompleteBatchAllocation(
+			skinnyKidPlayers,
+			skinnyKidAllocations );
+
+		if ( !hunterComplete || !skinnyKidComplete )
+		{
+			if ( !spawnFailureReported )
+			{
+				Log.Error(
+					"Round start aborted before changing gameplay state: " +
+					$"Hunter allocations {hunterAllocations.Count}/" +
+					$"{hunterPlayers.Count}, Skinny Kid allocations " +
+					$"{skinnyKidAllocations.Count}/{skinnyKidPlayers.Count}. " +
+					"Fix the authored spawn areas and rebuild projected candidates." );
+			}
+
+			spawnFailureReported = true;
+			return false;
+		}
 
 		// Player-held exclusive items are cleared before their authored pickup
 		// returns, so a reset can never create a second copy.
@@ -215,7 +257,6 @@ public sealed class LargeLadRoundManager : Component
 
 		Winner = LargeLadWinner.None;
 
-		var largeLad = players[nextLargeLadIndex % players.Count];
 		largeLad.Role = LargeLadRole.LargeLad;
 		nextLargeLadIndex = (nextLargeLadIndex + 1) % players.Count;
 		lobbyPlacedPlayers.Clear();
@@ -226,16 +267,13 @@ public sealed class LargeLadRoundManager : Component
 			player.MovementLocked = isLargeLad;
 		}
 
-		TeleportPlayers(
-			new[] { largeLad },
-			LargeLadSpawnGroup.Hunter );
-		TeleportPlayers(
-			players.Where( player => player.Role == LargeLadRole.SkinnyKid ).ToList(),
-			LargeLadSpawnGroup.SkinnyKid );
+		ApplyTeleportAllocations( hunterPlayers, hunterAllocations );
+		ApplyTeleportAllocations( skinnyKidPlayers, skinnyKidAllocations );
 
 		foreach ( var player in players )
 			player.Health?.ResetForCurrentRole();
 
+		spawnFailureReported = false;
 		PhaseTimeRemaining = HeadStartDuration;
 		SetPhase( LargeLadRoundPhase.HeadStart );
 		Log.Info( $"Round started with {players.Count} players and a {HeadStartDuration:0.#}-second head start." );
@@ -265,23 +303,39 @@ public sealed class LargeLadRoundManager : Component
 		SetPhase( LargeLadRoundPhase.RoundOver );
 
 		var players = Scene.GetAllComponents<LargeLadPlayer>().ToList();
-		var returningPlayers = new List<LargeLadPlayer>();
+		var returningPlayers = players
+			.Where( player => player.Health?.IsDead != true )
+			.ToList();
+		var lobbyAllocations = MapDefinition?.AllocateSpawnBatch(
+			LargeLadSpawnGroup.Lobby,
+			returningPlayers );
 
-		foreach ( var player in players )
+		if ( LargeLadSpawnRules.HasCompleteBatchAllocation(
+			returningPlayers,
+			lobbyAllocations ) )
 		{
-			if ( player.Health?.IsDead == true )
-				continue;
+			foreach ( var player in returningPlayers )
+			{
+				player.ClearPendingRespawnRole();
+				player.Role = LargeLadRole.Unassigned;
+				player.Health?.ResetForCurrentRole();
+				player.MovementLocked = false;
+				lobbyPlacedPlayers.Add( player );
+			}
 
-			player.ClearPendingRespawnRole();
-			player.Role = LargeLadRole.Unassigned;
-			player.MovementLocked = false;
-			player.Health?.ResetForCurrentRole();
-			returningPlayers.Add( player );
+			ApplyTeleportAllocations( returningPlayers, lobbyAllocations );
 		}
+		else
+		{
+			foreach ( var player in returningPlayers )
+				player.MovementLocked = true;
 
-		TeleportPlayers( returningPlayers, LargeLadSpawnGroup.Lobby );
-		foreach ( var player in returningPlayers )
-			lobbyPlacedPlayers.Add( player );
+			Log.Error(
+				"Lobby return allocation failed at round end: received " +
+				$"{lobbyAllocations?.Count ?? 0}/{returningPlayers.Count} " +
+				"required positions. Player roles, health, and inventories " +
+				"were retained and movement remains locked." );
+		}
 
 		var winnerName = winner == LargeLadWinner.SkinnyKids
 			? "Skinny Kids"
@@ -315,10 +369,20 @@ public sealed class LargeLadRoundManager : Component
 	{
 		foreach ( var player in players.Where( player => player.Role == LargeLadRole.Unassigned ) )
 		{
+			player.SetPendingRespawnRole( LargeLadRole.Minion );
+			player.MovementLocked = true;
+
+			if ( !TryTeleportPlayer(
+				player,
+				LargeLadSpawnGroup.Hunter,
+				"joining the active round as a Minion",
+				"unassigned, pending, and movement-locked" ) )
+			{
+				continue;
+			}
+
 			player.ClearPendingRespawnRole();
 			player.Role = LargeLadRole.Minion;
-			player.MovementLocked = true;
-			TeleportPlayer( player, LargeLadSpawnGroup.Hunter );
 			player.Health?.ResetForCurrentRole();
 			player.MovementLocked = false;
 			Log.Info( $"{player.GameObject.Name} joined the active round as a Minion." );
@@ -364,7 +428,15 @@ public sealed class LargeLadRoundManager : Component
 		if ( !health.IsDead || !health.TickRespawnCountdown() )
 			return;
 
-		TeleportPlayer( largeLad, LargeLadSpawnGroup.Hunter );
+		if ( !TryTeleportPlayer(
+			largeLad,
+			LargeLadSpawnGroup.Hunter,
+			"respawning the Large Lad",
+			"dead and movement-locked" ) )
+		{
+			return;
+		}
+
 		health.ResetForCurrentRole();
 		largeLad.Inventory?.PrepareForRole( respawnRole );
 		largeLad.MovementLocked = Phase == LargeLadRoundPhase.HeadStart;
@@ -434,11 +506,24 @@ public sealed class LargeLadRoundManager : Component
 			if ( !health.IsDead || !health.TickRespawnCountdown() )
 				continue;
 
-			var respawnRole = player.ApplyPendingRespawnRole();
+			var respawnRole =
+				player.PendingRespawnRole != LargeLadRole.Unassigned
+					? player.PendingRespawnRole
+					: player.Role;
 			var group = respawnRole == LargeLadRole.Minion
 				? LargeLadSpawnGroup.Hunter
 				: LargeLadSpawnGroup.SkinnyKid;
-			TeleportPlayer( player, group );
+
+			if ( !TryTeleportPlayer(
+				player,
+				group,
+				$"respawning as {GetRoleName( respawnRole )}",
+				"dead with its pending role intact and movement locked" ) )
+			{
+				continue;
+			}
+
+			respawnRole = player.ApplyPendingRespawnRole();
 			health.ResetForCurrentRole();
 			player.Inventory?.PrepareForRole( respawnRole );
 			player.MovementLocked = false;
@@ -455,9 +540,19 @@ public sealed class LargeLadRoundManager : Component
 			if ( health is null || !health.IsDead || !health.TickRespawnCountdown() )
 				continue;
 
+			player.MovementLocked = true;
+
+			if ( !TryTeleportPlayer(
+				player,
+				LargeLadSpawnGroup.Lobby,
+				"respawning in the Lobby",
+				"dead with its pending role intact and movement locked" ) )
+			{
+				continue;
+			}
+
 			player.ClearPendingRespawnRole();
 			player.Role = LargeLadRole.Unassigned;
-			TeleportPlayer( player, LargeLadSpawnGroup.Lobby );
 			health.ResetForCurrentRole();
 			player.Inventory?.PrepareForRole( LargeLadRole.Unassigned );
 			player.MovementLocked = false;
@@ -473,7 +568,18 @@ public sealed class LargeLadRoundManager : Component
 			player.Health?.IsDead != true &&
 			!lobbyPlacedPlayers.Contains( player ) ) )
 		{
-			TeleportPlayer( player, LargeLadSpawnGroup.Lobby );
+			player.MovementLocked = true;
+
+			if ( !TryTeleportPlayer(
+				player,
+				LargeLadSpawnGroup.Lobby,
+				"entering the Lobby",
+				"unassigned and movement-locked" ) )
+			{
+				continue;
+			}
+
+			player.MovementLocked = false;
 			lobbyPlacedPlayers.Add( player );
 		}
 	}
@@ -522,41 +628,45 @@ public sealed class LargeLadRoundManager : Component
 		return true;
 	}
 
-	private void TeleportPlayers(
+	private static void ApplyTeleportAllocations(
 		IReadOnlyList<LargeLadPlayer> players,
-		LargeLadSpawnGroup group )
+		IReadOnlyDictionary<LargeLadPlayer, LargeLadSpawnLocation> allocations )
 	{
-		if ( players is null || players.Count == 0 )
-			return;
-
-		var allocations = MapDefinition?.AllocateSpawnBatch( group, players );
-
 		foreach ( var player in players )
 		{
-			if ( allocations is null || !allocations.TryGetValue( player, out var spawn ) )
-			{
-				Log.Warning( $"No valid {group} spawn is available for {player.GameObject.Name}." );
-				continue;
-			}
-
+			var spawn = allocations[player];
 			player.BeginAuthoritativeTeleport();
 			player.TeleportTo( spawn.Position, spawn.Rotation );
 		}
 	}
 
-	private void TeleportPlayer(
+	private bool TryTeleportPlayer(
 		LargeLadPlayer player,
-		LargeLadSpawnGroup group )
+		LargeLadSpawnGroup group,
+		string action,
+		string retainedState )
 	{
 		if ( MapDefinition is null ||
 			!MapDefinition.TryAllocateSpawn( group, player, out var spawn ) )
 		{
-			Log.Warning( $"No valid {group} spawn is available for {player.GameObject.Name}." );
-			return;
+			var failure = (Player: player, Group: group);
+
+			if ( reportedSpawnAllocationFailures.Add( failure ) )
+			{
+				Log.Error(
+					$"Spawn allocation failed for '{player.GameObject.Name}' " +
+					$"while {action}: no safe cached {group} position is " +
+					$"available. The player remains {retainedState}. Fix the " +
+					"authored spawn area and rebuild projected candidates." );
+			}
+
+			return false;
 		}
 
+		reportedSpawnAllocationFailures.Remove( (player, group) );
 		player.BeginAuthoritativeTeleport();
 		player.TeleportTo( spawn.Position, spawn.Rotation );
+		return true;
 	}
 
 	private void OnPhaseChanged( LargeLadRoundPhase oldPhase, LargeLadRoundPhase newPhase )

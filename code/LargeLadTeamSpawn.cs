@@ -62,7 +62,7 @@ public sealed class LargeLadTeamSpawn : Component
 			return;
 		}
 
-		allocator.RebuildCandidateCache();
+		allocator.RebuildCandidatesAndRefreshLobbyPoints();
 	}
 
 	protected override void DrawGizmos()
@@ -73,7 +73,6 @@ public sealed class LargeLadTeamSpawn : Component
 			1,
 			LargeLadMapDefinition.TargetPlayerCount );
 		var color = MarkerColor;
-		const float goldenAngle = 2.39996323f;
 		IReadOnlyList<LargeLadSpawnLocation> cachedCandidates = null;
 		var allocator = GetSpawnAllocator();
 		var hasCachedCandidates = allocator is not null &&
@@ -105,12 +104,11 @@ public sealed class LargeLadTeamSpawn : Component
 		{
 			for ( var index = 0; index < previewCount; index++ )
 			{
-				var normalizedRadius = System.MathF.Sqrt( (index + 0.5f) / previewCount );
-				var angle = index * goldenAngle;
-				var position = new Vector3(
-					System.MathF.Cos( angle ) * radius * normalizedRadius,
-					System.MathF.Sin( angle ) * radius * normalizedRadius,
-					0.0f );
+				var position =
+					LargeLadSpawnRules.GetDeterministicLayoutOffset(
+						index,
+						previewCount,
+						radius );
 
 				Gizmo.Draw.Color = color.WithAlpha( 0.18f );
 				Gizmo.Draw.SolidCapsule(

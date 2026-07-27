@@ -1,4 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
 
 [TestClass]
 public sealed class RoundRulesTests
@@ -149,6 +150,90 @@ public sealed class RespawnRulesTests
 			LargeLadGameplayRules.ResolveRespawnRole(
 				LargeLadRole.Minion,
 				LargeLadRole.Minion ) );
+	}
+}
+
+[TestClass]
+public sealed class SpawnRulesTests
+{
+	[TestMethod]
+	public void DeterministicLayout_IdenticalInputsProduceIdenticalOffsets()
+	{
+		const int desiredCount = 16;
+		const float radius = 160.0f;
+
+		for ( var attempt = 0; attempt < desiredCount * 2; attempt++ )
+		{
+			var first = LargeLadSpawnRules.GetDeterministicLayoutOffset(
+				attempt,
+				desiredCount,
+				radius );
+			var second = LargeLadSpawnRules.GetDeterministicLayoutOffset(
+				attempt,
+				desiredCount,
+				radius );
+
+			Assert.AreEqual( first.x, second.x );
+			Assert.AreEqual( first.y, second.y );
+			Assert.AreEqual( first.z, second.z );
+		}
+	}
+
+	[TestMethod]
+	public void PairwiseSeparation_UsesLargerCandidateRequirement()
+	{
+		var relaxed = new LargeLadSpawnLocation(
+			Vector3.Zero,
+			default,
+			32.0f );
+		var strictTooClose = new LargeLadSpawnLocation(
+			new Vector3( 64.0f, 0.0f, 0.0f ),
+			default,
+			80.0f );
+		var strictClear = new LargeLadSpawnLocation(
+			new Vector3( 80.0f, 0.0f, 0.0f ),
+			default,
+			80.0f );
+
+		Assert.IsFalse(
+			LargeLadSpawnRules.MeetsPairwiseSeparation(
+				relaxed,
+				strictTooClose ) );
+		Assert.IsFalse(
+			LargeLadSpawnRules.MeetsPairwiseSeparation(
+				strictTooClose,
+				relaxed ),
+			"The comparison must be symmetric." );
+		Assert.IsTrue(
+			LargeLadSpawnRules.MeetsPairwiseSeparation(
+				relaxed,
+				strictClear ) );
+	}
+
+	[TestMethod]
+	public void BatchAllocation_MustContainEveryRequestedPlayer()
+	{
+		var firstPlayer = new object();
+		var secondPlayer = new object();
+		var requested = new[] { firstPlayer, secondPlayer };
+		var incomplete = new Dictionary<object, LargeLadSpawnLocation>
+		{
+			[firstPlayer] = default
+		};
+		var complete = new Dictionary<object, LargeLadSpawnLocation>
+		{
+			[firstPlayer] = default,
+			[secondPlayer] = default
+		};
+
+		Assert.IsFalse(
+			LargeLadSpawnRules.HasCompleteBatchAllocation(
+				requested,
+				incomplete ) );
+		Assert.IsTrue(
+			LargeLadSpawnRules.HasCompleteBatchAllocation(
+				requested,
+				complete ) );
 	}
 }
 

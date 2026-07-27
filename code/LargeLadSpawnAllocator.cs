@@ -4,6 +4,62 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
+/// Pure deterministic spawn rules shared by runtime allocation and unit tests.
+/// </summary>
+public static class LargeLadSpawnRules
+{
+	private const float GoldenAngle = 2.39996323f;
+
+	public static Vector3 GetDeterministicLayoutOffset(
+		int attempt,
+		int desiredCount,
+		float radius )
+	{
+		var safeCount = System.Math.Max( 1, desiredCount );
+		var safeAttempt = System.Math.Max( 0, attempt );
+		var safeRadius = System.MathF.Max( 0.0f, radius );
+		var radialIndex = safeAttempt % safeCount;
+		var normalizedRadius = System.MathF.Sqrt(
+			(radialIndex + 0.5f) / safeCount );
+		var angle = safeAttempt * GoldenAngle;
+		var distance = normalizedRadius * safeRadius;
+
+		return new Vector3(
+			System.MathF.Cos( angle ) * distance,
+			System.MathF.Sin( angle ) * distance,
+			0.0f );
+	}
+
+	public static bool MeetsPairwiseSeparation(
+		LargeLadSpawnLocation candidate,
+		LargeLadSpawnLocation existing )
+	{
+		var separation = System.MathF.Max(
+			candidate.MinimumSeparation,
+			existing.MinimumSeparation );
+		return candidate.Position.DistanceSquared( existing.Position ) >=
+			separation * separation;
+	}
+
+	public static bool HasCompleteBatchAllocation<TPlayer>(
+		IReadOnlyList<TPlayer> requestedPlayers,
+		IReadOnlyDictionary<TPlayer, LargeLadSpawnLocation> allocations )
+		where TPlayer : class
+	{
+		if ( requestedPlayers is null || allocations is null )
+			return false;
+
+		foreach ( var player in requestedPlayers )
+		{
+			if ( player is not null && !allocations.ContainsKey( player ) )
+				return false;
+		}
+
+		return true;
+	}
+}
+
+/// <summary>
 /// Produces and caches safe spawn positions from every LargeLadTeamSpawn in the scene.
 /// Map authors only place and size spawn areas; no ordering is required.
 /// Runtime NetworkHelper points remain beneath their authored lobby spawn.
@@ -13,7 +69,6 @@ public sealed class LargeLadSpawnAllocator : Component
 	private const float PlayerRadius = 16.0f;
 	private const float PlayerHeight = 72.0f;
 	private const int AttemptsPerRequestedPosition = 48;
-	private const float GoldenAngle = 2.39996323f;
 
 	private readonly List<GameObject> runtimeLobbyPoints = new();
 	private readonly Dictionary<
@@ -88,15 +143,31 @@ public sealed class LargeLadSpawnAllocator : Component
 
 	/// <summary>
 	/// Reprojects every authored spawn against current static scene geometry.
-	/// This is the explicit rebuild path for editor validation and geometry edits.
+	/// This operation updates cached data only.
 	/// </summary>
-	[Button]
 	public void RebuildCandidateCache()
 	{
 		BuildCandidateCache();
+	}
 
+	/// <summary>
+	/// Recreates NetworkHelper's runtime Lobby GameObjects from the current cache.
+	/// Candidate reads never invoke this operation implicitly.
+	/// </summary>
+	public void RefreshNetworkHelperLobbyPoints()
+	{
 		if ( configuredNetworkHelper is not null )
 			BuildRuntimeLobbyPoints( configuredNetworkHelper );
+	}
+
+	/// <summary>
+	/// Explicit mapper workflow after authored geometry changes.
+	/// </summary>
+	[Button]
+	public void RebuildCandidatesAndRefreshLobbyPoints()
+	{
+		RebuildCandidateCache();
+		RefreshNetworkHelperLobbyPoints();
 	}
 
 	public bool TryGetCachedCandidates(
@@ -118,7 +189,7 @@ public sealed class LargeLadSpawnAllocator : Component
 			configuredPlayerPrefab = helper.PlayerPrefab;
 
 		configuredNetworkHelper = helper;
-		BuildRuntimeLobbyPoints( helper );
+		RefreshNetworkHelperLobbyPoints();
 	}
 
 	private void BuildRuntimeLobbyPoints( NetworkHelper helper )
@@ -179,6 +250,19 @@ public sealed class LargeLadSpawnAllocator : Component
 		LargeLadSpawnGroup group,
 		IReadOnlyList<LargeLadPlayer> players )
 	{
+		return AllocateBatch(
+			group,
+			players,
+			Array.Empty<LargeLadPlayer>(),
+			Array.Empty<Vector3>() );
+	}
+
+	public IReadOnlyDictionary<LargeLadPlayer, LargeLadSpawnLocation> AllocateBatch(
+		LargeLadSpawnGroup group,
+		IReadOnlyList<LargeLadPlayer> players,
+		IReadOnlyCollection<LargeLadPlayer> additionallyRelocatingPlayers,
+		IReadOnlyList<Vector3> projectedOccupiedPositions )
+	{
 		var allocations = new Dictionary<LargeLadPlayer, LargeLadSpawnLocation>();
 
 		if ( players is null || players.Count == 0 )
@@ -186,13 +270,19 @@ public sealed class LargeLadSpawnAllocator : Component
 
 		var allCandidates = GetCachedCandidates( group );
 		var available = new List<LargeLadSpawnLocation>( allCandidates );
-		var batch = players.Where( player => player is not null ).ToHashSet();
+		var requestedPlayers = players
+			.Where( player => player is not null )
+			.ToList();
+		var batch = requestedPlayers.ToHashSet();
+
+		if ( additionallyRelocatingPlayers is not null )
+			batch.UnionWith( additionallyRelocatingPlayers );
 
 		if ( allCandidates.Count == 0 )
 		{
 			Log.Error(
 				$"{group} has zero valid cached spawn positions. " +
-				$"Rejected the {batch.Count}-player batch instead of using " +
+				$"Rejected the {requestedPlayers.Count}-player batch instead of using " +
 				"an unsafe shared origin." );
 			return allocations;
 		}
@@ -204,6 +294,10 @@ public sealed class LargeLadSpawnAllocator : Component
 				player.Health?.IsDead != true )
 			.Select( player => player.GameObject.WorldPosition )
 			.ToList();
+
+		if ( projectedOccupiedPositions is not null )
+			occupied.AddRange( projectedOccupiedPositions );
+
 		var reserved = new List<Vector3>();
 
 		foreach ( var player in players.Where( player => player is not null ) )
@@ -295,7 +389,7 @@ public sealed class LargeLadSpawnAllocator : Component
 	private void EnsureCandidateCache()
 	{
 		if ( candidateCacheDirty )
-			RebuildCandidateCache();
+			BuildCandidateCache();
 	}
 
 	private void BuildCandidateCache()
@@ -341,13 +435,15 @@ public sealed class LargeLadSpawnAllocator : Component
 			attempt < attempts && candidates.Count < desiredCount;
 			attempt++ )
 		{
-			var radialIndex = attempt % desiredCount;
-			var normalizedRadius = System.MathF.Sqrt(
-				(radialIndex + 0.5f) / desiredCount );
-			var angle = attempt * GoldenAngle;
-			var distance = normalizedRadius * radius;
+			var layoutOffset =
+				LargeLadSpawnRules.GetDeterministicLayoutOffset(
+					attempt,
+					desiredCount,
+					radius );
 			var desiredPosition = spawn.GameObject.WorldPosition +
-				GetHorizontalOffset( spawn.GameObject.WorldRotation, angle, distance );
+				GetHorizontalOffset(
+					spawn.GameObject.WorldRotation,
+					layoutOffset );
 
 			if ( !TryProjectToSafeFloor( desiredPosition, out var position ) )
 				continue;
@@ -357,11 +453,12 @@ public sealed class LargeLadSpawnAllocator : Component
 				spawn.GameObject.WorldRotation,
 				separation );
 
-			if ( !IsFarEnough(
-				projectedCandidate,
-				existingGroupCandidates
-					.Concat( candidates )
-					.Select( existing => existing.Position ) ) )
+			if ( existingGroupCandidates
+				.Concat( candidates )
+				.Any( existing =>
+					!LargeLadSpawnRules.MeetsPairwiseSeparation(
+						projectedCandidate,
+						existing ) ) )
 			{
 				continue;
 			}
@@ -417,8 +514,7 @@ public sealed class LargeLadSpawnAllocator : Component
 
 	private static Vector3 GetHorizontalOffset(
 		Rotation rotation,
-		float angle,
-		float distance )
+		Vector3 layoutOffset )
 	{
 		var forward = rotation.Forward;
 		var right = rotation.Right;
@@ -432,8 +528,8 @@ public sealed class LargeLadSpawnAllocator : Component
 			? right.Normal
 			: Vector3.Right;
 
-		return right * (System.MathF.Cos( angle ) * distance) +
-			forward * (System.MathF.Sin( angle ) * distance);
+		return right * layoutOffset.x +
+			forward * layoutOffset.y;
 	}
 
 	private static bool IsFarEnough(

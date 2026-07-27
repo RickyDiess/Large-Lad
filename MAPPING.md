@@ -63,6 +63,9 @@ automatically. After changing static floor or wall geometry, select any team
 spawn and use `Rebuild Projected Candidates`, or use
 `Rebuild And Validate Spawn Candidates` on the map definition. The colored
 gizmos show the cached projected capsules when an allocator is available.
+Ordinary validation, allocation, candidate-count, and gizmo reads only ensure
+the data cache; runtime NetworkHelper GameObjects are refreshed explicitly by
+initial configuration or either mapper rebuild command.
 
 The full map contract requires total configured capacity of 16 for Lobby, 15
 for Skinny Kids, and 16 for Hunter. The colored editor gizmos preview each
