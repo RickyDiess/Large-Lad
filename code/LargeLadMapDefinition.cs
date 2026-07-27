@@ -54,6 +54,18 @@ public sealed class LargeLadMapDefinition : Component
 		ValidateMap( logResults: true, validateGeometry: false );
 	}
 
+	/// <summary>
+	/// Reprojects authored spawn candidates and validates those exact cached
+	/// positions against the full map contract.
+	/// </summary>
+	[Button]
+	public void RebuildAndValidateSpawnCandidates()
+	{
+		ResolveGameplay();
+		SpawnAllocator?.RebuildCandidateCache();
+		ValidateMap( logResults: true, validateGeometry: true );
+	}
+
 	public IReadOnlyDictionary<LargeLadPlayer, LargeLadSpawnLocation> AllocateSpawnBatch(
 		LargeLadSpawnGroup group,
 		IReadOnlyList<LargeLadPlayer> players )
@@ -74,11 +86,63 @@ public sealed class LargeLadMapDefinition : Component
 		return false;
 	}
 
+	/// <summary>
+	/// Returns only the spawn-contract failures that make a complete round
+	/// unsafe. Other map-contract warnings do not block round flow.
+	/// </summary>
+	public IReadOnlyList<string> GetBlockingRoundSpawnIssues()
+	{
+		var issues = new List<string>();
+		ResolveGameplay();
+
+		if ( SpawnAllocator is null )
+		{
+			issues.Add(
+				"No LargeLadSpawnAllocator is available. Keep exactly one " +
+				"Large Lad Gameplay Bootstrap in the scene." );
+			return issues;
+		}
+
+		ValidateSpawnGroup(
+			issues,
+			LargeLadSpawnGroup.Lobby,
+			TargetPlayerCount,
+			validateGeometry: true );
+		ValidateSpawnGroup(
+			issues,
+			LargeLadSpawnGroup.SkinnyKid,
+			TargetPlayerCount - 1,
+			validateGeometry: true );
+		ValidateSpawnGroup(
+			issues,
+			LargeLadSpawnGroup.Hunter,
+			TargetPlayerCount,
+			validateGeometry: true );
+		return issues;
+	}
+
+	public bool CanSafelyStartRound( bool logFailures )
+	{
+		var issues = GetBlockingRoundSpawnIssues();
+
+		if ( issues.Count == 0 )
+			return true;
+
+		if ( logFailures )
+		{
+			foreach ( var issue in issues )
+				Log.Error( $"Round start blocked by map contract: {issue}" );
+		}
+
+		return false;
+	}
+
 	public IReadOnlyList<string> ValidateMap(
 		bool logResults,
 		bool validateGeometry = false )
 	{
 		var issues = new List<string>();
+		var blockingSpawnIssues = new List<string>();
 		ResolveGameplay();
 
 		var networkHelpers = Scene?.GetAllComponents<NetworkHelper>().ToList() ?? new();
@@ -108,20 +172,21 @@ public sealed class LargeLadMapDefinition : Component
 			issues.Add( "Intermission duration cannot be negative." );
 
 		ValidateSpawnGroup(
-			issues,
+			blockingSpawnIssues,
 			LargeLadSpawnGroup.Lobby,
 			TargetPlayerCount,
 			validateGeometry );
 		ValidateSpawnGroup(
-			issues,
+			blockingSpawnIssues,
 			LargeLadSpawnGroup.SkinnyKid,
 			TargetPlayerCount - 1,
 			validateGeometry );
 		ValidateSpawnGroup(
-			issues,
+			blockingSpawnIssues,
 			LargeLadSpawnGroup.Hunter,
 			TargetPlayerCount,
 			validateGeometry );
+		issues.AddRange( blockingSpawnIssues );
 
 		foreach ( var pickup in
 			Scene?.GetAllComponents<LargeLadWeaponPickup>() ??
@@ -187,7 +252,17 @@ public sealed class LargeLadMapDefinition : Component
 			else
 			{
 				foreach ( var issue in issues )
-					Log.Warning( $"Map contract: {issue}" );
+				{
+					if ( blockingSpawnIssues.Contains( issue ) )
+					{
+						Log.Error(
+							$"Map contract blocks round start: {issue}" );
+					}
+					else
+					{
+						Log.Warning( $"Map contract: {issue}" );
+					}
+				}
 			}
 		}
 
@@ -214,35 +289,62 @@ public sealed class LargeLadMapDefinition : Component
 		bool validateGeometry )
 	{
 		if ( SpawnAllocator is null )
+		{
+			issues.Add(
+				$"{group} cannot be validated because no LargeLadSpawnAllocator " +
+				"is available. Keep exactly one Large Lad Gameplay Bootstrap " +
+				"in the scene." );
 			return;
+		}
 
 		var spawns = SpawnAllocator.GetTeamSpawns( group );
 
 		if ( spawns.Count == 0 )
 		{
-			issues.Add( $"{group} needs at least one team spawn." );
+			issues.Add(
+				$"{group} has no authored spawn object. Add a {group} Team Spawn " +
+				"prefab and rebuild projected candidates." );
 			return;
 		}
 
 		var capacity = SpawnAllocator.GetConfiguredCapacity( group );
 		if ( capacity < requiredCapacity )
 		{
+			var authoredCapacities = string.Join(
+				", ",
+				spawns.Select( spawn =>
+					$"'{spawn.GameObject.Name}' capacity {spawn.Capacity}" ) );
 			issues.Add(
-				$"{group} spawn capacity is {capacity}/{requiredCapacity}." );
+				$"{group} configured capacity is {capacity}/{requiredCapacity}. " +
+				$"Authored spawn objects: {authoredCapacities}. Increase capacity " +
+				"or add another authored spawn area." );
 		}
 
 		if ( !validateGeometry )
 			return;
 
 		var generated = SpawnAllocator.CountGeneratedCandidates( group );
-		if ( generated == 0 )
+		if ( generated >= requiredCapacity )
+			return;
+
+		var generatedDescription = generated == 0
+			? "zero valid cached positions"
+			: $"{generated}/{requiredCapacity} valid cached positions";
+		issues.Add(
+			$"{group} produced {generatedDescription}; {requiredCapacity} are " +
+			"required for safe round flow. The round cannot start until the " +
+			"authored areas are fixed and rebuilt." );
+
+		foreach ( var spawn in spawns )
 		{
-			issues.Add( $"{group} produced no geometrically valid positions." );
-		}
-		else if ( generated < requiredCapacity )
-		{
+			var spawnGenerated =
+				SpawnAllocator.CountGeneratedCandidates( spawn );
 			issues.Add(
-				$"{group} produced {generated}/{requiredCapacity} clear positions." );
+				$"{group} authored spawn '{spawn.GameObject.Name}': configured " +
+				$"capacity {spawn.Capacity}, generated {spawnGenerated} valid " +
+				"cached positions. Move or resize the area above walkable floor, " +
+				"clear nearby walls/ceilings, adjust MinimumSeparation if needed, " +
+				"then use Rebuild Projected Candidates." );
 		}
 	}
 }

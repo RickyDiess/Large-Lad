@@ -41,11 +41,28 @@ Multiple points may be used for unusually shaped rooms. There are no order
 numbers or hand-wired spawn lists. NetworkHelper's generated lobby positions
 appear as runtime children of the Lobby Team Spawn that produced them.
 
-At runtime the allocator probes downward for the floor, checks the 32-by-72
-player capsule, and reserves unique positions during batch spawns. Individual
+After scene initialization the allocator applies the gizmo's deterministic
+golden-angle layout, probes downward for the floor, checks the 32-by-72 player
+capsule, and caches the valid projected positions for each authored area and
+group. Map validation, NetworkHelper, round batches, and individual respawns all
+reuse that same cache. Batch spawns reserve unique positions, and individual
 respawns prefer the valid point farthest from living players. If a circle is
 crowded it uses the least-crowded valid point; it never deliberately chooses a
 position inside geometry.
+
+There is no shared-origin emergency spawn. Lobby, Skinny Kid, and Hunter
+candidate shortfalls are blocking map-contract errors, and a round will remain
+in the waiting phase until all three groups provide their required valid cached
+positions. An invalid Lobby group also disables NetworkHelper player creation
+instead of allowing its default same-transform fallback or an undersized
+spawn-point set. Each error reports the authored spawn object's name, configured
+capacity, generated valid count, and the geometry or settings to check.
+
+Changing a team spawn's authored properties invalidates the cache
+automatically. After changing static floor or wall geometry, select any team
+spawn and use `Rebuild Projected Candidates`, or use
+`Rebuild And Validate Spawn Candidates` on the map definition. The colored
+gizmos show the cached projected capsules when an allocator is available.
 
 The full map contract requires total configured capacity of 16 for Lobby, 15
 for Skinny Kids, and 16 for Hunter. The colored editor gizmos preview each

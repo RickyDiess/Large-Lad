@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// Produces safe spawn positions from every LargeLadTeamSpawn in the scene.
+/// Produces and caches safe spawn positions from every LargeLadTeamSpawn in the scene.
 /// Map authors only place and size spawn areas; no ordering is required.
 /// Runtime NetworkHelper points remain beneath their authored lobby spawn.
 /// </summary>
@@ -13,13 +13,36 @@ public sealed class LargeLadSpawnAllocator : Component
 	private const float PlayerRadius = 16.0f;
 	private const float PlayerHeight = 72.0f;
 	private const int AttemptsPerRequestedPosition = 48;
+	private const float GoldenAngle = 2.39996323f;
 
 	private readonly List<GameObject> runtimeLobbyPoints = new();
-	private int spawnGeneration;
+	private readonly Dictionary<
+		LargeLadTeamSpawn,
+		IReadOnlyList<LargeLadSpawnLocation>> candidatesBySpawn = new();
+	private readonly Dictionary<
+		LargeLadSpawnGroup,
+		IReadOnlyList<LargeLadSpawnLocation>> candidatesByGroup = new();
+	private bool candidateCacheDirty = true;
+	private NetworkHelper configuredNetworkHelper;
+	private GameObject configuredPlayerPrefab;
+
+	protected override void OnStart()
+	{
+		EnsureCandidateCache();
+	}
+
+	protected override void OnValidate()
+	{
+		InvalidateCandidateCache();
+	}
 
 	protected override void OnDestroy()
 	{
 		ClearRuntimeLobbyPoints();
+		candidatesBySpawn.Clear();
+		candidatesByGroup.Clear();
+		configuredNetworkHelper = null;
+		configuredPlayerPrefab = null;
 	}
 
 	public IReadOnlyList<LargeLadTeamSpawn> GetTeamSpawns(
@@ -31,6 +54,8 @@ public sealed class LargeLadSpawnAllocator : Component
 		return Scene
 			.GetAllComponents<LargeLadTeamSpawn>()
 			.Where( spawn => spawn.Group == group )
+			.OrderBy( spawn => spawn.GameObject.Id )
+			.ThenBy( spawn => spawn.Id )
 			.ToList();
 	}
 
@@ -42,7 +67,44 @@ public sealed class LargeLadSpawnAllocator : Component
 
 	public int CountGeneratedCandidates( LargeLadSpawnGroup group )
 	{
-		return GenerateCandidates( group ).Count;
+		return GetCachedCandidates( group ).Count;
+	}
+
+	public int CountGeneratedCandidates( LargeLadTeamSpawn spawn )
+	{
+		return TryGetCachedCandidates( spawn, out var candidates )
+			? candidates.Count
+			: 0;
+	}
+
+	/// <summary>
+	/// Marks authored candidates stale without tracing immediately. The next
+	/// validation, allocation, or gizmo query rebuilds the complete cache once.
+	/// </summary>
+	public void InvalidateCandidateCache()
+	{
+		candidateCacheDirty = true;
+	}
+
+	/// <summary>
+	/// Reprojects every authored spawn against current static scene geometry.
+	/// This is the explicit rebuild path for editor validation and geometry edits.
+	/// </summary>
+	[Button]
+	public void RebuildCandidateCache()
+	{
+		BuildCandidateCache();
+
+		if ( configuredNetworkHelper is not null )
+			BuildRuntimeLobbyPoints( configuredNetworkHelper );
+	}
+
+	public bool TryGetCachedCandidates(
+		LargeLadTeamSpawn spawn,
+		out IReadOnlyList<LargeLadSpawnLocation> candidates )
+	{
+		EnsureCandidateCache();
+		return candidatesBySpawn.TryGetValue( spawn, out candidates );
 	}
 
 	public void ConfigureNetworkHelper( NetworkHelper helper )
@@ -50,30 +112,48 @@ public sealed class LargeLadSpawnAllocator : Component
 		if ( helper is null )
 			return;
 
+		EnsureCandidateCache();
+
+		if ( configuredNetworkHelper != helper )
+			configuredPlayerPrefab = helper.PlayerPrefab;
+
+		configuredNetworkHelper = helper;
+		BuildRuntimeLobbyPoints( helper );
+	}
+
+	private void BuildRuntimeLobbyPoints( NetworkHelper helper )
+	{
 		ClearRuntimeLobbyPoints();
-		var candidates = new List<LargeLadSpawnLocation>();
 		var candidateParents =
 			new List<(LargeLadSpawnLocation Location, LargeLadTeamSpawn Parent)>();
-		var random = CreateRandom();
 
 		foreach ( var spawn in GetTeamSpawns( LargeLadSpawnGroup.Lobby ) )
 		{
-			var previousCount = candidates.Count;
-			GenerateCandidates( spawn, candidates, random );
+			if ( !candidatesBySpawn.TryGetValue( spawn, out var candidates ) )
+				continue;
 
-			for ( var index = previousCount; index < candidates.Count; index++ )
-				candidateParents.Add( (candidates[index], spawn) );
+			foreach ( var candidate in candidates )
+				candidateParents.Add( (candidate, spawn) );
 		}
 
-		if ( candidateParents.Count == 0 )
+		if ( candidateParents.Count < LargeLadMapDefinition.TargetPlayerCount )
 		{
-			var emergency = GetEmergencySpawn( LargeLadSpawnGroup.Lobby );
-			var emergencyParent = GetTeamSpawns(
-				LargeLadSpawnGroup.Lobby ).FirstOrDefault();
-
-			if ( emergency is not null && emergencyParent is not null )
-				candidateParents.Add( (emergency.Value, emergencyParent) );
+			// NetworkHelper otherwise falls back to its own transform and stacks
+			// connecting players, or repeatedly selects an undersized set. An
+			// invalid Lobby cache blocks player creation until a mapper fixes and
+			// rebuilds the authored areas.
+			helper.PlayerPrefab = null;
+			helper.SpawnPoints.Clear();
+			Log.Error(
+				$"Lobby has {candidateParents.Count}/" +
+				$"{LargeLadMapDefinition.TargetPlayerCount} required valid " +
+				"cached spawn positions. " +
+				"NetworkHelper player spawning is disabled until the spawn " +
+				"areas or surrounding geometry are fixed and rebuilt." );
+			return;
 		}
+
+		helper.PlayerPrefab = configuredPlayerPrefab;
 
 		for ( var index = 0; index < candidateParents.Count; index++ )
 		{
@@ -104,9 +184,19 @@ public sealed class LargeLadSpawnAllocator : Component
 		if ( players is null || players.Count == 0 )
 			return allocations;
 
-		var allCandidates = GenerateCandidates( group );
+		var allCandidates = GetCachedCandidates( group );
 		var available = new List<LargeLadSpawnLocation>( allCandidates );
 		var batch = players.Where( player => player is not null ).ToHashSet();
+
+		if ( allCandidates.Count == 0 )
+		{
+			Log.Error(
+				$"{group} has zero valid cached spawn positions. " +
+				$"Rejected the {batch.Count}-player batch instead of using " +
+				"an unsafe shared origin." );
+			return allocations;
+		}
+
 		var occupied = Scene
 			.GetAllComponents<LargeLadPlayer>()
 			.Where( player =>
@@ -115,18 +205,9 @@ public sealed class LargeLadSpawnAllocator : Component
 			.Select( player => player.GameObject.WorldPosition )
 			.ToList();
 		var reserved = new List<Vector3>();
-		var random = CreateRandom();
 
 		foreach ( var player in players.Where( player => player is not null ) )
 		{
-			if ( allCandidates.Count == 0 )
-			{
-				var emergency = GetEmergencySpawn( group );
-				if ( emergency is not null )
-					allocations[player] = emergency.Value;
-				continue;
-			}
-
 			if ( available.Count == 0 )
 			{
 				Log.Error(
@@ -144,7 +225,12 @@ public sealed class LargeLadSpawnAllocator : Component
 
 			if ( clear.Count > 0 )
 			{
-				selected = clear[random.Next( clear.Count )];
+				selected = clear
+					.OrderByDescending( candidate => MinimumDistanceSquared(
+						candidate.Position,
+						occupied,
+						reserved ) )
+					.First();
 			}
 			else
 			{
@@ -169,17 +255,10 @@ public sealed class LargeLadSpawnAllocator : Component
 		LargeLadPlayer player,
 		out LargeLadSpawnLocation location )
 	{
-		var candidates = GenerateCandidates( group );
+		var candidates = GetCachedCandidates( group );
 
 		if ( candidates.Count == 0 )
 		{
-			var emergency = GetEmergencySpawn( group );
-			if ( emergency is not null )
-			{
-				location = emergency.Value;
-				return true;
-			}
-
 			location = default;
 			return false;
 		}
@@ -194,13 +273,6 @@ public sealed class LargeLadSpawnAllocator : Component
 			.ToList();
 		var pool = clear.Count > 0 ? clear : candidates;
 
-		if ( occupied.Count == 0 )
-		{
-			var random = CreateRandom();
-			location = pool[random.Next( pool.Count )];
-			return true;
-		}
-
 		location = pool
 			.OrderByDescending( candidate => MinimumDistanceSquared(
 				candidate.Position,
@@ -210,22 +282,49 @@ public sealed class LargeLadSpawnAllocator : Component
 		return true;
 	}
 
-	private List<LargeLadSpawnLocation> GenerateCandidates(
+	private IReadOnlyList<LargeLadSpawnLocation> GetCachedCandidates(
 		LargeLadSpawnGroup group )
 	{
-		var candidates = new List<LargeLadSpawnLocation>();
-		var random = CreateRandom();
+		EnsureCandidateCache();
 
-		foreach ( var spawn in GetTeamSpawns( group ) )
-			GenerateCandidates( spawn, candidates, random );
-
-		return candidates;
+		return candidatesByGroup.TryGetValue( group, out var candidates )
+			? candidates
+			: Array.Empty<LargeLadSpawnLocation>();
 	}
 
-	private void GenerateCandidates(
+	private void EnsureCandidateCache()
+	{
+		if ( candidateCacheDirty )
+			RebuildCandidateCache();
+	}
+
+	private void BuildCandidateCache()
+	{
+		candidatesBySpawn.Clear();
+		candidatesByGroup.Clear();
+
+		foreach ( var group in Enum.GetValues<LargeLadSpawnGroup>() )
+		{
+			var groupCandidates = new List<LargeLadSpawnLocation>();
+
+			foreach ( var spawn in GetTeamSpawns( group ) )
+			{
+				var spawnCandidates = GenerateCandidates(
+					spawn,
+					groupCandidates );
+				candidatesBySpawn.Add( spawn, spawnCandidates );
+				groupCandidates.AddRange( spawnCandidates );
+			}
+
+			candidatesByGroup.Add( group, groupCandidates );
+		}
+
+		candidateCacheDirty = false;
+	}
+
+	private List<LargeLadSpawnLocation> GenerateCandidates(
 		LargeLadTeamSpawn spawn,
-		List<LargeLadSpawnLocation> candidates,
-		Random random )
+		IReadOnlyList<LargeLadSpawnLocation> existingGroupCandidates )
 	{
 		var desiredCount = System.Math.Clamp(
 			spawn.Capacity,
@@ -235,34 +334,42 @@ public sealed class LargeLadSpawnAllocator : Component
 		var separation = System.MathF.Max(
 			PlayerRadius * 2.0f,
 			spawn.MinimumSeparation );
-		var generated = 0;
 		var attempts = desiredCount * AttemptsPerRequestedPosition;
+		var candidates = new List<LargeLadSpawnLocation>( desiredCount );
 
-		for ( var attempt = 0; attempt < attempts && generated < desiredCount; attempt++ )
+		for ( var attempt = 0;
+			attempt < attempts && candidates.Count < desiredCount;
+			attempt++ )
 		{
-			var angle = (float)random.NextDouble() * System.MathF.PI * 2.0f;
-			var distance = System.MathF.Sqrt( (float)random.NextDouble() ) * radius;
+			var radialIndex = attempt % desiredCount;
+			var normalizedRadius = System.MathF.Sqrt(
+				(radialIndex + 0.5f) / desiredCount );
+			var angle = attempt * GoldenAngle;
+			var distance = normalizedRadius * radius;
 			var desiredPosition = spawn.GameObject.WorldPosition +
 				GetHorizontalOffset( spawn.GameObject.WorldRotation, angle, distance );
 
 			if ( !TryProjectToSafeFloor( desiredPosition, out var position ) )
 				continue;
 
-			var candidate = new LargeLadSpawnLocation(
+			var projectedCandidate = new LargeLadSpawnLocation(
 				position,
 				spawn.GameObject.WorldRotation,
 				separation );
 
 			if ( !IsFarEnough(
-				candidate,
-				candidates.Select( existing => existing.Position ) ) )
+				projectedCandidate,
+				existingGroupCandidates
+					.Concat( candidates )
+					.Select( existing => existing.Position ) ) )
 			{
 				continue;
 			}
 
-			candidates.Add( candidate );
-			generated++;
+			candidates.Add( projectedCandidate );
 		}
+
+		return candidates;
 	}
 
 	private bool TryProjectToSafeFloor(
@@ -295,26 +402,6 @@ public sealed class LargeLadSpawnAllocator : Component
 			.Run();
 
 		return !clearance.Hit && !clearance.StartedSolid;
-	}
-
-	private LargeLadSpawnLocation? GetEmergencySpawn(
-		LargeLadSpawnGroup group )
-	{
-		var spawn = GetTeamSpawns( group ).FirstOrDefault();
-
-		if ( spawn is null )
-		{
-			Log.Error( $"No {group} team spawn exists." );
-			return null;
-		}
-
-		Log.Error(
-			$"{group} spawn '{spawn.GameObject.Name}' produced no valid positions; " +
-			"using its origin as an emergency fallback." );
-		return new LargeLadSpawnLocation(
-			spawn.GameObject.WorldPosition,
-			spawn.GameObject.WorldRotation,
-			System.MathF.Max( PlayerRadius * 2.0f, spawn.MinimumSeparation ) );
 	}
 
 	private void ClearRuntimeLobbyPoints()
@@ -377,11 +464,5 @@ public sealed class LargeLadSpawnAllocator : Component
 				position.DistanceSquared( other ) );
 
 		return minimum;
-	}
-
-	private Random CreateRandom()
-	{
-		spawnGeneration++;
-		return new Random( unchecked(spawnGeneration * 7919 + 104729) );
 	}
 }

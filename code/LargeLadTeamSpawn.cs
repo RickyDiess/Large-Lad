@@ -1,4 +1,6 @@
 using Sandbox;
+using System.Collections.Generic;
+using System.Linq;
 
 public enum LargeLadSpawnGroup
 {
@@ -41,6 +43,26 @@ public sealed class LargeLadTeamSpawn : Component
 			1,
 			LargeLadMapDefinition.TargetPlayerCount );
 		MinimumSeparation = System.MathF.Max( 32.0f, MinimumSeparation );
+
+		GetSpawnAllocator()?.InvalidateCandidateCache();
+	}
+
+	/// <summary>
+	/// Reprojects all team-spawn candidates after static geometry has changed.
+	/// Authored spawn-property edits invalidate the cache automatically.
+	/// </summary>
+	[Button]
+	public void RebuildProjectedCandidates()
+	{
+		var allocator = GetSpawnAllocator();
+
+		if ( allocator is null )
+		{
+			Log.Warning( "No LargeLadSpawnAllocator is available to rebuild." );
+			return;
+		}
+
+		allocator.RebuildCandidateCache();
 	}
 
 	protected override void DrawGizmos()
@@ -52,28 +74,52 @@ public sealed class LargeLadTeamSpawn : Component
 			LargeLadMapDefinition.TargetPlayerCount );
 		var color = MarkerColor;
 		const float goldenAngle = 2.39996323f;
+		IReadOnlyList<LargeLadSpawnLocation> cachedCandidates = null;
+		var allocator = GetSpawnAllocator();
+		var hasCachedCandidates = allocator is not null &&
+			allocator.TryGetCachedCandidates( this, out cachedCandidates );
 
 		Gizmo.Draw.IgnoreDepth = true;
 		Gizmo.Draw.LineThickness = 2.0f;
 		Gizmo.Draw.Color = color.WithAlpha( 0.9f );
 		DrawHorizontalCircle( radius );
 
-		for ( var index = 0; index < previewCount; index++ )
+		if ( hasCachedCandidates )
 		{
-			var normalizedRadius = System.MathF.Sqrt( (index + 0.5f) / previewCount );
-			var angle = index * goldenAngle;
-			var position = new Vector3(
-				System.MathF.Cos( angle ) * radius * normalizedRadius,
-				System.MathF.Sin( angle ) * radius * normalizedRadius,
-				0.0f );
-
+			Gizmo.Transform = global::Transform.Zero;
 			Gizmo.Draw.Color = color.WithAlpha( 0.18f );
-			Gizmo.Draw.SolidCapsule(
-				position + Vector3.Up * 16.0f,
-				position + Vector3.Up * 56.0f,
-				16.0f,
-				8,
-				4 );
+
+			foreach ( var candidate in cachedCandidates )
+			{
+				Gizmo.Draw.SolidCapsule(
+					candidate.Position + Vector3.Up * 16.0f,
+					candidate.Position + Vector3.Up * 56.0f,
+					16.0f,
+					8,
+					4 );
+			}
+
+			Gizmo.Transform = GameObject.WorldTransform;
+		}
+		else
+		{
+			for ( var index = 0; index < previewCount; index++ )
+			{
+				var normalizedRadius = System.MathF.Sqrt( (index + 0.5f) / previewCount );
+				var angle = index * goldenAngle;
+				var position = new Vector3(
+					System.MathF.Cos( angle ) * radius * normalizedRadius,
+					System.MathF.Sin( angle ) * radius * normalizedRadius,
+					0.0f );
+
+				Gizmo.Draw.Color = color.WithAlpha( 0.18f );
+				Gizmo.Draw.SolidCapsule(
+					position + Vector3.Up * 16.0f,
+					position + Vector3.Up * 56.0f,
+					16.0f,
+					8,
+					4 );
+			}
 		}
 
 		Gizmo.Draw.Color = color;
@@ -85,6 +131,13 @@ public sealed class LargeLadTeamSpawn : Component
 			14.0f );
 		Gizmo.Draw.LineThickness = 1.0f;
 		Gizmo.Draw.IgnoreDepth = false;
+	}
+
+	private LargeLadSpawnAllocator GetSpawnAllocator()
+	{
+		return Scene?
+			.GetAllComponents<LargeLadSpawnAllocator>()
+			.FirstOrDefault();
 	}
 
 	private static void DrawHorizontalCircle( float radius )

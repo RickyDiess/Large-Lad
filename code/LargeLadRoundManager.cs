@@ -56,6 +56,7 @@ public sealed class LargeLadRoundManager : Component
 	private int nextLargeLadIndex;
 	private int waitingPlayerCount = -1;
 	private float playerReadyTimeRemaining;
+	private bool spawnFailureReported;
 	private readonly HashSet<LargeLadPlayer> lobbyPlacedPlayers = new();
 
 	protected override void OnStart()
@@ -83,6 +84,7 @@ public sealed class LargeLadRoundManager : Component
 		HeadStartDuration = definition.HeadStartDuration;
 		RoundDuration = definition.SurvivalDuration;
 		IntermissionDuration = definition.IntermissionDuration;
+		spawnFailureReported = false;
 	}
 
 	protected override void OnUpdate()
@@ -133,7 +135,10 @@ public sealed class LargeLadRoundManager : Component
 				playerReadyTimeRemaining -= Time.Delta;
 
 				if ( playerReadyTimeRemaining <= 0.0f )
-					StartRound( players );
+				{
+					if ( !StartRound( players ) )
+						playerReadyTimeRemaining = PlayerReadyDelay;
+				}
 				break;
 
 			case LargeLadRoundPhase.HeadStart:
@@ -178,13 +183,22 @@ public sealed class LargeLadRoundManager : Component
 		}
 	}
 
-	private void StartRound( List<LargeLadPlayer> players )
+	private bool StartRound( List<LargeLadPlayer> players )
 	{
 		if ( MapDefinition is null )
 		{
 			Log.Warning( "Cannot start a round without a map definition." );
-			return;
+			return false;
 		}
+
+		if ( !MapDefinition.CanSafelyStartRound(
+			logFailures: !spawnFailureReported ) )
+		{
+			spawnFailureReported = true;
+			return false;
+		}
+
+		spawnFailureReported = false;
 
 		// Player-held exclusive items are cleared before their authored pickup
 		// returns, so a reset can never create a second copy.
@@ -225,6 +239,7 @@ public sealed class LargeLadRoundManager : Component
 		PhaseTimeRemaining = HeadStartDuration;
 		SetPhase( LargeLadRoundPhase.HeadStart );
 		Log.Info( $"Round started with {players.Count} players and a {HeadStartDuration:0.#}-second head start." );
+		return true;
 	}
 
 	private void BeginPlaying( List<LargeLadPlayer> players )
@@ -283,7 +298,12 @@ public sealed class LargeLadRoundManager : Component
 			players.Count,
 			MinimumPlayers ) )
 		{
-			StartRound( players );
+			if ( StartRound( players ) )
+				return;
+
+			SetPhase( LargeLadRoundPhase.WaitingForPlayers );
+			waitingPlayerCount = players.Count;
+			playerReadyTimeRemaining = PlayerReadyDelay;
 			return;
 		}
 
