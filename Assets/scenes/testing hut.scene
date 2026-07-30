@@ -1721,7 +1721,7 @@
                   "__guid": "51defaec-b8a5-48a3-af6a-0d06f93405ae",
                   "__enabled": true,
                   "Flags": 0,
-                  "Capacity": 16,
+                  "Capacity": 32,
                   "Group": "Lobby",
                   "MinimumSeparation": 48,
                   "OnComponentDestroy": null,
@@ -1730,7 +1730,7 @@
                   "OnComponentFixedUpdate": null,
                   "OnComponentStart": null,
                   "OnComponentUpdate": null,
-                  "SpawnRadius": 160
+                  "SpawnRadius": 192
                 }
               ],
               "Children": []
@@ -1756,7 +1756,7 @@
                   "__guid": "62728e31-16be-4500-acfc-56f322e85f53",
                   "__enabled": true,
                   "Flags": 0,
-                  "Capacity": 16,
+                  "Capacity": 31,
                   "Group": "SkinnyKid",
                   "MinimumSeparation": 48,
                   "OnComponentDestroy": null,
@@ -1765,7 +1765,7 @@
                   "OnComponentFixedUpdate": null,
                   "OnComponentStart": null,
                   "OnComponentUpdate": null,
-                  "SpawnRadius": 160
+                  "SpawnRadius": 192
                 }
               ],
               "Children": []
@@ -1791,7 +1791,7 @@
                   "__guid": "890eefef-c235-4226-bf2d-18b4f1ec9594",
                   "__enabled": true,
                   "Flags": 0,
-                  "Capacity": 16,
+                  "Capacity": 32,
                   "Group": "Hunter",
                   "MinimumSeparation": 48,
                   "OnComponentDestroy": null,
@@ -1800,7 +1800,7 @@
                   "OnComponentFixedUpdate": null,
                   "OnComponentStart": null,
                   "OnComponentUpdate": null,
-                  "SpawnRadius": 160
+                  "SpawnRadius": 192
                 }
               ],
               "Children": []

@@ -10,6 +10,30 @@ public static class LargeLadSpawnRules
 {
 	private const float GoldenAngle = 2.39996323f;
 
+	public static int GetRequiredCapacity(
+		LargeLadSpawnGroup group,
+		int playerCount )
+	{
+		var safePlayerCount = System.Math.Max( 0, playerCount );
+
+		return group switch
+		{
+			LargeLadSpawnGroup.SkinnyKid =>
+				System.Math.Max( 0, safePlayerCount - 1 ),
+			LargeLadSpawnGroup.Lobby or LargeLadSpawnGroup.Hunter =>
+				safePlayerCount,
+			_ => throw new ArgumentOutOfRangeException( nameof( group ) )
+		};
+	}
+
+	public static int GetUsableAuthoredCapacity( int authoredCapacity )
+	{
+		return System.Math.Clamp(
+			authoredCapacity,
+			0,
+			LargeLadGameManager.TargetPlayerCount );
+	}
+
 	public static Vector3 GetDeterministicLayoutOffset(
 		int attempt,
 		int desiredCount,
@@ -132,7 +156,9 @@ public sealed class LargeLadSpawnAllocator : Component
 	public int GetConfiguredCapacity( LargeLadSpawnGroup group )
 	{
 		return GetTeamSpawns( group )
-			.Sum( spawn => System.Math.Max( 0, spawn.Capacity ) );
+			.Sum( spawn =>
+				LargeLadSpawnRules.GetUsableAuthoredCapacity(
+					spawn.Capacity ) );
 	}
 
 	public int CountGeneratedCandidates( LargeLadSpawnGroup group )
@@ -217,6 +243,9 @@ public sealed class LargeLadSpawnAllocator : Component
 	private void BuildRuntimeLobbyPoints( NetworkHelper helper )
 	{
 		ClearRuntimeLobbyPoints();
+		var requiredCapacity = LargeLadSpawnRules.GetRequiredCapacity(
+			LargeLadSpawnGroup.Lobby,
+			LargeLadGameManager.TargetPlayerCount );
 		var candidateParents =
 			new List<(LargeLadSpawnLocation Location, LargeLadTeamSpawn Parent)>();
 
@@ -229,18 +258,31 @@ public sealed class LargeLadSpawnAllocator : Component
 				candidateParents.Add( (candidate, spawn) );
 		}
 
-		if ( candidateParents.Count < LargeLadGameManager.TargetPlayerCount )
+		if ( candidateParents.Count < requiredCapacity )
 		{
 			// NetworkHelper otherwise falls back to its own transform and stacks
 			// connecting players, or repeatedly selects an undersized set. An
 			// invalid Lobby cache blocks player creation until a mapper fixes and
 			// rebuilds the authored areas.
+			var configuredCapacity =
+				GetConfiguredCapacity( LargeLadSpawnGroup.Lobby );
+			var authoredAreas = string.Join(
+				", ",
+				GetTeamSpawns( LargeLadSpawnGroup.Lobby )
+					.Select( spawn =>
+						$"'{spawn.GameObject.Name}' capacity {spawn.Capacity}, " +
+						$"generated {CountGeneratedCandidates( spawn )}" ) );
+
+			if ( string.IsNullOrWhiteSpace( authoredAreas ) )
+				authoredAreas = "none";
+
 			helper.PlayerPrefab = null;
 			helper.SpawnPoints.Clear();
 			Log.Error(
-				$"Lobby has {candidateParents.Count}/" +
-				$"{LargeLadGameManager.TargetPlayerCount} required valid " +
-				"cached spawn positions. " +
+				$"Lobby generated {candidateParents.Count}/{requiredCapacity} " +
+				$"required valid cached spawn positions from " +
+				$"{configuredCapacity} configured capacity. Authored spawn " +
+				$"areas: {authoredAreas}. " +
 				"NetworkHelper player spawning is disabled until the spawn " +
 				"areas or surrounding geometry are fixed and rebuilt." );
 			return;
@@ -291,23 +333,37 @@ public sealed class LargeLadSpawnAllocator : Component
 			return allocations;
 
 		var allCandidates = GetCachedCandidates( group );
-		var available = new List<LargeLadSpawnLocation>( allCandidates );
 		var requestedPlayers = players
 			.Where( player => player is not null )
 			.ToList();
+
+		if ( requestedPlayers.Count > LargeLadGameManager.TargetPlayerCount )
+		{
+			Log.Error(
+				$"{group} batch allocation rejected: requested " +
+				$"{requestedPlayers.Count} players, exceeding the supported " +
+				$"{LargeLadGameManager.TargetPlayerCount}-player contract." );
+			return allocations;
+		}
+
+		if ( allCandidates.Count < requestedPlayers.Count )
+		{
+			var configuredCapacity = GetConfiguredCapacity( group );
+			Log.Error(
+				$"{group} batch allocation rejected before reserving positions: " +
+				$"requested {requestedPlayers.Count} unique positions, but the " +
+				$"cache contains {allCandidates.Count} valid positions from " +
+				$"{configuredCapacity} configured capacity. Increase or add " +
+				"authored spawn areas, clear obstructing geometry, and rebuild " +
+				"projected candidates." );
+			return allocations;
+		}
+
+		var available = new List<LargeLadSpawnLocation>( allCandidates );
 		var batch = requestedPlayers.ToHashSet();
 
 		if ( additionallyRelocatingPlayers is not null )
 			batch.UnionWith( additionallyRelocatingPlayers );
-
-		if ( allCandidates.Count == 0 )
-		{
-			Log.Error(
-				$"{group} has zero valid cached spawn positions. " +
-				$"Rejected the {requestedPlayers.Count}-player batch instead of using " +
-				"an unsafe shared origin." );
-			return allocations;
-		}
 
 		var occupied = GetActivePlayers()
 			.Where( player =>
@@ -323,14 +379,6 @@ public sealed class LargeLadSpawnAllocator : Component
 
 		foreach ( var player in players.Where( player => player is not null ) )
 		{
-			if ( available.Count == 0 )
-			{
-				Log.Error(
-					$"{group} has fewer valid positions than the requested " +
-					$"{players.Count}-player batch. Reserved slots will not overlap." );
-				break;
-			}
-
 			var clear = available
 				.Where( candidate =>
 					IsFarEnough( candidate, occupied ) &&
@@ -480,10 +528,9 @@ public sealed class LargeLadSpawnAllocator : Component
 		LargeLadTeamSpawn spawn,
 		IReadOnlyList<LargeLadSpawnLocation> existingGroupCandidates )
 	{
-		var desiredCount = System.Math.Clamp(
-			spawn.Capacity,
-			1,
-			LargeLadGameManager.TargetPlayerCount );
+		var desiredCount =
+			LargeLadSpawnRules.GetUsableAuthoredCapacity(
+				spawn.Capacity );
 		var radius = System.MathF.Max( 0.0f, spawn.SpawnRadius );
 		var separation = System.MathF.Max(
 			PlayerRadius * 2.0f,

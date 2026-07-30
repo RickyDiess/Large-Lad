@@ -14,17 +14,22 @@ public enum LargeLadSpawnGroup
 /// </summary>
 public sealed class LargeLadTeamSpawn : Component
 {
+	public const float DefaultSpawnRadius = 192.0f;
+	public const float DefaultMinimumSeparation = 48.0f;
+
 	[Property]
 	public LargeLadSpawnGroup Group { get; set; }
 
 	[Property]
-	public float SpawnRadius { get; set; } = 160.0f;
+	public float SpawnRadius { get; set; } = DefaultSpawnRadius;
 
 	[Property]
-	public int Capacity { get; set; } = 16;
+	public int Capacity { get; set; } =
+		LargeLadGameManager.TargetPlayerCount;
 
 	[Property]
-	public float MinimumSeparation { get; set; } = 48.0f;
+	public float MinimumSeparation { get; set; } =
+		DefaultMinimumSeparation;
 
 	private LargeLadSpawnAllocator cachedSpawnAllocator;
 
@@ -87,10 +92,8 @@ public sealed class LargeLadTeamSpawn : Component
 	protected override void DrawGizmos()
 	{
 		var radius = System.MathF.Max( 0.0f, SpawnRadius );
-		var previewCount = System.Math.Clamp(
-			Capacity,
-			1,
-			LargeLadGameManager.TargetPlayerCount );
+		var previewCount =
+			LargeLadSpawnRules.GetUsableAuthoredCapacity( Capacity );
 		var color = MarkerColor;
 		IReadOnlyList<LargeLadSpawnLocation> cachedCandidates = null;
 		var allocator = GetSpawnAllocator();

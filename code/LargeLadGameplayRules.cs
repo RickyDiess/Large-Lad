@@ -24,6 +24,13 @@ public readonly struct LargeLadDeathPlan
 
 public static class LargeLadGameplayRules
 {
+	public static bool IsSupportedRoundPlayerCount( int playerCount )
+	{
+		return playerCount >=
+				LargeLadGameManager.MinimumSupportedPlayerCount &&
+			playerCount <= LargeLadGameManager.TargetPlayerCount;
+	}
+
 	public static float GetTimerDeadline(
 		float now,
 		float duration )

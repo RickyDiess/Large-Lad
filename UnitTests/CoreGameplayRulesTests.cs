@@ -118,6 +118,28 @@ public sealed class RoundRulesTests
 			LargeLadGameplayRules.HasMinimumPlayers( 3, 2 ) );
 	}
 
+	[DataTestMethod]
+	[DataRow( 2 )]
+	[DataRow( 16 )]
+	[DataRow( 31 )]
+	[DataRow( 32 )]
+	public void SupportedRoundSize_IncludesContractBoundaries(
+		int playerCount )
+	{
+		Assert.IsTrue(
+			LargeLadGameplayRules.IsSupportedRoundPlayerCount(
+				playerCount ) );
+	}
+
+	[TestMethod]
+	public void SupportedRoundSize_RejectsCountsOutsideContract()
+	{
+		Assert.IsFalse(
+			LargeLadGameplayRules.IsSupportedRoundPlayerCount( 1 ) );
+		Assert.IsFalse(
+			LargeLadGameplayRules.IsSupportedRoundPlayerCount( 33 ) );
+	}
+
 	[TestMethod]
 	public void MissingLargeLad_AwardsSkinnyKids()
 	{
@@ -365,11 +387,15 @@ public sealed class RespawnRulesTests
 [TestClass]
 public sealed class SpawnRulesTests
 {
-	[TestMethod]
-	public void DeterministicLayout_IdenticalInputsProduceIdenticalOffsets()
+	[DataTestMethod]
+	[DataRow( 2 )]
+	[DataRow( 16 )]
+	[DataRow( 31 )]
+	[DataRow( 32 )]
+	public void DeterministicLayout_IdenticalInputsProduceIdenticalOffsets(
+		int desiredCount )
 	{
-		const int desiredCount = 16;
-		const float radius = 160.0f;
+		const float radius = LargeLadTeamSpawn.DefaultSpawnRadius;
 
 		for ( var attempt = 0; attempt < desiredCount * 2; attempt++ )
 		{
@@ -386,6 +412,117 @@ public sealed class SpawnRulesTests
 			Assert.AreEqual( first.y, second.y );
 			Assert.AreEqual( first.z, second.z );
 		}
+	}
+
+	[DataTestMethod]
+	[DataRow( 2 )]
+	[DataRow( 16 )]
+	[DataRow( 31 )]
+	[DataRow( 32 )]
+	public void DeterministicLayout_DefaultAreaSeparatesEveryPosition(
+		int desiredCount )
+	{
+		var locations = new List<LargeLadSpawnLocation>();
+
+		for ( var index = 0; index < desiredCount; index++ )
+		{
+			var candidate = new LargeLadSpawnLocation(
+				LargeLadSpawnRules.GetDeterministicLayoutOffset(
+					index,
+					desiredCount,
+					LargeLadTeamSpawn.DefaultSpawnRadius ),
+				default,
+				LargeLadTeamSpawn.DefaultMinimumSeparation );
+
+			foreach ( var existing in locations )
+			{
+				Assert.IsTrue(
+					LargeLadSpawnRules.MeetsPairwiseSeparation(
+						candidate,
+						existing ),
+					$"Position {index} overlaps an earlier position in the " +
+					$"{desiredCount}-player default layout." );
+			}
+
+			locations.Add( candidate );
+		}
+
+		Assert.AreEqual( desiredCount, locations.Count );
+	}
+
+	[DataTestMethod]
+	[DataRow( 2, 2, 1, 2 )]
+	[DataRow( 16, 16, 15, 16 )]
+	[DataRow( 31, 31, 30, 31 )]
+	[DataRow( 32, 32, 31, 32 )]
+	public void RequiredCapacity_ScalesWithSupportedRoundSize(
+		int playerCount,
+		int expectedLobby,
+		int expectedSkinnyKid,
+		int expectedHunter )
+	{
+		Assert.AreEqual(
+			expectedLobby,
+			LargeLadSpawnRules.GetRequiredCapacity(
+				LargeLadSpawnGroup.Lobby,
+				playerCount ) );
+		Assert.AreEqual(
+			expectedSkinnyKid,
+			LargeLadSpawnRules.GetRequiredCapacity(
+				LargeLadSpawnGroup.SkinnyKid,
+				playerCount ) );
+		Assert.AreEqual(
+			expectedHunter,
+			LargeLadSpawnRules.GetRequiredCapacity(
+				LargeLadSpawnGroup.Hunter,
+				playerCount ) );
+	}
+
+	[TestMethod]
+	public void FullMapContract_Requires32Lobby31SkinnyKid32Hunter()
+	{
+		Assert.AreEqual( 2, LargeLadGameManager.MinimumSupportedPlayerCount );
+		Assert.AreEqual( 32, LargeLadGameManager.TargetPlayerCount );
+		Assert.AreEqual(
+			32,
+			LargeLadSpawnRules.GetRequiredCapacity(
+				LargeLadSpawnGroup.Lobby,
+				LargeLadGameManager.TargetPlayerCount ) );
+		Assert.AreEqual(
+			31,
+			LargeLadSpawnRules.GetRequiredCapacity(
+				LargeLadSpawnGroup.SkinnyKid,
+				LargeLadGameManager.TargetPlayerCount ) );
+		Assert.AreEqual(
+			32,
+			LargeLadSpawnRules.GetRequiredCapacity(
+				LargeLadSpawnGroup.Hunter,
+				LargeLadGameManager.TargetPlayerCount ) );
+	}
+
+	[DataTestMethod]
+	[DataRow( 2 )]
+	[DataRow( 16 )]
+	[DataRow( 31 )]
+	[DataRow( 32 )]
+	public void UsableAuthoredCapacity_PreservesSupportedBoundaries(
+		int authoredCapacity )
+	{
+		Assert.AreEqual(
+			authoredCapacity,
+			LargeLadSpawnRules.GetUsableAuthoredCapacity(
+				authoredCapacity ) );
+	}
+
+	[TestMethod]
+	public void UsableAuthoredCapacity_ClampsOutsideContract()
+	{
+		Assert.AreEqual(
+			0,
+			LargeLadSpawnRules.GetUsableAuthoredCapacity( -1 ) );
+		Assert.AreEqual(
+			32,
+			LargeLadSpawnRules.GetUsableAuthoredCapacity( 33 ) );
 	}
 
 	[TestMethod]
@@ -419,21 +556,27 @@ public sealed class SpawnRulesTests
 				strictClear ) );
 	}
 
-	[TestMethod]
-	public void BatchAllocation_MustContainEveryRequestedPlayer()
+	[DataTestMethod]
+	[DataRow( 2 )]
+	[DataRow( 16 )]
+	[DataRow( 31 )]
+	[DataRow( 32 )]
+	public void BatchAllocation_MustContainEveryRequestedPlayer(
+		int playerCount )
 	{
-		var firstPlayer = new object();
-		var secondPlayer = new object();
-		var requested = new[] { firstPlayer, secondPlayer };
-		var incomplete = new Dictionary<object, LargeLadSpawnLocation>
+		var requested = new object[playerCount];
+		var complete =
+			new Dictionary<object, LargeLadSpawnLocation>();
+
+		for ( var index = 0; index < playerCount; index++ )
 		{
-			[firstPlayer] = default
-		};
-		var complete = new Dictionary<object, LargeLadSpawnLocation>
-		{
-			[firstPlayer] = default,
-			[secondPlayer] = default
-		};
+			requested[index] = new object();
+			complete[requested[index]] = default;
+		}
+
+		var incomplete =
+			new Dictionary<object, LargeLadSpawnLocation>( complete );
+		incomplete.Remove( requested[playerCount - 1] );
 
 		Assert.IsFalse(
 			LargeLadSpawnRules.HasCompleteBatchAllocation(

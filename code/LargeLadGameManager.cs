@@ -23,10 +23,11 @@ public enum LargeLadWinner
 /// </summary>
 public sealed class LargeLadGameManager : Component
 {
-	public const int TargetPlayerCount = 16;
+	public const int MinimumSupportedPlayerCount = 2;
+	public const int TargetPlayerCount = 32;
 
 	[Property]
-	public int MinimumPlayers { get; set; } = 2;
+	public int MinimumPlayers { get; set; } = MinimumSupportedPlayerCount;
 
 	[Property, Title( "Round Start Padding" )]
 	public float PlayerReadyDelay { get; set; } = 0.5f;
@@ -316,17 +317,23 @@ public sealed class LargeLadGameManager : Component
 		ValidateSpawnGroup(
 			issues,
 			LargeLadSpawnGroup.Lobby,
-			TargetPlayerCount,
+			LargeLadSpawnRules.GetRequiredCapacity(
+				LargeLadSpawnGroup.Lobby,
+				TargetPlayerCount ),
 			validateGeometry: true );
 		ValidateSpawnGroup(
 			issues,
 			LargeLadSpawnGroup.SkinnyKid,
-			TargetPlayerCount - 1,
+			LargeLadSpawnRules.GetRequiredCapacity(
+				LargeLadSpawnGroup.SkinnyKid,
+				TargetPlayerCount ),
 			validateGeometry: true );
 		ValidateSpawnGroup(
 			issues,
 			LargeLadSpawnGroup.Hunter,
-			TargetPlayerCount,
+			LargeLadSpawnRules.GetRequiredCapacity(
+				LargeLadSpawnGroup.Hunter,
+				TargetPlayerCount ),
 			validateGeometry: true );
 		return issues;
 	}
@@ -366,8 +373,12 @@ public sealed class LargeLadGameManager : Component
 		ResolveBootstrapReferences();
 		issues.AddRange( blockingBootstrapIssues );
 
-		if ( MinimumPlayers < 2 )
-			issues.Add( "Minimum players must be at least two." );
+		if ( MinimumPlayers < MinimumSupportedPlayerCount )
+		{
+			issues.Add(
+				$"Minimum players must be at least " +
+				$"{MinimumSupportedPlayerCount}." );
+		}
 
 		if ( MinimumPlayers > TargetPlayerCount )
 		{
@@ -396,17 +407,23 @@ public sealed class LargeLadGameManager : Component
 		ValidateSpawnGroup(
 			blockingSpawnIssues,
 			LargeLadSpawnGroup.Lobby,
-			TargetPlayerCount,
+			LargeLadSpawnRules.GetRequiredCapacity(
+				LargeLadSpawnGroup.Lobby,
+				TargetPlayerCount ),
 			validateGeometry );
 		ValidateSpawnGroup(
 			blockingSpawnIssues,
 			LargeLadSpawnGroup.SkinnyKid,
-			TargetPlayerCount - 1,
+			LargeLadSpawnRules.GetRequiredCapacity(
+				LargeLadSpawnGroup.SkinnyKid,
+				TargetPlayerCount ),
 			validateGeometry );
 		ValidateSpawnGroup(
 			blockingSpawnIssues,
 			LargeLadSpawnGroup.Hunter,
-			TargetPlayerCount,
+			LargeLadSpawnRules.GetRequiredCapacity(
+				LargeLadSpawnGroup.Hunter,
+				TargetPlayerCount ),
 			validateGeometry );
 		issues.AddRange( blockingSpawnIssues );
 
@@ -609,6 +626,22 @@ public sealed class LargeLadGameManager : Component
 
 	private bool StartRound( List<LargeLadPlayer> players )
 	{
+		if ( !LargeLadGameplayRules.IsSupportedRoundPlayerCount(
+			players?.Count ?? 0 ) )
+		{
+			if ( !spawnFailureReported )
+			{
+				Log.Error(
+					"Round start rejected before changing gameplay state: " +
+					$"the roster has {players?.Count ?? 0} players, but Large " +
+					$"Lad supports {MinimumSupportedPlayerCount} through " +
+					$"{TargetPlayerCount} players." );
+			}
+
+			spawnFailureReported = true;
+			return false;
+		}
+
 		if ( !CanSafelyStartRound(
 			logFailures: !spawnFailureReported ) )
 		{

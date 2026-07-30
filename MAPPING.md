@@ -34,8 +34,11 @@ The hunter group is shared by the Large Lad, converted or respawning Minions,
 late joiners, and Large Lad respawns. A spawn component defines a horizontal
 circle rather than one exact position:
 
-- `SpawnRadius`: 160 units by default.
-- `Capacity`: 16 by default.
+- `SpawnRadius`: 192 units by default. At the default 48-unit separation this
+  is large enough for the deterministic layout to produce all 32 positions.
+- `Capacity`: 32 by default on the generic component. The Lobby and Hunter
+  presets use 32; the Skinny Kid preset uses 31 because one supported player is
+  always the Large Lad.
 - `MinimumSeparation`: 48 units by default.
 
 One point per group is enough when its full circle lies above clear floor.
@@ -69,10 +72,10 @@ Ordinary validation, allocation, candidate-count, and gizmo reads only ensure
 the data cache; runtime NetworkHelper GameObjects are refreshed explicitly by
 initial configuration or either mapper rebuild command.
 
-The full map contract requires total configured capacity of 16 for Lobby, 15
-for Skinny Kids, and 16 for Hunter. The colored editor gizmos preview each
-circle and its configured capacity. Keep the circles out of walls even when the
-component's center is clear.
+The full 32-player map contract requires total configured capacity of 32 for
+Lobby, 31 for Skinny Kids, and 32 for Hunter. The colored editor gizmos preview
+each circle and its configured capacity. Keep the circles out of walls even
+when the component's center is clear.
 
 ## Stable player dimensions and movement
 
@@ -200,7 +203,7 @@ the Large Lad respawn timer.
 
 - Exactly one gameplay bootstrap exists.
 - At least one team-spawn component exists for each group.
-- Configured capacities meet 16 Lobby, 15 Skinny Kid, and 16 Hunter.
+- Configured capacities meet 32 Lobby, 31 Skinny Kid, and 32 Hunter.
 - Spawn circles produce clear floor positions and do not cross walls.
 - Every barricade has same-object rendering and collision and uses Network Mode
   `Object`.

@@ -2,7 +2,10 @@
 
 Large Lad's deterministic gameplay tests live in `UnitTests/` and use the
 s&box-generated MSTest project. They do not start a multiplayer session or load
-a gameplay scene.
+a gameplay scene. Capacity coverage verifies the 2-player minimum, the former
+16-player boundary, the 31-player Skinny Kid maximum, and the complete
+32-player roster across spawn requirements, deterministic layouts, and batch
+collections.
 
 When setting up the tests for the first time:
 
@@ -17,6 +20,22 @@ When setting up the tests for the first time:
 
 The tests can also be run from Visual Studio's Test Explorer after the generated
 unit-test project appears in the solution.
+
+## 32-player map-capacity regression checklist
+
+1. Confirm the project advertises a 2-player minimum and 32-player maximum.
+2. Validate a map with the standard presets and confirm it requires 32 Lobby,
+   31 Skinny Kid, and 32 Hunter positions.
+3. Lower each group's authored capacity in turn. Confirm validation names the
+   affected group and authored spawn objects and reports configured versus
+   required capacity.
+4. Restore capacity, then obstruct enough floor positions to make generated
+   capacity insufficient. Confirm validation reports generated versus required
+   positions for the group and each authored area, and Lobby failure disables
+   player creation instead of stacking players.
+5. Rebuild projected candidates after clearing the obstruction. Confirm a
+   32-player Lobby batch and a 1 Hunter plus 31 Skinny Kid round-start batch
+   allocate unique cached positions.
 
 ## Batch C multiplayer lifecycle regression checklist
 
