@@ -38,6 +38,7 @@
         "OnComponentUpdate": null,
         "PlayerReadyDelay": 0.5,
         "PlayerRespawnDelay": 5,
+        "RoundBalanceSettings": "gameplay/default_round_balance.llbalance",
         "SpawnAllocator": {
           "_type": "component",
           "component_id": "71d9cc78-bf50-49ca-95cc-aa5a3f7a4900",

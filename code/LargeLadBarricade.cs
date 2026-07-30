@@ -17,8 +17,8 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 	[Property]
 	public LargeLadBarricadeMode Mode { get; set; }
 
-	[Property]
-	public float MaximumHealth { get; set; } = 300.0f;
+	[Property, Title( "Base Maximum Health" )]
+	public float BaseMaximumHealth { get; set; } = 300.0f;
 
 	[Property]
 	public Component BarricadeRenderer { get; set; }
@@ -40,6 +40,26 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 
 	[Sync( SyncFlags.FromHost ), Change( nameof( OnDestroyedChanged ) )]
 	public bool IsDestroyed { get; private set; }
+
+	/// <summary>
+	/// Effective round maximum derived from the authored baseline. Only
+	/// SkinnyProgression barricades receive the fixed player-count band.
+	/// </summary>
+	public float MaximumHealth
+	{
+		get
+		{
+			var roundMultiplier =
+				Mode == LargeLadBarricadeMode.SkinnyProgression
+					? LargeLadGameManager.FindForScene( Scene )?
+						.GetSkinnyProgressionBarricadeMaximumHealthMultiplier() ??
+						1.0f
+					: 1.0f;
+			return LargeLadRoundBalanceRules.GetScaledMaximumHealth(
+				BaseMaximumHealth,
+				roundMultiplier );
+		}
+	}
 
 	public bool HasVisibleGeometry => BarricadeRenderer is not null;
 
@@ -97,7 +117,7 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 		ConfigureObject();
 		ResolveAuthoredParts();
 
-		if ( MaximumHealth <= 0.0f )
+		if ( BaseMaximumHealth <= 0.0f )
 			Log.Warning( $"{GameObject.Name}: barricade health must be positive." );
 
 		if ( BarricadeRenderer is null || BarricadeCollider is null )

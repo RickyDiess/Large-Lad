@@ -21,6 +21,30 @@ When setting up the tests for the first time:
 The tests can also be run from Visual Studio's Test Explorer after the generated
 unit-test project appears in the solution.
 
+## Fixed round-balance bands
+
+The host selects a band from the number of Skinny Kids only after a round has
+passed its start checks and spawn allocation. That selection remains fixed
+through disconnects, deaths, Skinny Kid-to-Minion conversions, and late joins.
+The next successful round start replaces it.
+
+The configurable defaults live in
+`Assets/Gameplay/default_round_balance.llbalance`:
+
+| Skinny Kids | Band | Large Lad max health | SkinnyProgression barricade max health |
+| --- | --- | ---: | ---: |
+| 1–3 | Small | 0.9× | 0.9× |
+| 4–7 | Medium (neutral baseline) | 1.0× | 1.0× |
+| 8–15 | Large | 1.1× | 1.1× |
+| 16–23 | Very Large | 1.2× | 1.2× |
+| 24–31 | Full | 1.3× | 1.3× |
+
+These values are provisional. Maximum health is always recalculated from its
+authored baseline, and an optional map-specific health multiplier composes
+multiplicatively with the fixed band instead of replacing or compounding it.
+No damage, movement, range, Minion, timer, regeneration, or respawn values are
+part of this system.
+
 ## 32-player map-capacity regression checklist
 
 1. Confirm the project advertises a 2-player minimum and 32-player maximum.

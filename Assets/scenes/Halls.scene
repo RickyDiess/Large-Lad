@@ -259,7 +259,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "e5d0d51a-e074-48af-a29e-1bfd804df0c1"
+                      "$blob": "d254de0a-34a0-4144-80b8-d65d0a18329e"
                     },
                     "Materials": [
                       "materials/generic/floor_asphalt_b.vmat",
@@ -317,7 +317,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "1a694fa4-03e3-45cf-9ace-84cd2772c294"
+                      "$blob": "c78bc72b-92bc-4b1c-a5a3-206868e31994"
                     },
                     "Materials": [
                       "materials/stone/tile/stone_brick_tile.vmat",
@@ -375,7 +375,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "9bcd629b-0ff5-482f-92d5-b0f0922539fc"
+                      "$blob": "c58772d4-e2c3-4b81-a1b2-7677b3e1f1ff"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -631,12 +631,8 @@
                     "Property": "Mesh",
                     "Value": {
                       "Data": {
-                        "$blob": "726d3f1a-7d51-49a6-ae50-2c6b152764c5"
-                      },
-                      "Materials": [
-                        "materials/dev/gray_grid_4.vmat",
-                        "materials/dev/green.vmat"
-                      ]
+                        "$blob": "32f96acc-41fc-4056-80e5-f31a4098d90d"
+                      }
                     }
                   }
                 ],
@@ -805,7 +801,7 @@
           "IsTrigger": false,
           "Mesh": {
             "Data": {
-              "$blob": "c8bd486f-21af-47e7-ba7c-56a0df0763ed"
+              "$blob": "b9db700c-8a85-4426-8dae-ae6c4531903d"
             },
             "Materials": [
               "materials/wood/floor/wooden_flooring_b2.vmat",
@@ -862,7 +858,7 @@
           "IsTrigger": false,
           "Mesh": {
             "Data": {
-              "$blob": "a2726995-2123-4ca8-9c76-335084459a29"
+              "$blob": "197b1087-e3ee-4997-8c0d-4463d2c3d6fc"
             },
             "Materials": [
               "materials/dev/gray_grid_4.vmat",
@@ -919,7 +915,7 @@
           "IsTrigger": false,
           "Mesh": {
             "Data": {
-              "$blob": "438c9fd8-7ebf-4105-9104-371b51404dff"
+              "$blob": "3a78fd99-6477-4f41-af62-930d9db66f2a"
             },
             "Materials": [
               "materials/wood/floor/wooden_flooring_b2.vmat"
@@ -975,7 +971,7 @@
           "IsTrigger": false,
           "Mesh": {
             "Data": {
-              "$blob": "4da627d3-c2bd-48e1-9c1c-9021576001f8"
+              "$blob": "cd1d34b1-b8ed-41b3-8cfc-78c42acc7526"
             },
             "Materials": [
               "materials/wood/floor/wooden_flooring_b2.vmat"
@@ -1031,7 +1027,7 @@
           "IsTrigger": false,
           "Mesh": {
             "Data": {
-              "$blob": "68dcaad6-17b9-41e5-b338-aa4f763aa457"
+              "$blob": "29541260-4153-4e8c-98d1-ee820e263311"
             },
             "Materials": [
               "materials/wood/floor/wooden_flooring_b2.vmat",
@@ -1088,7 +1084,7 @@
           "IsTrigger": false,
           "Mesh": {
             "Data": {
-              "$blob": "87d86591-0257-4cd1-8595-a93e1bf8b3be"
+              "$blob": "e20864af-6151-4272-bca2-c5d232ea47b2"
             },
             "Materials": [
               "materials/dev/gray_grid_4.vmat",
@@ -1145,7 +1141,7 @@
           "IsTrigger": false,
           "Mesh": {
             "Data": {
-              "$blob": "b419edf8-a8d8-4c1d-9926-e1b5a3ac782c"
+              "$blob": "988c0023-1ae4-4847-92db-eb0578897b1d"
             },
             "Materials": [
               "materials/wood/floor/wooden_flooring_b2.vmat"
@@ -1201,7 +1197,7 @@
           "IsTrigger": false,
           "Mesh": {
             "Data": {
-              "$blob": "9c213da0-e739-4376-b4fe-45bdd40d3430"
+              "$blob": "165a5406-847c-4760-ba74-7a67813387ce"
             },
             "Materials": [
               "materials/wood/floor/wooden_flooring_b2.vmat"
@@ -1257,7 +1253,7 @@
           "IsTrigger": false,
           "Mesh": {
             "Data": {
-              "$blob": "a2afe0b2-722f-40bc-8030-a1406d0b5688"
+              "$blob": "ba45005a-5407-437f-9a72-7947b90f1aaa"
             },
             "Materials": [
               "materials/glass/glass_a.vmat"
@@ -1313,7 +1309,7 @@
           "IsTrigger": false,
           "Mesh": {
             "Data": {
-              "$blob": "93761c69-9f69-479a-97e4-c039e83ac36d"
+              "$blob": "22ed8835-7400-44ff-8786-d44ea674404b"
             },
             "Materials": [
               "materials/glass/glass_a.vmat"
@@ -1369,7 +1365,7 @@
           "IsTrigger": false,
           "Mesh": {
             "Data": {
-              "$blob": "a5c8ba85-a965-45a4-9492-7797277a6f6e"
+              "$blob": "9a8619e2-51be-4ee4-a79f-2c1b9226530f"
             },
             "Materials": [
               "materials/subzero-studios/road/road007.vmat",
@@ -1426,7 +1422,7 @@
           "IsTrigger": false,
           "Mesh": {
             "Data": {
-              "$blob": "54484ee4-f732-4c5f-baf9-f6a06dce8d7e"
+              "$blob": "0c2a242f-c310-464e-ae29-246a8ff8092a"
             },
             "Materials": [
               "materials/dev/gray_grid_4.vmat"
@@ -1482,7 +1478,7 @@
           "IsTrigger": false,
           "Mesh": {
             "Data": {
-              "$blob": "32c46cb7-27de-469b-b104-29a002d8619b"
+              "$blob": "bacdfdda-0cf2-45ed-8f00-d28c432278b2"
             },
             "Materials": [
               "materials/dev/gray_grid_4.vmat"
@@ -1538,7 +1534,7 @@
           "IsTrigger": false,
           "Mesh": {
             "Data": {
-              "$blob": "0dcaa3e1-829e-4bfa-b012-efeeac48f01c"
+              "$blob": "1df47e5f-04d0-48a6-b5fd-b9a91ff6f206"
             },
             "Materials": [
               "materials/subzero-studios/planks/planks006.vmat"
@@ -1594,7 +1590,7 @@
           "IsTrigger": false,
           "Mesh": {
             "Data": {
-              "$blob": "f9e66e65-58d3-4016-845a-200fc1b09b6e"
+              "$blob": "355344de-87c8-4c77-bffc-9cab81c08efa"
             },
             "Materials": [
               "materials/subzero-studios/planks/planks006.vmat"
@@ -1650,7 +1646,7 @@
           "IsTrigger": false,
           "Mesh": {
             "Data": {
-              "$blob": "3aa9eb44-4c0e-406f-86ad-d9e11b48a851"
+              "$blob": "b5cf613f-20ee-4255-b77d-f75e51db3453"
             },
             "Materials": [
               "materials/subzero-studios/planks/planks006.vmat"
@@ -1706,7 +1702,7 @@
           "IsTrigger": false,
           "Mesh": {
             "Data": {
-              "$blob": "1450b138-3812-462e-9c78-b3f9a9bbc395"
+              "$blob": "a00bc150-9ea2-40d1-bfe7-96f5e7c4c67a"
             },
             "Materials": [
               "materials/subzero-studios/planks/planks006.vmat"
@@ -1762,7 +1758,7 @@
           "IsTrigger": false,
           "Mesh": {
             "Data": {
-              "$blob": "ba2fe70f-510a-4395-8c8c-360bdd36f0b8"
+              "$blob": "4b4b5320-d0fb-4c2d-b57c-675e883ac52e"
             },
             "Materials": [
               "materials/glass/glass_a.vmat"
@@ -1818,7 +1814,7 @@
           "IsTrigger": false,
           "Mesh": {
             "Data": {
-              "$blob": "e575a67a-278d-4a02-aa66-6439ed0f0b6c"
+              "$blob": "c68644a7-b3c5-44eb-a0cb-6fd3858b3a21"
             },
             "Materials": [
               "materials/glass/glass_a.vmat"
@@ -1874,7 +1870,7 @@
           "IsTrigger": false,
           "Mesh": {
             "Data": {
-              "$blob": "692290a8-5a41-4689-bb09-0f807f8735d6"
+              "$blob": "bd193339-18af-4fa5-9be2-2d48074b2b2b"
             },
             "Materials": [
               "materials/dev/gray_grid_4.vmat",
@@ -1931,7 +1927,7 @@
           "IsTrigger": false,
           "Mesh": {
             "Data": {
-              "$blob": "c391a8c4-07b7-489f-b83f-ec0982e0d85f"
+              "$blob": "0225408c-38dc-4517-851d-2d25df484ec6"
             },
             "Materials": [
               "materials/dev/gray_grid_4.vmat",

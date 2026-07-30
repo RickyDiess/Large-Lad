@@ -198,6 +198,116 @@ public sealed class RoundRulesTests
 }
 
 [TestClass]
+public sealed class RoundBalanceRulesTests
+{
+	[DataTestMethod]
+	[DataRow( 1, (int)LargeLadBalanceBand.Small )]
+	[DataRow( 3, (int)LargeLadBalanceBand.Small )]
+	[DataRow( 4, (int)LargeLadBalanceBand.Medium )]
+	[DataRow( 7, (int)LargeLadBalanceBand.Medium )]
+	[DataRow( 8, (int)LargeLadBalanceBand.Large )]
+	[DataRow( 15, (int)LargeLadBalanceBand.Large )]
+	[DataRow( 16, (int)LargeLadBalanceBand.VeryLarge )]
+	[DataRow( 23, (int)LargeLadBalanceBand.VeryLarge )]
+	[DataRow( 24, (int)LargeLadBalanceBand.Full )]
+	[DataRow( 31, (int)LargeLadBalanceBand.Full )]
+	public void BandSelection_CoversEveryInclusiveBoundary(
+		int skinnyKidCount,
+		int expectedBand )
+	{
+		Assert.AreEqual(
+			(LargeLadBalanceBand)expectedBand,
+			LargeLadRoundBalanceRules.GetBand( skinnyKidCount ) );
+	}
+
+	[TestMethod]
+	public void SelectedBand_RemainsFixedForEveryMidRoundRosterChange()
+	{
+		var selected = LargeLadRoundBalanceRules.ResolveState(
+			default,
+			currentSkinnyKidCount: 3,
+			roundSuccessfullyBeginning: true );
+
+		// Disconnect, death, conversion, and late join can each change the live
+		// roster, but none is a successful round-start boundary.
+		var liveSkinnyKidCounts = new[] { 2, 2, 1, 24 };
+
+		foreach ( var liveSkinnyKidCount in liveSkinnyKidCounts )
+		{
+			selected = LargeLadRoundBalanceRules.ResolveState(
+				selected,
+				liveSkinnyKidCount,
+				roundSuccessfullyBeginning: false );
+
+			Assert.IsTrue( selected.HasSelection );
+			Assert.AreEqual(
+				LargeLadBalanceBand.Small,
+				selected.SelectedBand );
+			Assert.AreEqual(
+				3,
+				selected.SkinnyKidCountAtRoundStart );
+		}
+	}
+
+	[TestMethod]
+	public void NextSuccessfulRound_ReplacesTheAuthoritativeBand()
+	{
+		var selected = LargeLadRoundBalanceRules.ResolveState(
+			default,
+			currentSkinnyKidCount: 3,
+			roundSuccessfullyBeginning: true );
+
+		selected = LargeLadRoundBalanceRules.ResolveState(
+			selected,
+			currentSkinnyKidCount: 24,
+			roundSuccessfullyBeginning: true );
+
+		Assert.AreEqual(
+			LargeLadBalanceBand.Full,
+			selected.SelectedBand );
+		Assert.AreEqual( 24, selected.SkinnyKidCountAtRoundStart );
+	}
+
+	[TestMethod]
+	public void MediumDefaults_AreTheNeutralDocumentedBaseline()
+	{
+		var settings = new LargeLadRoundBalanceSettings();
+
+		Assert.IsTrue(
+			settings.TryGetMultipliers(
+				LargeLadBalanceBand.Medium,
+				out var medium ) );
+		Assert.AreEqual( 1.0f, medium.LargeLadMaximumHealth );
+		Assert.AreEqual(
+			1.0f,
+			medium.SkinnyProgressionBarricadeMaximumHealth );
+	}
+
+	[TestMethod]
+	public void HealthScaling_ComposesWithMapFactorWithoutCompounding()
+	{
+		const float authoredMaximumHealth = 500.0f;
+		const float bandMultiplier = 1.2f;
+		const float mapMultiplier = 1.1f;
+
+		var firstReset = LargeLadRoundBalanceRules.GetScaledMaximumHealth(
+			authoredMaximumHealth,
+			bandMultiplier,
+			mapMultiplier );
+		var laterReset = LargeLadRoundBalanceRules.GetScaledMaximumHealth(
+			authoredMaximumHealth,
+			bandMultiplier,
+			mapMultiplier );
+
+		Assert.AreEqual( 660.0f, firstReset, 0.001f );
+		Assert.AreEqual(
+			firstReset,
+			laterReset,
+			"Every reset must derive from the authored baseline." );
+	}
+}
+
+[TestClass]
 public sealed class RespawnRulesTests
 {
 	[TestMethod]

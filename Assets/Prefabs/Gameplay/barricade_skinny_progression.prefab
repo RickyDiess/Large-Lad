@@ -71,7 +71,7 @@
         "CosmeticDebris": [],
         "CosmeticDebrisLifetime": 1.5,
         "GizmoPadding": 2,
-        "MaximumHealth": 300,
+        "BaseMaximumHealth": 300,
         "Mode": "SkinnyProgression",
         "OnComponentDestroy": null,
         "OnComponentDisabled": null,

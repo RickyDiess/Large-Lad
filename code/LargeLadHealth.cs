@@ -42,7 +42,15 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 				return 0.0f;
 			}
 
-			return profile.MaximumHealth;
+			if ( player.Role != LargeLadRole.LargeLad )
+				return profile.MaximumHealth;
+
+			var roundMultiplier =
+				GetGameManager()?
+					.GetLargeLadMaximumHealthMultiplier() ?? 1.0f;
+			return LargeLadRoundBalanceRules.GetScaledMaximumHealth(
+				profile.MaximumHealth,
+				roundMultiplier );
 		}
 	}
 

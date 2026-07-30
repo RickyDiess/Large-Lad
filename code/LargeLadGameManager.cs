@@ -47,6 +47,9 @@ public sealed class LargeLadGameManager : Component
 	[Property]
 	public float PlayerRespawnDelay { get; set; } = 5.0f;
 
+	[Property, Group( "Round Balance" )]
+	public LargeLadRoundBalanceSettings RoundBalanceSettings { get; set; }
+
 	[Property]
 	public NetworkHelper NetworkHelper { get; set; }
 
@@ -78,12 +81,68 @@ public sealed class LargeLadGameManager : Component
 	[Sync( SyncFlags.FromHost )]
 	public LargeLadWinner Winner { get; private set; } = LargeLadWinner.None;
 
+	[Sync( SyncFlags.FromHost )]
+	public bool HasSelectedBalanceBand { get; private set; }
+
+	[Sync( SyncFlags.FromHost )]
+	public LargeLadBalanceBand SelectedBalanceBand { get; private set; } =
+		LargeLadBalanceBand.Medium;
+
+	[Sync( SyncFlags.FromHost )]
+	public int SkinnyKidCountAtRoundStart { get; private set; }
+
 	public float PhaseTimeRemaining =>
 		Phase == LargeLadRoundPhase.WaitingForPlayers
 			? 0.0f
 			: LargeLadGameplayRules.GetTimerTimeRemaining(
 				PhaseEndTime,
 				Time.Now );
+
+	/// <summary>
+	/// Returns the current round's band factor composed with an optional future
+	/// map-specific Large Lad health factor. Before the first successful round,
+	/// balance remains neutral.
+	/// </summary>
+	public float GetLargeLadMaximumHealthMultiplier(
+		float mapSpecificMultiplier = 1.0f )
+	{
+		var bandMultiplier = 1.0f;
+
+		if ( HasSelectedBalanceBand &&
+			RoundBalanceSettings?.TryGetMultipliers(
+				SelectedBalanceBand,
+				out var multipliers ) == true )
+		{
+			bandMultiplier = multipliers.LargeLadMaximumHealth;
+		}
+
+		return LargeLadRoundBalanceRules.ComposeHealthMultipliers(
+			bandMultiplier,
+			mapSpecificMultiplier );
+	}
+
+	/// <summary>
+	/// Returns the current round's band factor composed with an optional future
+	/// map-specific SkinnyProgression barricade health factor.
+	/// </summary>
+	public float GetSkinnyProgressionBarricadeMaximumHealthMultiplier(
+		float mapSpecificMultiplier = 1.0f )
+	{
+		var bandMultiplier = 1.0f;
+
+		if ( HasSelectedBalanceBand &&
+			RoundBalanceSettings?.TryGetMultipliers(
+				SelectedBalanceBand,
+				out var multipliers ) == true )
+		{
+			bandMultiplier =
+				multipliers.SkinnyProgressionBarricadeMaximumHealth;
+		}
+
+		return LargeLadRoundBalanceRules.ComposeHealthMultipliers(
+			bandMultiplier,
+			mapSpecificMultiplier );
+	}
 
 	private int nextLargeLadIndex;
 	private int waitingPlayerCount = -1;
@@ -404,6 +463,17 @@ public sealed class LargeLadGameManager : Component
 		if ( PlayerRespawnDelay < 0.0f )
 			issues.Add( "Player respawn delay cannot be negative." );
 
+		if ( RoundBalanceSettings is null )
+		{
+			issues.Add(
+				"Round balance settings are missing; player-count health " +
+				"multipliers will remain neutral." );
+		}
+		else
+		{
+			issues.AddRange( RoundBalanceSettings.GetValidationWarnings() );
+		}
+
 		ValidateSpawnGroup(
 			blockingSpawnIssues,
 			LargeLadSpawnGroup.Lobby,
@@ -688,6 +758,8 @@ public sealed class LargeLadGameManager : Component
 			return false;
 		}
 
+		CommitRoundBalanceState( skinnyKidPlayers.Count );
+
 		// Player-held exclusive items are cleared before their authored pickup
 		// returns, so a reset can never create a second copy.
 		foreach ( var player in players )
@@ -712,8 +784,29 @@ public sealed class LargeLadGameManager : Component
 		spawnFailureReported = false;
 		SetPhaseDeadline( HeadStartDuration );
 		SetPhase( LargeLadRoundPhase.HeadStart );
-		Log.Info( $"Round started with {players.Count} players and a {HeadStartDuration:0.#}-second head start." );
+		Log.Info(
+			$"Round started with {players.Count} players, " +
+			$"{skinnyKidPlayers.Count} Skinny Kids, the " +
+			$"{SelectedBalanceBand} balance band, and a " +
+			$"{HeadStartDuration:0.#}-second head start." );
 		return true;
+	}
+
+	private void CommitRoundBalanceState( int skinnyKidCount )
+	{
+		var current = new LargeLadRoundBalanceState(
+			HasSelectedBalanceBand,
+			SelectedBalanceBand,
+			SkinnyKidCountAtRoundStart );
+		var selected = LargeLadRoundBalanceRules.ResolveState(
+			current,
+			skinnyKidCount,
+			roundSuccessfullyBeginning: true );
+
+		HasSelectedBalanceBand = selected.HasSelection;
+		SelectedBalanceBand = selected.SelectedBand;
+		SkinnyKidCountAtRoundStart =
+			selected.SkinnyKidCountAtRoundStart;
 	}
 
 	private void BeginPlaying( List<LargeLadPlayer> players )

@@ -1,0 +1,24 @@
+{
+  "Small": {
+    "LargeLadMaximumHealth": 0.9,
+    "SkinnyProgressionBarricadeMaximumHealth": 0.9
+  },
+  "Medium": {
+    "LargeLadMaximumHealth": 1,
+    "SkinnyProgressionBarricadeMaximumHealth": 1
+  },
+  "Large": {
+    "LargeLadMaximumHealth": 1.1,
+    "SkinnyProgressionBarricadeMaximumHealth": 1.1
+  },
+  "VeryLarge": {
+    "LargeLadMaximumHealth": 1.2,
+    "SkinnyProgressionBarricadeMaximumHealth": 1.2
+  },
+  "Full": {
+    "LargeLadMaximumHealth": 1.3,
+    "SkinnyProgressionBarricadeMaximumHealth": 1.3
+  },
+  "__references": [],
+  "__version": 0
+}
