@@ -4,6 +4,7 @@ public enum LargeLadDamageType
 {
 	Firearm,
 	Melee,
+	Eat,
 	Environment
 }
 

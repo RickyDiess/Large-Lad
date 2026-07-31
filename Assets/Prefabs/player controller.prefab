@@ -229,6 +229,12 @@
           "go": "663383c9-6bdb-48e2-9c7d-30bedec4b012",
           "component_type": "SkinnedModelRenderer"
         },
+        "EatAttack": {
+          "_type": "component",
+          "component_id": "c60c2cbd-2bee-4b82-a6ce-f9ce97f124f4",
+          "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
+          "component_type": "LargeLadEatAttack"
+        },
         "Health": {
           "_type": "component",
           "component_id": "8ff41dc2-a36e-4bbf-9526-bff01566ba8d",
@@ -340,6 +346,55 @@
         "OnComponentStart": null,
         "OnComponentUpdate": null,
         "ShowFirstPersonArms": true
+      },
+      {
+        "__type": "LargeLadEatAttack",
+        "__guid": "c60c2cbd-2bee-4b82-a6ce-f9ce97f124f4",
+        "__enabled": true,
+        "AttackAnimationParameter": "b_attack",
+        "BloodDecalScale": 2,
+        "BloodDecalTraceDistance": 96,
+        "BloodSplatterDecals": [
+          "decals/blood/blood_splatter_01.decal",
+          "decals/blood/blood_splatter_02.decal",
+          "decals/blood/blood_splatter_03.decal",
+          "decals/blood/blood_splatter_04.decal"
+        ],
+        "BloodSplatterTextureDependencies": [
+          "textures/generated/imagefile/7056d04ce78898cf.vtex",
+          "textures/generated/imagefile/6be0b0d6c0e1d2e.vtex",
+          "textures/generated/imagefile/e5a9079f56d9dcd5.vtex",
+          "textures/generated/imagefile/b7195b89828358f9.vtex",
+          "textures/generated/imagefile/715b00c3c4e7f07c.vtex",
+          "textures/generated/imagefile/aa63678440ca4f12.vtex",
+          "textures/generated/imagefile/1994c0fb96089632.vtex",
+          "textures/generated/imagefile/1b6c3920589cfa96.vtex",
+          "textures/generated/imagefile/90dab872b2c4c1af.vtex",
+          "textures/generated/imagefile/d9b7827f182b9f68.vtex",
+          "textures/generated/imagefile/3a4564a2c36a95bc.vtex",
+          "textures/generated/imagefile/2b52917f6841d3bc.vtex"
+        ],
+        "BreakableDamage": 100,
+        "Cooldown": 1,
+        "DefaultBloodEffectPath": "prefabs/surface/flesh_bullet.prefab",
+        "EatDuration": 0.3,
+        "Flags": 0,
+        "FleshSounds": [
+          "sounds/impacts/melee/impact-melee-flesh.sound"
+        ],
+        "ForwardOffset": 48,
+        "MinimumFacingDot": 0.1,
+        "MissingHealthHealFraction": 0.1,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "PresentationInterval": 0.1,
+        "SearchRadius": 50,
+        "VictimAnimationParameter": "b_flinch",
+        "VictimMovementMultiplier": 0.05
       },
       {
         "__type": "LargeLadHud",

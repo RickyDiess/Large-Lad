@@ -259,7 +259,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "d5dce800-f8dd-431f-81a8-61588b6d7a2a"
+                      "$blob": "8444efdb-4457-478d-a71a-700beef493f3"
                     },
                     "Materials": [
                       "materials/generic/floor_asphalt_b.vmat",
@@ -317,7 +317,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "0ed9e7da-fe60-4a47-8516-f85b0ca95dfe"
+                      "$blob": "3f950c7e-7567-402a-acab-e5740282d311"
                     },
                     "Materials": [
                       "materials/stone/tile/stone_brick_tile.vmat",
@@ -375,7 +375,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "100b2209-d577-49f0-b5c4-f4c0fcd2ae04"
+                      "$blob": "b358903d-dff1-4d78-98de-214c880d65be"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -435,7 +435,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "553b682a-56d2-404f-94ee-d0fcb0412de0"
+                      "$blob": "5b4672ff-f78a-4dfe-83d5-ec6b676e39d7"
                     },
                     "Materials": [
                       "materials/wood/floor/wooden_flooring_b2.vmat",
@@ -492,7 +492,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "5ad8f794-c9f5-4d19-9573-fcea42e5dd6b"
+                      "$blob": "0cce7dff-69a9-42fb-96f9-82f930be0136"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -549,7 +549,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "b4dcdf66-c250-4694-98ef-64c63edf8198"
+                      "$blob": "ff52ae7e-2c1b-434e-87ca-f1edc47a75cb"
                     },
                     "Materials": [
                       "materials/wood/floor/wooden_flooring_b2.vmat"
@@ -605,7 +605,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "4ffe7563-02f7-4b42-ace1-d96b9b0de8dc"
+                      "$blob": "05c136a9-a380-4a9e-b09c-27f17f284162"
                     },
                     "Materials": [
                       "materials/wood/floor/wooden_flooring_b2.vmat"
@@ -661,7 +661,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "6be48c8a-37e3-4e59-9706-04317916efa7"
+                      "$blob": "f20912ef-5bd4-4313-928f-7b25134a1098"
                     },
                     "Materials": [
                       "materials/wood/floor/wooden_flooring_b2.vmat",
@@ -718,7 +718,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "293c08df-c3a4-4136-9e3d-2a2a168cc75d"
+                      "$blob": "b507fb67-1132-4d99-865b-0d2f361ece99"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -775,7 +775,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "6debc8b4-3c30-457c-ae28-4ef137c7b092"
+                      "$blob": "2688a39c-ce7f-4d9a-9b40-0fae19da1ffe"
                     },
                     "Materials": [
                       "materials/wood/floor/wooden_flooring_b2.vmat"
@@ -831,7 +831,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "b47ceafc-91d2-4687-bbd6-a1702f2f566e"
+                      "$blob": "05616e9a-1800-4f6a-893b-106e97708abe"
                     },
                     "Materials": [
                       "materials/wood/floor/wooden_flooring_b2.vmat"
@@ -887,7 +887,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "74c35199-b002-4e97-ad6e-ba56796b7912"
+                      "$blob": "023c655a-2bd0-4d5f-b275-343caa33f3b6"
                     },
                     "Materials": [
                       "materials/glass/glass_a.vmat"
@@ -943,7 +943,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "fdc2a5cb-afee-4c6e-af94-f743a6cb825d"
+                      "$blob": "e92a5aab-ae22-4551-b900-6860a9ed4b65"
                     },
                     "Materials": [
                       "materials/glass/glass_a.vmat"
@@ -999,7 +999,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "b61aad8e-01bb-4ac8-a743-81823d558c3c"
+                      "$blob": "43c7be38-426c-4811-bc81-de5b6d30879b"
                     },
                     "Materials": [
                       "materials/subzero-studios/road/road007.vmat",
@@ -1056,7 +1056,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "e4fec4e6-619d-4e77-884b-a1add01ef870"
+                      "$blob": "3d44df02-264b-4b15-a10c-98b5d4495753"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat"
@@ -1112,7 +1112,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "50e050b7-212c-4411-8b9d-94d7a01c956b"
+                      "$blob": "3ce83e9d-dfc9-49d8-83e0-6391e3548eaf"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat"
@@ -1168,7 +1168,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "9be80a55-2299-4700-b39a-a158e4d2139f"
+                      "$blob": "7c243569-cfe6-41ce-bf6b-be4e09ae0009"
                     },
                     "Materials": [
                       "materials/subzero-studios/planks/planks006.vmat"
@@ -1224,7 +1224,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "7ee95aae-74ca-4817-9845-db3dd5637434"
+                      "$blob": "5ab820c8-b8b2-466c-89c4-9eb16ee544f3"
                     },
                     "Materials": [
                       "materials/subzero-studios/planks/planks006.vmat"
@@ -1280,7 +1280,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "9d9e3d8e-3632-4d90-9a16-c14c98800e40"
+                      "$blob": "ca0af130-d20c-4136-a211-9b143e2d1cd6"
                     },
                     "Materials": [
                       "materials/subzero-studios/planks/planks006.vmat"
@@ -1336,7 +1336,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "23f52ba3-af35-4ebc-b32e-bef8d42cd850"
+                      "$blob": "f913e240-e826-46b5-a0ec-c73ff57aa117"
                     },
                     "Materials": [
                       "materials/subzero-studios/planks/planks006.vmat"
@@ -1392,7 +1392,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "ee019397-eecf-4180-9a3a-f578f4d9da1f"
+                      "$blob": "0ef0548a-0630-44e8-8be3-0646b9b80f38"
                     },
                     "Materials": [
                       "materials/glass/glass_a.vmat"
@@ -1448,7 +1448,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "8b21752f-8f1a-4a2d-9c96-dd2bafa26856"
+                      "$blob": "0c6ed135-8a7e-454b-b06c-2cfe73026c3c"
                     },
                     "Materials": [
                       "materials/glass/glass_a.vmat"
@@ -1504,7 +1504,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "13200172-a2bd-4134-a25e-d147bccdc737"
+                      "$blob": "c8db2103-fb18-4396-b3fd-692bc5656c17"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -1561,7 +1561,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "d47fe107-f0a6-440c-990f-b101cd61a22a"
+                      "$blob": "eaa9c37d-2c6d-426e-b460-2a712b37090c"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -1587,6 +1587,420 @@
                 }
               ],
               "Children": []
+            },
+            {
+              "__guid": "b3564dd4-1bab-42a9-80fc-fbd315ff9193",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Locker Group",
+              "Position": "1419.56812,1356.86865,-108.869537",
+              "Rotation": "0,0,0,1",
+              "Scale": "1,1,1",
+              "Tags": "",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.BoxCollider",
+                  "__guid": "91ad4de3-407a-4b47-8987-f0d7f2b30424",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "Center": "15.9999981,2.99969482,33.7436943",
+                  "ColliderFlags": 0,
+                  "Elasticity": null,
+                  "Friction": null,
+                  "IsTrigger": false,
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OnObjectTriggerEnter": null,
+                  "OnObjectTriggerExit": null,
+                  "OnTriggerEnter": null,
+                  "OnTriggerExit": null,
+                  "RollingResistance": null,
+                  "Scale": "32.1300125,212.653275,99.4873657",
+                  "Static": false,
+                  "Surface": null,
+                  "SurfaceVelocity": "0,0,0"
+                }
+              ],
+              "Children": [
+                {
+                  "__guid": "3049abdd-2257-4a12-a543-f886ed09d60e",
+                  "__version": 2,
+                  "Flags": 0,
+                  "Name": "locker_b",
+                  "Position": "16,-89.9814453,-15.9999886",
+                  "Rotation": "0,0,-1,-4.37113883E-08",
+                  "Scale": "1,1,1",
+                  "Tags": "",
+                  "Enabled": true,
+                  "NetworkMode": 2,
+                  "NetworkFlags": 0,
+                  "NetworkOrphaned": 0,
+                  "NetworkTransmit": true,
+                  "OwnerTransfer": 1,
+                  "Components": [
+                    {
+                      "__type": "Sandbox.ModelRenderer",
+                      "__guid": "b63332c5-22c6-4dc5-902d-4c877bcb8579",
+                      "__enabled": true,
+                      "Flags": 0,
+                      "BodyGroups": 18446744073709551615,
+                      "CreateAttachments": false,
+                      "LodOverride": null,
+                      "MaterialGroup": null,
+                      "MaterialOverride": null,
+                      "Materials": null,
+                      "Model": "models/rust_props/lockers/locker_b.vmdl",
+                      "OnComponentDestroy": null,
+                      "OnComponentDisabled": null,
+                      "OnComponentEnabled": null,
+                      "OnComponentFixedUpdate": null,
+                      "OnComponentStart": null,
+                      "OnComponentUpdate": null,
+                      "RenderOptions": {
+                        "GameLayer": true,
+                        "OverlayLayer": false,
+                        "BloomLayer": false,
+                        "AfterUILayer": false
+                      },
+                      "RenderType": "On",
+                      "Tint": "1,1,1,1"
+                    }
+                  ],
+                  "Children": []
+                },
+                {
+                  "__guid": "3e4d387e-a61a-475a-a925-0e228c1c7d5b",
+                  "__version": 2,
+                  "Flags": 0,
+                  "Name": "locker_b",
+                  "Position": "16,-63.3465576,-15.9999886",
+                  "Rotation": "0,0,-1,-4.37113883E-08",
+                  "Scale": "1,1,1",
+                  "Tags": "",
+                  "Enabled": true,
+                  "NetworkMode": 2,
+                  "NetworkFlags": 0,
+                  "NetworkOrphaned": 0,
+                  "NetworkTransmit": true,
+                  "OwnerTransfer": 1,
+                  "Components": [
+                    {
+                      "__type": "Sandbox.ModelRenderer",
+                      "__guid": "c2601bb6-2208-4bf1-bfe5-7950f654cc31",
+                      "__enabled": true,
+                      "Flags": 0,
+                      "BodyGroups": 18446744073709551615,
+                      "CreateAttachments": false,
+                      "LodOverride": null,
+                      "MaterialGroup": null,
+                      "MaterialOverride": null,
+                      "Materials": null,
+                      "Model": "models/rust_props/lockers/locker_b.vmdl",
+                      "OnComponentDestroy": null,
+                      "OnComponentDisabled": null,
+                      "OnComponentEnabled": null,
+                      "OnComponentFixedUpdate": null,
+                      "OnComponentStart": null,
+                      "OnComponentUpdate": null,
+                      "RenderOptions": {
+                        "GameLayer": true,
+                        "OverlayLayer": false,
+                        "BloomLayer": false,
+                        "AfterUILayer": false
+                      },
+                      "RenderType": "On",
+                      "Tint": "1,1,1,1"
+                    }
+                  ],
+                  "Children": []
+                },
+                {
+                  "__guid": "c1ff2ae0-2097-4c47-a7cf-ca727473138a",
+                  "__version": 2,
+                  "Flags": 0,
+                  "Name": "locker_b",
+                  "Position": "16,-36.8951416,-15.9999886",
+                  "Rotation": "0,0,-1,-4.37113883E-08",
+                  "Scale": "1,1,1",
+                  "Tags": "",
+                  "Enabled": true,
+                  "NetworkMode": 2,
+                  "NetworkFlags": 0,
+                  "NetworkOrphaned": 0,
+                  "NetworkTransmit": true,
+                  "OwnerTransfer": 1,
+                  "Components": [
+                    {
+                      "__type": "Sandbox.ModelRenderer",
+                      "__guid": "54fe4890-801e-4fd9-8cf4-fad04f50d5bc",
+                      "__enabled": true,
+                      "Flags": 0,
+                      "BodyGroups": 18446744073709551615,
+                      "CreateAttachments": false,
+                      "LodOverride": null,
+                      "MaterialGroup": null,
+                      "MaterialOverride": null,
+                      "Materials": null,
+                      "Model": "models/rust_props/lockers/locker_b.vmdl",
+                      "OnComponentDestroy": null,
+                      "OnComponentDisabled": null,
+                      "OnComponentEnabled": null,
+                      "OnComponentFixedUpdate": null,
+                      "OnComponentStart": null,
+                      "OnComponentUpdate": null,
+                      "RenderOptions": {
+                        "GameLayer": true,
+                        "OverlayLayer": false,
+                        "BloomLayer": false,
+                        "AfterUILayer": false
+                      },
+                      "RenderType": "On",
+                      "Tint": "1,1,1,1"
+                    }
+                  ],
+                  "Children": []
+                },
+                {
+                  "__guid": "4264012b-ddc7-46b4-88e1-c2c38ff488be",
+                  "__version": 2,
+                  "Flags": 0,
+                  "Name": "locker_b",
+                  "Position": "16,-10.2602539,-15.9999886",
+                  "Rotation": "0,0,-1,-4.37113883E-08",
+                  "Scale": "1,1,1",
+                  "Tags": "",
+                  "Enabled": true,
+                  "NetworkMode": 2,
+                  "NetworkFlags": 0,
+                  "NetworkOrphaned": 0,
+                  "NetworkTransmit": true,
+                  "OwnerTransfer": 1,
+                  "Components": [
+                    {
+                      "__type": "Sandbox.ModelRenderer",
+                      "__guid": "fd0a21d5-d704-4237-8d1c-1774ca2f6630",
+                      "__enabled": true,
+                      "Flags": 0,
+                      "BodyGroups": 18446744073709551615,
+                      "CreateAttachments": false,
+                      "LodOverride": null,
+                      "MaterialGroup": null,
+                      "MaterialOverride": null,
+                      "Materials": null,
+                      "Model": "models/rust_props/lockers/locker_b.vmdl",
+                      "OnComponentDestroy": null,
+                      "OnComponentDisabled": null,
+                      "OnComponentEnabled": null,
+                      "OnComponentFixedUpdate": null,
+                      "OnComponentStart": null,
+                      "OnComponentUpdate": null,
+                      "RenderOptions": {
+                        "GameLayer": true,
+                        "OverlayLayer": false,
+                        "BloomLayer": false,
+                        "AfterUILayer": false
+                      },
+                      "RenderType": "On",
+                      "Tint": "1,1,1,1"
+                    }
+                  ],
+                  "Children": []
+                },
+                {
+                  "__guid": "10d50507-6bbc-4329-9275-cd37387cb6d2",
+                  "__version": 2,
+                  "Flags": 0,
+                  "Name": "locker_b",
+                  "Position": "16,16.2788086,-15.9999886",
+                  "Rotation": "0,0,-1,-4.37113883E-08",
+                  "Scale": "1,1,1",
+                  "Tags": "",
+                  "Enabled": true,
+                  "NetworkMode": 2,
+                  "NetworkFlags": 0,
+                  "NetworkOrphaned": 0,
+                  "NetworkTransmit": true,
+                  "OwnerTransfer": 1,
+                  "Components": [
+                    {
+                      "__type": "Sandbox.ModelRenderer",
+                      "__guid": "a9bc45ec-4b47-4f91-95c4-42827c9c7a5d",
+                      "__enabled": true,
+                      "Flags": 0,
+                      "BodyGroups": 18446744073709551615,
+                      "CreateAttachments": false,
+                      "LodOverride": null,
+                      "MaterialGroup": null,
+                      "MaterialOverride": null,
+                      "Materials": null,
+                      "Model": "models/rust_props/lockers/locker_b.vmdl",
+                      "OnComponentDestroy": null,
+                      "OnComponentDisabled": null,
+                      "OnComponentEnabled": null,
+                      "OnComponentFixedUpdate": null,
+                      "OnComponentStart": null,
+                      "OnComponentUpdate": null,
+                      "RenderOptions": {
+                        "GameLayer": true,
+                        "OverlayLayer": false,
+                        "BloomLayer": false,
+                        "AfterUILayer": false
+                      },
+                      "RenderType": "On",
+                      "Tint": "1,1,1,1"
+                    }
+                  ],
+                  "Children": []
+                },
+                {
+                  "__guid": "beed024d-adcb-4579-a7e6-6cc3fc49cc93",
+                  "__version": 2,
+                  "Flags": 0,
+                  "Name": "locker_b",
+                  "Position": "16,42.9136963,-15.9999886",
+                  "Rotation": "0,0,-1,-4.37113883E-08",
+                  "Scale": "1,1,1",
+                  "Tags": "",
+                  "Enabled": true,
+                  "NetworkMode": 2,
+                  "NetworkFlags": 0,
+                  "NetworkOrphaned": 0,
+                  "NetworkTransmit": true,
+                  "OwnerTransfer": 1,
+                  "Components": [
+                    {
+                      "__type": "Sandbox.ModelRenderer",
+                      "__guid": "12281f3f-a570-447e-adc2-de6a1794b6e6",
+                      "__enabled": true,
+                      "Flags": 0,
+                      "BodyGroups": 18446744073709551615,
+                      "CreateAttachments": false,
+                      "LodOverride": null,
+                      "MaterialGroup": null,
+                      "MaterialOverride": null,
+                      "Materials": null,
+                      "Model": "models/rust_props/lockers/locker_b.vmdl",
+                      "OnComponentDestroy": null,
+                      "OnComponentDisabled": null,
+                      "OnComponentEnabled": null,
+                      "OnComponentFixedUpdate": null,
+                      "OnComponentStart": null,
+                      "OnComponentUpdate": null,
+                      "RenderOptions": {
+                        "GameLayer": true,
+                        "OverlayLayer": false,
+                        "BloomLayer": false,
+                        "AfterUILayer": false
+                      },
+                      "RenderType": "On",
+                      "Tint": "1,1,1,1"
+                    }
+                  ],
+                  "Children": []
+                },
+                {
+                  "__guid": "4a2f6c34-641c-45bb-915a-d464ef9c5f0e",
+                  "__version": 2,
+                  "Flags": 0,
+                  "Name": "locker_b",
+                  "Position": "16,69.3651123,-15.9999886",
+                  "Rotation": "0,0,-1,-4.37113883E-08",
+                  "Scale": "1,1,1",
+                  "Tags": "",
+                  "Enabled": true,
+                  "NetworkMode": 2,
+                  "NetworkFlags": 0,
+                  "NetworkOrphaned": 0,
+                  "NetworkTransmit": true,
+                  "OwnerTransfer": 1,
+                  "Components": [
+                    {
+                      "__type": "Sandbox.ModelRenderer",
+                      "__guid": "76f9d8a9-5b2c-4131-adea-772c5d951ff5",
+                      "__enabled": true,
+                      "Flags": 0,
+                      "BodyGroups": 18446744073709551615,
+                      "CreateAttachments": false,
+                      "LodOverride": null,
+                      "MaterialGroup": null,
+                      "MaterialOverride": null,
+                      "Materials": null,
+                      "Model": "models/rust_props/lockers/locker_b.vmdl",
+                      "OnComponentDestroy": null,
+                      "OnComponentDisabled": null,
+                      "OnComponentEnabled": null,
+                      "OnComponentFixedUpdate": null,
+                      "OnComponentStart": null,
+                      "OnComponentUpdate": null,
+                      "RenderOptions": {
+                        "GameLayer": true,
+                        "OverlayLayer": false,
+                        "BloomLayer": false,
+                        "AfterUILayer": false
+                      },
+                      "RenderType": "On",
+                      "Tint": "1,1,1,1"
+                    }
+                  ],
+                  "Children": []
+                },
+                {
+                  "__guid": "b99d6d88-6625-467a-82e6-54fc78a29a84",
+                  "__version": 2,
+                  "Flags": 0,
+                  "Name": "locker_b",
+                  "Position": "16,96,-15.9999886",
+                  "Rotation": "0,0,-1,-4.37113883E-08",
+                  "Scale": "1,1,1",
+                  "Tags": "",
+                  "Enabled": true,
+                  "NetworkMode": 2,
+                  "NetworkFlags": 0,
+                  "NetworkOrphaned": 0,
+                  "NetworkTransmit": true,
+                  "OwnerTransfer": 1,
+                  "Components": [
+                    {
+                      "__type": "Sandbox.ModelRenderer",
+                      "__guid": "c4a78622-64da-460e-aec9-a3936cd887e0",
+                      "__enabled": true,
+                      "Flags": 0,
+                      "BodyGroups": 18446744073709551615,
+                      "CreateAttachments": false,
+                      "LodOverride": null,
+                      "MaterialGroup": null,
+                      "MaterialOverride": null,
+                      "Materials": null,
+                      "Model": "models/rust_props/lockers/locker_b.vmdl",
+                      "OnComponentDestroy": null,
+                      "OnComponentDisabled": null,
+                      "OnComponentEnabled": null,
+                      "OnComponentFixedUpdate": null,
+                      "OnComponentStart": null,
+                      "OnComponentUpdate": null,
+                      "RenderOptions": {
+                        "GameLayer": true,
+                        "OverlayLayer": false,
+                        "BloomLayer": false,
+                        "AfterUILayer": false
+                      },
+                      "RenderType": "On",
+                      "Tint": "1,1,1,1"
+                    }
+                  ],
+                  "Children": []
+                }
+              ]
             }
           ]
         },
@@ -1915,6 +2329,52 @@
           "Children": []
         }
       ]
+    },
+    {
+      "__guid": "4f6a595e-b151-4de1-b9bd-3aba389e7abb",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "locker_b_open",
+      "Position": "1786.09924,1515.80396,4.0920454E-06",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "42d156f3-ddd1-47e5-9e14-4f1cb493453b",
+          "__enabled": true,
+          "Flags": 0,
+          "BodyGroups": 18446744073709551615,
+          "CreateAttachments": false,
+          "LodOverride": null,
+          "MaterialGroup": null,
+          "MaterialOverride": null,
+          "Materials": null,
+          "Model": "models/rust_props/lockers/locker_b_open.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Tint": "1,1,1,1"
+        }
+      ],
+      "Children": []
     }
   ],
   "SceneProperties": {
@@ -1961,6 +2421,8 @@
     "facepunch.terrain_grass_a#310246",
     "facepunch.wall_brick_older#291812",
     "facepunch.woodenflooringblight#291852",
+    "rust.lockerb#285055",
+    "rust.lockerbopen#285060",
     "subzerostudios.planks006#147986",
     "subzerostudios.road007#148084"
   ],

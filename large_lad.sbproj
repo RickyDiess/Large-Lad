@@ -23,7 +23,7 @@
     "PerMapRanking": false,
     "LeaderboardType": "None",
     "CsProjName": "",
-    "StartupScene": "scenes/gym.scene",
+    "StartupScene": "scenes/halls.scene",
     "LaunchMode": "Normal",
     "ControlModes": {
       "Keyboard": true,

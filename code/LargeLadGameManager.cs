@@ -102,6 +102,14 @@ public sealed class LargeLadGameManager : Component
 			? barricadeDestructionAnnouncement
 			: null;
 
+	/// <summary>
+	/// Host-only lethal attribution hook for scoring and kill-feed systems.
+	/// The damage envelope retains both the attacking object and the Eat cause.
+	/// </summary>
+	public event System.Action<
+		LargeLadPlayer,
+		LargeLadDamageContext> AuthoritativePlayerKilled;
+
 	public float PhaseTimeRemaining =>
 		Phase == LargeLadRoundPhase.WaitingForPlayers
 			? 0.0f
@@ -218,6 +226,7 @@ public sealed class LargeLadGameManager : Component
 	private readonly HashSet<ILargeLadRoundResettable> registeredRoundResettables =
 		new();
 	private readonly List<LargeLadBarricade> activeBarricades = new();
+	private readonly List<LargeLadEatSmashable> activeEatSmashables = new();
 	private readonly List<LargeLadMinionPassage> activeMinionPassages = new();
 	private readonly List<string> validatedBlockingBootstrapIssues = new();
 	private readonly HashSet<LargeLadPlayer> lobbyPlacedPlayers = new();
@@ -284,6 +293,19 @@ public sealed class LargeLadGameManager : Component
 		{
 			PruneInvalidRegistrations();
 			return activeBarricades;
+		}
+	}
+
+	/// <summary>
+	/// Explicitly authored non-barricade targets eligible for Eat's structural
+	/// fallback. Ordinary physics props never enter this registry.
+	/// </summary>
+	public IReadOnlyList<LargeLadEatSmashable> ActiveEatSmashables
+	{
+		get
+		{
+			PruneInvalidRegistrations();
+			return activeEatSmashables;
 		}
 	}
 
@@ -916,6 +938,10 @@ public sealed class LargeLadGameManager : Component
 		SetPhase( LargeLadRoundPhase.RoundOver );
 
 		var players = GetActivePlayerSnapshot();
+
+		foreach ( var player in players )
+			player.CancelEatParticipationForLifecycle();
+
 		var returningPlayers = players
 			.Where( player => player.Health?.IsDead != true )
 			.ToList();
@@ -1051,6 +1077,7 @@ public sealed class LargeLadGameManager : Component
 			return false;
 		}
 
+		player.CancelEatParticipationForLifecycle();
 		player.Inventory?.HandleDeath( player.GameObject.WorldPosition );
 		player.SetPendingRespawnRole( plan.ResultingRole );
 		player.MovementLocked = true;
@@ -1067,6 +1094,7 @@ public sealed class LargeLadGameManager : Component
 				$"{plan.RespawnDelay:0.#} seconds." );
 		}
 
+		AuthoritativePlayerKilled?.Invoke( player, damage );
 		EvaluateWinnerAfterLifecycleChange();
 		return true;
 	}
@@ -1276,7 +1304,10 @@ public sealed class LargeLadGameManager : Component
 			return;
 
 		if ( Networking.IsHost )
+		{
+			player.CancelEatParticipationForLifecycle();
 			player.Inventory?.HandleDisconnect();
+		}
 
 		activePlayers.Remove( player );
 
@@ -1332,6 +1363,9 @@ public sealed class LargeLadGameManager : Component
 		if ( resettable is LargeLadBarricade barricade )
 			activeBarricades.Add( barricade );
 
+		if ( resettable is LargeLadEatSmashable eatSmashable )
+			activeEatSmashables.Add( eatSmashable );
+
 		if ( resettable is LargeLadMinionPassage passage )
 			activeMinionPassages.Add( passage );
 	}
@@ -1349,6 +1383,9 @@ public sealed class LargeLadGameManager : Component
 
 		if ( resettable is LargeLadBarricade barricade )
 			activeBarricades.Remove( barricade );
+
+		if ( resettable is LargeLadEatSmashable eatSmashable )
+			activeEatSmashables.Remove( eatSmashable );
 
 		if ( resettable is LargeLadMinionPassage passage )
 			activeMinionPassages.Remove( passage );
@@ -1431,6 +1468,7 @@ public sealed class LargeLadGameManager : Component
 		roundResettables.Clear();
 		registeredRoundResettables.Clear();
 		activeBarricades.Clear();
+		activeEatSmashables.Clear();
 		activeMinionPassages.Clear();
 		lobbyPlacedPlayers.Clear();
 		reportedSpawnAllocationFailures.Clear();

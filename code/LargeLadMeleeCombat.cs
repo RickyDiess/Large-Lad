@@ -495,11 +495,12 @@ public sealed class LargeLadMeleeCombat : Component
 	{
 		if ( attacker is null || controller is null ||
 			attacker.Role is not (LargeLadRole.SkinnyKid or
-				LargeLadRole.LargeLad or LargeLadRole.Minion) ||
+				LargeLadRole.Minion) ||
 			attacker.EquippedWeapon != LargeLadWeaponId.Melee ||
 			attacker.Health?.IsDead != false ||
 			attacker.Health.CurrentHealth <= 0.0f ||
-			attacker.MovementLocked )
+			attacker.MovementLocked ||
+			attacker.IsEatBusy )
 		{
 			return false;
 		}

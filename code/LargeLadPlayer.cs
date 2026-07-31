@@ -8,6 +8,13 @@ public enum LargeLadRole
 	Minion
 }
 
+public enum LargeLadEatParticipation
+{
+	None,
+	Attacker,
+	Victim
+}
+
 public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 {
 	private const int TeleportSettleFrames = 2;
@@ -20,6 +27,7 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 	private TimeSince timeSinceAuthoritativeTeleport;
 	private bool hasAuthoritativeTeleport;
 	private Vector3 pendingSoftSeparationDisplacement;
+	private LargeLadEatAttack eatClaimOwner;
 
 	[Property, RequireComponent]
 	public LargeLadHealth Health { get; set; }
@@ -35,6 +43,9 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 
 	[Property, RequireComponent]
 	public LargeLadMeleePresentation MeleePresentation { get; set; }
+
+	[Property, RequireComponent]
+	public LargeLadEatAttack EatAttack { get; set; }
 
 	[Property]
 	public LargeLadRoleProfiles RoleProfiles { get; set; }
@@ -59,6 +70,15 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 	[Sync( SyncFlags.FromHost ), Change( nameof( OnMovementLockedChanged ) )]
 	public bool MovementLocked { get; set; }
 
+	[Sync( SyncFlags.FromHost ), Change( nameof( OnEatMovementMultiplierChanged ) )]
+	public float EatMovementMultiplier { get; private set; } = 1.0f;
+
+	[Sync( SyncFlags.FromHost )]
+	public LargeLadEatParticipation EatParticipation { get; private set; }
+
+	public bool IsEatBusy =>
+		EatParticipation != LargeLadEatParticipation.None;
+
 	[Property]
 	public SkinnedModelRenderer BodyRenderer { get; set; }
 
@@ -71,6 +91,7 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 
 	protected override void OnDisabled()
 	{
+		CancelEatParticipationForLifecycle();
 		pendingSoftSeparationDisplacement = Vector3.Zero;
 		UnregisterFromGameManager();
 		base.OnDisabled();
@@ -78,6 +99,7 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 
 	protected override void OnDestroy()
 	{
+		CancelEatParticipationForLifecycle();
 		UnregisterFromGameManager();
 		base.OnDestroy();
 	}
@@ -118,6 +140,9 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 			StopMovement();
 			return;
 		}
+
+		if ( EatParticipation == LargeLadEatParticipation.Victim )
+			DampenMovementForEat();
 
 	}
 
@@ -162,6 +187,9 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 
 	private void OnRoleChanged( LargeLadRole oldRole, LargeLadRole newRole )
 	{
+		if ( Networking.IsHost && oldRole != newRole )
+			CancelEatParticipationForLifecycle();
+
 		// The synchronized role is sufficient to update presentation on every
 		// observer and movement settings on whichever peer owns this player.
 		ApplyRoleProfile( newRole );
@@ -183,6 +211,101 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 	private void OnMovementLockedChanged( bool oldValue, bool newValue )
 	{
 		RefreshMovementState();
+	}
+
+	private void OnEatMovementMultiplierChanged(
+		float oldValue,
+		float newValue )
+	{
+		if ( TryGetRoleProfile( Role, out var profile ) && !IsProxy )
+			ApplyLocalMovementSettings( profile );
+	}
+
+	internal bool TryBeginEatParticipation(
+		LargeLadEatAttack owner,
+		LargeLadEatParticipation participation,
+		float movementMultiplier = 1.0f )
+	{
+		if ( !Networking.IsHost ||
+			owner is null ||
+			!owner.IsValid ||
+			participation == LargeLadEatParticipation.None ||
+			eatClaimOwner is not null ||
+			EatParticipation != LargeLadEatParticipation.None )
+		{
+			return false;
+		}
+
+		if ( participation == LargeLadEatParticipation.Attacker &&
+			Role != LargeLadRole.LargeLad )
+		{
+			return false;
+		}
+
+		if ( participation == LargeLadEatParticipation.Victim &&
+			(Role != LargeLadRole.SkinnyKid ||
+				Health?.IsDead != false ||
+				Health.CurrentHealth <= 0.0f) )
+		{
+			return false;
+		}
+
+		eatClaimOwner = owner;
+		EatParticipation = participation;
+		EatMovementMultiplier = participation ==
+			LargeLadEatParticipation.Victim
+			? System.Math.Clamp( movementMultiplier, 0.0f, 1.0f )
+			: 1.0f;
+		Inventory?.CancelConflictingActionForEat();
+
+		if ( TryGetRoleProfile( Role, out var profile ) && !IsProxy )
+			ApplyLocalMovementSettings( profile );
+
+		if ( participation == LargeLadEatParticipation.Victim )
+			DampenMovementForEat();
+
+		return true;
+	}
+
+	internal bool IsEatParticipationOwnedBy(
+		LargeLadEatAttack owner,
+		LargeLadEatParticipation participation )
+	{
+		return owner is not null &&
+			eatClaimOwner == owner &&
+			EatParticipation == participation;
+	}
+
+	internal void ReleaseEatParticipation( LargeLadEatAttack owner )
+	{
+		if ( !Networking.IsHost || owner is null || eatClaimOwner != owner )
+			return;
+
+		eatClaimOwner = null;
+		EatParticipation = LargeLadEatParticipation.None;
+		EatMovementMultiplier = 1.0f;
+
+		if ( TryGetRoleProfile( Role, out var profile ) && !IsProxy )
+			ApplyLocalMovementSettings( profile );
+	}
+
+	internal void CancelEatParticipationForLifecycle()
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		var owner = eatClaimOwner;
+
+		if ( owner is not null && owner.IsValid )
+		{
+			owner.CancelFromParticipantLifecycle( this );
+			return;
+		}
+
+		// Defensive repair for an owner destroyed before its callback could run.
+		eatClaimOwner = null;
+		EatParticipation = LargeLadEatParticipation.None;
+		EatMovementMultiplier = 1.0f;
 	}
 
 	internal void SetPendingRespawnRole( LargeLadRole role )
@@ -210,6 +333,8 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 	{
 		if ( !Networking.IsHost )
 			return false;
+
+		CancelEatParticipationForLifecycle();
 
 		// Hold the controller still while health restores the live collider and
 		// visuals. Teleport settling keeps motion disabled after the final lock
@@ -401,8 +526,12 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 		if ( controller is null )
 			return;
 
-		controller.WalkSpeed = profile.WalkSpeed;
-		controller.RunSpeed = profile.RunSpeed;
+		var eatMultiplier = System.Math.Clamp(
+			EatMovementMultiplier,
+			0.0f,
+			1.0f );
+		controller.WalkSpeed = profile.WalkSpeed * eatMultiplier;
+		controller.RunSpeed = profile.RunSpeed * eatMultiplier;
 	}
 
 	private void LogRoleProfileWarnings()
@@ -495,6 +624,28 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 		controller.Body.ClearForces();
 		controller.Body.Velocity = Vector3.Zero;
 		controller.Body.AngularVelocity = Vector3.Zero;
+	}
+
+	private void DampenMovementForEat()
+	{
+		var controller = Components.Get<PlayerController>();
+
+		if ( controller is null )
+			return;
+
+		var multiplier = System.Math.Clamp(
+			EatMovementMultiplier,
+			0.0f,
+			1.0f );
+		controller.WishVelocity *= multiplier;
+
+		if ( controller.Body is null )
+			return;
+
+		var velocity = controller.Body.Velocity;
+		velocity.x *= multiplier;
+		velocity.y *= multiplier;
+		controller.Body.Velocity = velocity;
 	}
 
 	private void RegisterWithGameManager()

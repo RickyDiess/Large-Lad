@@ -100,6 +100,9 @@ public sealed class LargeLadInventory : Component
 		if ( IsProxy )
 			return;
 
+		if ( Components.Get<LargeLadPlayer>()?.IsEatBusy == true )
+			return;
+
 		for ( var index = 0;
 			index < DirectSelectionActions.Length;
 			index++ )
@@ -189,7 +192,8 @@ public sealed class LargeLadInventory : Component
 			player?.Role ?? LargeLadRole.Unassigned,
 			player?.Health?.IsDead != false,
 			CoreWeapons,
-			weapon ) )
+			weapon ) ||
+			player?.IsEatBusy == true )
 			return false;
 
 		if ( !LargeLadInventoryRules.TryAddCoreWeapon(
@@ -217,6 +221,7 @@ public sealed class LargeLadInventory : Component
 		var player = Components.Get<LargeLadPlayer>();
 
 		return Networking.IsHost &&
+			player?.IsEatBusy != true &&
 			source is not null &&
 			source.IsValid &&
 			LargeLadInventoryRules.CanAcceptExclusive(
@@ -294,6 +299,7 @@ public sealed class LargeLadInventory : Component
 		var player = Components.Get<LargeLadPlayer>();
 
 		if ( !TryGetActiveState( out var state ) ||
+			player?.IsEatBusy == true ||
 			!LargeLadInventoryRules.CanReload(
 				isHost: Networking.IsHost,
 				ownerRequest: true,
@@ -310,6 +316,12 @@ public sealed class LargeLadInventory : Component
 			Time.Now,
 			LargeLadWeaponCatalog.Get( state.Weapon ).ReloadDuration );
 		return true;
+	}
+
+	internal void CancelConflictingActionForEat()
+	{
+		if ( Networking.IsHost )
+			CancelReload();
 	}
 
 	public void HandleDeath( Vector3 dropPosition )
@@ -366,7 +378,8 @@ public sealed class LargeLadInventory : Component
 				isHost: Networking.IsHost,
 				ownerRequest: true,
 				player?.Role ?? LargeLadRole.Unassigned,
-				player?.Health?.IsDead != false ) )
+				player?.Health?.IsDead != false ) ||
+			player?.IsEatBusy == true )
 		{
 			return false;
 		}
@@ -451,6 +464,7 @@ public sealed class LargeLadInventory : Component
 		var player = Components.Get<LargeLadPlayer>();
 
 		if ( !Networking.IsHost ||
+			player?.IsEatBusy == true ||
 			!LargeLadInventoryRules.CanDropExclusive(
 				isHost: true,
 				ownerRequest: true,
@@ -494,6 +508,7 @@ public sealed class LargeLadInventory : Component
 	{
 		var player = Components.Get<LargeLadPlayer>();
 		return Networking.IsHost &&
+			player?.IsEatBusy != true &&
 			LargeLadInventoryRules.CanUseFirearmInventory(
 				player?.Role ?? LargeLadRole.Unassigned,
 				player?.Health?.IsDead != false );

@@ -127,10 +127,25 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 		if ( !player.TryGetRoleProfile( player.Role, out var profile ) )
 			return false;
 
-		var multiplier =
-			System.MathF.Max( 0.0f, profile.IncomingDamageMultiplier );
+		var isEatExecution =
+			damage.DamageType == LargeLadDamageType.Eat;
 
-		var amount = damage.BaseDamage * multiplier;
+		if ( isEatExecution &&
+			(player.Role != LargeLadRole.SkinnyKid ||
+				damage.AttackerRole != LargeLadRole.LargeLad ||
+				damage.Attacker is null) )
+		{
+			return false;
+		}
+
+		// Eat is an execution, not ordinary damage. It deliberately bypasses
+		// incoming-damage modifiers (including any Last Skinny Kid reduction)
+		// and crosses the lethal edge exactly once through the normal manager.
+		var amount = isEatExecution
+			? CurrentHealth
+			: damage.BaseDamage * System.MathF.Max(
+				0.0f,
+				profile.IncomingDamageMultiplier );
 
 		if ( amount <= 0.0f )
 			return false;
@@ -165,6 +180,42 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 		}
 
 		return false;
+	}
+
+	internal bool TryExecuteEat(
+		LargeLadPlayer attacker,
+		out LargeLadDamageContext appliedDamage )
+	{
+		var execution = new LargeLadDamageContext
+		{
+			Attacker = attacker?.GameObject,
+			AttackerRole = attacker?.Role ?? LargeLadRole.Unassigned,
+			SourceWeapon = LargeLadWeaponId.Melee,
+			DamageType = LargeLadDamageType.Eat,
+			BaseDamage = CurrentHealth
+		};
+
+		return TryApplyDamage( execution, out appliedDamage );
+	}
+
+	internal bool TryHealMissingHealth(
+		float missingHealthFraction,
+		out float appliedHealing )
+	{
+		appliedHealing = 0.0f;
+
+		if ( !Networking.IsHost || IsDead || CurrentHealth <= 0.0f )
+			return false;
+
+		var healedHealth = LargeLadEatRules.GetHealedHealth(
+			CurrentHealth,
+			MaximumHealth,
+			missingHealthFraction );
+		appliedHealing = System.MathF.Max(
+			0.0f,
+			healedHealth - CurrentHealth );
+		CurrentHealth = healedHealth;
+		return appliedHealing > 0.0f;
 	}
 
 	internal bool RequestEnvironmentalDeath()

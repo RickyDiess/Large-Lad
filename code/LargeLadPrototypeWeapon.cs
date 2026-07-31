@@ -63,7 +63,8 @@ public sealed class LargeLadPrototypeWeapon : Component
 		if ( player is null || controller is null || inventory is null ||
 			definition is null || player.Role != LargeLadRole.SkinnyKid ||
 			!LargeLadWeaponCatalog.IsFirearm( inventory.EquippedWeapon ) ||
-			player.Health?.IsDead == true || inventory.IsReloading ||
+			player.Health?.IsDead == true || player.IsEatBusy ||
+			inventory.IsReloading ||
 			timeSinceLocalShot < definition.FireInterval )
 		{
 			return;
@@ -117,7 +118,8 @@ public sealed class LargeLadPrototypeWeapon : Component
 
 		if ( attacker?.Role != LargeLadRole.SkinnyKid || inventory is null ||
 			definition is null || !LargeLadWeaponCatalog.IsFirearm( inventory.EquippedWeapon ) ||
-			attacker.Health?.IsDead == true || round?.Phase != LargeLadRoundPhase.Playing )
+			attacker.Health?.IsDead == true || attacker.IsEatBusy ||
+			round?.Phase != LargeLadRoundPhase.Playing )
 		{
 			DebugFire( $"Shot {ownerShotSequence} rejected: firing state is not valid." );
 			return;
