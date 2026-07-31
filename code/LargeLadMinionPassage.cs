@@ -1,6 +1,5 @@
 using Sandbox;
 using System.Collections.Generic;
-using System.Linq;
 
 /// <summary>
 /// One round's focused cover-destruction edge. Reset rearms the event without
@@ -38,7 +37,6 @@ public sealed class LargeLadMinionPassage :
 	ILargeLadDamageable
 {
 	public const float DefaultCoverHealth = 50.0f;
-	public const float AutomaticExitClearance = 24.0f;
 
 	[Property, Group( "Opening" ), Title( "Opening Collider" )]
 	[Description(
@@ -81,6 +79,8 @@ public sealed class LargeLadMinionPassage :
 	public SoundEvent CoverBreakSound { get; set; }
 
 	[Property, Title( "Editor Gizmo Padding" )]
+	[Description(
+		"Extra world-space padding around the editor-only opening-gate gizmo." )]
 	public float GizmoPadding { get; set; } = 2.0f;
 
 	[Sync( SyncFlags.FromHost )]
@@ -107,8 +107,6 @@ public sealed class LargeLadMinionPassage :
 		CurrentCoverHealth > 0.0f;
 
 	private readonly LargeLadMinionPassageCoverGate destructionGate = new();
-	private readonly Dictionary<LargeLadPlayer, bool> safetyHolds = new();
-	private readonly HashSet<LargeLadPlayer> playersBeingEjected = new();
 	private bool hasCapturedAuthoredState;
 	private bool authoredOpeningColliderEnabled;
 	private bool authoredOpeningHasPassageTag;
@@ -151,70 +149,6 @@ public sealed class LargeLadMinionPassage :
 			RefreshPresentation();
 	}
 
-	protected override void OnDisabled()
-	{
-		ReleaseAllSafetyHolds();
-		base.OnDisabled();
-	}
-
-	protected override void OnDestroy()
-	{
-		ReleaseAllSafetyHolds();
-		base.OnDestroy();
-	}
-
-	protected override void OnFixedUpdate()
-	{
-		if ( !Networking.IsHost )
-			return;
-
-		playersBeingEjected.RemoveWhere(
-			player =>
-				player is null ||
-				!player.IsValid ||
-				!IsPlayerTouching( player ) );
-
-		foreach ( var player in safetyHolds.Keys.ToList() )
-		{
-			if ( player is null || !player.IsValid )
-			{
-				safetyHolds.Remove( player );
-				continue;
-			}
-
-			if ( !player.PassageSafetyHeld )
-			{
-				safetyHolds.Remove( player );
-				continue;
-			}
-
-			if ( player.Health?.IsDead == true )
-			{
-				ReleaseSafetyHold( player );
-				continue;
-			}
-
-			TryEjectPlayer( player, player.Role );
-		}
-
-		var manager = LargeLadGameManager.FindForScene( Scene );
-
-		foreach ( var player in
-			manager?.ActivePlayers ??
-			System.Array.Empty<LargeLadPlayer>() )
-		{
-			if ( player is null ||
-				LargeLadGameplayRules.CanTraverseMinionPassage(
-					player.Role ) ||
-				!IsPlayerEmbeddedInOpening( player ) )
-			{
-				continue;
-			}
-
-			TryEjectPlayer( player, player.Role );
-		}
-	}
-
 	protected override void OnUpdate()
 	{
 		if ( appliedCoverEnabled == EnableBreakableCover &&
@@ -231,28 +165,11 @@ public sealed class LargeLadMinionPassage :
 	{
 		ResolveReferences();
 
-		foreach ( var warning in GetValidationWarnings(
-			validateGeometry: false ) )
+		foreach ( var warning in GetValidationWarnings() )
 		{
 			Log.Warning(
 				$"{GameObject.Name}: invalid Minion passage: {warning}" );
 		}
-	}
-
-	internal void PreparePlayerRoleCollisionChange(
-		LargeLadPlayer player,
-		LargeLadRole oldRole,
-		LargeLadRole newRole )
-	{
-		if ( !Networking.IsHost ||
-			player is null ||
-			LargeLadGameplayRules.CanTraverseMinionPassage( newRole ) ||
-			!IsPlayerTouching( player ) )
-		{
-			return;
-		}
-
-		TryEjectPlayer( player, newRole );
 	}
 
 	public bool TryApplyDamage(
@@ -305,13 +222,6 @@ public sealed class LargeLadMinionPassage :
 		ResolveReferences();
 		CaptureAuthoredState();
 
-		// A reappearing cover must not be created around an occupant.
-		if ( EnableBreakableCover )
-		{
-			foreach ( var player in GetTouchingPlayers() )
-				TryEjectPlayer( player, player.Role );
-		}
-
 		destructionGate.ResetForRound();
 		coverGibsCreated = false;
 		CurrentCoverHealth = EnableBreakableCover
@@ -326,8 +236,7 @@ public sealed class LargeLadMinionPassage :
 		RefreshPresentation();
 	}
 
-	public IReadOnlyList<string> GetValidationWarnings(
-		bool validateGeometry )
+	public IReadOnlyList<string> GetValidationWarnings()
 	{
 		var warnings = new List<string>();
 
@@ -391,19 +300,10 @@ public sealed class LargeLadMinionPassage :
 		{
 			warnings.Add(
 				"the passage root must use Network Mode Object so cover state " +
-				"and safety holds replicate." );
+				"replicates." );
 		}
 
 		ValidateCollisionRules( warnings );
-
-		if ( validateGeometry &&
-			TryGetAutomaticExitPositions(
-				out var exitA,
-				out var exitB ) )
-		{
-			ValidateAutomaticExit( warnings, "Side A", exitA );
-			ValidateAutomaticExit( warnings, "Side B", exitB );
-		}
 
 		if ( !float.IsFinite( BaseCoverHealth ) ||
 			BaseCoverHealth <= 0.0f )
@@ -493,244 +393,16 @@ public sealed class LargeLadMinionPassage :
 				"project collision rules must keep Skinny Kids and lobby " +
 				"players solid against Minion passages." );
 		}
-	}
 
-	private void ValidateAutomaticExit(
-		List<string> warnings,
-		string label,
-		Vector3 exit )
-	{
-		if ( !IsExitClear( exit ) )
+		if ( collision.GetCollisionRule(
+			LargeLadGameplayRules.MinionPassageTag,
+			"solid" ) !=
+			Sandbox.Physics.CollisionRules.Result.Collide )
 		{
 			warnings.Add(
-				$"the automatic {label} exit does not have a clear 32-by-72 " +
-				"player capsule. Move the vent-opening object or clear nearby " +
-				"world geometry." );
+				"project collision rules must keep ordinary solid physics " +
+				"bodies against Minion passages." );
 		}
-	}
-
-	private bool TryEjectPlayer(
-		LargeLadPlayer player,
-		LargeLadRole targetRole )
-	{
-		if ( player is null ||
-			!player.IsValid ||
-			player.Health?.IsDead == true )
-		{
-			return false;
-		}
-
-		if ( playersBeingEjected.Contains( player ) &&
-			!safetyHolds.ContainsKey( player ) )
-		{
-			return true;
-		}
-
-		if ( TryGetAutomaticExitPositions(
-			out var exitA,
-			out var exitB ) )
-		{
-			var preferred =
-				LargeLadGameplayRules
-					.GetPreferredMinionPassageExitIndex(
-						player.GameObject.WorldPosition,
-						exitA,
-						exitB );
-			var exits = preferred == 0
-				? new[] { exitA, exitB }
-				: new[] { exitB, exitA };
-
-			foreach ( var exit in exits )
-			{
-				if ( !IsExitClear( exit ) )
-					continue;
-
-				if ( player.RelocateForPassage(
-					exit,
-					GameObject.WorldRotation ) )
-				{
-					playersBeingEjected.Add( player );
-					ReleaseSafetyHold( player );
-					return true;
-				}
-			}
-		}
-
-		var manager = LargeLadGameManager.FindForScene( Scene );
-
-		if ( manager?.TryAllocateSpawn(
-			LargeLadGameplayRules.GetSpawnGroupForRole( targetRole ),
-			player,
-			out var spawn ) == true &&
-			player.RelocateForPassage( spawn.Position, spawn.Rotation ) )
-		{
-			playersBeingEjected.Add( player );
-			ReleaseSafetyHold( player );
-			return true;
-		}
-
-		if ( !safetyHolds.ContainsKey( player ) )
-			safetyHolds.Add( player, player.MovementLocked );
-
-		player.SetPassageSafetyHold( true );
-		return false;
-	}
-
-	private bool IsPlayerTouching( LargeLadPlayer player )
-	{
-		if ( OpeningCollider is null ||
-			player is null ||
-			!player.IsValid )
-		{
-			return false;
-		}
-
-		var bounds = OpeningCollider.GetWorldBounds();
-		var position = player.GameObject.WorldPosition;
-		var radius = LargeLadGameplayRules.PlayerBodyRadius;
-		var bodyMins = new Vector3(
-			position.x - radius,
-			position.y - radius,
-			position.z );
-		var bodyMaxs = new Vector3(
-			position.x + radius,
-			position.y + radius,
-			position.z + LargeLadGameplayRules.PlayerBodyHeight );
-
-		return BoundsOverlap(
-			bounds.Mins,
-			bounds.Maxs,
-			bodyMins,
-			bodyMaxs );
-	}
-
-	private bool IsPlayerEmbeddedInOpening( LargeLadPlayer player )
-	{
-		if ( OpeningCollider is null ||
-			player is null ||
-			!player.IsValid )
-		{
-			return false;
-		}
-
-		var bounds = OpeningCollider.GetWorldBounds();
-		var position =
-			player.GameObject.WorldPosition +
-			Vector3.Up *
-				(LargeLadGameplayRules.PlayerBodyHeight * 0.5f);
-
-		return position.x >= bounds.Mins.x &&
-			position.x <= bounds.Maxs.x &&
-			position.y >= bounds.Mins.y &&
-			position.y <= bounds.Maxs.y &&
-			position.z >= bounds.Mins.z &&
-			position.z <= bounds.Maxs.z;
-	}
-
-	private IReadOnlyList<LargeLadPlayer> GetTouchingPlayers()
-	{
-		if ( OpeningCollider is null )
-			return System.Array.Empty<LargeLadPlayer>();
-
-		var manager = LargeLadGameManager.FindForScene( Scene );
-		var players =
-			manager?.ActivePlayers ??
-			Scene?.GetAllComponents<LargeLadPlayer>()?.ToList() ??
-			new List<LargeLadPlayer>();
-
-		return players
-			.Where( IsPlayerTouching )
-			.ToList();
-	}
-
-	private bool IsExitClear( Vector3 position )
-	{
-		if ( Scene is null )
-			return false;
-
-		var radius = LargeLadGameplayRules.PlayerBodyRadius;
-		var capsule = new Capsule(
-			position + Vector3.Up * radius,
-			position +
-				Vector3.Up *
-					(LargeLadGameplayRules.PlayerBodyHeight - radius),
-			radius - 0.5f );
-		var clearance = Scene.Trace
-			.Capsule( capsule )
-			.WithoutTags( LargeLadGameplayRules.PlayerBodyTag )
-			.Run();
-		return !clearance.Hit && !clearance.StartedSolid;
-	}
-
-	private bool TryGetAutomaticExitPositions(
-		out Vector3 exitA,
-		out Vector3 exitB )
-	{
-		exitA = default;
-		exitB = default;
-
-		if ( OpeningCollider is null || !OpeningCollider.IsValid )
-			return false;
-
-		var bounds = OpeningCollider.GetWorldBounds();
-		var forward = OpeningCollider.GameObject.WorldRotation.Forward;
-		forward = new Vector3( forward.x, forward.y, 0.0f );
-
-		if ( forward.LengthSquared <= 0.0001f )
-			return false;
-
-		forward = forward.Normal;
-		var halfExtents = (bounds.Maxs - bounds.Mins) * 0.5f;
-		var halfDepth =
-			System.MathF.Abs( forward.x ) * halfExtents.x +
-			System.MathF.Abs( forward.y ) * halfExtents.y;
-		var origin = (bounds.Mins + bounds.Maxs) * 0.5f;
-		origin.z = bounds.Mins.z;
-		var offset =
-			System.MathF.Max( 0.0f, halfDepth ) +
-			AutomaticExitClearance;
-
-		exitA = origin - forward * offset;
-		exitB = origin + forward * offset;
-		return true;
-	}
-
-	private static bool BoundsOverlap(
-		Vector3 leftMins,
-		Vector3 leftMaxs,
-		Vector3 rightMins,
-		Vector3 rightMaxs )
-	{
-		return leftMins.x <= rightMaxs.x &&
-			leftMaxs.x >= rightMins.x &&
-			leftMins.y <= rightMaxs.y &&
-			leftMaxs.y >= rightMins.y &&
-			leftMins.z <= rightMaxs.z &&
-			leftMaxs.z >= rightMins.z;
-	}
-
-	private void ReleaseSafetyHold( LargeLadPlayer player )
-	{
-		if ( player is null ||
-			!safetyHolds.Remove( player, out var previousMovementLock ) )
-		{
-			return;
-		}
-
-		if ( player.IsValid )
-		{
-			player.SetPassageSafetyHold(
-				false,
-				previousMovementLock );
-		}
-	}
-
-	private void ReleaseAllSafetyHolds()
-	{
-		foreach ( var player in safetyHolds.Keys.ToList() )
-			ReleaseSafetyHold( player );
-
-		playersBeingEjected.Clear();
 	}
 
 	private bool IsCoverTarget( GameObject target )
@@ -916,15 +588,6 @@ public sealed class LargeLadMinionPassage :
 			OpeningCollider,
 			new Color( 0.78f, 0.25f, 1.0f ),
 			padding );
-		DrawAutomaticSafetyGizmo();
-
-		if ( TryGetAutomaticExitPositions(
-			out var exitA,
-			out var exitB ) )
-		{
-			DrawExitGizmo( exitA, "Side A" );
-			DrawExitGizmo( exitB, "Side B" );
-		}
 	}
 
 	private static void DrawColliderGizmo(
@@ -950,51 +613,4 @@ public sealed class LargeLadMinionPassage :
 		Gizmo.Draw.IgnoreDepth = false;
 	}
 
-	private void DrawAutomaticSafetyGizmo()
-	{
-		if ( OpeningCollider is null )
-			return;
-
-		var bounds = OpeningCollider.GetWorldBounds();
-		var radius = LargeLadGameplayRules.PlayerBodyRadius;
-		var padded = new BBox(
-			bounds.Mins - new Vector3( radius, radius, 0.0f ),
-			bounds.Maxs + new Vector3( radius, radius, 0.0f ) );
-		Gizmo.Transform = global::Transform.Zero;
-		Gizmo.Draw.IgnoreDepth = true;
-		Gizmo.Draw.Color =
-			new Color( 0.15f, 0.85f, 0.95f, 0.08f );
-		Gizmo.Draw.SolidBox( padded );
-		Gizmo.Draw.Color =
-			new Color( 0.15f, 0.85f, 0.95f, 0.65f );
-		Gizmo.Draw.LineBBox( padded );
-		Gizmo.Draw.IgnoreDepth = false;
-	}
-
-	private void DrawExitGizmo( Vector3 exit, string label )
-	{
-		var radius = LargeLadGameplayRules.PlayerBodyRadius;
-		var clear = IsExitClear( exit );
-		var color = clear
-			? new Color( 0.2f, 1.0f, 0.35f )
-			: new Color( 1.0f, 0.2f, 0.12f );
-		var bottom = exit + Vector3.Up * radius;
-		var top = exit +
-			Vector3.Up *
-				(LargeLadGameplayRules.PlayerBodyHeight - radius);
-		Gizmo.Transform = global::Transform.Zero;
-		Gizmo.Draw.IgnoreDepth = true;
-		Gizmo.Draw.Color = color.WithAlpha( 0.18f );
-		Gizmo.Draw.SolidCapsule( bottom, top, radius, 8, 4 );
-		Gizmo.Draw.Color = color;
-		Gizmo.Draw.Text(
-			label,
-			new Transform(
-				exit +
-					Vector3.Up *
-						(LargeLadGameplayRules.PlayerBodyHeight + 12.0f) ),
-			"Inter",
-			13.0f );
-		Gizmo.Draw.IgnoreDepth = false;
-	}
 }

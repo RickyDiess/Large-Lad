@@ -289,7 +289,7 @@ public sealed class LargeLadGameManager : Component
 
 	/// <summary>
 	/// Enabled Minion passages already participating in round reset. Melee aim
-	/// assist and role-transition safety use this lifecycle index.
+	/// assist uses this lifecycle index.
 	/// </summary>
 	public IReadOnlyList<LargeLadMinionPassage> ActiveMinionPassages
 	{
@@ -656,8 +656,7 @@ public sealed class LargeLadGameManager : Component
 			Scene?.GetAllComponents<LargeLadMinionPassage>() ??
 			Enumerable.Empty<LargeLadMinionPassage>() )
 		{
-			foreach ( var warning in passage.GetValidationWarnings(
-				validateGeometry ) )
+			foreach ( var warning in passage.GetValidationWarnings() )
 			{
 				issues.Add(
 					$"Minion passage '{passage.GameObject.Name}': {warning}" );
@@ -1317,29 +1316,6 @@ public sealed class LargeLadGameManager : Component
 
 		if ( !isHydratingRegistrations )
 			EvaluateWinnerAfterLifecycleChange();
-	}
-
-	internal void PreparePlayerRoleCollisionChange(
-		LargeLadPlayer player,
-		LargeLadRole oldRole,
-		LargeLadRole newRole )
-	{
-		if ( !Networking.IsHost ||
-			player is null ||
-			!registeredPlayers.Contains( player ) )
-		{
-			return;
-		}
-
-		PruneInvalidRegistrations();
-
-		foreach ( var passage in activeMinionPassages.ToList() )
-		{
-			passage.PreparePlayerRoleCollisionChange(
-				player,
-				oldRole,
-				newRole );
-		}
 	}
 
 	internal void RegisterRoundResettable(

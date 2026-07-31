@@ -15,7 +15,8 @@ public enum LargeLadBarricadeMode
 /// </summary>
 [Description(
 	"Authoritative health, blocker, destruction, and round-reset controller. " +
-	"Direct child pieces are frozen automatically and broken into model gibs." )]
+	"Direct child pieces are frozen automatically; Prop pieces may create model " +
+	"gibs, while renderer-only pieces simply disappear when broken." )]
 public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 	ILargeLadDamageable
 {
@@ -230,51 +231,11 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 	{
 		var warnings = new List<string>();
 		var stages = Stages ?? new();
-		var thresholds = new List<float>( stages.Count );
-		var requestedChildBreaks = 0;
-
-		for ( var index = 0; index < stages.Count; index++ )
-		{
-			var stage = stages[index];
-			thresholds.Add(
-				stage?.RemainingHealthFraction ?? float.NaN );
-
-			if ( stage is null )
-				continue;
-
-			if ( stage.ChildObjectsToBreak < 0 )
-			{
-				warnings.Add(
-					$"Stage {index + 1} child-object count cannot be negative." );
-			}
-			else
-			{
-				requestedChildBreaks += stage.ChildObjectsToBreak;
-			}
-		}
-
-		warnings.AddRange(
-			LargeLadBarricadeStageRules.GetThresholdWarnings( thresholds ) );
-
 		var childRoots = GameObject.Children.ToList();
-
-		if ( requestedChildBreaks > childRoots.Count )
-		{
-			warnings.Add(
-				$"Stages request {requestedChildBreaks} child objects, but the " +
-				$"barricade only has {childRoots.Count} direct children." );
-		}
-
-		foreach ( var childRoot in childRoots )
-		{
-			if ( childRoot.Components.Get<Prop>(
-				FindMode.EverythingInSelfAndDescendants ) is null )
-			{
-				warnings.Add(
-					$"Child '{childRoot.Name}' has no Prop component, so it will " +
-					"disappear when broken but cannot produce model gibs." );
-			}
-		}
+		warnings.AddRange(
+			LargeLadBarricadeStageRules.GetConfigurationWarnings(
+				stages,
+				childRoots.Count ) );
 
 		if ( EnableStagedPassage &&
 			!LargeLadBarricadeStageRules.IsValidThreshold(

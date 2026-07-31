@@ -1364,14 +1364,57 @@ public sealed class BarricadeRulesTests
 	}
 
 	[TestMethod]
-	public void CompoundStages_RejectMissingAndDuplicateThresholds()
+	public void CompoundStages_InvalidConfigurationsStillFailValidation()
 	{
-		var warnings = LargeLadBarricadeStageRules.GetThresholdWarnings(
-			new[] { 0.75f, -1.0f, 0.75f } );
+		var warnings =
+			LargeLadBarricadeStageRules.GetConfigurationWarnings(
+				new[]
+				{
+					new LargeLadBarricadeStage
+					{
+						RemainingHealthFraction = 0.75f,
+						ChildObjectsToBreak = 2
+					},
+					new LargeLadBarricadeStage
+					{
+						RemainingHealthFraction = -1.0f,
+						ChildObjectsToBreak = -1
+					},
+					new LargeLadBarricadeStage
+					{
+						RemainingHealthFraction = 0.75f,
+						ChildObjectsToBreak = 1
+					}
+				},
+				directChildCount: 1 );
 		var combined = string.Join( "\n", warnings );
 
+		StringAssert.Contains( combined, "cannot be negative" );
 		StringAssert.Contains( combined, "Stage 2 is missing" );
 		StringAssert.Contains( combined, "Stage 3 duplicates stage 1" );
+		StringAssert.Contains( combined, "only has 1 direct children" );
+	}
+
+	[TestMethod]
+	public void CompoundStages_RendererOnlyChildPassesValidation()
+	{
+		var warnings =
+			LargeLadBarricadeStageRules.GetConfigurationWarnings(
+				new[]
+				{
+					new LargeLadBarricadeStage
+					{
+						RemainingHealthFraction = 0.5f,
+						ChildObjectsToBreak = 1
+					}
+				},
+				directChildCount: 1 );
+
+		Assert.AreEqual(
+			0,
+			warnings.Count,
+			"A direct child needs no Prop when it is allowed to disappear " +
+				"without model gibs." );
 	}
 
 	[TestMethod]
@@ -1988,7 +2031,7 @@ public sealed class MinionPassageRulesTests
 	[DataRow( LargeLadRole.SkinnyKid, false )]
 	[DataRow( LargeLadRole.LargeLad, false )]
 	[DataRow( LargeLadRole.Minion, true )]
-	public void Traversal_AllowsOnlyMinions(
+	public void OpenPassage_TraversalAllowsOnlyMinions(
 		LargeLadRole role,
 		bool expected )
 	{
@@ -2011,6 +2054,23 @@ public sealed class MinionPassageRulesTests
 		Assert.AreEqual(
 			expected,
 			LargeLadGameplayRules.GetSupplementaryRoleCollisionTag( role ) );
+	}
+
+	[DataTestMethod]
+	[DataRow( LargeLadGameplayRules.MinionBodyTag, true )]
+	[DataRow( LargeLadGameplayRules.HunterBodyTag, false )]
+	[DataRow( LargeLadGameplayRules.SoftPlayerBodyTag, false )]
+	[DataRow( "solid", false )]
+	[DataRow( "pickup", false )]
+	[DataRow( null, false )]
+	public void CollisionException_AppliesOnlyToMinionPlayerBodies(
+		string bodyTag,
+		bool expected )
+	{
+		Assert.AreEqual(
+			expected,
+			LargeLadGameplayRules.HasMinionPassageCollisionException(
+				bodyTag ) );
 	}
 
 	[TestMethod]
@@ -2048,12 +2108,16 @@ public sealed class MinionPassageRulesTests
 				coverEnabled,
 				coverDestroyed ) );
 
-		Assert.IsFalse(
-			LargeLadGameplayRules.CanTraverseMinionPassage(
-				LargeLadRole.SkinnyKid ) );
-		Assert.IsFalse(
-			LargeLadGameplayRules.CanTraverseMinionPassage(
-				LargeLadRole.LargeLad ) );
+		foreach ( var role in System.Enum.GetValues<LargeLadRole>() )
+		{
+			Assert.AreEqual(
+				expectedOpen && role == LargeLadRole.Minion,
+				LargeLadGameplayRules.CanTraverseMinionPassage(
+					role,
+					coverEnabled,
+					coverDestroyed ),
+				$"{role}: cover enabled={coverEnabled}, destroyed={coverDestroyed}" );
+		}
 	}
 
 	[DataTestMethod]
@@ -2090,61 +2154,34 @@ public sealed class MinionPassageRulesTests
 	}
 
 	[TestMethod]
-	public void ExitSelection_ChoosesNearestAndUsesExitAForTie()
-	{
-		var exitA = new Vector3( 0.0f, -100.0f, 0.0f );
-		var exitB = new Vector3( 0.0f, 100.0f, 0.0f );
-
-		Assert.AreEqual(
-			0,
-			LargeLadGameplayRules.GetPreferredMinionPassageExitIndex(
-				new Vector3( 0.0f, -1.0f, 0.0f ),
-				exitA,
-				exitB ) );
-		Assert.AreEqual(
-			1,
-			LargeLadGameplayRules.GetPreferredMinionPassageExitIndex(
-				new Vector3( 0.0f, 1.0f, 0.0f ),
-				exitA,
-				exitB ) );
-		Assert.AreEqual(
-			0,
-			LargeLadGameplayRules.GetPreferredMinionPassageExitIndex(
-				Vector3.Zero,
-				exitA,
-				exitB ) );
-	}
-
-	[TestMethod]
-	public void CoverDestructionGate_CommitsOnceAndRearmsOnReset()
+	public void CoverDestruction_CommitsOnceAndRoundResetRestoresCover()
 	{
 		var gate = new LargeLadMinionPassageCoverGate();
 
 		Assert.IsTrue( gate.TryCommitDestruction() );
 		Assert.IsFalse( gate.TryCommitDestruction() );
 		Assert.IsTrue( gate.HasCommittedDestruction );
+		Assert.IsTrue(
+			LargeLadGameplayRules.IsMinionPassageOpen(
+				coverEnabled: true,
+				coverDestroyed: true ) );
 
 		gate.ResetForRound();
 
 		Assert.IsFalse( gate.HasCommittedDestruction );
+		Assert.IsFalse(
+			LargeLadGameplayRules.IsMinionPassageOpen(
+				coverEnabled: true,
+				coverDestroyed: false ) );
 		Assert.IsTrue( gate.TryCommitDestruction() );
 	}
 
 	[TestMethod]
-	public void SharedPlayerGeometry_MatchesAuthoritativeController()
+	public void CoverHealth_DefaultIsStable()
 	{
-		Assert.AreEqual(
-			16.0f,
-			LargeLadGameplayRules.PlayerBodyRadius );
-		Assert.AreEqual(
-			72.0f,
-			LargeLadGameplayRules.PlayerBodyHeight );
 		Assert.AreEqual(
 			50.0f,
 			LargeLadMinionPassage.DefaultCoverHealth );
-		Assert.AreEqual(
-			24.0f,
-			LargeLadMinionPassage.AutomaticExitClearance );
 	}
 
 }

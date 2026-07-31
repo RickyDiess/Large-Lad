@@ -52,6 +52,48 @@ public sealed class LargeLadBarricadeDestructionGate
 /// </summary>
 public static class LargeLadBarricadeStageRules
 {
+	public static IReadOnlyList<string> GetConfigurationWarnings(
+		IReadOnlyList<LargeLadBarricadeStage> stages,
+		int directChildCount )
+	{
+		var warnings = new List<string>();
+		var stageCount = stages?.Count ?? 0;
+		var thresholds = new List<float>( stageCount );
+		var requestedChildBreaks = 0;
+
+		for ( var index = 0; index < stageCount; index++ )
+		{
+			var stage = stages[index];
+			thresholds.Add(
+				stage?.RemainingHealthFraction ?? float.NaN );
+
+			if ( stage is null )
+				continue;
+
+			if ( stage.ChildObjectsToBreak < 0 )
+			{
+				warnings.Add(
+					$"Stage {index + 1} child-object count cannot be negative." );
+			}
+			else
+			{
+				requestedChildBreaks += stage.ChildObjectsToBreak;
+			}
+		}
+
+		warnings.AddRange( GetThresholdWarnings( thresholds ) );
+		var availableChildren = System.Math.Max( 0, directChildCount );
+
+		if ( requestedChildBreaks > availableChildren )
+		{
+			warnings.Add(
+				$"Stages request {requestedChildBreaks} child objects, but the " +
+				$"barricade only has {availableChildren} direct children." );
+		}
+
+		return warnings;
+	}
+
 	public static bool IsValidThreshold( float threshold )
 	{
 		return float.IsFinite( threshold ) &&

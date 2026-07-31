@@ -82,6 +82,24 @@ public static class LargeLadGameplayRules
 		return role == LargeLadRole.Minion;
 	}
 
+	public static bool CanTraverseMinionPassage(
+		LargeLadRole role,
+		bool coverEnabled,
+		bool coverDestroyed )
+	{
+		return IsMinionPassageOpen( coverEnabled, coverDestroyed ) &&
+			CanTraverseMinionPassage( role );
+	}
+
+	/// <summary>
+	/// Mirrors the passage collision-matrix exception. Ordinary physics bodies
+	/// have no Minion body tag and therefore remain solid against the gate.
+	/// </summary>
+	public static bool HasMinionPassageCollisionException( string bodyTag )
+	{
+		return bodyTag == MinionBodyTag;
+	}
+
 	public static bool CanDamageMinionPassageCover(
 		LargeLadRole attackerRole,
 		LargeLadDamageType damageType )
@@ -95,21 +113,6 @@ public static class LargeLadGameplayRules
 		bool coverDestroyed )
 	{
 		return !coverEnabled || coverDestroyed;
-	}
-
-	/// <summary>
-	/// Returns zero for Exit A and one for Exit B. Exit A wins exact ties so
-	/// every peer and retry makes the same initial choice.
-	/// </summary>
-	public static int GetPreferredMinionPassageExitIndex(
-		Vector3 playerPosition,
-		Vector3 exitAPosition,
-		Vector3 exitBPosition )
-	{
-		return playerPosition.DistanceSquared( exitAPosition ) <=
-			playerPosition.DistanceSquared( exitBPosition )
-				? 0
-				: 1;
 	}
 
 	/// <summary>

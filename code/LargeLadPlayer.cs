@@ -59,10 +59,6 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 	[Sync( SyncFlags.FromHost ), Change( nameof( OnMovementLockedChanged ) )]
 	public bool MovementLocked { get; set; }
 
-	[Sync( SyncFlags.FromHost ),
-		Change( nameof( OnPassageSafetyHeldChanged ) )]
-	public bool PassageSafetyHeld { get; private set; }
-
 	[Property]
 	public SkinnedModelRenderer BodyRenderer { get; set; }
 
@@ -166,15 +162,6 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 
 	private void OnRoleChanged( LargeLadRole oldRole, LargeLadRole newRole )
 	{
-		// Passage safety runs before the live body tags change. A Minion that
-		// becomes a blocked role is therefore moved out while it still ignores
-		// the passage blocker instead of becoming solid inside it.
-		LargeLadSceneRegistry.PreparePlayerRoleCollisionChange(
-			registeredScene,
-			this,
-			oldRole,
-			newRole );
-
 		// The synchronized role is sufficient to update presentation on every
 		// observer and movement settings on whichever peer owns this player.
 		ApplyRoleProfile( newRole );
@@ -194,11 +181,6 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 	}
 
 	private void OnMovementLockedChanged( bool oldValue, bool newValue )
-	{
-		RefreshMovementState();
-	}
-
-	private void OnPassageSafetyHeldChanged( bool oldValue, bool newValue )
 	{
 		RefreshMovementState();
 	}
@@ -233,7 +215,6 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 		// visuals. Teleport settling keeps motion disabled after the final lock
 		// value is applied below.
 		MovementLocked = true;
-		PassageSafetyHeld = false;
 		PendingRespawnRole = LargeLadRole.Unassigned;
 		var roleChanged = Role != role;
 		Role = role;
@@ -448,19 +429,11 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 		if ( controller is null )
 			return;
 
-		if ( controller.ColliderObject is not null &&
-			controller.ColliderObject.IsValid &&
-			Health?.IsDead != true )
-		{
-			controller.ColliderObject.Enabled = !PassageSafetyHeld;
-		}
-
 		if ( IsProxy )
 			return;
 
 		var isLocked =
 			MovementLocked ||
-			PassageSafetyHeld ||
 			Health?.IsDead == true;
 		controller.UseInputControls = !isLocked;
 
@@ -475,39 +448,6 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 		}
 
 		controller.Body.MotionEnabled = true;
-	}
-
-	/// <summary>
-	/// Uses the established authoritative teleport/settle path without changing
-	/// role, inventory, health, or other spawn state.
-	/// </summary>
-	internal bool RelocateForPassage(
-		Vector3 worldPosition,
-		Rotation worldRotation )
-	{
-		if ( !Networking.IsHost ||
-			Health?.IsDead == true ||
-			!LargeLadAimResolver.IsFinite( worldPosition ) )
-		{
-			return false;
-		}
-
-		hasAuthoritativeTeleport = true;
-		timeSinceAuthoritativeTeleport = 0.0f;
-		ApplyRespawnTeleport( worldPosition, worldRotation );
-		return true;
-	}
-
-	internal void SetPassageSafetyHold(
-		bool held,
-		bool movementLockedAfterRelease = false )
-	{
-		if ( !Networking.IsHost )
-			return;
-
-		PassageSafetyHeld = held;
-		MovementLocked = held || movementLockedAfterRelease;
-		RefreshMovementState();
 	}
 
 	[Rpc.Owner( NetFlags.HostOnly )]

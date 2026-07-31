@@ -223,7 +223,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "b7ed4759-49a7-472f-8478-d7d7f001c30c"
+                      "$blob": "4f3afc87-e2b0-4844-8d1c-ef5e40ecab45"
                     },
                     "Materials": [
                       "materials/trimsheets/wood/wood_trim_02.vmat",
@@ -280,7 +280,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "1b2f298f-77d3-456f-a8b1-509e9eaa1132"
+                      "$blob": "c642eb2f-1512-433b-af13-f692ee8165fa"
                     },
                     "Materials": [
                       "materials/trimsheets/wood/wood_trim_02.vmat",
@@ -337,7 +337,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "6e7245a5-4369-4288-ad94-747d7e7c6c0c"
+                      "$blob": "0af0d2e8-13e6-4a36-a10f-e37e60dea284"
                     },
                     "Materials": [
                       "materials/wood/floor/wooden_flooring_b2.vmat"
@@ -393,7 +393,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "9246a097-8e2b-478c-b67c-aedd88dec998"
+                      "$blob": "d6a41d60-65b6-4adf-a510-ea06f9cbd5ba"
                     },
                     "Materials": [
                       "materials/generic/wall_brick_paint.vmat",
@@ -451,7 +451,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "5d2a8dc6-9b76-430a-a8b6-74b20b16e329"
+                      "$blob": "7c281213-6fe7-47c7-9367-4182e8232d3d"
                     },
                     "Materials": [
                       "materials/generic/wall_brick_paint.vmat",
@@ -696,7 +696,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "85fb9dea-565f-47b6-9181-3fbd3b12ed4e"
+                      "$blob": "7fc0d780-4a72-4344-a653-71d52095bc34"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat"
@@ -752,7 +752,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "3f996c25-5748-42b3-80a6-6f7789f1360d"
+                      "$blob": "05e00541-ec96-4629-98dc-b035e0fbdc57"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -809,7 +809,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "28603cdd-b5b2-4f75-aa4f-197f5fc07086"
+                      "$blob": "980a22c2-10d9-48ec-b1ae-67ecb4977628"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -866,7 +866,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "029cff71-8e84-4ce9-b55a-8fae33aa1fb8"
+                      "$blob": "8c23d5f0-8a47-4308-85cf-df22c568fd47"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -923,7 +923,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "694fa56e-eebf-45b6-b64b-f28b338615d7"
+                      "$blob": "e2d57d9f-7c7f-49c7-86e2-2af518078ada"
                     },
                     "Materials": [
                       "materials/dev/primary_white.vmat",
@@ -979,7 +979,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "43acba4b-b354-4877-bc4a-2ff7b3e647c7"
+                          "$blob": "8df10108-5fc1-4293-ac72-df3c81632274"
                         },
                         "Materials": [
                           "materials/dev/primary_red.vmat"
@@ -1035,7 +1035,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "3b70e6b6-431c-4f6f-a316-023d9ec6039a"
+                          "$blob": "22b124e5-b26b-44ae-a93d-b1d09b7288c7"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1091,7 +1091,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "f7777a2f-4ee2-41cb-802e-778e4213699f"
+                          "$blob": "2851f3a6-99eb-433e-b6e1-d9c1fa5886cd"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1147,7 +1147,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "601b94d4-8a29-42f1-a3bb-2d1e6f764463"
+                          "$blob": "f1e7d9b5-d82a-49f3-8781-a34841d2cefd"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1203,7 +1203,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "aad64c04-af31-4365-b7d8-7890e7526966"
+                          "$blob": "d5dd888c-acec-4ab3-8d55-822d5cab9898"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1259,7 +1259,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "7a2d1957-4b04-472e-bcb2-6af36db631b5"
+                          "$blob": "980fdd99-af57-4944-9c33-6f1e93e8287e"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1315,7 +1315,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "e8b5df7c-451e-4971-9556-3eeebe301811"
+                          "$blob": "ea15fd1d-196e-45c9-bdfe-0f447a5506f2"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1373,7 +1373,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "04a8195c-e649-4771-b2d6-33724f96764e"
+                      "$blob": "88d99093-c21b-418e-9916-10b0c60e0d06"
                     },
                     "Materials": [
                       "materials/dev/primary_white.vmat",
@@ -1429,7 +1429,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "f968d0e5-29f3-4ad2-a74e-f09f698f2529"
+                          "$blob": "4cc71fae-4bb7-42fb-b0b3-06ae4ef743ba"
                         },
                         "Materials": [
                           "materials/dev/primary_red.vmat"
@@ -1485,7 +1485,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "9dc22e68-8878-426a-9c16-077e41589e60"
+                          "$blob": "6b025f3f-86ab-4355-b5f4-678b706d2556"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1541,7 +1541,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "eb1f1272-9693-4c72-86bb-235ff47cb26e"
+                          "$blob": "7a4a8e72-c44b-40a9-a81f-9036b232870d"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1597,7 +1597,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "1a3ea56e-e38c-4456-b501-55fd4d76c5d2"
+                          "$blob": "4f5dd67d-413c-48a4-af84-249d2b8ee991"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1653,7 +1653,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "b6e9cd1e-ab08-4c5e-a8eb-9eb986fd6229"
+                          "$blob": "88a5537f-59ac-468f-8d63-85b17cdcdb6c"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1709,7 +1709,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "a57c9704-61e5-4b5d-ac59-032873fc1bc8"
+                          "$blob": "01358731-000c-4ebd-85ef-80706ab34a9e"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1765,7 +1765,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "0781f6c4-daa4-46c5-9cd6-51c43478ce33"
+                          "$blob": "cf3cc0ab-8311-4338-b44b-b7e83f4e5dea"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1823,7 +1823,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "ffed8693-e6ae-45ee-a0cc-470c487bdd20"
+                      "$blob": "d0725977-b3dd-47ed-b251-7fa67d96b240"
                     },
                     "Materials": [
                       "materials/generic/wall_brick_paint.vmat"
@@ -28959,7 +28959,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "26c85f76-1b1e-4de3-b5be-3cdecb9e2a8e"
+                          "$blob": "860454df-0c72-4db6-8c23-3367a8de8ec7"
                         },
                         "Materials": [
                           "materials/dev/gray_grid_4.vmat",
@@ -29107,7 +29107,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "7e0d532d-16ee-401e-bab0-b57812aeaaea"
+                          "$blob": "6d8ffc5a-437c-4f9c-954f-287754a8e812"
                         },
                         "Materials": [
                           "materials/dev/gray_grid_4.vmat",
@@ -29224,7 +29224,7 @@
                     "Property": "Mesh",
                     "Value": {
                       "Data": {
-                        "$blob": "b241a14f-2995-4dde-abc7-c2551bdb94e0"
+                        "$blob": "91876e44-91de-4c6c-bd9d-62031be80df1"
                       },
                       "Materials": [
                         "materials/trimsheets/metal/metal_trim_01.vmat",
@@ -29283,7 +29283,7 @@
                     "Property": "Mesh",
                     "Value": {
                       "Data": {
-                        "$blob": "99da9b2b-667f-4b5a-a765-c11c60938932"
+                        "$blob": "3aa37010-9d0a-46b5-b41e-7c66739051f1"
                       },
                       "Materials": [
                         "materials/trimsheets/metal/metal_trim_01.vmat",
@@ -29342,7 +29342,7 @@
                     "Property": "Mesh",
                     "Value": {
                       "Data": {
-                        "$blob": "04608346-3ed7-4907-9298-94bcd7b86239"
+                        "$blob": "0c08ea41-4ee2-4c9a-ac15-4578b73be6f6"
                       },
                       "Materials": [
                         "materials/trimsheets/metal/metal_trim_01.vmat",
@@ -29359,6 +29359,124 @@
                 "8a400001-0000-4000-8000-000000000003": "30380333-6077-41a6-9576-99856130386b",
                 "cd746e02-03bb-40f2-af6f-9150faf5ef28": "4bf74548-7686-4c88-9b1a-20ee279b2aef",
                 "f5515e8f-08a5-4f1c-a0f8-554664007b6f": "c708baef-cf9d-48b2-87bf-3bb77970172d"
+              }
+            },
+            {
+              "__guid": "94714f99-f8f3-4b10-a1ff-7c27642708c0",
+              "__version": 2,
+              "__Prefab": "prefabs/gameplay/minion_vent.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Name",
+                    "Value": "Minion Vent Opening"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Position",
+                    "Value": "568.187805,1409.86438,175.780487"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Rotation",
+                    "Value": "0,0,-0.707106769,0.707106769"
+                  },
+                  {
+                    "Target": {
+                      "Type": "Component",
+                      "IdValue": "f5515e8f-08a5-4f1c-a0f8-554664007b6f"
+                    },
+                    "Property": "Mesh",
+                    "Value": {
+                      "Data": {
+                        "$blob": "2171eb75-c913-4e84-81ac-4e2ecf7daf0a"
+                      },
+                      "Materials": [
+                        "materials/trimsheets/metal/metal_trim_01.vmat",
+                        "half life 2 rtx/materials/metal/m_metal_vent_012a/m_metalvent012a.vmat"
+                      ]
+                    }
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "8a400001-0000-4000-8000-000000000001": "94714f99-f8f3-4b10-a1ff-7c27642708c0",
+                "8a400001-0000-4000-8000-000000000002": "4e703802-4023-4e91-9633-082116d28aa5",
+                "8a400001-0000-4000-8000-000000000003": "c3c40237-397d-4229-8da7-798f664d2a3e",
+                "cd746e02-03bb-40f2-af6f-9150faf5ef28": "ff73c36b-abe9-4fbb-adc1-80a5e6aac2dc",
+                "f5515e8f-08a5-4f1c-a0f8-554664007b6f": "fec864b8-70eb-46d1-a3f9-b7d7f97ac457"
+              }
+            },
+            {
+              "__guid": "7ee54563-da55-40d1-a911-90c7c1a3d0f8",
+              "__version": 2,
+              "__Prefab": "prefabs/gameplay/minion_vent.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Name",
+                    "Value": "Minion Vent Opening"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Position",
+                    "Value": "280.187805,937.864441,-48.2195129"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Rotation",
+                    "Value": "0,0,0.707106769,0.707106769"
+                  },
+                  {
+                    "Target": {
+                      "Type": "Component",
+                      "IdValue": "f5515e8f-08a5-4f1c-a0f8-554664007b6f"
+                    },
+                    "Property": "Mesh",
+                    "Value": {
+                      "Data": {
+                        "$blob": "38d38af5-e0aa-48a2-89da-75aaafbdc360"
+                      },
+                      "Materials": [
+                        "materials/trimsheets/metal/metal_trim_01.vmat",
+                        "half life 2 rtx/materials/metal/m_metal_vent_012a/m_metalvent012a.vmat"
+                      ]
+                    }
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "8a400001-0000-4000-8000-000000000001": "7ee54563-da55-40d1-a911-90c7c1a3d0f8",
+                "8a400001-0000-4000-8000-000000000002": "b39b8b62-e8ae-4baa-93ba-005328d739aa",
+                "8a400001-0000-4000-8000-000000000003": "cbe71fbb-5f7e-48a0-96ae-74217a749ebe",
+                "cd746e02-03bb-40f2-af6f-9150faf5ef28": "26834fc7-3923-48cd-9f13-8fe19bbeef6c",
+                "f5515e8f-08a5-4f1c-a0f8-554664007b6f": "89c133c2-de0a-4e25-a915-f1a345e7247a"
               }
             }
           ]
@@ -29544,124 +29662,6 @@
         "71d9cc78-bf50-49ca-95cc-aa5a3f7a4900": "50ac082a-ce4e-4d9f-903b-70c6b2939745",
         "13a94fea-a2de-45da-beb8-61e564e6e245": "5b950835-13dd-41bd-9ca1-42619d2a0310",
         "6ba98835-269e-4ca8-95a4-06e9faf5db59": "9482c824-3f17-42fc-b774-9c38f188f92a"
-      }
-    },
-    {
-      "__guid": "94714f99-f8f3-4b10-a1ff-7c27642708c0",
-      "__version": 2,
-      "__Prefab": "prefabs/gameplay/minion_vent.prefab",
-      "__PrefabInstancePatch": {
-        "AddedObjects": [],
-        "RemovedObjects": [],
-        "PropertyOverrides": [
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "8a400001-0000-4000-8000-000000000001"
-            },
-            "Property": "Name",
-            "Value": "Minion Vent Opening"
-          },
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "8a400001-0000-4000-8000-000000000001"
-            },
-            "Property": "Position",
-            "Value": "1008,1408,272"
-          },
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "8a400001-0000-4000-8000-000000000001"
-            },
-            "Property": "Rotation",
-            "Value": "0,0,-0.707106769,0.707106769"
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "f5515e8f-08a5-4f1c-a0f8-554664007b6f"
-            },
-            "Property": "Mesh",
-            "Value": {
-              "Data": {
-                "$blob": "594134fc-9a91-4b70-bcea-d3bc9ff4053e"
-              },
-              "Materials": [
-                "materials/trimsheets/metal/metal_trim_01.vmat",
-                "half life 2 rtx/materials/metal/m_metal_vent_012a/m_metalvent012a.vmat"
-              ]
-            }
-          }
-        ],
-        "MovedObjects": []
-      },
-      "__PrefabIdToInstanceId": {
-        "8a400001-0000-4000-8000-000000000001": "94714f99-f8f3-4b10-a1ff-7c27642708c0",
-        "8a400001-0000-4000-8000-000000000002": "4e703802-4023-4e91-9633-082116d28aa5",
-        "8a400001-0000-4000-8000-000000000003": "c3c40237-397d-4229-8da7-798f664d2a3e",
-        "cd746e02-03bb-40f2-af6f-9150faf5ef28": "ff73c36b-abe9-4fbb-adc1-80a5e6aac2dc",
-        "f5515e8f-08a5-4f1c-a0f8-554664007b6f": "fec864b8-70eb-46d1-a3f9-b7d7f97ac457"
-      }
-    },
-    {
-      "__guid": "7ee54563-da55-40d1-a911-90c7c1a3d0f8",
-      "__version": 2,
-      "__Prefab": "prefabs/gameplay/minion_vent.prefab",
-      "__PrefabInstancePatch": {
-        "AddedObjects": [],
-        "RemovedObjects": [],
-        "PropertyOverrides": [
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "8a400001-0000-4000-8000-000000000001"
-            },
-            "Property": "Name",
-            "Value": "Minion Vent Opening"
-          },
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "8a400001-0000-4000-8000-000000000001"
-            },
-            "Property": "Position",
-            "Value": "720,936,48"
-          },
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "8a400001-0000-4000-8000-000000000001"
-            },
-            "Property": "Rotation",
-            "Value": "0,0,0.707106769,0.707106769"
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "f5515e8f-08a5-4f1c-a0f8-554664007b6f"
-            },
-            "Property": "Mesh",
-            "Value": {
-              "Data": {
-                "$blob": "79670a4b-bf89-4080-9ab7-78e07c93071d"
-              },
-              "Materials": [
-                "materials/trimsheets/metal/metal_trim_01.vmat",
-                "half life 2 rtx/materials/metal/m_metal_vent_012a/m_metalvent012a.vmat"
-              ]
-            }
-          }
-        ],
-        "MovedObjects": []
-      },
-      "__PrefabIdToInstanceId": {
-        "8a400001-0000-4000-8000-000000000001": "7ee54563-da55-40d1-a911-90c7c1a3d0f8",
-        "8a400001-0000-4000-8000-000000000002": "b39b8b62-e8ae-4baa-93ba-005328d739aa",
-        "8a400001-0000-4000-8000-000000000003": "cbe71fbb-5f7e-48a0-96ae-74217a749ebe",
-        "cd746e02-03bb-40f2-af6f-9150faf5ef28": "26834fc7-3923-48cd-9f13-8fe19bbeef6c",
-        "f5515e8f-08a5-4f1c-a0f8-554664007b6f": "89c133c2-de0a-4e25-a915-f1a345e7247a"
       }
     }
   ],

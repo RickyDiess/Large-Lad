@@ -111,17 +111,19 @@ points.
 
 ## Minion passages
 
-Place `Large Lad/Passages/Minion Vent Opening` across each entrance or exit that
-should be Minion-only. It is a shallow doorway gate, not a second collision shell
-through the vent. The prefab has exactly two mapper-facing objects:
+Place `Large Lad/Passages/Minion Vent Opening` across every usable entrance or
+exit to a Minion-only route. It is a shallow doorway gate, not a second collision
+shell through the vent. The prefab has exactly two mapper-facing objects:
 
-- `Minion Vent Opening`: the networked root, component, and one 4-by-48-by-88
+- `Minion Vent Opening`: the networked root, component, and one 8-by-64-by-80
   solid collider.
 - `Destroyable Vent Cover`: one visual child that can be replaced with the
   finished cover model.
 
 Duplicate and rotate this prefab for additional openings. The tunnel geometry
-itself needs no special collision layer.
+itself needs no special collision shell or layer. Loose items cannot enter the
+route because dropped weapons, dodgeballs, generic props, and other ordinary
+physics bodies remain solid against each opening gate.
 
 The one opening collider handles both gameplay states. With `Enable Breakable
 Cover` off, it carries `large_lad_minion_passage`: Minions ignore it while
@@ -134,23 +136,18 @@ and cover geometry. The shared Hunter tag is retained, so player-vs-player
 collision is unchanged.
 
 `Intact Cover Root` points at the `Destroyable Vent Cover` child. Replace its
-model without adding another solid collider. The optional `Cover Prop` supplies model gibs,
-`Broken Cover Visual` supplies a retained destroyed state, and the hit/break
-`SoundEvent` properties are the audio hooks. Skinny Kid firearms and non-Minion
-melee never damage this focused cover. Authoritative health, destruction, gate
-state, and presentation reset for the next round.
-
-The component calculates its safety bounds and both clearance positions from the
-root collider. Its thin axis is local Forward. If a role change would embed a
-player, the host moves them to the nearest clear side, then the opposite side
-and their team spawn. If every destination is blocked, movement and body
-collision are suppressed until relocation succeeds.
+model without adding any collider to the visual cover hierarchy. The optional
+`Cover Prop` supplies model gibs, `Broken Cover Visual` supplies a retained
+destroyed state, and the hit/break `SoundEvent` properties are the audio hooks.
+Skinny Kid firearms and non-Minion melee never damage this focused cover.
+Authoritative health, destruction, gate state, and presentation reset for the
+next round.
 
 Resize the root collider and cover child together. Keep the networked root at
 scale `(1, 1, 1)` instead of non-uniformly scaling it. The editor gizmo shows
-the derived safety area and both 32-by-72 exit capsules. Map validation reports
-a missing or misplaced root collider, incorrect tags or project rules,
-obstructed automatic exits, a non-networked root, or an invalid cover child.
+the opening gate bounds. Map validation reports a missing or misplaced root
+collider, incorrect tags or project rules, a non-networked root, or an invalid
+cover child.
 
 ## Barricades
 
@@ -198,9 +195,9 @@ For an optional compound barricade:
 2. Put each breakable piece in its own direct child GameObject. Their hierarchy
    order is their break order. Nested objects are part of their nearest direct
    child piece.
-3. Give each gib-producing child a `Prop` component and a model with authored
-   gibs. A renderer-only child is still removed at its break point, but cannot
-   generate model gibs.
+3. Give a child a `Prop` component only when that piece should use a model with
+   authored gibs. A renderer-only child is equally valid: it disappears at its
+   break point and produces no model gibs.
 4. Add cumulative Compound Stages and give each one a unique Remaining Health
    Fraction strictly between 0 and 1. Fractions are used so round health scaling
    does not move the visual break points.
@@ -215,8 +212,8 @@ fully networked physics crate. The authoritative blocker remains solid through
 all ordinary stages and is disabled at zero health. Opening passage before zero
 requires the separate Enable Early Passage option plus its own valid Remaining
 Health Fraction; leaving that option off cannot open passage accidentally.
-Missing or duplicate stage thresholds, negative child counts, excessive stage
-counts, and gib-producing children without a `Prop` are map-validation errors.
+Missing or duplicate stage thresholds, negative child counts, and stage counts
+that exceed the available direct children are map-validation errors.
 
 Round reset restores the authored health, blocker state, child enabled states,
 local transforms, static/anchored/physics-motion state, and active-stage count.
