@@ -646,6 +646,7 @@ public sealed class LargeLadEatAttack : Component
 			attacker.Health.CurrentHealth > 0.0f &&
 			!attacker.MovementLocked &&
 			!attacker.IsEatBusy &&
+			!attacker.IsGroundSlamBusy &&
 			!eatState.IsActive &&
 			GetGameManager()?.Phase == LargeLadRoundPhase.Playing;
 	}

@@ -248,6 +248,53 @@ first-person mode every active role receives overlay-rendered melee arms
 bone-merged to the Citizen body. The optional Skinny Kid melee model remains
 presentation-only; Large Lad and Minions attack unarmed.
 
+## Large Lad Ground Slam
+
+The Large Lad uses Secondary Attack (right mouse or left trigger) for Ground
+Slam. The player prefab owns the configurable cooldown, brief windup, radial
+range, Skinny Kid stagger duration, and separate horizontal/upward impulses for
+Skinny Kids and Minions. The host completes the windup and decides every hit.
+Walls, floors, and blocking geometry stop the radial visibility trace, so a
+player or prop on the other side of geometry is not affected.
+
+Ground Slam deals no damage. A visible living Skinny Kid in range receives the
+configured physics impulse and briefly loses movement input without losing the
+impulse's velocity. A visible living Minion can receive the separately tuned
+friendly impulse, but never takes friendly damage or stagger. Replicated
+windup, impact, camera/audio-feedback, cooldown-started, and cooldown-ready
+presentation events are available on `LargeLadGroundSlam`; those events cannot
+add targets or apply gameplay effects.
+
+Ordinary physics bodies never react. To opt in, add
+`LargeLadGroundSlamReactiveProp` directly to a collidable model or `Prop` and
+choose one behavior. The component automatically makes its GameObject a
+network object before play. A plain collidable model also receives an automatic
+Rigidbody for `Move` or `Unanchor`; `Prop` keeps using its own generated physics.
+`Start Frozen` is enabled by default, holding that physics body at its authored
+transform until its first slam. Disable it for an already-live physics object
+such as the future dodgeball.
+
+- `Move` applies the bounded configured horizontal/upward impulse to an already
+  dynamic Rigidbody. This is the intended future dodgeball configuration and
+  never destroys it.
+- `Unanchor` changes the mapped prop to dynamic, then applies the bounded
+  impulse.
+- `Break` creates Prop gibs when available and disables the mapped presentation
+  and collision until reset. It is not a damage event.
+
+The optional `Reactive Root` may point to a child containing the visuals and
+physics while the networked mapper component remains active on its parent.
+Critical gameplay objects, pickups, spawns, kill volumes, Eat smashables,
+barricades, and Minion-passage blockers are rejected even if someone adds the
+component. Round reset restores the authored local transform, object/component
+enabled state, static/anchored state, Rigidbody state, and broken state.
+
+Out-of-bounds cleanup is opt-in. It disables a lost prop until round reset when
+the prop falls below the configured world Z or exceeds the configured distance
+from its authored position. This cleanup does not clear vents or protected
+passages; the protected-passage clearance system remains responsible for an
+object entering those routes.
+
 Pickup policy is configured on each `LargeLadWeaponPickup` placement, not in the
 weapon catalog. This lets the same pistol or SMG be a core pickup on one route
 and an exclusive physical instance elsewhere.
@@ -294,6 +341,10 @@ the Large Lad respawn timer.
   order. Root rendering is optional.
 - Every weapon pickup has a deliberate per-instance policy, visible model, and
   trigger collider; exclusive pickups use Network Mode `Object`.
+- Every Ground Slam-reactive prop is an intentional component opt-in with a
+  valid Move/Unanchor/Break behavior and no critical gameplay or
+  authoritative-blocker component in its hierarchy. Its Network Mode `Object`
+  setting is automatic.
 - Every kill volume has a trigger collider.
 - The scene reports no `Map contract:` warnings.
 - Host and remote clients complete a round, intermission, reset, late join,

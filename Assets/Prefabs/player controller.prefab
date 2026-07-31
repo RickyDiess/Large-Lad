@@ -235,6 +235,12 @@
           "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
           "component_type": "LargeLadEatAttack"
         },
+        "GroundSlam": {
+          "_type": "component",
+          "component_id": "662fb9de-7a22-4cb4-b981-43d2dbbc8f40",
+          "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
+          "component_type": "LargeLadGroundSlam"
+        },
         "Health": {
           "_type": "component",
           "component_id": "8ff41dc2-a36e-4bbf-9526-bff01566ba8d",
@@ -395,6 +401,32 @@
         "SearchRadius": 50,
         "VictimAnimationParameter": "b_flinch",
         "VictimMovementMultiplier": 0.05
+      },
+      {
+        "__type": "LargeLadGroundSlam",
+        "__guid": "662fb9de-7a22-4cb4-b981-43d2dbbc8f40",
+        "__enabled": true,
+        "Cooldown": 5,
+        "EnableDebugLogging": true,
+        "FeedbackRadius": 700,
+        "FeedbackStrength": 1,
+        "Flags": 0,
+        "ImpactAnimationParameter": "b_attack",
+        "MinionHorizontalImpulse": 50000,
+        "MinionUpwardImpulse": 75000,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "Radius": 180,
+        "SkinnyKidHorizontalImpulse": 70000,
+        "SkinnyKidStaggerDuration": 0.65,
+        "SkinnyKidUpwardImpulse": 125000,
+        "TraceHeight": 36,
+        "Windup": 0.45,
+        "WindupAnimationParameter": "b_attack"
       },
       {
         "__type": "LargeLadHud",

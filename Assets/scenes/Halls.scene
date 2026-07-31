@@ -259,7 +259,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "8444efdb-4457-478d-a71a-700beef493f3"
+                      "$blob": "f2fd272c-4592-495f-953b-bac71bec3233"
                     },
                     "Materials": [
                       "materials/generic/floor_asphalt_b.vmat",
@@ -317,7 +317,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "3f950c7e-7567-402a-acab-e5740282d311"
+                      "$blob": "646633b0-bd95-45da-97cd-487af2bf9d62"
                     },
                     "Materials": [
                       "materials/stone/tile/stone_brick_tile.vmat",
@@ -375,7 +375,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "b358903d-dff1-4d78-98de-214c880d65be"
+                      "$blob": "d02deb06-93c1-45e1-8f08-7db4b4cd1b22"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -435,7 +435,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "5b4672ff-f78a-4dfe-83d5-ec6b676e39d7"
+                      "$blob": "7dc28ff5-0b0d-4e16-a380-1e351f49388f"
                     },
                     "Materials": [
                       "materials/wood/floor/wooden_flooring_b2.vmat",
@@ -492,7 +492,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "0cce7dff-69a9-42fb-96f9-82f930be0136"
+                      "$blob": "833e1fe4-eef4-4022-92fa-72669d15e34c"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -549,7 +549,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "ff52ae7e-2c1b-434e-87ca-f1edc47a75cb"
+                      "$blob": "bf6e35a3-610d-4d29-b56f-6ca77234cebf"
                     },
                     "Materials": [
                       "materials/wood/floor/wooden_flooring_b2.vmat"
@@ -605,7 +605,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "05c136a9-a380-4a9e-b09c-27f17f284162"
+                      "$blob": "b88a2389-e279-4595-986b-008f90897166"
                     },
                     "Materials": [
                       "materials/wood/floor/wooden_flooring_b2.vmat"
@@ -661,7 +661,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "f20912ef-5bd4-4313-928f-7b25134a1098"
+                      "$blob": "79dd88ab-b4e0-40ac-bf4d-b9cb56838fd0"
                     },
                     "Materials": [
                       "materials/wood/floor/wooden_flooring_b2.vmat",
@@ -718,7 +718,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "b507fb67-1132-4d99-865b-0d2f361ece99"
+                      "$blob": "4e5c9647-da77-4159-8da6-b19e7152e1c4"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -775,7 +775,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "2688a39c-ce7f-4d9a-9b40-0fae19da1ffe"
+                      "$blob": "1d7ce446-847f-4e57-99c5-d43228b79866"
                     },
                     "Materials": [
                       "materials/wood/floor/wooden_flooring_b2.vmat"
@@ -831,7 +831,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "05616e9a-1800-4f6a-893b-106e97708abe"
+                      "$blob": "e129fe16-badd-413b-a649-241080b330bd"
                     },
                     "Materials": [
                       "materials/wood/floor/wooden_flooring_b2.vmat"
@@ -887,7 +887,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "023c655a-2bd0-4d5f-b275-343caa33f3b6"
+                      "$blob": "2da4e88d-af4d-43d8-8e8d-be8b5abcdb67"
                     },
                     "Materials": [
                       "materials/glass/glass_a.vmat"
@@ -943,7 +943,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "e92a5aab-ae22-4551-b900-6860a9ed4b65"
+                      "$blob": "b544b5e2-fede-4613-aeed-b01001ca56eb"
                     },
                     "Materials": [
                       "materials/glass/glass_a.vmat"
@@ -999,7 +999,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "43c7be38-426c-4811-bc81-de5b6d30879b"
+                      "$blob": "957c106e-e0f0-4d45-8c21-5c1fc3870c18"
                     },
                     "Materials": [
                       "materials/subzero-studios/road/road007.vmat",
@@ -1056,7 +1056,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "3d44df02-264b-4b15-a10c-98b5d4495753"
+                      "$blob": "34ad6e14-88d1-4ba7-a5c4-a9779768f6fa"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat"
@@ -1112,7 +1112,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "3ce83e9d-dfc9-49d8-83e0-6391e3548eaf"
+                      "$blob": "c5bd4b63-7347-49b0-bc5a-077d4f407c98"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat"
@@ -1168,7 +1168,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "7c243569-cfe6-41ce-bf6b-be4e09ae0009"
+                      "$blob": "4d3a3fef-1a6d-43fd-ad8a-4bfd71d599d3"
                     },
                     "Materials": [
                       "materials/subzero-studios/planks/planks006.vmat"
@@ -1224,7 +1224,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "5ab820c8-b8b2-466c-89c4-9eb16ee544f3"
+                      "$blob": "a73be647-8649-4c3f-aec9-26c99529b2fa"
                     },
                     "Materials": [
                       "materials/subzero-studios/planks/planks006.vmat"
@@ -1280,7 +1280,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "ca0af130-d20c-4136-a211-9b143e2d1cd6"
+                      "$blob": "a8bec26e-8bc1-46f5-8a8a-e98837e3f453"
                     },
                     "Materials": [
                       "materials/subzero-studios/planks/planks006.vmat"
@@ -1336,7 +1336,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "f913e240-e826-46b5-a0ec-c73ff57aa117"
+                      "$blob": "b33572de-d367-4c06-9c8d-5baf6b1cb6c3"
                     },
                     "Materials": [
                       "materials/subzero-studios/planks/planks006.vmat"
@@ -1392,7 +1392,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "0ef0548a-0630-44e8-8be3-0646b9b80f38"
+                      "$blob": "71c51b3c-ee3a-49a6-a876-2efc7cd38044"
                     },
                     "Materials": [
                       "materials/glass/glass_a.vmat"
@@ -1448,7 +1448,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "0c6ed135-8a7e-454b-b06c-2cfe73026c3c"
+                      "$blob": "349e2ae8-e7e6-4237-b376-ce802cc57494"
                     },
                     "Materials": [
                       "materials/glass/glass_a.vmat"
@@ -1504,7 +1504,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "c8db2103-fb18-4396-b3fd-692bc5656c17"
+                      "$blob": "797ecc32-d821-4f05-b6d5-60098b56c19a"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -1561,7 +1561,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "eaa9c37d-2c6d-426e-b460-2a712b37090c"
+                      "$blob": "56375483-e124-4d58-bd9e-f574fc67d7d0"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -2372,6 +2372,155 @@
           },
           "RenderType": "On",
           "Tint": "1,1,1,1"
+        }
+      ],
+      "Children": []
+    },
+    {
+      "__guid": "6c124d30-cea1-4ff4-a314-9ad98eb96fac",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "crate01",
+      "Position": "463.869537,104.380898,0.230043411",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "",
+      "Enabled": true,
+      "NetworkMode": 1,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.Prop",
+          "__guid": "3b3b27ec-e805-4d1f-be11-360ef5e2fb00",
+          "__enabled": true,
+          "Flags": 0,
+          "BodyGroups": 18446744073709551615,
+          "Health": 30,
+          "IsStatic": false,
+          "MaterialGroup": null,
+          "Model": "models/citizen_props/crate01.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnGibsCreated": null,
+          "OnPropBreak": null,
+          "OnPropTakeDamage": null,
+          "StartAsleep": false,
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "LargeLadGroundSlamReactiveProp",
+          "__guid": "4e0d3115-6b5a-4cc0-8006-774ab2c696fd",
+          "__enabled": true,
+          "Flags": 0,
+          "Behavior": "Unanchor",
+          "EnableDebugLogging": true,
+          "EnableOutOfBoundsCleanup": false,
+          "HorizontalImpulse": 125000,
+          "MaximumDistanceFromStart": 4096,
+          "MinimumWorldZ": -4096,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "ReactiveRoot": null,
+          "StartFrozen": true,
+          "UpwardImpulse": 150000
+        },
+        {
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "4e07cf0f-a138-4c02-9a8f-ddace9d66b51",
+          "__enabled": true,
+          "Flags": 0,
+          "BodyGroups": 18446744073709551615,
+          "CreateAttachments": false,
+          "LodOverride": null,
+          "MaterialGroup": null,
+          "MaterialOverride": null,
+          "Materials": null,
+          "Model": "models/citizen_props/crate01.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.ModelCollider",
+          "__guid": "87549083-e253-4d06-b014-66e64a0d1959",
+          "__enabled": true,
+          "Flags": 0,
+          "ColliderFlags": 0,
+          "Elasticity": null,
+          "Friction": null,
+          "IsTrigger": false,
+          "Model": "models/citizen_props/crate01.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "RollingResistance": null,
+          "Static": false,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
+        },
+        {
+          "__type": "Sandbox.Rigidbody",
+          "__guid": "3c63c0aa-dedb-4768-8f39-b82072c4d34a",
+          "__enabled": true,
+          "Flags": 0,
+          "AngularDamping": 0,
+          "EnableImpactDamage": true,
+          "EnhancedCcd": false,
+          "Gravity": true,
+          "GravityScale": 1,
+          "ImpactDamage": 10,
+          "LinearDamping": 0,
+          "Locking": {
+            "X": false,
+            "Y": false,
+            "Z": false,
+            "Pitch": false,
+            "Yaw": false,
+            "Roll": false
+          },
+          "MassCenterOverride": "0,0,0",
+          "MassOverride": 0,
+          "MinImpactDamageSpeed": 750,
+          "MotionEnabled": true,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OverrideMassCenter": false,
+          "RigidbodyFlags": 0,
+          "SleepThreshold": 2,
+          "StartAsleep": true
         }
       ],
       "Children": []

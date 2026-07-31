@@ -128,6 +128,49 @@ and network ownership:
    while overlapping Large Lad or another Minion, and confirm collision
    filtering never disables Rigidbody motion.
 
+## Ground Slam multiplayer checklist
+
+Use a host, the Large Lad owner, a remote Skinny Kid, and a remote Minion.
+The player prefab currently enables focused Ground Slam diagnostics. One
+successful remote hit should log an accepted host sequence, a completed impact
+with one affected player, the target owner's received velocity delta, and the
+Skinny Kid stagger state changing on and off.
+
+1. Press Secondary Attack and confirm the accepted windup, impact,
+   camera/audio-feedback, cooldown-started, and cooldown-ready presentation
+   hooks occur on host and remote peers. Spam and replay requests during the
+   configured cooldown and confirm the host accepts no early impact.
+2. Put a living Skinny Kid inside the radius with clear line of sight. Confirm
+   the impact applies the upward/radial impulse, briefly suppresses movement
+   input without clearing velocity, deals no damage, and restores movement at
+   the configured stagger deadline.
+3. Repeat with the Skinny Kid beyond range, dead, behind a wall, across a floor
+   on another level, and behind blocking map geometry. Confirm no impulse or
+   stagger occurs. Confirm changing the configured radius changes the accepted
+   boundary.
+4. Put a Minion in visible range. Confirm the separately configured friendly
+   impulse can move the Minion, but health never changes and movement is not
+   staggered.
+5. Place one ordinary Rigidbody and three otherwise identical collidable models
+   or Props. Attach only `LargeLadGroundSlamReactiveProp`, select Move,
+   Unanchor, and Break, then save and reopen the scene. Confirm each mapped root
+   was automatically set to Network Mode Object on the host and remote client.
+   With Start Frozen enabled, confirm the mapped props remain at their authored
+   transforms until hit. Confirm the ordinary body does nothing, Move releases
+   and remains intact, Unanchor becomes dynamic, and Break disables only its
+   mapped prop state. Put each behind geometry and confirm it does not react.
+6. Configure a dodgeball stand-in as Move. Confirm repeated slams move but never
+   destroy it. Attempt to add the mapper to a pickup, spawn, barricade, Eat
+   smashable, kill volume, or Minion-passage gate and confirm map validation
+   rejects it and runtime slam leaves it unchanged.
+7. End the round after moving, unanchoring, breaking, and cleaning up props.
+   Confirm reset restores authored transform, enabled state, anchored/static
+   state, Rigidbody state, and break state on all peers.
+8. Enable out-of-bounds cleanup and move a mapped prop below Minimum World Z and
+   beyond Maximum Distance From Start. Confirm it stays cleaned up until reset.
+   Push one toward a Minion vent and confirm this generic cleanup does not claim
+   vent clearance; protected-passage clearance remains responsible there.
+
 ## Minion passage multiplayer checklist
 
 Start a fresh session after changing `ProjectSettings/Collision.config`, because

@@ -228,6 +228,8 @@ public sealed class LargeLadGameManager : Component
 	private readonly List<LargeLadBarricade> activeBarricades = new();
 	private readonly List<LargeLadEatSmashable> activeEatSmashables = new();
 	private readonly List<LargeLadMinionPassage> activeMinionPassages = new();
+	private readonly List<LargeLadGroundSlamReactiveProp>
+		activeGroundSlamReactiveProps = new();
 	private readonly List<string> validatedBlockingBootstrapIssues = new();
 	private readonly HashSet<LargeLadPlayer> lobbyPlacedPlayers = new();
 	private readonly HashSet<(
@@ -319,6 +321,20 @@ public sealed class LargeLadGameManager : Component
 		{
 			PruneInvalidRegistrations();
 			return activeMinionPassages;
+		}
+	}
+
+	/// <summary>
+	/// Explicit mapper opt-ins eligible for Ground Slam. Generic rigidbodies,
+	/// pickups, blockers, and other gameplay objects never enter this index.
+	/// </summary>
+	public IReadOnlyList<LargeLadGroundSlamReactiveProp>
+		ActiveGroundSlamReactiveProps
+	{
+		get
+		{
+			PruneInvalidRegistrations();
+			return activeGroundSlamReactiveProps;
 		}
 	}
 
@@ -682,6 +698,17 @@ public sealed class LargeLadGameManager : Component
 			{
 				issues.Add(
 					$"Minion passage '{passage.GameObject.Name}': {warning}" );
+			}
+		}
+
+		foreach ( var reactiveProp in
+			Scene?.GetAllComponents<LargeLadGroundSlamReactiveProp>() ??
+			Enumerable.Empty<LargeLadGroundSlamReactiveProp>() )
+		{
+			foreach ( var warning in reactiveProp.GetValidationWarnings() )
+			{
+				issues.Add(
+					$"Ground Slam prop '{reactiveProp.GameObject.Name}': {warning}" );
 			}
 		}
 
@@ -1368,6 +1395,9 @@ public sealed class LargeLadGameManager : Component
 
 		if ( resettable is LargeLadMinionPassage passage )
 			activeMinionPassages.Add( passage );
+
+		if ( resettable is LargeLadGroundSlamReactiveProp reactiveProp )
+			activeGroundSlamReactiveProps.Add( reactiveProp );
 	}
 
 	internal void UnregisterRoundResettable(
@@ -1389,6 +1419,9 @@ public sealed class LargeLadGameManager : Component
 
 		if ( resettable is LargeLadMinionPassage passage )
 			activeMinionPassages.Remove( passage );
+
+		if ( resettable is LargeLadGroundSlamReactiveProp reactiveProp )
+			activeGroundSlamReactiveProps.Remove( reactiveProp );
 	}
 
 	internal void AcquireSceneGameplayOwnership(
@@ -1470,6 +1503,7 @@ public sealed class LargeLadGameManager : Component
 		activeBarricades.Clear();
 		activeEatSmashables.Clear();
 		activeMinionPassages.Clear();
+		activeGroundSlamReactiveProps.Clear();
 		lobbyPlacedPlayers.Clear();
 		reportedSpawnAllocationFailures.Clear();
 	}

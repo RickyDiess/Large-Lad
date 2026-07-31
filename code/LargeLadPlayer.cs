@@ -28,6 +28,7 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 	private bool hasAuthoritativeTeleport;
 	private Vector3 pendingSoftSeparationDisplacement;
 	private LargeLadEatAttack eatClaimOwner;
+	private float groundSlamStaggerEndsAt;
 
 	[Property, RequireComponent]
 	public LargeLadHealth Health { get; set; }
@@ -46,6 +47,9 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 
 	[Property, RequireComponent]
 	public LargeLadEatAttack EatAttack { get; set; }
+
+	[Property, RequireComponent]
+	public LargeLadGroundSlam GroundSlam { get; set; }
 
 	[Property]
 	public LargeLadRoleProfiles RoleProfiles { get; set; }
@@ -79,6 +83,13 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 	public bool IsEatBusy =>
 		EatParticipation != LargeLadEatParticipation.None;
 
+	public bool IsGroundSlamBusy => GroundSlam?.IsWindingUp == true;
+
+	[Property, Hide]
+	[Sync( SyncFlags.FromHost ),
+		Change( nameof( OnGroundSlamStaggeredChanged ) )]
+	public bool IsGroundSlamStaggered { get; private set; }
+
 	[Property]
 	public SkinnedModelRenderer BodyRenderer { get; set; }
 
@@ -92,6 +103,7 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 	protected override void OnDisabled()
 	{
 		CancelEatParticipationForLifecycle();
+		CancelGroundSlamStagger();
 		pendingSoftSeparationDisplacement = Vector3.Zero;
 		UnregisterFromGameManager();
 		base.OnDisabled();
@@ -100,6 +112,7 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 	protected override void OnDestroy()
 	{
 		CancelEatParticipationForLifecycle();
+		CancelGroundSlamStagger();
 		UnregisterFromGameManager();
 		base.OnDestroy();
 	}
@@ -109,6 +122,16 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 		LogRoleProfileWarnings();
 		ApplyRoleProfile( Role );
 		RefreshMovementState();
+	}
+
+	protected override void OnUpdate()
+	{
+		if ( Networking.IsHost &&
+			IsGroundSlamStaggered &&
+			Time.Now >= groundSlamStaggerEndsAt )
+		{
+			IsGroundSlamStaggered = false;
+		}
 	}
 
 	protected override void OnRefresh()
@@ -138,6 +161,12 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 		if ( MovementLocked || Health?.IsDead == true )
 		{
 			StopMovement();
+			return;
+		}
+
+		if ( IsGroundSlamStaggered )
+		{
+			SuppressMovementForGroundSlam();
 			return;
 		}
 
@@ -188,7 +217,10 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 	private void OnRoleChanged( LargeLadRole oldRole, LargeLadRole newRole )
 	{
 		if ( Networking.IsHost && oldRole != newRole )
+		{
 			CancelEatParticipationForLifecycle();
+			CancelGroundSlamStagger();
+		}
 
 		// The synchronized role is sufficient to update presentation on every
 		// observer and movement settings on whichever peer owns this player.
@@ -211,6 +243,20 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 	private void OnMovementLockedChanged( bool oldValue, bool newValue )
 	{
 		RefreshMovementState();
+	}
+
+	private void OnGroundSlamStaggeredChanged(
+		bool oldValue,
+		bool newValue )
+	{
+		RefreshMovementState();
+
+		if ( !IsProxy && GroundSlam?.EnableDebugLogging == true )
+		{
+			Log.Info(
+				$"[Debug/Ground Slam] {GameObject.Name} owner stagger state " +
+				$"changed from {oldValue} to {newValue}." );
+		}
 	}
 
 	private void OnEatMovementMultiplierChanged(
@@ -335,6 +381,7 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 			return false;
 
 		CancelEatParticipationForLifecycle();
+		CancelGroundSlamStagger();
 
 		// Hold the controller still while health restores the live collider and
 		// visuals. Teleport settling keeps motion disabled after the final lock
@@ -561,15 +608,16 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 		if ( IsProxy )
 			return;
 
-		var isLocked =
+		var isHardLocked =
 			MovementLocked ||
 			Health?.IsDead == true;
-		controller.UseInputControls = !isLocked;
+		controller.UseInputControls =
+			!isHardLocked && !IsGroundSlamStaggered;
 
 		if ( controller.Body is null )
 			return;
 
-		if ( isLocked || pendingTeleportFrames > 0 )
+		if ( isHardLocked || pendingTeleportFrames > 0 )
 		{
 			StopMovement();
 			controller.Body.MotionEnabled = false;
@@ -577,6 +625,84 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 		}
 
 		controller.Body.MotionEnabled = true;
+	}
+
+	internal void ApplyGroundSlamEffect(
+		Vector3 impulse,
+		float staggerDuration )
+	{
+		if ( !Networking.IsHost ||
+			Role is not (LargeLadRole.SkinnyKid or LargeLadRole.Minion) ||
+			Health?.IsDead != false ||
+			Health.CurrentHealth <= 0.0f )
+		{
+			return;
+		}
+
+		if ( Role == LargeLadRole.SkinnyKid && staggerDuration > 0.0f )
+		{
+			groundSlamStaggerEndsAt = System.MathF.Max(
+				groundSlamStaggerEndsAt,
+				Time.Now + staggerDuration );
+			IsGroundSlamStaggered = true;
+		}
+
+		ReceiveGroundSlamImpulse( impulse, staggerDuration );
+	}
+
+	private void CancelGroundSlamStagger()
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		groundSlamStaggerEndsAt = 0.0f;
+		IsGroundSlamStaggered = false;
+	}
+
+	[Rpc.Owner( NetFlags.HostOnly )]
+	private void ReceiveGroundSlamImpulse(
+		Vector3 impulse,
+		float staggerDuration )
+	{
+		if ( Role is not (LargeLadRole.SkinnyKid or LargeLadRole.Minion) ||
+			Health?.IsDead != false )
+		{
+			return;
+		}
+
+		var controller = Components.Get<PlayerController>();
+
+		if ( controller?.Body is null )
+			return;
+
+		// PlayerController writes its managed velocity back to the Rigidbody as
+		// part of movement simulation. Applying only a Rigidbody impulse here can
+		// be overwritten by that write in the same frame. Convert the configured
+		// physical impulse into a velocity delta and inject it through Jump, the
+		// controller's supported method for adding directional velocity.
+		var bodyMass = System.MathF.Max( 0.001f, controller.Body.Mass );
+		var velocityDelta = impulse / bodyMass;
+
+		controller.Body.MotionEnabled = true;
+		controller.Body.Sleeping = false;
+
+		if ( velocityDelta.z > 0.0f )
+		{
+			controller.PreventGrounding(
+				System.MathF.Max(
+					0.1f,
+					System.MathF.Min( 0.25f, staggerDuration ) ) );
+		}
+
+		controller.Jump( velocityDelta );
+
+		if ( GroundSlam?.EnableDebugLogging == true )
+		{
+			Log.Info(
+				$"[Debug/Ground Slam] {GameObject.Name} owner received " +
+				$"impulse {impulse} as velocity delta {velocityDelta}; " +
+				$"new controller velocity is {controller.Velocity}." );
+		}
 	}
 
 	[Rpc.Owner( NetFlags.HostOnly )]
@@ -624,6 +750,22 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 		controller.Body.ClearForces();
 		controller.Body.Velocity = Vector3.Zero;
 		controller.Body.AngularVelocity = Vector3.Zero;
+	}
+
+	private void SuppressMovementForGroundSlam()
+	{
+		var controller = Components.Get<PlayerController>();
+
+		if ( controller is null )
+			return;
+
+		// Suppress authored movement input without clearing forces or velocity.
+		// The explicit slam impulse must remain free to lift the player.
+		controller.UseInputControls = false;
+		controller.WishVelocity = Vector3.Zero;
+
+		if ( controller.Body is not null )
+			controller.Body.MotionEnabled = true;
 	}
 
 	private void DampenMovementForEat()
