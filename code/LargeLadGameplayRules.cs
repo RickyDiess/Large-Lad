@@ -24,6 +24,117 @@ public readonly struct LargeLadDeathPlan
 
 public static class LargeLadGameplayRules
 {
+	public const string PlayerBodyTag = "player";
+	public const string HunterBodyTag = "large_lad_hunter_body";
+	public const string SoftPlayerBodyTag = "large_lad_soft_player_body";
+	public const float SoftPlayerSeparationRadius = 28.0f;
+	public const float SoftPlayerSeparationHeight = 72.0f;
+	public const float SoftPlayerBaseMaximumSeparationSpeed = 42.0f;
+	public const float SoftPlayerCenterStrengthMultiplier = 1.5f;
+	public const float SoftPlayerMaximumSeparationSpeed =
+		SoftPlayerBaseMaximumSeparationSpeed *
+		SoftPlayerCenterStrengthMultiplier;
+	public const float SoftPlayerResponseRate = 8.0f;
+
+	public static bool IsHunterRole( LargeLadRole role )
+	{
+		return role is LargeLadRole.LargeLad or LargeLadRole.Minion;
+	}
+
+	public static string GetPlayerBodyCollisionTag( LargeLadRole role )
+	{
+		return IsHunterRole( role )
+			? HunterBodyTag
+			: SoftPlayerBodyTag;
+	}
+
+	/// <summary>
+	/// Mirrors the project collision matrix for deterministic rule tests.
+	/// Hunters and soft players remain fully solid against the opposing group.
+	/// Same-group contact is filtered; non-hunters receive the narrow manual
+	/// soft response calculated below.
+	/// </summary>
+	public static bool HasSolidPlayerCollision(
+		LargeLadRole left,
+		LargeLadRole right )
+	{
+		return IsHunterRole( left ) != IsHunterRole( right );
+	}
+
+	public static bool UsesSoftPlayerCollision(
+		LargeLadRole left,
+		LargeLadRole right )
+	{
+		return !IsHunterRole( left ) && !IsHunterRole( right );
+	}
+
+	/// <summary>
+	/// Returns a capped horizontal separation target for one soft player.
+	/// This has no vertical component and is added to existing body velocity,
+	/// so it cannot replace an explicit gameplay impulse.
+	/// </summary>
+	public static Vector3 GetSoftPlayerSeparationVelocity(
+		Vector3 playerPosition,
+		Vector3 otherPosition,
+		bool usePositiveXWhenCoincident )
+	{
+		var offset = playerPosition - otherPosition;
+
+		if ( System.MathF.Abs( offset.z ) >=
+			SoftPlayerSeparationHeight )
+		{
+			return Vector3.Zero;
+		}
+
+		offset.z = 0.0f;
+
+		var distanceSquared = offset.LengthSquared;
+		var radiusSquared =
+			SoftPlayerSeparationRadius * SoftPlayerSeparationRadius;
+
+		if ( distanceSquared >= radiusSquared )
+			return Vector3.Zero;
+
+		Vector3 direction;
+		float distance;
+
+		if ( distanceSquared > 0.0001f )
+		{
+			distance = System.MathF.Sqrt( distanceSquared );
+			direction = offset / distance;
+		}
+		else
+		{
+			distance = 0.0f;
+			direction = new Vector3(
+				usePositiveXWhenCoincident ? 1.0f : -1.0f,
+				0.0f,
+				0.0f );
+		}
+
+		var strength = 1.0f -
+			distance / SoftPlayerSeparationRadius;
+		var centerMultiplier = 1.0f +
+			(SoftPlayerCenterStrengthMultiplier - 1.0f) * strength;
+		return direction *
+			(SoftPlayerBaseMaximumSeparationSpeed *
+				strength *
+				centerMultiplier);
+	}
+
+	public static Vector3 AddSoftPlayerSeparationVelocity(
+		Vector3 currentVelocity,
+		Vector3 targetSeparationVelocity,
+		float deltaTime )
+	{
+		var response = System.MathF.Min(
+			1.0f,
+			SoftPlayerResponseRate *
+				System.MathF.Max( 0.0f, deltaTime ) );
+		return currentVelocity +
+			targetSeparationVelocity * response;
+	}
+
 	public static bool IsSupportedRoundPlayerCount( int playerCount )
 	{
 		return playerCount >=

@@ -89,6 +89,45 @@ coverage that the pure rule tests cannot provide:
    inventory is prepared once per `RespawnAs` (no duplicate core grants and no
    firearm entries for Large Lad or Minions).
 
+## Role-based player collision multiplayer checklist
+
+The deterministic tests cover every approved role pairing, lobby/reset tag
+selection, collision symmetry, the Skinny Kid soft-response falloff and vertical
+cutoff, preservation of existing impulse velocity, and a complete 32-Hunter
+overlap matrix. Start a fresh game session so the project collision matrix is
+reloaded before running the checks below. These still require live s&box physics
+and network ownership:
+
+1. With a host and remote owner, overlap Large Lad with a Minion and two Minions
+   with each other. Confirm they can separate under input without blocking,
+   jittering, launching, moving either camera, or making either character step
+   upward or lift its feet. Inspect both the player root and the controller's
+   live `ColliderObject.Tags`; confirm `player` and
+   `large_lad_hunter_body` are present on both.
+2. Walk Large Lad and a Minion into a Skinny Kid from both peers. Confirm each
+   pairing remains fully solid without the camera being pushed. Then walk two
+   Skinny Kids through each other from both ownership directions. Confirm they
+   can pass, receive only a light horizontal nudge, never gain vertical velocity,
+   and do not move either camera or disturb foot placement. Crowd several Skinny
+   Kids together and confirm the same response does not form an immovable wall.
+3. Kill a Skinny Kid and observe the synchronized Skinny Kid-to-Minion role
+   change on host and owner. Confirm the player uses Hunter contact rules on the
+   first live respawn frame and both root and live collider tags change from
+   `large_lad_soft_player_body` to `large_lad_hunter_body`. Repeat a same-role
+   Minion respawn and verify `CameraCollisionIgnore` still contains `player`.
+4. End the round and start the next one. Confirm lobby players and newly assigned
+   Skinny Kids regain the pass-through soft response immediately, while Large
+   Lad and Minions regain Hunter contact rules.
+5. At 32 players, convert or late-join enough Minions to fill the Hunter spawn
+   group. Respawn several simultaneously and deliberately force a fallback onto
+   an occupied Hunter candidate. Confirm no spawn blockage, physics explosion,
+   camera movement, false step-up, or lasting overlap trap; distinct cached
+   candidates should still be used when available.
+6. Apply a direct Rigidbody impulse to a live Minion from its owning peer (the
+   same path a future Ground Slam should use). Confirm the Minion moves even
+   while overlapping Large Lad or another Minion, and confirm collision
+   filtering never disables Rigidbody motion.
+
 ## Release inventory multiplayer checklist
 
 Use a host and at least one remote client. Author one core pickup plus two

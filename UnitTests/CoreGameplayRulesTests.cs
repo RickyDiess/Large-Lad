@@ -495,6 +495,204 @@ public sealed class RespawnRulesTests
 }
 
 [TestClass]
+public sealed class PlayerCollisionRulesTests
+{
+	[DataTestMethod]
+	[DataRow( LargeLadRole.LargeLad, LargeLadRole.LargeLad, false )]
+	[DataRow( LargeLadRole.LargeLad, LargeLadRole.Minion, false )]
+	[DataRow( LargeLadRole.Minion, LargeLadRole.LargeLad, false )]
+	[DataRow( LargeLadRole.Minion, LargeLadRole.Minion, false )]
+	[DataRow( LargeLadRole.LargeLad, LargeLadRole.SkinnyKid, true )]
+	[DataRow( LargeLadRole.SkinnyKid, LargeLadRole.LargeLad, true )]
+	[DataRow( LargeLadRole.Minion, LargeLadRole.SkinnyKid, true )]
+	[DataRow( LargeLadRole.SkinnyKid, LargeLadRole.Minion, true )]
+	[DataRow( LargeLadRole.SkinnyKid, LargeLadRole.SkinnyKid, false )]
+	[DataRow( LargeLadRole.Unassigned, LargeLadRole.LargeLad, true )]
+	[DataRow( LargeLadRole.Unassigned, LargeLadRole.Minion, true )]
+	[DataRow( LargeLadRole.Unassigned, LargeLadRole.SkinnyKid, false )]
+	[DataRow( LargeLadRole.Unassigned, LargeLadRole.Unassigned, false )]
+	public void RolePair_UsesApprovedSolidCollisionRule(
+		LargeLadRole left,
+		LargeLadRole right,
+		bool expectedSolidCollision )
+	{
+		Assert.AreEqual(
+			expectedSolidCollision,
+			LargeLadGameplayRules.HasSolidPlayerCollision( left, right ) );
+	}
+
+	[DataTestMethod]
+	[DataRow( LargeLadRole.SkinnyKid, LargeLadRole.SkinnyKid, true )]
+	[DataRow( LargeLadRole.Unassigned, LargeLadRole.SkinnyKid, true )]
+	[DataRow( LargeLadRole.Unassigned, LargeLadRole.Unassigned, true )]
+	[DataRow( LargeLadRole.LargeLad, LargeLadRole.SkinnyKid, false )]
+	[DataRow( LargeLadRole.Minion, LargeLadRole.SkinnyKid, false )]
+	[DataRow( LargeLadRole.LargeLad, LargeLadRole.Minion, false )]
+	public void RolePair_UsesSoftCollisionOnlyBetweenNonHunters(
+		LargeLadRole left,
+		LargeLadRole right,
+		bool expectedSoftCollision )
+	{
+		Assert.AreEqual(
+			expectedSoftCollision,
+			LargeLadGameplayRules.UsesSoftPlayerCollision( left, right ) );
+	}
+
+	[TestMethod]
+	public void LobbyAndSkinnyKid_UseSoftPlayerBodyTag()
+	{
+		Assert.AreEqual(
+			LargeLadGameplayRules.SoftPlayerBodyTag,
+			LargeLadGameplayRules.GetPlayerBodyCollisionTag(
+				LargeLadRole.Unassigned ) );
+		Assert.AreEqual(
+			LargeLadGameplayRules.SoftPlayerBodyTag,
+			LargeLadGameplayRules.GetPlayerBodyCollisionTag(
+				LargeLadRole.SkinnyKid ) );
+	}
+
+	[TestMethod]
+	public void LargeLadAndMinions_ShareHunterBodyTag()
+	{
+		Assert.AreEqual(
+			LargeLadGameplayRules.HunterBodyTag,
+			LargeLadGameplayRules.GetPlayerBodyCollisionTag(
+				LargeLadRole.LargeLad ) );
+		Assert.AreEqual(
+			LargeLadGameplayRules.HunterBodyTag,
+			LargeLadGameplayRules.GetPlayerBodyCollisionTag(
+				LargeLadRole.Minion ) );
+	}
+
+	[TestMethod]
+	public void RuntimeRoleTags_CopyAsTwoDistinctEngineTags()
+	{
+		var configured = new Sandbox.TagSet();
+		configured.Add( LargeLadGameplayRules.PlayerBodyTag );
+		configured.Add( LargeLadGameplayRules.HunterBodyTag );
+		var live = new Sandbox.TagSet();
+
+		live.SetFrom( configured );
+
+		Assert.IsTrue(
+			live.Has( LargeLadGameplayRules.PlayerBodyTag ) );
+		Assert.IsTrue(
+			live.Has( LargeLadGameplayRules.HunterBodyTag ) );
+		Assert.IsFalse(
+			live.Has( LargeLadGameplayRules.SoftPlayerBodyTag ) );
+	}
+
+	[TestMethod]
+	public void CollisionRule_IsSymmetricForEveryRolePair()
+	{
+		foreach ( var left in System.Enum.GetValues<LargeLadRole>() )
+		{
+			foreach ( var right in System.Enum.GetValues<LargeLadRole>() )
+			{
+				Assert.AreEqual(
+					LargeLadGameplayRules.HasSolidPlayerCollision( left, right ),
+					LargeLadGameplayRules.HasSolidPlayerCollision( right, left ),
+					$"{left} versus {right}" );
+			}
+		}
+	}
+
+	[TestMethod]
+	public void FullHunterRoster_CannotHardBlockItselfWhenOverlapping()
+	{
+		var hunters = new LargeLadRole[
+			LargeLadGameManager.TargetPlayerCount];
+		hunters[0] = LargeLadRole.LargeLad;
+
+		for ( var index = 1; index < hunters.Length; index++ )
+			hunters[index] = LargeLadRole.Minion;
+
+		foreach ( var left in hunters )
+		{
+			foreach ( var right in hunters )
+			{
+				Assert.IsFalse(
+					LargeLadGameplayRules.HasSolidPlayerCollision(
+						left,
+						right ) );
+			}
+		}
+	}
+
+	[TestMethod]
+	public void SoftCollision_IsHorizontalCappedAndFallsOffWithDistance()
+	{
+		var coincident =
+			LargeLadGameplayRules.GetSoftPlayerSeparationVelocity(
+				Vector3.Zero,
+				Vector3.Zero,
+				usePositiveXWhenCoincident: true );
+		var halfway =
+			LargeLadGameplayRules.GetSoftPlayerSeparationVelocity(
+				new Vector3(
+					LargeLadGameplayRules.SoftPlayerSeparationRadius * 0.5f,
+					0.0f,
+					12.0f ),
+				Vector3.Zero,
+				usePositiveXWhenCoincident: true );
+		var outside =
+			LargeLadGameplayRules.GetSoftPlayerSeparationVelocity(
+				new Vector3(
+					LargeLadGameplayRules.SoftPlayerSeparationRadius,
+					0.0f,
+					0.0f ),
+				Vector3.Zero,
+				usePositiveXWhenCoincident: true );
+
+		Assert.AreEqual(
+			LargeLadGameplayRules.SoftPlayerMaximumSeparationSpeed,
+			coincident.x,
+			0.001f );
+		Assert.AreEqual( 0.0f, coincident.y, 0.001f );
+		Assert.AreEqual( 0.0f, coincident.z, 0.001f );
+		Assert.AreEqual(
+			LargeLadGameplayRules.SoftPlayerBaseMaximumSeparationSpeed *
+				0.5f *
+				1.25f,
+			halfway.x,
+			0.001f );
+		Assert.AreEqual( Vector3.Zero, outside );
+	}
+
+	[TestMethod]
+	public void SoftCollision_IgnoresPlayersSeparatedVertically()
+	{
+		var result =
+			LargeLadGameplayRules.GetSoftPlayerSeparationVelocity(
+				new Vector3(
+					0.0f,
+					0.0f,
+					LargeLadGameplayRules.SoftPlayerSeparationHeight ),
+				Vector3.Zero,
+				usePositiveXWhenCoincident: true );
+
+		Assert.AreEqual( Vector3.Zero, result );
+	}
+
+	[TestMethod]
+	public void SoftCollision_ResponsePreservesExplicitImpulseAndVerticalSpeed()
+	{
+		var currentVelocity = new Vector3( 120.0f, -30.0f, 250.0f );
+		var separationVelocity = new Vector3( -20.0f, 10.0f, 0.0f );
+		var result =
+			LargeLadGameplayRules.AddSoftPlayerSeparationVelocity(
+				currentVelocity,
+				separationVelocity,
+				deltaTime: 1.0f / 60.0f );
+
+		Assert.IsTrue( result.x < currentVelocity.x );
+		Assert.IsTrue( result.x > 0.0f );
+		Assert.IsTrue( result.y > currentVelocity.y );
+		Assert.AreEqual( currentVelocity.z, result.z, 0.001f );
+	}
+}
+
+[TestClass]
 public sealed class SpawnRulesTests
 {
 	[DataTestMethod]

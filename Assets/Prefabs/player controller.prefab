@@ -7,7 +7,7 @@
     "Position": "0,0,0",
     "Rotation": "0,0,0,1",
     "Scale": "1,1,1",
-    "Tags": "",
+    "Tags": "player,large_lad_soft_player_body",
     "Enabled": true,
     "NetworkMode": 2,
     "NetworkFlags": 0,
@@ -32,12 +32,12 @@
           "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
           "component_type": "Rigidbody"
         },
-        "BodyCollisionTags": null,
+        "BodyCollisionTags": "player,large_lad_soft_player_body",
         "BodyHeight": 72,
         "BodyMass": 500,
         "BodyRadius": 16,
         "BrakePower": 1,
-        "CameraCollisionIgnore": "",
+        "CameraCollisionIgnore": "player",
         "CameraOffset": "190,42,18",
         "ColliderObject": {
           "_type": "gameobject",

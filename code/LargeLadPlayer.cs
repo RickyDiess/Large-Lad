@@ -64,6 +64,7 @@ public sealed class LargeLadPlayer : Component
 	protected override void OnEnabled()
 	{
 		base.OnEnabled();
+		ApplyRoleCollision( Role );
 		RegisterWithGameManager();
 	}
 
@@ -84,6 +85,12 @@ public sealed class LargeLadPlayer : Component
 		LogRoleProfileWarnings();
 		ApplyRoleProfile( Role );
 		RefreshMovementState();
+	}
+
+	protected override void OnRefresh()
+	{
+		base.OnRefresh();
+		ApplyRoleCollision( Role );
 	}
 
 	protected override void OnFixedUpdate()
@@ -107,7 +114,10 @@ public sealed class LargeLadPlayer : Component
 		if ( MovementLocked || Health?.IsDead == true )
 		{
 			StopMovement();
+			return;
 		}
+
+		ApplySoftPlayerSeparation();
 	}
 
 	protected override void OnValidate()
@@ -206,6 +216,8 @@ public sealed class LargeLadPlayer : Component
 
 	private void ApplyRoleProfile( LargeLadRole role )
 	{
+		ApplyRoleCollision( role );
+
 		if ( !TryGetRoleProfile( role, out var profile ) )
 			return;
 
@@ -223,6 +235,95 @@ public sealed class LargeLadPlayer : Component
 			ApplyLocalMovementSettings( profile );
 		}
 
+	}
+
+	private void ApplyRoleCollision( LargeLadRole role )
+	{
+		var roleTag =
+			LargeLadGameplayRules.GetPlayerBodyCollisionTag( role );
+
+		// PlayerController movement traces use the root object's tags, while
+		// rigid-body contact uses ColliderObject.Tags. Keep both in sync so a
+		// filtered player cannot be mistaken for ground or a step.
+		GameObject.Tags.Remove( LargeLadGameplayRules.HunterBodyTag );
+		GameObject.Tags.Remove( LargeLadGameplayRules.SoftPlayerBodyTag );
+		GameObject.Tags.Add( LargeLadGameplayRules.PlayerBodyTag );
+		GameObject.Tags.Add( roleTag );
+
+		var controller = Components.Get<PlayerController>();
+
+		if ( controller is null )
+			return;
+
+		// PlayerController copies BodyCollisionTags onto ColliderObject when it
+		// creates the body. Role changes happen after that initialization, so
+		// update both the retained setting and the already-live collider tags.
+		// This changes only contact filtering: the dynamic Rigidbody remains
+		// available for explicit impulses such as Ground Slam.
+		var tags = new TagSet();
+		tags.Add( LargeLadGameplayRules.PlayerBodyTag );
+		tags.Add( roleTag );
+		controller.BodyCollisionTags = tags;
+		controller.CameraCollisionIgnore ??= new TagSet();
+		controller.CameraCollisionIgnore.Add(
+			LargeLadGameplayRules.PlayerBodyTag );
+
+		if ( controller.ColliderObject is not null &&
+			controller.ColliderObject.IsValid )
+		{
+			controller.ColliderObject.Tags.SetFrom( tags );
+		}
+	}
+
+	private void ApplySoftPlayerSeparation()
+	{
+		if ( LargeLadGameplayRules.IsHunterRole( Role ) )
+			return;
+
+		var controller = Components.Get<PlayerController>();
+
+		if ( controller?.Body is null )
+			return;
+
+		var gameManager = LargeLadGameManager.FindForScene( Scene );
+
+		if ( gameManager is null )
+			return;
+
+		var targetVelocity = Vector3.Zero;
+
+		foreach ( var other in gameManager.ActivePlayers )
+		{
+			if ( other == this ||
+				LargeLadGameplayRules.IsHunterRole( other.Role ) ||
+				other.Health?.IsDead == true )
+			{
+				continue;
+			}
+
+			targetVelocity +=
+				LargeLadGameplayRules.GetSoftPlayerSeparationVelocity(
+					GameObject.WorldPosition,
+					other.GameObject.WorldPosition,
+					GameObject.Id.CompareTo( other.GameObject.Id ) >= 0 );
+		}
+
+		if ( targetVelocity.LengthSquared <= 0.0001f )
+			return;
+
+		if ( targetVelocity.LengthSquared >
+			LargeLadGameplayRules.SoftPlayerMaximumSeparationSpeed *
+			LargeLadGameplayRules.SoftPlayerMaximumSeparationSpeed )
+		{
+			targetVelocity = targetVelocity.Normal *
+				LargeLadGameplayRules.SoftPlayerMaximumSeparationSpeed;
+		}
+
+		controller.Body.Velocity =
+			LargeLadGameplayRules.AddSoftPlayerSeparationVelocity(
+				controller.Body.Velocity,
+				targetVelocity,
+				Time.Delta );
 	}
 
 	public bool TryGetRoleProfile(
