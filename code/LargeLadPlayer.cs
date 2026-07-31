@@ -8,7 +8,7 @@ public enum LargeLadRole
 	Minion
 }
 
-public sealed class LargeLadPlayer : Component
+public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 {
 	private const int TeleportSettleFrames = 2;
 	private const float KillVolumeTeleportGrace = 0.5f;
@@ -19,7 +19,7 @@ public sealed class LargeLadPlayer : Component
 	private int pendingTeleportFrames;
 	private TimeSince timeSinceAuthoritativeTeleport;
 	private bool hasAuthoritativeTeleport;
-	private Vector3 appliedSoftSeparationVelocity;
+	private Vector3 pendingSoftSeparationDisplacement;
 
 	[Property, RequireComponent]
 	public LargeLadHealth Health { get; set; }
@@ -71,7 +71,7 @@ public sealed class LargeLadPlayer : Component
 
 	protected override void OnDisabled()
 	{
-		RemoveSoftPlayerSeparation();
+		pendingSoftSeparationDisplacement = Vector3.Zero;
 		UnregisterFromGameManager();
 		base.OnDisabled();
 	}
@@ -119,7 +119,40 @@ public sealed class LargeLadPlayer : Component
 			return;
 		}
 
-		ApplySoftPlayerSeparation();
+	}
+
+	void IScenePhysicsEvents.PostPhysicsStep()
+	{
+		if ( IsProxy ||
+			pendingTeleportFrames > 0 ||
+			MovementLocked ||
+			Health?.IsDead == true )
+		{
+			pendingSoftSeparationDisplacement = Vector3.Zero;
+			return;
+		}
+
+		// Normal physics has finished. Apply the planar displacement captured
+		// before simulation so every pair uses the same physics-step snapshot.
+		ApplySoftPlayerSeparation(
+			pendingSoftSeparationDisplacement );
+		pendingSoftSeparationDisplacement = Vector3.Zero;
+	}
+
+	void IScenePhysicsEvents.PrePhysicsStep()
+	{
+		pendingSoftSeparationDisplacement = Vector3.Zero;
+
+		if ( IsProxy ||
+			pendingTeleportFrames > 0 ||
+			MovementLocked ||
+			Health?.IsDead == true )
+		{
+			return;
+		}
+
+		pendingSoftSeparationDisplacement =
+			CalculateSoftPlayerSeparation();
 	}
 
 	protected override void OnValidate()
@@ -277,15 +310,12 @@ public sealed class LargeLadPlayer : Component
 		}
 	}
 
-	private void ApplySoftPlayerSeparation()
+	private Vector3 CalculateSoftPlayerSeparation()
 	{
 		var controller = Components.Get<PlayerController>();
 
 		if ( controller?.Body is null )
-		{
-			appliedSoftSeparationVelocity = Vector3.Zero;
-			return;
-		}
+			return Vector3.Zero;
 
 		var targetVelocity = Vector3.Zero;
 
@@ -319,30 +349,28 @@ public sealed class LargeLadPlayer : Component
 		var result =
 			LargeLadGameplayRules.ResolveSoftPlayerSeparation(
 				controller.Body.Velocity,
-				appliedSoftSeparationVelocity,
 				targetVelocity,
 				Time.Delta );
-		controller.Body.Velocity = result.Velocity;
-		appliedSoftSeparationVelocity =
-			result.AppliedCorrection;
+		return result.Displacement;
 	}
 
-	private void RemoveSoftPlayerSeparation()
+	private void ApplySoftPlayerSeparation( Vector3 displacement )
 	{
-		if ( appliedSoftSeparationVelocity.LengthSquared <= 0.0001f )
+		if ( displacement.LengthSquared <= 0.0001f )
 			return;
 
 		var controller = Components.Get<PlayerController>();
 
-		if ( controller?.Body is not null )
-		{
-			controller.Body.Velocity =
-				LargeLadGameplayRules.RemoveSoftPlayerSeparation(
-					controller.Body.Velocity,
-					appliedSoftSeparationVelocity );
-		}
+		if ( controller?.Body is null )
+			return;
 
-		appliedSoftSeparationVelocity = Vector3.Zero;
+		var start = controller.Body.WorldPosition;
+		var trace = controller.TraceBody(
+			start,
+			start + displacement );
+
+		if ( !trace.StartedSolid )
+			controller.Body.WorldPosition = trace.EndPosition;
 	}
 
 	public bool TryGetRoleProfile(
@@ -440,7 +468,7 @@ public sealed class LargeLadPlayer : Component
 
 	private void StopMovement()
 	{
-		appliedSoftSeparationVelocity = Vector3.Zero;
+		pendingSoftSeparationDisplacement = Vector3.Zero;
 
 		var controller = Components.Get<PlayerController>();
 

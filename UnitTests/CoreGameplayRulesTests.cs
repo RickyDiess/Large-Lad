@@ -699,43 +699,55 @@ public sealed class PlayerCollisionRulesTests
 			var leftResult =
 				LargeLadGameplayRules.ResolveSoftPlayerSeparation(
 					leftVelocity,
-					leftCorrection,
 					leftTarget,
 					fixedDelta );
 			var rightResult =
 				LargeLadGameplayRules.ResolveSoftPlayerSeparation(
 					rightVelocity,
-					rightCorrection,
 					rightTarget,
 					fixedDelta );
-			leftVelocity = leftResult.Velocity;
-			rightVelocity = rightResult.Velocity;
-			leftCorrection = leftResult.AppliedCorrection;
-			rightCorrection = rightResult.AppliedCorrection;
+			leftCorrection = leftResult.Displacement;
+			rightCorrection = rightResult.Displacement;
 
 			Assert.IsTrue(
 				leftCorrection.Length <=
 					LargeLadGameplayRules
-						.SoftPlayerMaximumSeparationSpeed + 0.001f,
+						.SoftPlayerMaximumSeparationSpeed *
+						fixedDelta + 0.001f,
 				$"left correction exceeded the cap on tick {tick}" );
 			Assert.IsTrue(
 				rightCorrection.Length <=
 					LargeLadGameplayRules
-						.SoftPlayerMaximumSeparationSpeed + 0.001f,
+						.SoftPlayerMaximumSeparationSpeed *
+						fixedDelta + 0.001f,
 				$"right correction exceeded the cap on tick {tick}" );
 			AssertVectorEqual(
-				leftCorrection,
-				leftVelocity,
+				Vector3.Zero,
+				leftResult.Velocity,
 				0.001f );
 			AssertVectorEqual(
-				rightCorrection,
-				rightVelocity,
+				Vector3.Zero,
+				rightResult.Velocity,
 				0.001f );
 			AssertVectorEqual(
 				leftCorrection,
 				-rightCorrection,
 				0.001f );
+
+			leftVelocity = leftResult.Velocity;
+			rightVelocity = rightResult.Velocity;
+			Assert.AreEqual( Vector3.Zero, leftVelocity );
+			Assert.AreEqual( Vector3.Zero, rightVelocity );
 		}
+
+		Assert.IsTrue(
+			leftCorrection.Length >
+				0.0f );
+		Assert.AreEqual(
+			LargeLadGameplayRules.SoftPlayerMaximumSeparationSpeed *
+				fixedDelta,
+			leftCorrection.Length,
+			0.001f );
 	}
 
 	[TestMethod]
@@ -786,17 +798,21 @@ public sealed class PlayerCollisionRulesTests
 			var result =
 				LargeLadGameplayRules.ResolveSoftPlayerSeparation(
 					velocity,
-					correction,
 					combinedTarget,
 					fixedDelta );
-			velocity = result.Velocity;
-			correction = result.AppliedCorrection;
+			correction = result.Displacement;
 
 			Assert.IsTrue(
 				correction.Length <=
 					LargeLadGameplayRules
-						.SoftPlayerMaximumSeparationSpeed + 0.001f,
+						.SoftPlayerMaximumSeparationSpeed *
+						fixedDelta + 0.001f,
 				$"crowd correction exceeded the cap on tick {tick}" );
+			velocity = result.Velocity;
+			AssertVectorEqual(
+				Vector3.Zero,
+				velocity,
+				0.001f );
 		}
 	}
 
@@ -827,20 +843,19 @@ public sealed class PlayerCollisionRulesTests
 			var result =
 				LargeLadGameplayRules.ResolveSoftPlayerSeparation(
 					velocity,
-					correction,
 					target,
 					fixedDelta );
-			velocity = result.Velocity;
-			correction = result.AppliedCorrection;
+			correction = result.Displacement;
 
 			AssertVectorEqual(
 				externalVelocity,
-				velocity - correction,
+				result.Velocity,
 				0.001f );
 			Assert.AreEqual(
 				externalVelocity.z,
-				velocity.z,
+				result.Velocity.z,
 				0.0f );
+			velocity = result.Velocity;
 		}
 	}
 
@@ -866,17 +881,16 @@ public sealed class PlayerCollisionRulesTests
 			var result =
 				LargeLadGameplayRules.ResolveSoftPlayerSeparation(
 					velocity,
-					correction,
 					target,
 					fixedDelta );
-			velocity = result.Velocity;
-			correction = result.AppliedCorrection;
+			correction = result.Displacement;
 
 			Assert.AreEqual(
 				verticalVelocity,
-				velocity.z,
+				result.Velocity.z,
 				0.0f,
 				$"vertical velocity changed on tick {tick}" );
+			velocity = result.Velocity;
 		}
 	}
 
@@ -905,17 +919,16 @@ public sealed class PlayerCollisionRulesTests
 			var result =
 				LargeLadGameplayRules.ResolveSoftPlayerSeparation(
 					velocity,
-					correction,
 					target,
 					fixedDelta );
-			velocity = result.Velocity;
-			correction = result.AppliedCorrection;
+			correction = result.Displacement;
 
 			Assert.AreEqual(
 				expectedVerticalVelocity,
-				velocity.z,
+				result.Velocity.z,
 				0.0f,
 				$"upward velocity changed on tick {tick}" );
+			velocity = result.Velocity;
 		}
 	}
 
@@ -942,13 +955,11 @@ public sealed class PlayerCollisionRulesTests
 		var outsideResult =
 			LargeLadGameplayRules.ResolveSoftPlayerSeparation(
 				currentVelocity,
-				Vector3.Zero,
 				outsideRadius,
 				1.0f / 60.0f );
 		var verticalResult =
 			LargeLadGameplayRules.ResolveSoftPlayerSeparation(
 				currentVelocity,
-				Vector3.Zero,
 				beyondVerticalCutoff,
 				1.0f / 60.0f );
 
@@ -964,10 +975,10 @@ public sealed class PlayerCollisionRulesTests
 			0.0f );
 		Assert.AreEqual(
 			Vector3.Zero,
-			outsideResult.AppliedCorrection );
+			outsideResult.Displacement );
 		Assert.AreEqual(
 			Vector3.Zero,
-			verticalResult.AppliedCorrection );
+			verticalResult.Displacement );
 	}
 
 	[TestMethod]
@@ -989,23 +1000,21 @@ public sealed class PlayerCollisionRulesTests
 			var result =
 				LargeLadGameplayRules.ResolveSoftPlayerSeparation(
 					velocity,
-					correction,
 					target,
 					fixedDelta );
+			correction = result.Displacement;
 			velocity = result.Velocity;
-			correction = result.AppliedCorrection;
 		}
 
 		var separatedResult =
 			LargeLadGameplayRules.ResolveSoftPlayerSeparation(
 				velocity,
-				correction,
 				Vector3.Zero,
 				fixedDelta );
 
 		Assert.AreEqual(
 			Vector3.Zero,
-			separatedResult.AppliedCorrection );
+			separatedResult.Displacement );
 		AssertVectorEqual(
 			externalVelocity,
 			separatedResult.Velocity,
@@ -1037,6 +1046,47 @@ public sealed class PlayerCollisionRulesTests
 			LargeLadGameplayRules.SoftPlayerMaximumSeparationSpeed,
 			first.Length,
 			0.001f );
+	}
+
+	[TestMethod]
+	public void SoftCollision_ChangingRadialDirectionHasNoTangentialHistory()
+	{
+		const int fixedTicks = 120;
+		const float fixedDelta = 1.0f / 60.0f;
+		var velocity = Vector3.Zero;
+
+		for ( var tick = 0; tick < fixedTicks; tick++ )
+		{
+			var angle = tick * System.MathF.PI * 2.0f / fixedTicks;
+			var target = new Vector3(
+				System.MathF.Cos( angle ),
+				System.MathF.Sin( angle ),
+				0.0f ) *
+				LargeLadGameplayRules.SoftPlayerMaximumSeparationSpeed;
+			var result =
+				LargeLadGameplayRules.ResolveSoftPlayerSeparation(
+					velocity,
+					target,
+					fixedDelta );
+			var correction = result.Displacement;
+			var planarCross =
+				correction.x * target.y -
+				correction.y * target.x;
+
+			Assert.AreEqual(
+				0.0f,
+				planarCross,
+				0.001f,
+				$"correction gained a tangential component on tick {tick}" );
+			Assert.IsTrue(
+				Vector3.Dot( correction, target ) > 0.0f );
+
+			velocity = result.Velocity;
+			AssertVectorEqual(
+				Vector3.Zero,
+				velocity,
+				0.001f );
+		}
 	}
 
 	private static void AssertVectorEqual(

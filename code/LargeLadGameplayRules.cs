@@ -26,14 +26,14 @@ public readonly struct LargeLadSoftSeparationResult
 {
 	public LargeLadSoftSeparationResult(
 		Vector3 velocity,
-		Vector3 appliedCorrection )
+		Vector3 displacement )
 	{
 		Velocity = velocity;
-		AppliedCorrection = appliedCorrection;
+		Displacement = displacement;
 	}
 
 	public Vector3 Velocity { get; }
-	public Vector3 AppliedCorrection { get; }
+	public Vector3 Displacement { get; }
 }
 
 public static class LargeLadGameplayRules
@@ -48,7 +48,6 @@ public static class LargeLadGameplayRules
 	public const float SoftPlayerMaximumSeparationSpeed =
 		SoftPlayerBaseMaximumSeparationSpeed *
 		SoftPlayerCenterStrengthMultiplier;
-	public const float SoftPlayerResponseRate = 8.0f;
 
 	public static bool IsHunterRole( LargeLadRole role )
 	{
@@ -156,67 +155,25 @@ public static class LargeLadGameplayRules
 	}
 
 	/// <summary>
-	/// Replaces the correction applied on the preceding physics tick with one
-	/// bounded horizontal correction. Subtracting only the tracked correction
-	/// leaves movement and gameplay impulses intact. A zero target removes the
-	/// correction immediately once overlap ends.
+	/// Calculates one traced horizontal displacement for the current physics
+	/// step. Rigidbody velocity is returned unchanged, preserving controller
+	/// movement and gameplay impulses without carrying artificial velocity.
 	/// </summary>
 	public static LargeLadSoftSeparationResult ResolveSoftPlayerSeparation(
 		Vector3 currentVelocity,
-		Vector3 previousAppliedCorrection,
 		Vector3 combinedTargetVelocity,
 		float deltaTime )
 	{
-		var previousCorrection =
-			ClampSoftPlayerSeparationVelocity(
-				previousAppliedCorrection );
 		var targetCorrection =
 			ClampSoftPlayerSeparationVelocity(
 				combinedTargetVelocity );
-
-		Vector3 nextCorrection;
-
-		if ( targetCorrection.LengthSquared <= 0.0001f )
-		{
-			nextCorrection = Vector3.Zero;
-		}
-		else
-		{
-			var response = System.MathF.Min(
-				1.0f,
-				SoftPlayerResponseRate *
-					System.MathF.Max( 0.0f, deltaTime ) );
-			nextCorrection = previousCorrection +
-				(targetCorrection - previousCorrection) * response;
-			nextCorrection =
-				ClampSoftPlayerSeparationVelocity(
-					nextCorrection );
-		}
-
-		var correctedVelocity =
-			currentVelocity -
-			previousCorrection +
-			nextCorrection;
-
-		// Both corrections are horizontal, but retain this assignment as an
-		// explicit invariant for jumps, falls, knockback, and future slam forces.
-		correctedVelocity.z = currentVelocity.z;
+		var displacement = targetCorrection *
+			System.MathF.Max( 0.0f, deltaTime );
+		displacement.z = 0.0f;
 
 		return new LargeLadSoftSeparationResult(
-			correctedVelocity,
-			nextCorrection );
-	}
-
-	public static Vector3 RemoveSoftPlayerSeparation(
-		Vector3 currentVelocity,
-		Vector3 previousAppliedCorrection )
-	{
-		var correctedVelocity =
-			currentVelocity -
-			ClampSoftPlayerSeparationVelocity(
-				previousAppliedCorrection );
-		correctedVelocity.z = currentVelocity.z;
-		return correctedVelocity;
+			currentVelocity,
+			displacement );
 	}
 
 	public static bool IsSupportedRoundPlayerCount( int playerCount )
