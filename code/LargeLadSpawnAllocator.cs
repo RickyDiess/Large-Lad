@@ -90,8 +90,6 @@ public static class LargeLadSpawnRules
 /// </summary>
 public sealed class LargeLadSpawnAllocator : Component
 {
-	private const float PlayerRadius = 16.0f;
-	private const float PlayerHeight = 72.0f;
 	private const int AttemptsPerRequestedPosition = 48;
 
 	private readonly List<GameObject> runtimeLobbyPoints = new();
@@ -533,7 +531,7 @@ public sealed class LargeLadSpawnAllocator : Component
 				spawn.Capacity );
 		var radius = System.MathF.Max( 0.0f, spawn.SpawnRadius );
 		var separation = System.MathF.Max(
-			PlayerRadius * 2.0f,
+			LargeLadGameplayRules.PlayerBodyRadius * 2.0f,
 			spawn.MinimumSeparation );
 		var attempts = desiredCount * AttemptsPerRequestedPosition;
 		var candidates = new List<LargeLadSpawnLocation>( desiredCount );
@@ -596,9 +594,13 @@ public sealed class LargeLadSpawnAllocator : Component
 
 		safePosition = floorTrace.EndPosition + Vector3.Up;
 		var capsule = new Capsule(
-			safePosition + Vector3.Up * PlayerRadius,
-			safePosition + Vector3.Up * (PlayerHeight - PlayerRadius),
-			PlayerRadius - 0.5f );
+			safePosition +
+				Vector3.Up * LargeLadGameplayRules.PlayerBodyRadius,
+			safePosition +
+				Vector3.Up *
+					(LargeLadGameplayRules.PlayerBodyHeight -
+						LargeLadGameplayRules.PlayerBodyRadius),
+			LargeLadGameplayRules.PlayerBodyRadius - 0.5f );
 		var clearance = Scene.Trace
 			.Capsule( capsule )
 			.IgnoreDynamic()

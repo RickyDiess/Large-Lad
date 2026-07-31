@@ -123,6 +123,27 @@ internal static class LargeLadSceneRegistry
 			newRole );
 	}
 
+	public static void PreparePlayerRoleCollisionChange(
+		Scene scene,
+		LargeLadPlayer player,
+		LargeLadRole oldRole,
+		LargeLadRole newRole )
+	{
+		if ( scene is null || player is null ||
+			!RegistrationsByScene.TryGetValue( scene, out var registrations ) ||
+			!registrations.Players.Contains( player ) ||
+			registrations.Managers.Count == 0 )
+		{
+			return;
+		}
+
+		EnsureGameplayOwner( scene, registrations );
+		registrations.GameplayOwner?.PreparePlayerRoleCollisionChange(
+			player,
+			oldRole,
+			newRole );
+	}
+
 	public static void RegisterRoundResettable(
 		Scene scene,
 		ILargeLadRoundResettable resettable )

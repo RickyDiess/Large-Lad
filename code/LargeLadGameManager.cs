@@ -218,6 +218,7 @@ public sealed class LargeLadGameManager : Component
 	private readonly HashSet<ILargeLadRoundResettable> registeredRoundResettables =
 		new();
 	private readonly List<LargeLadBarricade> activeBarricades = new();
+	private readonly List<LargeLadMinionPassage> activeMinionPassages = new();
 	private readonly List<string> validatedBlockingBootstrapIssues = new();
 	private readonly HashSet<LargeLadPlayer> lobbyPlacedPlayers = new();
 	private readonly HashSet<(
@@ -283,6 +284,19 @@ public sealed class LargeLadGameManager : Component
 		{
 			PruneInvalidRegistrations();
 			return activeBarricades;
+		}
+	}
+
+	/// <summary>
+	/// Enabled Minion passages already participating in round reset. Melee aim
+	/// assist and role-transition safety use this lifecycle index.
+	/// </summary>
+	public IReadOnlyList<LargeLadMinionPassage> ActiveMinionPassages
+	{
+		get
+		{
+			PruneInvalidRegistrations();
+			return activeMinionPassages;
 		}
 	}
 
@@ -635,6 +649,18 @@ public sealed class LargeLadGameManager : Component
 			{
 				issues.Add(
 					$"Barricade '{barricade.GameObject.Name}': {warning}" );
+			}
+		}
+
+		foreach ( var passage in
+			Scene?.GetAllComponents<LargeLadMinionPassage>() ??
+			Enumerable.Empty<LargeLadMinionPassage>() )
+		{
+			foreach ( var warning in passage.GetValidationWarnings(
+				validateGeometry ) )
+			{
+				issues.Add(
+					$"Minion passage '{passage.GameObject.Name}': {warning}" );
 			}
 		}
 
@@ -1293,6 +1319,29 @@ public sealed class LargeLadGameManager : Component
 			EvaluateWinnerAfterLifecycleChange();
 	}
 
+	internal void PreparePlayerRoleCollisionChange(
+		LargeLadPlayer player,
+		LargeLadRole oldRole,
+		LargeLadRole newRole )
+	{
+		if ( !Networking.IsHost ||
+			player is null ||
+			!registeredPlayers.Contains( player ) )
+		{
+			return;
+		}
+
+		PruneInvalidRegistrations();
+
+		foreach ( var passage in activeMinionPassages.ToList() )
+		{
+			passage.PreparePlayerRoleCollisionChange(
+				player,
+				oldRole,
+				newRole );
+		}
+	}
+
 	internal void RegisterRoundResettable(
 		ILargeLadRoundResettable resettable )
 	{
@@ -1306,6 +1355,9 @@ public sealed class LargeLadGameManager : Component
 
 		if ( resettable is LargeLadBarricade barricade )
 			activeBarricades.Add( barricade );
+
+		if ( resettable is LargeLadMinionPassage passage )
+			activeMinionPassages.Add( passage );
 	}
 
 	internal void UnregisterRoundResettable(
@@ -1321,6 +1373,9 @@ public sealed class LargeLadGameManager : Component
 
 		if ( resettable is LargeLadBarricade barricade )
 			activeBarricades.Remove( barricade );
+
+		if ( resettable is LargeLadMinionPassage passage )
+			activeMinionPassages.Remove( passage );
 	}
 
 	internal void AcquireSceneGameplayOwnership(
@@ -1400,6 +1455,7 @@ public sealed class LargeLadGameManager : Component
 		roundResettables.Clear();
 		registeredRoundResettables.Clear();
 		activeBarricades.Clear();
+		activeMinionPassages.Clear();
 		lobbyPlacedPlayers.Clear();
 		reportedSpawnAllocationFailures.Clear();
 	}

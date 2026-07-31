@@ -330,7 +330,9 @@ public sealed class LargeLadHud : Component
 				Screen.Width * 0.5f,
 				Screen.Height * 0.5f );
 			var meleeColor =
-				melee.LastAttackResult == LargeLadMeleeResult.BarricadeHit
+				melee.LastAttackResult is
+					LargeLadMeleeResult.BarricadeHit or
+					LargeLadMeleeResult.PassageCoverHit
 					? new Color( 1.0f, 0.72f, 0.12f )
 					: Color.White;
 

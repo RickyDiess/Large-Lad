@@ -4,7 +4,8 @@ public enum LargeLadMeleeResult
 {
 	Miss,
 	PlayerHit,
-	BarricadeHit
+	BarricadeHit,
+	PassageCoverHit
 }
 
 /// <summary>
@@ -163,6 +164,26 @@ public sealed class LargeLadMeleeCombat : Component
 			return LargeLadMeleeResult.BarricadeHit;
 		}
 
+		if ( target.MinionPassage is not null )
+		{
+			if ( !target.MinionPassage.TryApplyDamage(
+				damage,
+				out var coverDamage ) )
+			{
+				LogMeleeDebug(
+					$"{attacker.GameObject.Name} struck the cover on " +
+					$"{target.MinionPassage.GameObject.Name}, but could not " +
+					"damage it." );
+				return LargeLadMeleeResult.Miss;
+			}
+
+			LogMeleeDebug(
+				$"{attacker.GameObject.Name} damaged the cover on " +
+				$"{target.MinionPassage.GameObject.Name} for " +
+				$"{coverDamage.AppliedDamage:0.#}." );
+			return LargeLadMeleeResult.PassageCoverHit;
+		}
+
 		var victim = target.Player;
 
 		if ( victim is null )
@@ -203,12 +224,19 @@ public sealed class LargeLadMeleeCombat : Component
 	{
 		var start = controller.EyePosition;
 		var forward = controller.EyeTransform.Rotation.Forward;
-		var trace = Scene.Trace
+		var traceBuilder = Scene.Trace
 			.Ray( start, start + forward * range )
 			.Radius( System.MathF.Max( 0.0f, SwingTraceRadius ) )
 			.UseHitboxes( true )
-			.IgnoreGameObjectHierarchy( attacker.GameObject )
-			.Run();
+			.IgnoreGameObjectHierarchy( attacker.GameObject );
+
+		if ( attacker.Role == LargeLadRole.Minion )
+		{
+			traceBuilder = traceBuilder.WithoutTags(
+				LargeLadGameplayRules.MinionPassageTag );
+		}
+
+		var trace = traceBuilder.Run();
 
 		if ( trace.Hit )
 		{
@@ -223,6 +251,12 @@ public sealed class LargeLadMeleeCombat : Component
 
 			if ( directBarricade is not null && !directBarricade.IsDestroyed )
 				return MeleeTarget.ForBarricade( directBarricade );
+
+			var directPassage =
+				LargeLadMinionPassage.FindCoverFor( trace.GameObject );
+
+			if ( directPassage?.HasActiveCover == true )
+				return MeleeTarget.ForMinionPassage( directPassage );
 
 			// World geometry, friendly players, and unrelated colliders block
 			// aim assist from selecting something behind them.
@@ -304,6 +338,44 @@ public sealed class LargeLadMeleeCombat : Component
 			}
 		}
 
+		if ( LargeLadGameplayRules.CanDamageMinionPassageCover(
+			attacker.Role,
+			LargeLadDamageType.Melee ) )
+		{
+			foreach ( var passage in
+				gameManager?.ActiveMinionPassages ??
+				System.Array.Empty<LargeLadMinionPassage>() )
+			{
+				if ( passage?.HasActiveCover != true )
+					continue;
+
+				var targetPosition =
+					passage.GetClosestCoverWorldPoint( start );
+
+				if ( !TryScoreTarget(
+					start,
+					forward,
+					targetPosition,
+					range,
+					out var score ) ||
+					!HasLineOfSightToMinionPassage(
+						attacker,
+						passage,
+						start,
+						targetPosition ) )
+				{
+					continue;
+				}
+
+				if ( score < bestScore )
+				{
+					bestScore = score;
+					bestTarget =
+						MeleeTarget.ForMinionPassage( passage );
+				}
+			}
+		}
+
 		return bestTarget;
 	}
 
@@ -346,11 +418,18 @@ public sealed class LargeLadMeleeCombat : Component
 		Vector3 start,
 		Vector3 targetPosition )
 	{
-		var trace = Scene.Trace
+		var traceBuilder = Scene.Trace
 			.Ray( start, targetPosition )
 			.UseHitboxes( true )
-			.IgnoreGameObjectHierarchy( attacker.GameObject )
-			.Run();
+			.IgnoreGameObjectHierarchy( attacker.GameObject );
+
+		if ( attacker.Role == LargeLadRole.Minion )
+		{
+			traceBuilder = traceBuilder.WithoutTags(
+				LargeLadGameplayRules.MinionPassageTag );
+		}
+
+		var trace = traceBuilder.Run();
 		var hitPlayer = trace.GameObject?.Components.Get<LargeLadPlayer>(
 			FindMode.EverythingInSelfAndAncestors );
 
@@ -367,13 +446,47 @@ public sealed class LargeLadMeleeCombat : Component
 		var traceEnd = towardTarget.LengthSquared > 0.001f
 			? targetPosition + towardTarget.Normal * 4.0f
 			: targetPosition;
-		var trace = Scene.Trace
+		var traceBuilder = Scene.Trace
 			.Ray( start, traceEnd )
 			.UseHitboxes( true )
-			.IgnoreGameObjectHierarchy( attacker.GameObject )
-			.Run();
+			.IgnoreGameObjectHierarchy( attacker.GameObject );
+
+		if ( attacker.Role == LargeLadRole.Minion )
+		{
+			traceBuilder = traceBuilder.WithoutTags(
+				LargeLadGameplayRules.MinionPassageTag );
+		}
+
+		var trace = traceBuilder.Run();
 
 		return LargeLadBarricade.FindFor( trace.GameObject ) == target;
+	}
+
+	private bool HasLineOfSightToMinionPassage(
+		LargeLadPlayer attacker,
+		LargeLadMinionPassage target,
+		Vector3 start,
+		Vector3 targetPosition )
+	{
+		var towardTarget = targetPosition - start;
+		var traceEnd = towardTarget.LengthSquared > 0.001f
+			? targetPosition + towardTarget.Normal * 4.0f
+			: targetPosition;
+		var traceBuilder = Scene.Trace
+			.Ray( start, traceEnd )
+			.UseHitboxes( true )
+			.IgnoreGameObjectHierarchy( attacker.GameObject );
+
+		if ( attacker.Role == LargeLadRole.Minion )
+		{
+			traceBuilder = traceBuilder.WithoutTags(
+				LargeLadGameplayRules.MinionPassageTag );
+		}
+
+		var trace = traceBuilder.Run();
+
+		return LargeLadMinionPassage.FindCoverFor(
+			trace.GameObject ) == target;
 	}
 
 	private bool CanAttack(
@@ -445,7 +558,8 @@ public sealed class LargeLadMeleeCombat : Component
 		LastAttackResult = result;
 
 		if ( result is not (LargeLadMeleeResult.PlayerHit or
-			LargeLadMeleeResult.BarricadeHit) )
+			LargeLadMeleeResult.BarricadeHit or
+			LargeLadMeleeResult.PassageCoverHit) )
 		{
 			return;
 		}
@@ -492,6 +606,7 @@ public sealed class LargeLadMeleeCombat : Component
 	{
 		public LargeLadPlayer Player { get; private init; }
 		public LargeLadBarricade Barricade { get; private init; }
+		public LargeLadMinionPassage MinionPassage { get; private init; }
 
 		public static MeleeTarget ForPlayer( LargeLadPlayer player )
 		{
@@ -502,6 +617,12 @@ public sealed class LargeLadMeleeCombat : Component
 			LargeLadBarricade barricade )
 		{
 			return new MeleeTarget { Barricade = barricade };
+		}
+
+		public static MeleeTarget ForMinionPassage(
+			LargeLadMinionPassage passage )
+		{
+			return new MeleeTarget { MinionPassage = passage };
 		}
 	}
 }

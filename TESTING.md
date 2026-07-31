@@ -128,6 +128,39 @@ and network ownership:
    while overlapping Large Lad or another Minion, and confirm collision
    filtering never disables Rigidbody motion.
 
+## Minion passage multiplayer checklist
+
+Start a fresh session after changing `ProjectSettings/Collision.config`, because
+the project collision matrix is loaded at startup.
+
+1. Place `Large Lad/Passages/Minion Vent Opening` across each end of an ordinary
+   vent without enabling its cover. Confirm the tunnel needs no duplicate
+   role-blocking geometry. Walk a Minion through each shallow gate from both
+   directions on host and remote ownership. Confirm Skinny Kids, the Large Lad,
+   and lobby-role players remain solid.
+2. Enable the stock cover. Confirm every role is blocked while it is intact,
+   only Minion melee reduces its 50 health, and exactly two baseline Minion hits
+   destroy it. Firearms and other melee roles must neither damage nor open it.
+3. Assign distinct hit and break sounds plus optional broken presentation or a
+   gib-capable Prop. Confirm accepted hits play once for host and remote clients,
+   the final hit uses only the break hook, late joiners see the current intact or
+   broken state, and the next round restores the authored cover and closes the
+   route.
+4. After opening the cover, confirm only Minions traverse. The same opening
+   collider must remain enabled and regain `large_lad_minion_passage` on every
+   peer; the prefab must still contain only its one root collider. Reset the round and
+   confirm it loses the tag while the intact cover blocks everyone again.
+5. Change a Minion to every blocked role while it touches each edge and while it
+   overlaps the root collider. Confirm the host chooses the nearest automatically
+   calculated side, falls back to the opposite side when obstructed, and never
+   leaves the player embedded, jittering, or able to move during the
+   collision-suppressed retry fallback.
+6. Break each authored contract in turn: remove the root collider, move it to a
+   child, make it a trigger, remove the passage tag, obstruct either automatic
+   exit, change the root network mode, enable a cover without its direct visual
+   child, or add a collider beneath that child. Confirm validation names the
+   affected opening and the specific correction.
+
 ## Release inventory multiplayer checklist
 
 Use a host and at least one remote client. Author one core pickup plus two

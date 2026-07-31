@@ -288,7 +288,9 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 
 		if ( controller?.ColliderObject is not null )
 		{
-			controller.ColliderObject.Enabled = !isDead;
+			controller.ColliderObject.Enabled =
+				!isDead &&
+				player?.PassageSafetyHeld != true;
 		}
 
 		if ( controller?.Body is not null )

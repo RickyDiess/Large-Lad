@@ -1979,3 +1979,172 @@ public sealed class RoleProfileRulesTests
 				minion ).WalkSpeed );
 	}
 }
+
+[TestClass]
+public sealed class MinionPassageRulesTests
+{
+	[DataTestMethod]
+	[DataRow( LargeLadRole.Unassigned, false )]
+	[DataRow( LargeLadRole.SkinnyKid, false )]
+	[DataRow( LargeLadRole.LargeLad, false )]
+	[DataRow( LargeLadRole.Minion, true )]
+	public void Traversal_AllowsOnlyMinions(
+		LargeLadRole role,
+		bool expected )
+	{
+		Assert.AreEqual(
+			expected,
+			LargeLadGameplayRules.CanTraverseMinionPassage( role ) );
+	}
+
+	[DataTestMethod]
+	[DataRow( LargeLadRole.Unassigned, null )]
+	[DataRow( LargeLadRole.SkinnyKid, null )]
+	[DataRow( LargeLadRole.LargeLad, null )]
+	[DataRow(
+		LargeLadRole.Minion,
+		LargeLadGameplayRules.MinionBodyTag )]
+	public void SupplementaryCollisionTag_IsExclusiveToMinions(
+		LargeLadRole role,
+		string expected )
+	{
+		Assert.AreEqual(
+			expected,
+			LargeLadGameplayRules.GetSupplementaryRoleCollisionTag( role ) );
+	}
+
+	[TestMethod]
+	public void MinionRuntimeTags_PreserveHunterContactGroup()
+	{
+		var tags = new Sandbox.TagSet();
+		tags.Add( LargeLadGameplayRules.PlayerBodyTag );
+		tags.Add(
+			LargeLadGameplayRules.GetPlayerBodyCollisionTag(
+				LargeLadRole.Minion ) );
+		tags.Add(
+			LargeLadGameplayRules.GetSupplementaryRoleCollisionTag(
+				LargeLadRole.Minion ) );
+
+		Assert.IsTrue( tags.Has( LargeLadGameplayRules.PlayerBodyTag ) );
+		Assert.IsTrue( tags.Has( LargeLadGameplayRules.HunterBodyTag ) );
+		Assert.IsTrue( tags.Has( LargeLadGameplayRules.MinionBodyTag ) );
+		Assert.IsFalse(
+			tags.Has( LargeLadGameplayRules.SoftPlayerBodyTag ) );
+	}
+
+	[DataTestMethod]
+	[DataRow( false, false, true )]
+	[DataRow( false, true, true )]
+	[DataRow( true, false, false )]
+	[DataRow( true, true, true )]
+	public void SingleOpeningCollider_ChangesCoverStateWithoutChangingRoleMatrix(
+		bool coverEnabled,
+		bool coverDestroyed,
+		bool expectedOpen )
+	{
+		Assert.AreEqual(
+			expectedOpen,
+			LargeLadGameplayRules.IsMinionPassageOpen(
+				coverEnabled,
+				coverDestroyed ) );
+
+		Assert.IsFalse(
+			LargeLadGameplayRules.CanTraverseMinionPassage(
+				LargeLadRole.SkinnyKid ) );
+		Assert.IsFalse(
+			LargeLadGameplayRules.CanTraverseMinionPassage(
+				LargeLadRole.LargeLad ) );
+	}
+
+	[DataTestMethod]
+	[DataRow(
+		LargeLadRole.Minion,
+		LargeLadDamageType.Melee,
+		true )]
+	[DataRow(
+		LargeLadRole.Minion,
+		LargeLadDamageType.Firearm,
+		false )]
+	[DataRow(
+		LargeLadRole.SkinnyKid,
+		LargeLadDamageType.Melee,
+		false )]
+	[DataRow(
+		LargeLadRole.LargeLad,
+		LargeLadDamageType.Melee,
+		false )]
+	[DataRow(
+		LargeLadRole.Unassigned,
+		LargeLadDamageType.Environment,
+		false )]
+	public void CoverDamage_AcceptsOnlyMinionMelee(
+		LargeLadRole role,
+		LargeLadDamageType damageType,
+		bool expected )
+	{
+		Assert.AreEqual(
+			expected,
+			LargeLadGameplayRules.CanDamageMinionPassageCover(
+				role,
+				damageType ) );
+	}
+
+	[TestMethod]
+	public void ExitSelection_ChoosesNearestAndUsesExitAForTie()
+	{
+		var exitA = new Vector3( 0.0f, -100.0f, 0.0f );
+		var exitB = new Vector3( 0.0f, 100.0f, 0.0f );
+
+		Assert.AreEqual(
+			0,
+			LargeLadGameplayRules.GetPreferredMinionPassageExitIndex(
+				new Vector3( 0.0f, -1.0f, 0.0f ),
+				exitA,
+				exitB ) );
+		Assert.AreEqual(
+			1,
+			LargeLadGameplayRules.GetPreferredMinionPassageExitIndex(
+				new Vector3( 0.0f, 1.0f, 0.0f ),
+				exitA,
+				exitB ) );
+		Assert.AreEqual(
+			0,
+			LargeLadGameplayRules.GetPreferredMinionPassageExitIndex(
+				Vector3.Zero,
+				exitA,
+				exitB ) );
+	}
+
+	[TestMethod]
+	public void CoverDestructionGate_CommitsOnceAndRearmsOnReset()
+	{
+		var gate = new LargeLadMinionPassageCoverGate();
+
+		Assert.IsTrue( gate.TryCommitDestruction() );
+		Assert.IsFalse( gate.TryCommitDestruction() );
+		Assert.IsTrue( gate.HasCommittedDestruction );
+
+		gate.ResetForRound();
+
+		Assert.IsFalse( gate.HasCommittedDestruction );
+		Assert.IsTrue( gate.TryCommitDestruction() );
+	}
+
+	[TestMethod]
+	public void SharedPlayerGeometry_MatchesAuthoritativeController()
+	{
+		Assert.AreEqual(
+			16.0f,
+			LargeLadGameplayRules.PlayerBodyRadius );
+		Assert.AreEqual(
+			72.0f,
+			LargeLadGameplayRules.PlayerBodyHeight );
+		Assert.AreEqual(
+			50.0f,
+			LargeLadMinionPassage.DefaultCoverHealth );
+		Assert.AreEqual(
+			24.0f,
+			LargeLadMinionPassage.AutomaticExitClearance );
+	}
+
+}

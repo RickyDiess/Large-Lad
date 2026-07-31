@@ -41,6 +41,10 @@ public static class LargeLadGameplayRules
 	public const string PlayerBodyTag = "player";
 	public const string HunterBodyTag = "large_lad_hunter_body";
 	public const string SoftPlayerBodyTag = "large_lad_soft_player_body";
+	public const string MinionBodyTag = "large_lad_minion_body";
+	public const string MinionPassageTag = "large_lad_minion_passage";
+	public const float PlayerBodyRadius = 16.0f;
+	public const float PlayerBodyHeight = 72.0f;
 	public const float SoftPlayerSeparationRadius = 28.0f;
 	public const float SoftPlayerSeparationHeight = 72.0f;
 	public const float SoftPlayerBaseMaximumSeparationSpeed = 42.0f;
@@ -59,6 +63,53 @@ public static class LargeLadGameplayRules
 		return IsHunterRole( role )
 			? HunterBodyTag
 			: SoftPlayerBodyTag;
+	}
+
+	/// <summary>
+	/// Minions retain the shared Hunter tag for player contact and receive this
+	/// additional tag solely for focused Minion-passage filtering.
+	/// </summary>
+	public static string GetSupplementaryRoleCollisionTag(
+		LargeLadRole role )
+	{
+		return role == LargeLadRole.Minion
+			? MinionBodyTag
+			: null;
+	}
+
+	public static bool CanTraverseMinionPassage( LargeLadRole role )
+	{
+		return role == LargeLadRole.Minion;
+	}
+
+	public static bool CanDamageMinionPassageCover(
+		LargeLadRole attackerRole,
+		LargeLadDamageType damageType )
+	{
+		return attackerRole == LargeLadRole.Minion &&
+			damageType == LargeLadDamageType.Melee;
+	}
+
+	public static bool IsMinionPassageOpen(
+		bool coverEnabled,
+		bool coverDestroyed )
+	{
+		return !coverEnabled || coverDestroyed;
+	}
+
+	/// <summary>
+	/// Returns zero for Exit A and one for Exit B. Exit A wins exact ties so
+	/// every peer and retry makes the same initial choice.
+	/// </summary>
+	public static int GetPreferredMinionPassageExitIndex(
+		Vector3 playerPosition,
+		Vector3 exitAPosition,
+		Vector3 exitBPosition )
+	{
+		return playerPosition.DistanceSquared( exitAPosition ) <=
+			playerPosition.DistanceSquared( exitBPosition )
+				? 0
+				: 1;
 	}
 
 	/// <summary>

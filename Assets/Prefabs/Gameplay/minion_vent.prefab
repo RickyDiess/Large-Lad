@@ -1,0 +1,163 @@
+{
+  "RootObject": {
+    "__guid": "8a400001-0000-4000-8000-000000000001",
+    "__version": 2,
+    "Flags": 32768,
+    "Name": "minion_vent",
+    "Position": "0,0,0",
+    "Rotation": "0,0,0,1",
+    "Scale": "1,1,1",
+    "Tags": "world,large_lad_minion_passage",
+    "Enabled": true,
+    "NetworkMode": 1,
+    "NetworkFlags": 0,
+    "NetworkOrphaned": 0,
+    "NetworkTransmit": true,
+    "OwnerTransfer": 1,
+    "Components": [
+      {
+        "__type": "Sandbox.BoxCollider",
+        "__guid": "8a400001-0000-4000-8000-000000000002",
+        "__enabled": true,
+        "Flags": 0,
+        "Center": "-4,0,40",
+        "ColliderFlags": 0,
+        "Elasticity": null,
+        "Friction": 0,
+        "IsTrigger": false,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "OnObjectTriggerEnter": null,
+        "OnObjectTriggerExit": null,
+        "OnTriggerEnter": null,
+        "OnTriggerExit": null,
+        "RollingResistance": null,
+        "Scale": "8,64,80",
+        "Static": true,
+        "Surface": null,
+        "SurfaceVelocity": "0,0,0"
+      },
+      {
+        "__type": "LargeLadMinionPassage",
+        "__guid": "8a400001-0000-4000-8000-000000000003",
+        "__enabled": true,
+        "Flags": 0,
+        "BaseCoverHealth": 50,
+        "BrokenCoverVisual": null,
+        "CoverBreakSound": null,
+        "CoverHitSound": null,
+        "CoverProp": null,
+        "CoverRoot": {
+          "_type": "gameobject",
+          "go": "cd746e02-03bb-40f2-af6f-9150faf5ef28"
+        },
+        "EnableBreakableCover": true,
+        "GizmoPadding": 2,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "OpeningCollider": {
+          "_type": "component",
+          "component_id": "8a400001-0000-4000-8000-000000000002",
+          "go": "8a400001-0000-4000-8000-000000000001",
+          "component_type": "BoxCollider"
+        }
+      }
+    ],
+    "Children": [
+      {
+        "__guid": "cd746e02-03bb-40f2-af6f-9150faf5ef28",
+        "__version": 2,
+        "Flags": 0,
+        "Name": "Destroyable Vent Cover",
+        "Position": "-4,0,40",
+        "Rotation": "0,0,0,1",
+        "Scale": "1,1,1",
+        "Tags": "",
+        "Enabled": true,
+        "NetworkMode": 2,
+        "NetworkFlags": 0,
+        "NetworkOrphaned": 0,
+        "NetworkTransmit": true,
+        "OwnerTransfer": 1,
+        "Components": [
+          {
+            "__type": "Sandbox.MeshComponent",
+            "__guid": "f5515e8f-08a5-4f1c-a0f8-554664007b6f",
+            "__enabled": true,
+            "Flags": 0,
+            "ColliderFlags": 0,
+            "Collision": "None",
+            "Color": "1,1,1,1",
+            "Elasticity": null,
+            "Friction": null,
+            "HideInGame": false,
+            "IsTrigger": false,
+            "Mesh": {
+              "Data": "AQAAAAcAAAAIAAAAdG9wb2xvZ3nEAQAACAAAABgAAAAGAAAAAAAAAAIAAAAEAAAABgAAAAgAAAAKAAAADAAAAA4AAAABAAAAAQAAAAIAAAAAAAAAAAAAAAAAAAARAAAABQAAAAIAAAADAAAABAAAAAAAAAABAAAAAgAAABQAAAADAAAAAwAAAAUAAAAGAAAAAAAAAAIAAAAEAAAAFwAAAAQAAAAAAAAABwAAAAAAAAAAAAAAAwAAAAYAAAASAAAAAgAAAAUAAAAJAAAACgAAAAEAAAAEAAAACAAAABMAAAAEAAAABgAAAAsAAAAMAAAAAQAAAAUAAAAKAAAAFgAAAAMAAAAHAAAADQAAAA4AAAABAAAABgAAAAwAAAAVAAAABQAAAAQAAAAPAAAACAAAAAEAAAAHAAAADgAAABAAAAACAAAAAAAAABEAAAAHAAAAAgAAAAcAAAAQAAAADQAAAAUAAAAEAAAAEwAAAA8AAAACAAAAAwAAABIAAAAFAAAABAAAAAYAAAAVAAAACwAAAAMAAAABAAAAFAAAAAEAAAAFAAAAAgAAABcAAAADAAAAAwAAAAUAAAAWAAAACQAAAAQAAAAGAAAADgAAABIAAAAWAAAAFwAAABUAAAAJAAAAcG9zaXRpb25zYAAAAAAAgMAAAADCAAAgQgAAgEAAAADCAAAgQgAAgEAAAABCAAAgQgAAgMAAAABCAAAgQgAAgMAAAABCAAAgwgAAgEAAAABCAAAgwgAAgEAAAADCAAAgwgAAgMAAAADCAAAgwgYAAABibGVuZHNgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABgAAAGNvbG9yc2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAdGV4Y29vcmTAAAAAAAAAAAAAgD0AAIC8AAAgvgAAAAAAAIC9AAAAAAAAAAAAAIC8AACAvQAAAAAAACC+AACAvAAAgD0AAAAAAAAAAAAAAAAAAIC9AACAPAAAAAAAAAAAAACAPQAAgD8AAIA/AACAvAAAgD0AAAAAAAAAAAAAgLwAAIC9AACAPwAAgD8AAIA/AAAAAAAAgLwAAAAAAAAAAAAAgD8AAIA8AAAgvgAAAAAAAIA/AAAAAAAAIL4AAIA/AAAAAAAAAAAAAAAADQAAAG1hdGVyaWFsaW5kZXgYAAAAAAAAAAAAAAABAAAAAQAAAAAAAAAAAAAACQAAAGVkZ2VmbGFnc2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+              "Materials": [
+                "materials/trimsheets/metal/metal_trim_01.vmat",
+                "half life 2 rtx/materials/metal/m_metal_vent_012a/m_metalvent012a.vmat"
+              ]
+            },
+            "OnComponentDestroy": null,
+            "OnComponentDisabled": null,
+            "OnComponentEnabled": null,
+            "OnComponentFixedUpdate": null,
+            "OnComponentStart": null,
+            "OnComponentUpdate": null,
+            "OnObjectTriggerEnter": null,
+            "OnObjectTriggerExit": null,
+            "OnTriggerEnter": null,
+            "OnTriggerExit": null,
+            "RenderType": "On",
+            "RollingResistance": null,
+            "SmoothingAngle": 40,
+            "Static": true,
+            "Surface": null,
+            "SurfaceVelocity": "0,0,0"
+          }
+        ],
+        "Children": []
+      }
+    ],
+    "__properties": {
+      "NetworkInterpolation": true,
+      "TimeScale": 1,
+      "WantsSystemScene": true,
+      "Metadata": {},
+      "NavMesh": {
+        "Enabled": false,
+        "IncludeStaticBodies": true,
+        "IncludeKeyframedBodies": true,
+        "EditorAutoUpdate": false,
+        "AgentHeight": 64,
+        "AgentRadius": 16,
+        "AgentStepSize": 18,
+        "AgentMaxSlope": 40,
+        "ExcludedBodies": "",
+        "IncludedBodies": "",
+        "DeferGeneration": false,
+        "CustomBounds": false
+      }
+    },
+    "__variables": []
+  },
+  "ResourceVersion": 2,
+  "ShowInMenu": true,
+  "MenuPath": "Large Lad/Passages/Minion Vent Opening",
+  "MenuIcon": "air",
+  "DontBreakAsTemplate": true,
+  "__references": [
+    "facepunch.metal_trim_01#274119",
+    "twothieves.mmetalvent012a#159244"
+  ],
+  "__version": 2
+}
