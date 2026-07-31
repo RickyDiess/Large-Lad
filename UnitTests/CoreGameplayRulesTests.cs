@@ -1309,50 +1309,58 @@ public sealed class SpawnRulesTests
 public sealed class BarricadeRulesTests
 {
 	[TestMethod]
-	public void SkinnyProgression_AllowsOnlySkinnyKidWeapons()
+	public void EveryModeRoleAndDamageType_AllowsOnlyMatchingRoleMelee()
 	{
-		foreach ( var role in System.Enum.GetValues<LargeLadRole>() )
+		foreach ( var mode in
+			System.Enum.GetValues<LargeLadBarricadeMode>() )
 		{
-			foreach ( var damageType in
-				System.Enum.GetValues<LargeLadDamageType>() )
+			foreach ( var role in System.Enum.GetValues<LargeLadRole>() )
 			{
-				var expected =
-					role == LargeLadRole.SkinnyKid &&
-					damageType is LargeLadDamageType.Firearm or
-						LargeLadDamageType.Melee;
+				foreach ( var damageType in
+					System.Enum.GetValues<LargeLadDamageType>() )
+				{
+					var expected =
+						damageType == LargeLadDamageType.Melee &&
+						(mode, role) is
+							(
+								LargeLadBarricadeMode.SkinnyProgression,
+								LargeLadRole.SkinnyKid
+							) or
+							(
+								LargeLadBarricadeMode.LadShortcut,
+								LargeLadRole.LargeLad
+							);
 
-				Assert.AreEqual(
-					expected,
-					LargeLadGameplayRules.CanDamageBarricade(
-						LargeLadBarricadeMode.SkinnyProgression,
-						role,
-						damageType ),
-					$"{role} using {damageType}" );
+					Assert.AreEqual(
+						expected,
+						LargeLadGameplayRules.CanDamageBarricade(
+							mode,
+							role,
+							damageType ),
+						$"{mode}: {role} using {damageType}" );
+				}
 			}
 		}
 	}
 
 	[TestMethod]
-	public void LadShortcut_AllowsOnlyLargeLadMelee()
+	public void UnknownRuleInputs_FailClosed()
 	{
-		foreach ( var role in System.Enum.GetValues<LargeLadRole>() )
-		{
-			foreach ( var damageType in
-				System.Enum.GetValues<LargeLadDamageType>() )
-			{
-				var expected =
-					role == LargeLadRole.LargeLad &&
-					damageType == LargeLadDamageType.Melee;
-
-				Assert.AreEqual(
-					expected,
-					LargeLadGameplayRules.CanDamageBarricade(
-						LargeLadBarricadeMode.LadShortcut,
-						role,
-						damageType ),
-					$"{role} using {damageType}" );
-			}
-		}
+		Assert.IsFalse(
+			LargeLadGameplayRules.CanDamageBarricade(
+				(LargeLadBarricadeMode)(-1),
+				LargeLadRole.LargeLad,
+				LargeLadDamageType.Melee ) );
+		Assert.IsFalse(
+			LargeLadGameplayRules.CanDamageBarricade(
+				LargeLadBarricadeMode.SkinnyProgression,
+				(LargeLadRole)(-1),
+				LargeLadDamageType.Melee ) );
+		Assert.IsFalse(
+			LargeLadGameplayRules.CanDamageBarricade(
+				LargeLadBarricadeMode.SkinnyProgression,
+				LargeLadRole.SkinnyKid,
+				(LargeLadDamageType)(-1) ) );
 	}
 }
 

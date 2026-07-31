@@ -113,11 +113,14 @@ points.
 
 The two presets are:
 
-- `Skinny Progression Barricade`: 300 health; Skinny Kid melee and firearms
-  damage it. This lets maps place the first firearms beyond an opening melee
-  barricade.
+- `Skinny Progression Barricade`: 300 health; only Skinny Kid melee damages it.
+  This lets maps place the first firearms beyond an opening melee barricade
+  without allowing those firearms to break later progression barricades.
 - `Lad Shortcut Barricade`: 300 health; only Large Lad melee damages it.
   Minions can use the route after it opens but cannot open it.
+
+Firearms, Minion melee, environmental damage, and unrelated damage types do not
+damage either gameplay barricade preset.
 
 A barricade is one self-contained GameObject using Network Mode `Object`. Its
 visible mesh or renderer, collision, and `LargeLadBarricade` component all live

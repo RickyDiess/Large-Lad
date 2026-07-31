@@ -322,15 +322,20 @@ public static class LargeLadGameplayRules
 		LargeLadRole attackerRole,
 		LargeLadDamageType damageType )
 	{
-		if ( mode == LargeLadBarricadeMode.SkinnyProgression )
+		return (mode, attackerRole, damageType) switch
 		{
-			return attackerRole == LargeLadRole.SkinnyKid &&
-				damageType is LargeLadDamageType.Firearm or
-					LargeLadDamageType.Melee;
-		}
-
-		return attackerRole == LargeLadRole.LargeLad &&
-			damageType == LargeLadDamageType.Melee;
+			(
+				LargeLadBarricadeMode.SkinnyProgression,
+				LargeLadRole.SkinnyKid,
+				LargeLadDamageType.Melee
+			) => true,
+			(
+				LargeLadBarricadeMode.LadShortcut,
+				LargeLadRole.LargeLad,
+				LargeLadDamageType.Melee
+			) => true,
+			_ => false
+		};
 	}
 
 	public static LargeLadRoleProfile SelectRoleProfile(
