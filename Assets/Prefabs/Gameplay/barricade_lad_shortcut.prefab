@@ -62,14 +62,6 @@
           "go": "8a200002-0000-4000-8000-000000000001",
           "component_type": "MeshComponent"
         },
-        "BarricadeRenderer": {
-          "_type": "component",
-          "component_id": "eb0ff2f8-c5e7-4696-90f4-d70a26365517",
-          "go": "8a200002-0000-4000-8000-000000000001",
-          "component_type": "MeshComponent"
-        },
-        "CosmeticDebris": [],
-        "CosmeticDebrisLifetime": 1.5,
         "GizmoPadding": 2,
         "BaseMaximumHealth": 300,
         "Mode": "LadShortcut",

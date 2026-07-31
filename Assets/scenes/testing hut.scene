@@ -1889,14 +1889,6 @@
                     "go": "a479d39d-d686-4bc4-a647-039a8b394d7a",
                     "component_type": "MeshComponent"
                   },
-                  "BarricadeRenderer": {
-                    "_type": "component",
-                    "component_id": "d99fc79e-0f09-4b9d-99f8-b8cb201377db",
-                    "go": "a479d39d-d686-4bc4-a647-039a8b394d7a",
-                    "component_type": "MeshComponent"
-                  },
-                  "CosmeticDebris": [],
-                  "CosmeticDebrisLifetime": 1.5,
                   "GizmoPadding": 2,
                   "BaseMaximumHealth": 300,
                   "Mode": "LadShortcut",
@@ -1974,14 +1966,6 @@
                     "go": "db8975cf-77e9-4d98-acf7-a574d2e02315",
                     "component_type": "MeshComponent"
                   },
-                  "BarricadeRenderer": {
-                    "_type": "component",
-                    "component_id": "57601fa2-57e4-4492-9963-ea1cf3f29390",
-                    "go": "db8975cf-77e9-4d98-acf7-a574d2e02315",
-                    "component_type": "MeshComponent"
-                  },
-                  "CosmeticDebris": [],
-                  "CosmeticDebrisLifetime": 1.5,
                   "GizmoPadding": 2,
                   "BaseMaximumHealth": 300,
                   "Mode": "SkinnyProgression",

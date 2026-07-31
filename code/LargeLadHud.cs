@@ -39,6 +39,7 @@ public sealed class LargeLadHud : Component
 
 		DrawRoundStatus( hud, round, player );
 		DrawLargeLadStatus( hud, round );
+		DrawBarricadeDestructionAnnouncement( hud, round );
 		DrawRoleStatus( hud, player );
 		DrawWeaponStatus( hud, player );
 		DrawPickupFeedback( hud, player );
@@ -108,6 +109,29 @@ public sealed class LargeLadHud : Component
 			16.0f,
 			accent,
 			new Vector2( centerX, 82.0f ),
+			TextFlag.Center );
+	}
+
+	private static void DrawBarricadeDestructionAnnouncement(
+		HudPainter hud,
+		LargeLadGameManager round )
+	{
+		if ( !round.HasBarricadeDestructionAnnouncement ||
+			string.IsNullOrWhiteSpace(
+				round.BarricadeDestructionAnnouncement ) )
+		{
+			return;
+		}
+
+		var centerX = Screen.Width * 0.5f;
+		var panel = new Rect( centerX - 235.0f, 168.0f, 470.0f, 48.0f );
+		var accent = new Color( 0.25f, 0.85f, 1.0f );
+		DrawPanel( hud, panel, accent );
+		hud.DrawText(
+			round.BarricadeDestructionAnnouncement,
+			17.0f,
+			Color.White,
+			panel.Center,
 			TextFlag.Center );
 	}
 

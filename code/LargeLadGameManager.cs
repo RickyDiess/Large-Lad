@@ -25,6 +25,7 @@ public sealed class LargeLadGameManager : Component
 {
 	public const int MinimumSupportedPlayerCount = 2;
 	public const int TargetPlayerCount = 32;
+	private const float BarricadeAnnouncementDuration = 3.5f;
 
 	[Property]
 	public int MinimumPlayers { get; set; } = MinimumSupportedPlayerCount;
@@ -91,6 +92,16 @@ public sealed class LargeLadGameManager : Component
 	[Sync( SyncFlags.FromHost )]
 	public int SkinnyKidCountAtRoundStart { get; private set; }
 
+	public bool HasBarricadeDestructionAnnouncement =>
+		!string.IsNullOrWhiteSpace( barricadeDestructionAnnouncement ) &&
+		timeSinceBarricadeDestructionAnnouncement <
+			BarricadeAnnouncementDuration;
+
+	public string BarricadeDestructionAnnouncement =>
+		HasBarricadeDestructionAnnouncement
+			? barricadeDestructionAnnouncement
+			: null;
+
 	public float PhaseTimeRemaining =>
 		Phase == LargeLadRoundPhase.WaitingForPlayers
 			? 0.0f
@@ -144,6 +155,44 @@ public sealed class LargeLadGameManager : Component
 			mapSpecificMultiplier );
 	}
 
+	internal bool PublishBarricadeDestructionAnnouncement(
+		bool announcementEnabled,
+		LargeLadBarricadeMode mode,
+		string mapperDisplayName )
+	{
+		if ( !Networking.IsHost )
+			return false;
+
+		var message =
+			LargeLadBarricadeStageRules.CreateDestructionAnnouncement(
+				announcementEnabled,
+				mode,
+				mapperDisplayName );
+
+		if ( string.IsNullOrWhiteSpace( message ) )
+			return false;
+
+		ReceiveBarricadeDestructionAnnouncement( message );
+		BroadcastBarricadeDestructionAnnouncement( message );
+		return true;
+	}
+
+	[Rpc.Broadcast]
+	private void BroadcastBarricadeDestructionAnnouncement( string message )
+	{
+		// The host applied it before issuing the one broadcast.
+		if ( Networking.IsHost )
+			return;
+
+		ReceiveBarricadeDestructionAnnouncement( message );
+	}
+
+	private void ReceiveBarricadeDestructionAnnouncement( string message )
+	{
+		barricadeDestructionAnnouncement = message;
+		timeSinceBarricadeDestructionAnnouncement = 0.0f;
+	}
+
 	private int nextLargeLadIndex;
 	private int waitingPlayerCount = -1;
 	private float playerReadyTimeRemaining;
@@ -153,6 +202,8 @@ public sealed class LargeLadGameManager : Component
 	private bool hasSceneGameplayOwnership;
 	private Scene registeredScene;
 	private LargeLadPlayer currentLargeLad;
+	private string barricadeDestructionAnnouncement;
+	private TimeSince timeSinceBarricadeDestructionAnnouncement;
 	private readonly List<LargeLadPlayer> activePlayers = new();
 	private readonly HashSet<LargeLadPlayer> registeredPlayers = new();
 	private readonly Dictionary<LargeLadRole, List<LargeLadPlayer>> playersByRole =
@@ -567,16 +618,23 @@ public sealed class LargeLadGameManager : Component
 			Scene?.GetAllComponents<LargeLadBarricade>() ??
 			Enumerable.Empty<LargeLadBarricade>() )
 		{
-			if ( !barricade.HasVisibleGeometry || !barricade.HasCollision )
+			if ( !barricade.HasCollision )
 			{
 				issues.Add(
-					$"Barricade '{barricade.GameObject.Name}' needs rendering and collision." );
+					$"Barricade '{barricade.GameObject.Name}' needs an " +
+					"authoritative blocking collider." );
 			}
 
 			if ( barricade.GameObject.NetworkMode != NetworkMode.Object )
 			{
 				issues.Add(
 					$"Barricade '{barricade.GameObject.Name}' must use Network Mode Object." );
+			}
+
+			foreach ( var warning in barricade.GetValidationWarnings() )
+			{
+				issues.Add(
+					$"Barricade '{barricade.GameObject.Name}': {warning}" );
 			}
 		}
 

@@ -122,10 +122,13 @@ The two presets are:
 Firearms, Minion melee, environmental damage, and unrelated damage types do not
 damage either gameplay barricade preset.
 
-A barricade is one self-contained GameObject using Network Mode `Object`. Its
-visible mesh or renderer, collision, and `LargeLadBarricade` component all live
-on that same object. Health and destruction synchronize directly on the
-component; there is no network-state child or external controller.
+A barricade has one authoritative root GameObject using Network Mode `Object`.
+The `LargeLadBarricade` component, health, damage acceptance, and one blocking
+collider live on that root. The default remains a single renderer/collider
+barricade with no stages. The root may instead be a headless controller with
+mapper-authored visuals beneath it. An optional compound barricade automatically
+treats each direct child GameObject as one breakable piece without adding
+another health or destruction owner.
 
 For a custom Scene Mapping barrier:
 
@@ -135,10 +138,48 @@ For a custom Scene Mapping barrier:
 4. Set Network Mode to `Object`.
 5. Choose `SkinnyProgression` or `LadShortcut`.
 
-The component automatically uses a same-object `MeshComponent`, or a
-same-object renderer and collider. Destruction disables rendering and collision
-on every client. Round reset restores both. Optional local cosmetic debris may
-be assigned in the component without adding networked physics debris.
+The component automatically uses a same-object `MeshComponent` or collider as
+the authoritative blocker. There is no renderer assignment: same-object mesh
+and renderer components are detected internally for the legacy simple
+workflow, while a generic compound prefab can keep its controller root
+headless. Destruction announcements are off by default. A mapper may opt in on
+a `SkinnyProgression` barricade with Announce Destruction, then provide the
+required short Display Name. Final destruction broadcasts only
+`<Display Name> destroyed.` It never adds a position, direction, route, marker,
+outline, or other world-location detail. `LadShortcut` barricades and unrelated
+breakable or decorative objects never use this announcement.
+
+For an optional compound barricade:
+
+1. Keep the authoritative blocker assigned to `BarricadeCollider`.
+2. Put each breakable piece in its own direct child GameObject. Their hierarchy
+   order is their break order. Nested objects are part of their nearest direct
+   child piece.
+3. Give each gib-producing child a `Prop` component and a model with authored
+   gibs. A renderer-only child is still removed at its break point, but cannot
+   generate model gibs.
+4. Add cumulative Compound Stages and give each one a unique Remaining Health
+   Fraction strictly between 0 and 1. Fractions are used so round health scaling
+   does not move the visual break points.
+5. Set Child Objects To Break to the number of next intact direct children that
+   stage should destroy. Any children still intact are destroyed at zero health.
+
+All child objects, props, and rigidbodies are frozen automatically while intact.
+When a stage or final destruction reaches a child, the host creates its model
+gibs and the authored child disappears immediately. The authored child itself
+is retained invisibly so round reset can restore it; it never becomes a loose,
+fully networked physics crate. The authoritative blocker remains solid through
+all ordinary stages and is disabled at zero health. Opening passage before zero
+requires the separate Enable Early Passage option plus its own valid Remaining
+Health Fraction; leaving that option off cannot open passage accidentally.
+Missing or duplicate stage thresholds, negative child counts, excessive stage
+counts, and gib-producing children without a `Prop` are map-validation errors.
+
+Round reset restores the authored health, blocker state, child enabled states,
+local transforms, static/anchored/physics-motion state, and active-stage count.
+`AuthoritativeDestroyed` is a host-only, once-per-round event that future
+spawn-stage code can subscribe to without putting spawn behavior in the
+barricade.
 
 ## Pickups and hazards
 
@@ -208,8 +249,9 @@ the Large Lad respawn timer.
 - At least one team-spawn component exists for each group.
 - Configured capacities meet 32 Lobby, 31 Skinny Kid, and 32 Hunter.
 - Spawn circles produce clear floor positions and do not cross walls.
-- Every barricade has same-object rendering and collision and uses Network Mode
-  `Object`.
+- Every barricade has an authoritative root collider, uses Network Mode
+  `Object`, and keeps compound `Prop` pieces as direct children in their break
+  order. Root rendering is optional.
 - Every weapon pickup has a deliberate per-instance policy, visible model, and
   trigger collider; exclusive pickups use Network Mode `Object`.
 - Every kill volume has a trigger collider.

@@ -1362,6 +1362,139 @@ public sealed class BarricadeRulesTests
 				LargeLadRole.SkinnyKid,
 				(LargeLadDamageType)(-1) ) );
 	}
+
+	[TestMethod]
+	public void CompoundStages_RejectMissingAndDuplicateThresholds()
+	{
+		var warnings = LargeLadBarricadeStageRules.GetThresholdWarnings(
+			new[] { 0.75f, -1.0f, 0.75f } );
+		var combined = string.Join( "\n", warnings );
+
+		StringAssert.Contains( combined, "Stage 2 is missing" );
+		StringAssert.Contains( combined, "Stage 3 duplicates stage 1" );
+	}
+
+	[TestMethod]
+	public void CompoundStages_ActivateCumulativelyAcrossDamageJump()
+	{
+		var thresholds = new[] { 0.25f, 0.75f, 0.5f };
+
+		Assert.AreEqual(
+			0,
+			LargeLadBarricadeStageRules.GetActiveStageCount(
+				currentHealth: 100.0f,
+				maximumHealth: 100.0f,
+				thresholds ) );
+		Assert.AreEqual(
+			2,
+			LargeLadBarricadeStageRules.GetActiveStageCount(
+				currentHealth: 40.0f,
+				maximumHealth: 100.0f,
+				thresholds ) );
+		Assert.AreEqual(
+			3,
+			LargeLadBarricadeStageRules.GetActiveStageCount(
+				currentHealth: 0.0f,
+				maximumHealth: 100.0f,
+				thresholds ) );
+	}
+
+	[TestMethod]
+	public void CompoundStages_BreakNextChildrenCumulativelyAndClampToHierarchy()
+	{
+		var childBreakCounts = new[] { 2, 1, 4 };
+
+		Assert.AreEqual(
+			0,
+			LargeLadBarricadeStageRules.GetCumulativeChildBreakCount(
+				activeStageCount: 0,
+				totalChildCount: 5,
+				childBreakCounts ) );
+		Assert.AreEqual(
+			3,
+			LargeLadBarricadeStageRules.GetCumulativeChildBreakCount(
+				activeStageCount: 2,
+				totalChildCount: 5,
+				childBreakCounts ) );
+		Assert.AreEqual(
+			5,
+			LargeLadBarricadeStageRules.GetCumulativeChildBreakCount(
+				activeStageCount: 3,
+				totalChildCount: 5,
+				childBreakCounts ),
+			"Stages cannot break beyond the automatically captured children." );
+	}
+
+	[TestMethod]
+	public void BlockingCollider_OpensEarlyOnlyThroughExplicitOption()
+	{
+		Assert.IsFalse(
+			LargeLadBarricadeStageRules.ShouldOpenPassage(
+				isDestroyed: false,
+				stagedPassageEnabled: false,
+				stagedPassageHealthFraction: 0.5f,
+				currentHealth: 25.0f,
+				maximumHealth: 100.0f ) );
+		Assert.IsTrue(
+			LargeLadBarricadeStageRules.ShouldOpenPassage(
+				isDestroyed: false,
+				stagedPassageEnabled: true,
+				stagedPassageHealthFraction: 0.5f,
+				currentHealth: 25.0f,
+				maximumHealth: 100.0f ) );
+		Assert.IsTrue(
+			LargeLadBarricadeStageRules.ShouldOpenPassage(
+				isDestroyed: true,
+				stagedPassageEnabled: false,
+				stagedPassageHealthFraction: -1.0f,
+				currentHealth: 0.0f,
+				maximumHealth: 100.0f ) );
+	}
+
+	[TestMethod]
+	public void DestructionEvent_CommitsOnceAndResetRearmsNextRound()
+	{
+		var gate = new LargeLadBarricadeDestructionGate();
+
+		Assert.IsTrue( gate.TryCommitDestruction() );
+		Assert.IsFalse(
+			gate.TryCommitDestruction(),
+			"The same final-destruction edge cannot fire twice." );
+
+		gate.ResetForRound();
+
+		Assert.IsFalse( gate.HasCommittedDestruction );
+		Assert.IsTrue(
+			gate.TryCommitDestruction(),
+			"Round reset must rearm exactly one destruction edge." );
+	}
+
+	[TestMethod]
+	public void Announcement_IsConciseAndSkinnyProgressionOnly()
+	{
+		Assert.AreEqual(
+			"Gymnasium Doors destroyed.",
+			LargeLadBarricadeStageRules.CreateDestructionAnnouncement(
+				announcementEnabled: true,
+				LargeLadBarricadeMode.SkinnyProgression,
+				"  Gymnasium   Doors  " ) );
+		Assert.IsNull(
+			LargeLadBarricadeStageRules.CreateDestructionAnnouncement(
+				announcementEnabled: true,
+				LargeLadBarricadeMode.LadShortcut,
+				"Vent Cover" ) );
+		Assert.IsNull(
+			LargeLadBarricadeStageRules.CreateDestructionAnnouncement(
+				announcementEnabled: true,
+				LargeLadBarricadeMode.SkinnyProgression,
+				" " ) );
+		Assert.IsNull(
+			LargeLadBarricadeStageRules.CreateDestructionAnnouncement(
+				announcementEnabled: false,
+				LargeLadBarricadeMode.SkinnyProgression,
+				"Gymnasium Doors" ),
+			"Mapper announcements must remain off unless explicitly enabled." );
+	}
 }
 
 [TestClass]
