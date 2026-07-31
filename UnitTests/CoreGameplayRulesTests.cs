@@ -675,20 +675,378 @@ public sealed class PlayerCollisionRulesTests
 	}
 
 	[TestMethod]
-	public void SoftCollision_ResponsePreservesExplicitImpulseAndVerticalSpeed()
+	public void SoftCollision_RepeatedCoincidentTicksRemainBounded()
 	{
-		var currentVelocity = new Vector3( 120.0f, -30.0f, 250.0f );
-		var separationVelocity = new Vector3( -20.0f, 10.0f, 0.0f );
-		var result =
-			LargeLadGameplayRules.AddSoftPlayerSeparationVelocity(
-				currentVelocity,
-				separationVelocity,
-				deltaTime: 1.0f / 60.0f );
+		const int fixedTicks = 120;
+		const float fixedDelta = 1.0f / 60.0f;
+		var leftVelocity = Vector3.Zero;
+		var rightVelocity = Vector3.Zero;
+		var leftCorrection = Vector3.Zero;
+		var rightCorrection = Vector3.Zero;
+		var leftTarget =
+			LargeLadGameplayRules.GetSoftPlayerSeparationVelocity(
+				Vector3.Zero,
+				Vector3.Zero,
+				usePositiveXWhenCoincident: true );
+		var rightTarget =
+			LargeLadGameplayRules.GetSoftPlayerSeparationVelocity(
+				Vector3.Zero,
+				Vector3.Zero,
+				usePositiveXWhenCoincident: false );
 
-		Assert.IsTrue( result.x < currentVelocity.x );
-		Assert.IsTrue( result.x > 0.0f );
-		Assert.IsTrue( result.y > currentVelocity.y );
-		Assert.AreEqual( currentVelocity.z, result.z, 0.001f );
+		for ( var tick = 0; tick < fixedTicks; tick++ )
+		{
+			var leftResult =
+				LargeLadGameplayRules.ResolveSoftPlayerSeparation(
+					leftVelocity,
+					leftCorrection,
+					leftTarget,
+					fixedDelta );
+			var rightResult =
+				LargeLadGameplayRules.ResolveSoftPlayerSeparation(
+					rightVelocity,
+					rightCorrection,
+					rightTarget,
+					fixedDelta );
+			leftVelocity = leftResult.Velocity;
+			rightVelocity = rightResult.Velocity;
+			leftCorrection = leftResult.AppliedCorrection;
+			rightCorrection = rightResult.AppliedCorrection;
+
+			Assert.IsTrue(
+				leftCorrection.Length <=
+					LargeLadGameplayRules
+						.SoftPlayerMaximumSeparationSpeed + 0.001f,
+				$"left correction exceeded the cap on tick {tick}" );
+			Assert.IsTrue(
+				rightCorrection.Length <=
+					LargeLadGameplayRules
+						.SoftPlayerMaximumSeparationSpeed + 0.001f,
+				$"right correction exceeded the cap on tick {tick}" );
+			AssertVectorEqual(
+				leftCorrection,
+				leftVelocity,
+				0.001f );
+			AssertVectorEqual(
+				rightCorrection,
+				rightVelocity,
+				0.001f );
+			AssertVectorEqual(
+				leftCorrection,
+				-rightCorrection,
+				0.001f );
+		}
+	}
+
+	[TestMethod]
+	public void SoftCollision_CrowdTargetsCombineThenRemainCapped()
+	{
+		const int fixedTicks = 120;
+		const float fixedDelta = 1.0f / 60.0f;
+		var playerPosition = Vector3.Zero;
+		var neighborPositions = new[]
+		{
+			new Vector3( 1.0f, 0.0f, 0.0f ),
+			new Vector3( 3.0f, 1.0f, 0.0f ),
+			new Vector3( 5.0f, -1.0f, 0.0f ),
+			new Vector3( 7.0f, 0.5f, 0.0f )
+		};
+		var combinedTarget = Vector3.Zero;
+
+		foreach ( var neighborPosition in neighborPositions )
+		{
+			combinedTarget +=
+				LargeLadGameplayRules.GetSoftPlayerSeparationVelocity(
+					playerPosition,
+					neighborPosition,
+					usePositiveXWhenCoincident: true );
+		}
+
+		Assert.IsTrue(
+			combinedTarget.x < 0.0f,
+			"neighbors on the right should combine into a leftward target" );
+		Assert.IsTrue(
+			combinedTarget.Length >
+				LargeLadGameplayRules.SoftPlayerMaximumSeparationSpeed );
+
+		var boundedTarget =
+			LargeLadGameplayRules.ClampSoftPlayerSeparationVelocity(
+				combinedTarget );
+		Assert.AreEqual(
+			LargeLadGameplayRules.SoftPlayerMaximumSeparationSpeed,
+			boundedTarget.Length,
+			0.001f );
+		Assert.AreEqual( 0.0f, boundedTarget.z, 0.001f );
+
+		var velocity = Vector3.Zero;
+		var correction = Vector3.Zero;
+
+		for ( var tick = 0; tick < fixedTicks; tick++ )
+		{
+			var result =
+				LargeLadGameplayRules.ResolveSoftPlayerSeparation(
+					velocity,
+					correction,
+					combinedTarget,
+					fixedDelta );
+			velocity = result.Velocity;
+			correction = result.AppliedCorrection;
+
+			Assert.IsTrue(
+				correction.Length <=
+					LargeLadGameplayRules
+						.SoftPlayerMaximumSeparationSpeed + 0.001f,
+				$"crowd correction exceeded the cap on tick {tick}" );
+		}
+	}
+
+	[TestMethod]
+	public void SoftCollision_RepeatedTicksPreserveExternalImpulse()
+	{
+		const float fixedDelta = 1.0f / 60.0f;
+		var externalVelocity =
+			new Vector3( 110.0f, -20.0f, -250.0f );
+		var velocity = externalVelocity;
+		var correction = Vector3.Zero;
+		var target =
+			LargeLadGameplayRules.GetSoftPlayerSeparationVelocity(
+				Vector3.Zero,
+				Vector3.Zero,
+				usePositiveXWhenCoincident: true );
+
+		for ( var tick = 0; tick < 120; tick++ )
+		{
+			if ( tick == 40 )
+			{
+				var weaponImpulse =
+					new Vector3( 320.0f, -75.0f, 0.0f );
+				velocity += weaponImpulse;
+				externalVelocity += weaponImpulse;
+			}
+
+			var result =
+				LargeLadGameplayRules.ResolveSoftPlayerSeparation(
+					velocity,
+					correction,
+					target,
+					fixedDelta );
+			velocity = result.Velocity;
+			correction = result.AppliedCorrection;
+
+			AssertVectorEqual(
+				externalVelocity,
+				velocity - correction,
+				0.001f );
+			Assert.AreEqual(
+				externalVelocity.z,
+				velocity.z,
+				0.0f );
+		}
+	}
+
+	[DataTestMethod]
+	[DataRow( -300.0f )]
+	[DataRow( 0.0f )]
+	[DataRow( 300.0f )]
+	[DataRow( 900.0f )]
+	public void SoftCollision_RepeatedTicksNeverChangeVerticalVelocity(
+		float verticalVelocity )
+	{
+		const float fixedDelta = 1.0f / 60.0f;
+		var velocity = new Vector3( 25.0f, -10.0f, verticalVelocity );
+		var correction = Vector3.Zero;
+		var target =
+			LargeLadGameplayRules.GetSoftPlayerSeparationVelocity(
+				Vector3.Zero,
+				Vector3.Zero,
+				usePositiveXWhenCoincident: true );
+
+		for ( var tick = 0; tick < 120; tick++ )
+		{
+			var result =
+				LargeLadGameplayRules.ResolveSoftPlayerSeparation(
+					velocity,
+					correction,
+					target,
+					fixedDelta );
+			velocity = result.Velocity;
+			correction = result.AppliedCorrection;
+
+			Assert.AreEqual(
+				verticalVelocity,
+				velocity.z,
+				0.0f,
+				$"vertical velocity changed on tick {tick}" );
+		}
+	}
+
+	[TestMethod]
+	public void SoftCollision_JumpAndUpwardSlamImpulseRemainUnchanged()
+	{
+		const float fixedDelta = 1.0f / 60.0f;
+		var velocity = new Vector3( 15.0f, 5.0f, 300.0f );
+		var expectedVerticalVelocity = velocity.z;
+		var correction = Vector3.Zero;
+		var target =
+			LargeLadGameplayRules.GetSoftPlayerSeparationVelocity(
+				Vector3.Zero,
+				Vector3.Zero,
+				usePositiveXWhenCoincident: true );
+
+		for ( var tick = 0; tick < 120; tick++ )
+		{
+			if ( tick == 40 )
+			{
+				const float upwardSlamImpulse = 600.0f;
+				velocity.z += upwardSlamImpulse;
+				expectedVerticalVelocity += upwardSlamImpulse;
+			}
+
+			var result =
+				LargeLadGameplayRules.ResolveSoftPlayerSeparation(
+					velocity,
+					correction,
+					target,
+					fixedDelta );
+			velocity = result.Velocity;
+			correction = result.AppliedCorrection;
+
+			Assert.AreEqual(
+				expectedVerticalVelocity,
+				velocity.z,
+				0.0f,
+				$"upward velocity changed on tick {tick}" );
+		}
+	}
+
+	[TestMethod]
+	public void SoftCollision_OutsideRadiusAndVerticalCutoffAddNothing()
+	{
+		var currentVelocity = new Vector3( 80.0f, -15.0f, 300.0f );
+		var outsideRadius =
+			LargeLadGameplayRules.GetSoftPlayerSeparationVelocity(
+				new Vector3(
+					LargeLadGameplayRules.SoftPlayerSeparationRadius,
+					0.0f,
+					0.0f ),
+				Vector3.Zero,
+				usePositiveXWhenCoincident: true );
+		var beyondVerticalCutoff =
+			LargeLadGameplayRules.GetSoftPlayerSeparationVelocity(
+				new Vector3(
+					0.0f,
+					0.0f,
+					LargeLadGameplayRules.SoftPlayerSeparationHeight ),
+				Vector3.Zero,
+				usePositiveXWhenCoincident: true );
+		var outsideResult =
+			LargeLadGameplayRules.ResolveSoftPlayerSeparation(
+				currentVelocity,
+				Vector3.Zero,
+				outsideRadius,
+				1.0f / 60.0f );
+		var verticalResult =
+			LargeLadGameplayRules.ResolveSoftPlayerSeparation(
+				currentVelocity,
+				Vector3.Zero,
+				beyondVerticalCutoff,
+				1.0f / 60.0f );
+
+		Assert.AreEqual( Vector3.Zero, outsideRadius );
+		Assert.AreEqual( Vector3.Zero, beyondVerticalCutoff );
+		AssertVectorEqual(
+			currentVelocity,
+			outsideResult.Velocity,
+			0.0f );
+		AssertVectorEqual(
+			currentVelocity,
+			verticalResult.Velocity,
+			0.0f );
+		Assert.AreEqual(
+			Vector3.Zero,
+			outsideResult.AppliedCorrection );
+		Assert.AreEqual(
+			Vector3.Zero,
+			verticalResult.AppliedCorrection );
+	}
+
+	[TestMethod]
+	public void SoftCollision_CorrectionEndsWhenOverlapStops()
+	{
+		const float fixedDelta = 1.0f / 60.0f;
+		var externalVelocity =
+			new Vector3( 95.0f, 12.0f, 275.0f );
+		var velocity = externalVelocity;
+		var correction = Vector3.Zero;
+		var target =
+			LargeLadGameplayRules.GetSoftPlayerSeparationVelocity(
+				Vector3.Zero,
+				Vector3.Zero,
+				usePositiveXWhenCoincident: true );
+
+		for ( var tick = 0; tick < 120; tick++ )
+		{
+			var result =
+				LargeLadGameplayRules.ResolveSoftPlayerSeparation(
+					velocity,
+					correction,
+					target,
+					fixedDelta );
+			velocity = result.Velocity;
+			correction = result.AppliedCorrection;
+		}
+
+		var separatedResult =
+			LargeLadGameplayRules.ResolveSoftPlayerSeparation(
+				velocity,
+				correction,
+				Vector3.Zero,
+				fixedDelta );
+
+		Assert.AreEqual(
+			Vector3.Zero,
+			separatedResult.AppliedCorrection );
+		AssertVectorEqual(
+			externalVelocity,
+			separatedResult.Velocity,
+			0.001f );
+	}
+
+	[TestMethod]
+	public void SoftCollision_CoincidentDirectionIsDeterministicAndOpposite()
+	{
+		var first =
+			LargeLadGameplayRules.GetSoftPlayerSeparationVelocity(
+				Vector3.Zero,
+				Vector3.Zero,
+				usePositiveXWhenCoincident: true );
+		var firstRepeated =
+			LargeLadGameplayRules.GetSoftPlayerSeparationVelocity(
+				Vector3.Zero,
+				Vector3.Zero,
+				usePositiveXWhenCoincident: true );
+		var second =
+			LargeLadGameplayRules.GetSoftPlayerSeparationVelocity(
+				Vector3.Zero,
+				Vector3.Zero,
+				usePositiveXWhenCoincident: false );
+
+		AssertVectorEqual( first, firstRepeated, 0.0f );
+		AssertVectorEqual( first, -second, 0.0f );
+		Assert.AreEqual(
+			LargeLadGameplayRules.SoftPlayerMaximumSeparationSpeed,
+			first.Length,
+			0.001f );
+	}
+
+	private static void AssertVectorEqual(
+		Vector3 expected,
+		Vector3 actual,
+		float tolerance )
+	{
+		Assert.AreEqual( expected.x, actual.x, tolerance );
+		Assert.AreEqual( expected.y, actual.y, tolerance );
+		Assert.AreEqual( expected.z, actual.z, tolerance );
 	}
 }
 

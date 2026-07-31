@@ -22,6 +22,20 @@ public readonly struct LargeLadDeathPlan
 	public LargeLadSpawnGroup SpawnGroup { get; }
 }
 
+public readonly struct LargeLadSoftSeparationResult
+{
+	public LargeLadSoftSeparationResult(
+		Vector3 velocity,
+		Vector3 appliedCorrection )
+	{
+		Velocity = velocity;
+		AppliedCorrection = appliedCorrection;
+	}
+
+	public Vector3 Velocity { get; }
+	public Vector3 AppliedCorrection { get; }
+}
+
 public static class LargeLadGameplayRules
 {
 	public const string PlayerBodyTag = "player";
@@ -70,8 +84,8 @@ public static class LargeLadGameplayRules
 
 	/// <summary>
 	/// Returns a capped horizontal separation target for one soft player.
-	/// This has no vertical component and is added to existing body velocity,
-	/// so it cannot replace an explicit gameplay impulse.
+	/// This has no vertical component; callers combine every nearby player's
+	/// target before applying the shared cap below.
 	/// </summary>
 	public static Vector3 GetSoftPlayerSeparationVelocity(
 		Vector3 playerPosition,
@@ -122,17 +136,87 @@ public static class LargeLadGameplayRules
 				centerMultiplier);
 	}
 
-	public static Vector3 AddSoftPlayerSeparationVelocity(
+	public static Vector3 ClampSoftPlayerSeparationVelocity(
+		Vector3 combinedSeparationVelocity )
+	{
+		combinedSeparationVelocity.z = 0.0f;
+
+		var maximumSpeedSquared =
+			SoftPlayerMaximumSeparationSpeed *
+			SoftPlayerMaximumSeparationSpeed;
+
+		if ( combinedSeparationVelocity.LengthSquared <=
+			maximumSpeedSquared )
+		{
+			return combinedSeparationVelocity;
+		}
+
+		return combinedSeparationVelocity.Normal *
+			SoftPlayerMaximumSeparationSpeed;
+	}
+
+	/// <summary>
+	/// Replaces the correction applied on the preceding physics tick with one
+	/// bounded horizontal correction. Subtracting only the tracked correction
+	/// leaves movement and gameplay impulses intact. A zero target removes the
+	/// correction immediately once overlap ends.
+	/// </summary>
+	public static LargeLadSoftSeparationResult ResolveSoftPlayerSeparation(
 		Vector3 currentVelocity,
-		Vector3 targetSeparationVelocity,
+		Vector3 previousAppliedCorrection,
+		Vector3 combinedTargetVelocity,
 		float deltaTime )
 	{
-		var response = System.MathF.Min(
-			1.0f,
-			SoftPlayerResponseRate *
-				System.MathF.Max( 0.0f, deltaTime ) );
-		return currentVelocity +
-			targetSeparationVelocity * response;
+		var previousCorrection =
+			ClampSoftPlayerSeparationVelocity(
+				previousAppliedCorrection );
+		var targetCorrection =
+			ClampSoftPlayerSeparationVelocity(
+				combinedTargetVelocity );
+
+		Vector3 nextCorrection;
+
+		if ( targetCorrection.LengthSquared <= 0.0001f )
+		{
+			nextCorrection = Vector3.Zero;
+		}
+		else
+		{
+			var response = System.MathF.Min(
+				1.0f,
+				SoftPlayerResponseRate *
+					System.MathF.Max( 0.0f, deltaTime ) );
+			nextCorrection = previousCorrection +
+				(targetCorrection - previousCorrection) * response;
+			nextCorrection =
+				ClampSoftPlayerSeparationVelocity(
+					nextCorrection );
+		}
+
+		var correctedVelocity =
+			currentVelocity -
+			previousCorrection +
+			nextCorrection;
+
+		// Both corrections are horizontal, but retain this assignment as an
+		// explicit invariant for jumps, falls, knockback, and future slam forces.
+		correctedVelocity.z = currentVelocity.z;
+
+		return new LargeLadSoftSeparationResult(
+			correctedVelocity,
+			nextCorrection );
+	}
+
+	public static Vector3 RemoveSoftPlayerSeparation(
+		Vector3 currentVelocity,
+		Vector3 previousAppliedCorrection )
+	{
+		var correctedVelocity =
+			currentVelocity -
+			ClampSoftPlayerSeparationVelocity(
+				previousAppliedCorrection );
+		correctedVelocity.z = currentVelocity.z;
+		return correctedVelocity;
 	}
 
 	public static bool IsSupportedRoundPlayerCount( int playerCount )

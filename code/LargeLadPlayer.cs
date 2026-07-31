@@ -19,6 +19,7 @@ public sealed class LargeLadPlayer : Component
 	private int pendingTeleportFrames;
 	private TimeSince timeSinceAuthoritativeTeleport;
 	private bool hasAuthoritativeTeleport;
+	private Vector3 appliedSoftSeparationVelocity;
 
 	[Property, RequireComponent]
 	public LargeLadHealth Health { get; set; }
@@ -70,6 +71,7 @@ public sealed class LargeLadPlayer : Component
 
 	protected override void OnDisabled()
 	{
+		RemoveSoftPlayerSeparation();
 		UnregisterFromGameManager();
 		base.OnDisabled();
 	}
@@ -277,53 +279,70 @@ public sealed class LargeLadPlayer : Component
 
 	private void ApplySoftPlayerSeparation()
 	{
-		if ( LargeLadGameplayRules.IsHunterRole( Role ) )
+		var controller = Components.Get<PlayerController>();
+
+		if ( controller?.Body is null )
+		{
+			appliedSoftSeparationVelocity = Vector3.Zero;
+			return;
+		}
+
+		var targetVelocity = Vector3.Zero;
+
+		if ( !LargeLadGameplayRules.IsHunterRole( Role ) )
+		{
+			var gameManager =
+				LargeLadGameManager.FindForScene( Scene );
+
+			if ( gameManager is not null )
+			{
+				foreach ( var other in gameManager.ActivePlayers )
+				{
+					if ( other == this ||
+						LargeLadGameplayRules.IsHunterRole( other.Role ) ||
+						other.Health?.IsDead == true )
+					{
+						continue;
+					}
+
+					targetVelocity +=
+						LargeLadGameplayRules
+							.GetSoftPlayerSeparationVelocity(
+								GameObject.WorldPosition,
+								other.GameObject.WorldPosition,
+								GameObject.Id.CompareTo(
+									other.GameObject.Id ) >= 0 );
+				}
+			}
+		}
+
+		var result =
+			LargeLadGameplayRules.ResolveSoftPlayerSeparation(
+				controller.Body.Velocity,
+				appliedSoftSeparationVelocity,
+				targetVelocity,
+				Time.Delta );
+		controller.Body.Velocity = result.Velocity;
+		appliedSoftSeparationVelocity =
+			result.AppliedCorrection;
+	}
+
+	private void RemoveSoftPlayerSeparation()
+	{
+		if ( appliedSoftSeparationVelocity.LengthSquared <= 0.0001f )
 			return;
 
 		var controller = Components.Get<PlayerController>();
 
-		if ( controller?.Body is null )
-			return;
-
-		var gameManager = LargeLadGameManager.FindForScene( Scene );
-
-		if ( gameManager is null )
-			return;
-
-		var targetVelocity = Vector3.Zero;
-
-		foreach ( var other in gameManager.ActivePlayers )
+		if ( controller?.Body is not null )
 		{
-			if ( other == this ||
-				LargeLadGameplayRules.IsHunterRole( other.Role ) ||
-				other.Health?.IsDead == true )
-			{
-				continue;
-			}
-
-			targetVelocity +=
-				LargeLadGameplayRules.GetSoftPlayerSeparationVelocity(
-					GameObject.WorldPosition,
-					other.GameObject.WorldPosition,
-					GameObject.Id.CompareTo( other.GameObject.Id ) >= 0 );
+			controller.Body.Velocity =
+				LargeLadGameplayRules.RemoveSoftPlayerSeparation(
+					controller.Body.Velocity,
+					appliedSoftSeparationVelocity );
 		}
 
-		if ( targetVelocity.LengthSquared <= 0.0001f )
-			return;
-
-		if ( targetVelocity.LengthSquared >
-			LargeLadGameplayRules.SoftPlayerMaximumSeparationSpeed *
-			LargeLadGameplayRules.SoftPlayerMaximumSeparationSpeed )
-		{
-			targetVelocity = targetVelocity.Normal *
-				LargeLadGameplayRules.SoftPlayerMaximumSeparationSpeed;
-		}
-
-		controller.Body.Velocity =
-			LargeLadGameplayRules.AddSoftPlayerSeparationVelocity(
-				controller.Body.Velocity,
-				targetVelocity,
-				Time.Delta );
+		appliedSoftSeparationVelocity = Vector3.Zero;
 	}
 
 	public bool TryGetRoleProfile(
@@ -421,6 +440,8 @@ public sealed class LargeLadPlayer : Component
 
 	private void StopMovement()
 	{
+		appliedSoftSeparationVelocity = Vector3.Zero;
+
 		var controller = Components.Get<PlayerController>();
 
 		if ( controller is null )

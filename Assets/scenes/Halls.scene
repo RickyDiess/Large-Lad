@@ -259,7 +259,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "5a2612fa-74db-4673-9fd0-85c5f2f5e9db"
+                      "$blob": "742c7391-8699-42ff-a0e2-704d77d57aa3"
                     },
                     "Materials": [
                       "materials/generic/floor_asphalt_b.vmat",
@@ -317,7 +317,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "9cfbc116-89e5-4100-85e5-16b724db3ed1"
+                      "$blob": "60a1020a-76b2-4c8f-acb9-d3fc0acd44dd"
                     },
                     "Materials": [
                       "materials/stone/tile/stone_brick_tile.vmat",
@@ -375,7 +375,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "9e6415f6-17d7-4502-86bc-7c3972c37981"
+                      "$blob": "6b00ca4f-b2a7-4b7e-8916-ff46020c3564"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -435,7 +435,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "ef160fd6-7280-41f8-a62c-87c86cdeaa6f"
+                      "$blob": "bae32b4a-df98-447b-b521-b2a4507f71ce"
                     },
                     "Materials": [
                       "materials/wood/floor/wooden_flooring_b2.vmat",
@@ -492,7 +492,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "5a5db880-1632-4c31-9d89-66057141d0d7"
+                      "$blob": "a9a4f574-afb3-4717-b3d8-9488cabca214"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -549,7 +549,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "41b4bbdf-7a30-481e-9ba2-22bb026bc6fb"
+                      "$blob": "155a5d59-c799-4ebc-af9e-0ba23c8cc4c8"
                     },
                     "Materials": [
                       "materials/wood/floor/wooden_flooring_b2.vmat"
@@ -605,7 +605,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "146e4df7-4d1d-4dd3-85e6-5d0821e476e1"
+                      "$blob": "68c50767-4d26-455e-b41b-c1fe5040e195"
                     },
                     "Materials": [
                       "materials/wood/floor/wooden_flooring_b2.vmat"
@@ -661,7 +661,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "1b01d998-3cb2-4086-9bb3-3b54afb5fd6e"
+                      "$blob": "2a99bc74-e909-4290-8bcd-f3b9e49a04e2"
                     },
                     "Materials": [
                       "materials/wood/floor/wooden_flooring_b2.vmat",
@@ -718,7 +718,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "618a738a-e07c-49f4-84a0-51648dc142fc"
+                      "$blob": "8f7bb80c-d267-468c-8c9d-04e6bbb55eff"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -775,7 +775,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "0a537f1b-89b2-409e-b13d-ee9743d106c3"
+                      "$blob": "51752da1-c356-4b1c-8089-5fcb1780e0af"
                     },
                     "Materials": [
                       "materials/wood/floor/wooden_flooring_b2.vmat"
@@ -831,7 +831,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "7e76bec4-8be0-4082-9591-a8fd3f9e5737"
+                      "$blob": "a5c6b2d1-dd57-4d1b-9caf-2959f1f7a6b5"
                     },
                     "Materials": [
                       "materials/wood/floor/wooden_flooring_b2.vmat"
@@ -887,7 +887,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "b24aee02-1f32-413a-8698-2815d8654acc"
+                      "$blob": "72a38f73-9c6a-4590-b178-d83802b4c5b6"
                     },
                     "Materials": [
                       "materials/glass/glass_a.vmat"
@@ -943,7 +943,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "1c45bc45-43d7-459e-abe6-b1b2f8c0213a"
+                      "$blob": "2dc71b97-c0e9-43f9-b38d-f5c65c3e3e4c"
                     },
                     "Materials": [
                       "materials/glass/glass_a.vmat"
@@ -999,7 +999,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "228622cb-75f6-43e6-8bfa-9ff0685b3587"
+                      "$blob": "af04723d-cb96-4272-a5a8-f780e53af514"
                     },
                     "Materials": [
                       "materials/subzero-studios/road/road007.vmat",
@@ -1056,7 +1056,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "8b1ced26-bd67-42b3-8e9e-4af5864708c9"
+                      "$blob": "e8cad57c-4c95-4937-aeb1-fd1af00162e2"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat"
@@ -1112,7 +1112,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "8584c0f8-390d-4d8c-acad-3b623642699c"
+                      "$blob": "12ebbf68-b9bd-472a-b51b-bb7c77ce0afc"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat"
@@ -1168,7 +1168,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "ec891459-b03f-47c2-b83e-0e336f870a2a"
+                      "$blob": "d9046260-8d2f-4cea-8e61-061de8795d13"
                     },
                     "Materials": [
                       "materials/subzero-studios/planks/planks006.vmat"
@@ -1224,7 +1224,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "605449b9-ed81-47b2-a746-5be3e127c1c1"
+                      "$blob": "23607a65-ab6c-4318-a6ec-170da977aef2"
                     },
                     "Materials": [
                       "materials/subzero-studios/planks/planks006.vmat"
@@ -1280,7 +1280,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "63c830d8-5b90-4b97-9ae0-6f6bd05cd856"
+                      "$blob": "acb2c797-24a6-4c61-8b81-4594cebcd383"
                     },
                     "Materials": [
                       "materials/subzero-studios/planks/planks006.vmat"
@@ -1336,7 +1336,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "29860dcf-28ac-4126-8b17-3ab7a93fa8eb"
+                      "$blob": "0fd73366-d4e6-4271-900c-f0292b062059"
                     },
                     "Materials": [
                       "materials/subzero-studios/planks/planks006.vmat"
@@ -1392,7 +1392,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "f9b6b79c-79bf-489f-a6af-b6a4a8b57323"
+                      "$blob": "fe4c3966-4624-40a9-8ee1-b5b31afaa51f"
                     },
                     "Materials": [
                       "materials/glass/glass_a.vmat"
@@ -1448,7 +1448,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "6313f280-4f58-4f57-8b68-9f2bcefdaf70"
+                      "$blob": "5f470e42-cef5-4008-97bd-c03089030a98"
                     },
                     "Materials": [
                       "materials/glass/glass_a.vmat"
@@ -1504,7 +1504,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "f3015199-a1aa-4967-844b-96f071d39157"
+                      "$blob": "22d11d98-127e-41da-ab0a-8a7355c4a88c"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -1561,7 +1561,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "a3eff948-6ece-47f1-b6ce-c6c6894aa378"
+                      "$blob": "bce57799-ad3c-4d1c-9432-ebc80ae8103a"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -1773,61 +1773,7 @@
           "NetworkTransmit": true,
           "OwnerTransfer": 1,
           "Components": [],
-          "Children": [
-            {
-              "__guid": "593051ac-8b0e-4b51-8106-b72d1b3d5257",
-              "__version": 2,
-              "__Prefab": "prefabs/gameplay/barricade_skinny_progression.prefab",
-              "__PrefabInstancePatch": {
-                "AddedObjects": [],
-                "RemovedObjects": [],
-                "PropertyOverrides": [
-                  {
-                    "Target": {
-                      "Type": "GameObject",
-                      "IdValue": "8a200001-0000-4000-8000-000000000001"
-                    },
-                    "Property": "Name",
-                    "Value": "Skinny Progression"
-                  },
-                  {
-                    "Target": {
-                      "Type": "GameObject",
-                      "IdValue": "8a200001-0000-4000-8000-000000000001"
-                    },
-                    "Property": "Position",
-                    "Value": "1104.1875,49.8644485,-96.2195282"
-                  },
-                  {
-                    "Target": {
-                      "Type": "GameObject",
-                      "IdValue": "8a200001-0000-4000-8000-000000000001"
-                    },
-                    "Property": "Rotation",
-                    "Value": "0,0,-0.707106769,0.707106769"
-                  },
-                  {
-                    "Target": {
-                      "Type": "Component",
-                      "IdValue": "aa69b01a-14c7-4256-ad87-ebeddf84d0a5"
-                    },
-                    "Property": "Mesh",
-                    "Value": {
-                      "Data": {
-                        "$blob": "764e58d5-d554-414a-9097-9b417e0be64a"
-                      }
-                    }
-                  }
-                ],
-                "MovedObjects": []
-              },
-              "__PrefabIdToInstanceId": {
-                "8a200001-0000-4000-8000-000000000001": "593051ac-8b0e-4b51-8106-b72d1b3d5257",
-                "aa69b01a-14c7-4256-ad87-ebeddf84d0a5": "113ed41e-9430-4dfd-8d11-4d1c797987d5",
-                "8a200001-0000-4000-8000-000000000004": "515c8b63-433b-4707-be62-af5ca526bce1"
-              }
-            }
-          ]
+          "Children": []
         },
         {
           "__guid": "af69e0e6-72dc-4b48-b080-3e979b27055a",
@@ -1969,6 +1915,161 @@
           "Children": []
         }
       ]
+    },
+    {
+      "__guid": "4af880ac-3a47-463e-a12d-071411dea80f",
+      "__version": 2,
+      "__Prefab": "prefabs/gameplay/barricade_skinny_progression.prefab",
+      "__PrefabInstancePatch": {
+        "AddedObjects": [],
+        "RemovedObjects": [],
+        "PropertyOverrides": [
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a200001-0000-4000-8000-000000000001"
+            },
+            "Property": "Name",
+            "Value": "Skinny Progression"
+          },
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a200001-0000-4000-8000-000000000001"
+            },
+            "Property": "Position",
+            "Value": "1568,32.0000038,0"
+          },
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a200001-0000-4000-8000-000000000001"
+            },
+            "Property": "Rotation",
+            "Value": "0,0,0.707106829,0.707106769"
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "aa69b01a-14c7-4256-ad87-ebeddf84d0a5"
+            },
+            "Property": "Mesh",
+            "Value": {
+              "Data": {
+                "$blob": "8b4d16b4-4f58-4532-b4cf-c39c79379270"
+              },
+              "Materials": [
+                "materials/dev/gray_grid_4.vmat",
+                "materials/dev/green.vmat"
+              ]
+            }
+          }
+        ],
+        "MovedObjects": []
+      },
+      "__PrefabIdToInstanceId": {
+        "8a200001-0000-4000-8000-000000000001": "4af880ac-3a47-463e-a12d-071411dea80f",
+        "aa69b01a-14c7-4256-ad87-ebeddf84d0a5": "37898aa6-a15a-4802-a808-a85418f3a015",
+        "8a200001-0000-4000-8000-000000000004": "d03651f5-03b4-4a12-80f6-94a2ce093d34"
+      }
+    },
+    {
+      "__guid": "0a5c5396-da78-4eb1-9708-d7401b172fe1",
+      "__version": 2,
+      "__Prefab": "prefabs/gameplay/barricade_skinny_progression.prefab",
+      "__PrefabInstancePatch": {
+        "AddedObjects": [],
+        "RemovedObjects": [],
+        "PropertyOverrides": [
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a200001-0000-4000-8000-000000000001"
+            },
+            "Property": "Name",
+            "Value": "Skinny Progression"
+          },
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a200001-0000-4000-8000-000000000001"
+            },
+            "Property": "Position",
+            "Value": "1648,-1568,160"
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "aa69b01a-14c7-4256-ad87-ebeddf84d0a5"
+            },
+            "Property": "Mesh",
+            "Value": {
+              "Data": {
+                "$blob": "550f80e5-6604-4c92-9a48-1a76d3e311e4"
+              },
+              "Materials": [
+                "materials/dev/gray_grid_4.vmat",
+                "materials/dev/green.vmat"
+              ]
+            }
+          }
+        ],
+        "MovedObjects": []
+      },
+      "__PrefabIdToInstanceId": {
+        "8a200001-0000-4000-8000-000000000001": "0a5c5396-da78-4eb1-9708-d7401b172fe1",
+        "aa69b01a-14c7-4256-ad87-ebeddf84d0a5": "0abb80a1-936d-4f91-b6b8-2f651f6f4399",
+        "8a200001-0000-4000-8000-000000000004": "666d4c47-38bc-4926-995b-e6952a07809e"
+      }
+    },
+    {
+      "__guid": "45b67a75-e542-4757-902a-2dfd9437d637",
+      "__version": 2,
+      "__Prefab": "prefabs/gameplay/barricade_skinny_progression.prefab",
+      "__PrefabInstancePatch": {
+        "AddedObjects": [],
+        "RemovedObjects": [],
+        "PropertyOverrides": [
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a200001-0000-4000-8000-000000000001"
+            },
+            "Property": "Name",
+            "Value": "Skinny Progression"
+          },
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a200001-0000-4000-8000-000000000001"
+            },
+            "Property": "Position",
+            "Value": "1840,1536,160"
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "aa69b01a-14c7-4256-ad87-ebeddf84d0a5"
+            },
+            "Property": "Mesh",
+            "Value": {
+              "Data": {
+                "$blob": "d0b45063-26b0-4779-9eba-cefa87a59973"
+              },
+              "Materials": [
+                "materials/dev/gray_grid_4.vmat",
+                "materials/dev/green.vmat"
+              ]
+            }
+          }
+        ],
+        "MovedObjects": []
+      },
+      "__PrefabIdToInstanceId": {
+        "8a200001-0000-4000-8000-000000000001": "45b67a75-e542-4757-902a-2dfd9437d637",
+        "aa69b01a-14c7-4256-ad87-ebeddf84d0a5": "07d53c41-eccb-425b-9a3c-35e19d59b2d7",
+        "8a200001-0000-4000-8000-000000000004": "33704831-45bc-4485-b3dc-0985e29c8dfa"
+      }
     }
   ],
   "SceneProperties": {

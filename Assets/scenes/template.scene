@@ -303,7 +303,7 @@
                       "IdValue": "8a100003-0000-4000-8000-000000000001"
                     },
                     "Property": "Position",
-                    "Value": "-468.431824,-323.131287,-124.869537"
+                    "Value": "0,-400,-128"
                   }
                 ],
                 "MovedObjects": []
@@ -335,7 +335,7 @@
                       "IdValue": "8a100001-0000-4000-8000-000000000001"
                     },
                     "Property": "Position",
-                    "Value": "-468.431824,-3.13129044,-124.869537"
+                    "Value": "0,-3.13129044,-128"
                   }
                 ],
                 "MovedObjects": []
@@ -367,7 +367,7 @@
                       "IdValue": "8a100002-0000-4000-8000-000000000001"
                     },
                     "Property": "Position",
-                    "Value": "-500.431824,314.072449,-124.869537"
+                    "Value": "0,400,-128"
                   }
                 ],
                 "MovedObjects": []
@@ -413,78 +413,7 @@
           "NetworkTransmit": true,
           "OwnerTransfer": 1,
           "Components": [],
-          "Children": [
-            {
-              "__guid": "e114fa88-973b-4f20-bf87-c79c92bef23e",
-              "__version": 2,
-              "__Prefab": "prefabs/gameplay/pickup_pistol.prefab",
-              "__PrefabInstancePatch": {
-                "AddedObjects": [],
-                "RemovedObjects": [],
-                "PropertyOverrides": [
-                  {
-                    "Target": {
-                      "Type": "GameObject",
-                      "IdValue": "8a400001-0000-4000-8000-000000000001"
-                    },
-                    "Property": "Name",
-                    "Value": "Pistol"
-                  },
-                  {
-                    "Target": {
-                      "Type": "GameObject",
-                      "IdValue": "8a400001-0000-4000-8000-000000000001"
-                    },
-                    "Property": "Position",
-                    "Value": "-180.431824,-483.131287,-124.869537"
-                  }
-                ],
-                "MovedObjects": []
-              },
-              "__PrefabIdToInstanceId": {
-                "8a400001-0000-4000-8000-000000000001": "e114fa88-973b-4f20-bf87-c79c92bef23e",
-                "8a400001-0000-4000-8000-000000000003": "1a0e0158-60f1-4d28-b6eb-cf224390e4f0",
-                "8a400001-0000-4000-8000-000000000004": "850257db-0b35-4b45-8516-0f666d88a28e",
-                "11c6dbfc-0823-46cd-99d2-c87fcbbab35f": "3bb44e9c-d25a-8485-8d87-1a93c58d0767",
-                "921314e1-08ab-4513-abf5-392249118694": "3ce6a5c1-ef82-8067-83e0-735effd25596"
-              }
-            },
-            {
-              "__guid": "7bf6751e-970f-4ccf-bcee-e4f923b0877a",
-              "__version": 2,
-              "__Prefab": "prefabs/gameplay/pickup_smg.prefab",
-              "__PrefabInstancePatch": {
-                "AddedObjects": [],
-                "RemovedObjects": [],
-                "PropertyOverrides": [
-                  {
-                    "Target": {
-                      "Type": "GameObject",
-                      "IdValue": "8a400002-0000-4000-8000-000000000001"
-                    },
-                    "Property": "Name",
-                    "Value": "SMG"
-                  },
-                  {
-                    "Target": {
-                      "Type": "GameObject",
-                      "IdValue": "8a400002-0000-4000-8000-000000000001"
-                    },
-                    "Property": "Position",
-                    "Value": "-180.431824,-387.131287,-124.869537"
-                  }
-                ],
-                "MovedObjects": []
-              },
-              "__PrefabIdToInstanceId": {
-                "8a400002-0000-4000-8000-000000000001": "7bf6751e-970f-4ccf-bcee-e4f923b0877a",
-                "8a400002-0000-4000-8000-000000000003": "51dc3046-921b-4123-a6ef-f22ccd2f159c",
-                "8a400002-0000-4000-8000-000000000004": "70f46bb4-2a4c-4fba-92e8-cba7bffaf199",
-                "8ceaf3e7-a031-4113-9e89-4aa6b75792af": "f5ef50bc-d3ab-8db0-a41a-4edb352e2e3a",
-                "c1db096c-9625-4cf5-86ae-7d13ae01183c": "42ab070b-0aff-8c6d-b47d-2c38d220d12e"
-              }
-            }
-          ]
+          "Children": []
         },
         {
           "__guid": "ffd84611-39e0-4a0d-a732-e7ee4d04fe42",
