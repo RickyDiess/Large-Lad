@@ -2,8 +2,10 @@ using Sandbox;
 using Sandbox.Citizen;
 
 /// <summary>
-/// Local and replicated melee presentation for every playable role.
-/// Runtime arms, weapon models, grip transforms, and animation state live here.
+/// First-person role-arm presentation plus local and replicated ordinary melee
+/// swings for Skinny Kids and Minions. Large Lad primary sequencing belongs to
+/// Eat. Runtime arms, weapon models, grip transforms, and animation state live
+/// here.
 /// </summary>
 public sealed class LargeLadMeleePresentation : Component
 {

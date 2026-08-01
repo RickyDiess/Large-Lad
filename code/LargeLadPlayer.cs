@@ -51,6 +51,13 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 	[Property, RequireComponent]
 	public LargeLadGroundSlam GroundSlam { get; set; }
 
+	[Property, RequireComponent]
+	public LargeLadGroundSlamPresentationController GroundSlamPresentation
+	{
+		get;
+		set;
+	}
+
 	[Property]
 	public LargeLadRoleProfiles RoleProfiles { get; set; }
 

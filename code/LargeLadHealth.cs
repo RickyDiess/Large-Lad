@@ -19,6 +19,7 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 
 	private GameObject deathRagdoll;
 	private bool hasReportedLethalTransition;
+	private bool isApplyingAuthorizedEatExecution;
 	private LargeLadPlayer cachedPlayer;
 	private PlayerController cachedController;
 	private LargeLadGameManager cachedGameManager;
@@ -146,6 +147,11 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 			: damage.BaseDamage * System.MathF.Max(
 				0.0f,
 				profile.IncomingDamageMultiplier );
+		amount = LargeLadEatRules.FilterDamageForEatCommit(
+			player.EatParticipation,
+			damage.DamageType,
+			amount,
+			isApplyingAuthorizedEatExecution );
 
 		if ( amount <= 0.0f )
 			return false;
@@ -183,6 +189,7 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 	}
 
 	internal bool TryExecuteEat(
+		LargeLadEatAttack owner,
 		LargeLadPlayer attacker,
 		out LargeLadDamageContext appliedDamage )
 	{
@@ -195,7 +202,35 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 			BaseDamage = CurrentHealth
 		};
 
-		return TryApplyDamage( execution, out appliedDamage );
+		appliedDamage = execution.WithAppliedDamage( 0.0f );
+		var victim = cachedPlayer;
+
+		if ( !Networking.IsHost ||
+			owner is null ||
+			!owner.IsValid ||
+			!owner.IsEating ||
+			victim is null ||
+			attacker is null ||
+			!victim.IsEatParticipationOwnedBy(
+				owner,
+				LargeLadEatParticipation.Victim ) ||
+			!attacker.IsEatParticipationOwnedBy(
+				owner,
+				LargeLadEatParticipation.Attacker ) )
+		{
+			return false;
+		}
+
+		isApplyingAuthorizedEatExecution = true;
+
+		try
+		{
+			return TryApplyDamage( execution, out appliedDamage );
+		}
+		finally
+		{
+			isApplyingAuthorizedEatExecution = false;
+		}
 	}
 
 	internal bool TryHealMissingHealth(
@@ -229,6 +264,16 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 			return false;
 
 		var previousHealth = CurrentHealth;
+
+		if ( LargeLadEatRules.FilterDamageForEatCommit(
+			player.EatParticipation,
+			LargeLadDamageType.Environment,
+			previousHealth,
+			isAuthorizedEatExecution: false ) <= 0.0f )
+		{
+			return false;
+		}
+
 		CurrentHealth = 0.0f;
 		var death = new LargeLadDamageContext
 		{

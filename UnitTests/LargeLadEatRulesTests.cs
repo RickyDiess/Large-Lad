@@ -106,6 +106,124 @@ public sealed class LargeLadEatTargetingTests
 }
 
 [TestClass]
+public sealed class LargeLadEatDamageCommitTests
+{
+	[DataTestMethod]
+	[DataRow( LargeLadDamageType.Firearm )]
+	[DataRow( LargeLadDamageType.Melee )]
+	[DataRow( LargeLadDamageType.Environment )]
+	public void OrdinaryNonlethalDamage_DuringCommittedEatIsRejected(
+		LargeLadDamageType damageType )
+	{
+		var appliedDamage = LargeLadEatRules.FilterDamageForEatCommit(
+			LargeLadEatParticipation.Victim,
+			damageType,
+			requestedDamage: 25.0f,
+			isAuthorizedEatExecution: false );
+
+		Assert.AreEqual( 0.0f, appliedDamage );
+	}
+
+	[DataTestMethod]
+	[DataRow( LargeLadDamageType.Firearm )]
+	[DataRow( LargeLadDamageType.Melee )]
+	[DataRow( LargeLadDamageType.Environment )]
+	public void OrdinaryWouldBeLethalDamage_DuringCommittedEatIsRejected(
+		LargeLadDamageType damageType )
+	{
+		var appliedDamage = LargeLadEatRules.FilterDamageForEatCommit(
+			LargeLadEatParticipation.Victim,
+			damageType,
+			requestedDamage: 1000.0f,
+			isAuthorizedEatExecution: false );
+
+		Assert.AreEqual( 0.0f, appliedDamage );
+	}
+
+	[TestMethod]
+	public void EnvironmentalDeathRequest_DuringCommittedEatIsRejected()
+	{
+		const float currentHealth = 100.0f;
+		var appliedDamage = LargeLadEatRules.FilterDamageForEatCommit(
+			LargeLadEatParticipation.Victim,
+			LargeLadDamageType.Environment,
+			currentHealth,
+			isAuthorizedEatExecution: false );
+
+		Assert.AreEqual( 0.0f, appliedDamage );
+		Assert.AreEqual( 100.0f, currentHealth - appliedDamage );
+	}
+
+	[TestMethod]
+	public void LargeLadNonlethalDamage_DuringEatContinuesNormally()
+	{
+		var state = BeginState();
+		var appliedDamage = LargeLadEatRules.FilterDamageForEatCommit(
+			LargeLadEatParticipation.Attacker,
+			LargeLadDamageType.Firearm,
+			requestedDamage: 25.0f,
+			isAuthorizedEatExecution: false );
+
+		Assert.AreEqual( 25.0f, appliedDamage );
+		Assert.AreEqual(
+			LargeLadEatStateTransition.None,
+			state.GetTransition(
+				now: 0.1f,
+				participantsRemainValid: true ) );
+	}
+
+	[TestMethod]
+	public void LargeLadDeath_DuringEatCancelsBeforeExecution()
+	{
+		var state = BeginState();
+		var appliedDamage = LargeLadEatRules.FilterDamageForEatCommit(
+			LargeLadEatParticipation.Attacker,
+			LargeLadDamageType.Firearm,
+			requestedDamage: 1000.0f,
+			isAuthorizedEatExecution: false );
+
+		Assert.AreEqual( 1000.0f, appliedDamage );
+		Assert.AreEqual(
+			LargeLadEatStateTransition.Cancel,
+			state.GetTransition(
+				now: 0.1f,
+				participantsRemainValid: false ) );
+		Assert.IsTrue( state.TryCommitCleanup() );
+		Assert.IsFalse( state.TryCommitExecution() );
+	}
+
+	[TestMethod]
+	public void EatDamage_RequiresTheAuthorizedExecutionPath()
+	{
+		Assert.AreEqual(
+			0.0f,
+			LargeLadEatRules.FilterDamageForEatCommit(
+				LargeLadEatParticipation.Victim,
+				LargeLadDamageType.Eat,
+				requestedDamage: 100.0f,
+				isAuthorizedEatExecution: false ) );
+		Assert.AreEqual(
+			100.0f,
+			LargeLadEatRules.FilterDamageForEatCommit(
+				LargeLadEatParticipation.Victim,
+				LargeLadDamageType.Eat,
+				requestedDamage: 100.0f,
+				isAuthorizedEatExecution: true ) );
+	}
+
+	private static LargeLadEatState BeginState()
+	{
+		var state = new LargeLadEatState();
+		Assert.IsTrue( state.TryBegin(
+			sequence: 1,
+			now: 0.0f,
+			duration: 0.3f,
+			presentationInterval: 0.1f ) );
+		return state;
+	}
+}
+
+[TestClass]
 public sealed class LargeLadEatStateTests
 {
 	[TestMethod]
@@ -142,19 +260,39 @@ public sealed class LargeLadEatStateTests
 	}
 
 	[TestMethod]
-	public void DuplicateEventPrevention_ExecutionAndCleanupAreIdempotent()
+	public void SuccessfulCompletion_ExecutesAndHealsExactlyOnce()
 	{
 		var state = BeginState();
 		var lethalEvents = 0;
 		var healingEvents = 0;
 		var cleanupEvents = 0;
+		var largeLadHealth = 50.0f;
 
 		for ( var attempt = 0; attempt < 3; attempt++ )
 		{
-			if ( state.TryCommitExecution() )
+			if ( state.GetTransition(
+				now: 0.3f,
+				participantsRemainValid: true ) ==
+				LargeLadEatStateTransition.Complete &&
+				state.TryCommitExecution() )
 			{
 				lethalEvents++;
-				healingEvents++;
+
+				var executionDamage =
+					LargeLadEatRules.FilterDamageForEatCommit(
+						LargeLadEatParticipation.Victim,
+						LargeLadDamageType.Eat,
+						requestedDamage: 100.0f,
+						isAuthorizedEatExecution: true );
+
+				if ( executionDamage > 0.0f )
+				{
+					largeLadHealth = LargeLadEatRules.GetHealedHealth(
+						largeLadHealth,
+						maximumHealth: 100.0f,
+						missingHealthFraction: 0.1f );
+					healingEvents++;
+				}
 			}
 
 			if ( state.TryCommitCleanup() )
@@ -164,9 +302,34 @@ public sealed class LargeLadEatStateTests
 		Assert.AreEqual( 1, lethalEvents );
 		Assert.AreEqual( 1, healingEvents );
 		Assert.AreEqual( 1, cleanupEvents );
+		Assert.AreEqual( 55.0f, largeLadHealth, 0.0001f );
 		Assert.AreEqual(
 			LargeLadEatStateTransition.None,
 			state.GetTransition( 1.0f, participantsRemainValid: true ) );
+	}
+
+	[TestMethod]
+	public void Cancellation_DoesNotExecuteOrHeal()
+	{
+		var state = BeginState();
+		var lethalEvents = 0;
+		var healingEvents = 0;
+
+		Assert.AreEqual(
+			LargeLadEatStateTransition.Cancel,
+			state.GetTransition(
+				now: 0.1f,
+				participantsRemainValid: false ) );
+		Assert.IsTrue( state.TryCommitCleanup() );
+
+		if ( state.TryCommitExecution() )
+		{
+			lethalEvents++;
+			healingEvents++;
+		}
+
+		Assert.AreEqual( 0, lethalEvents );
+		Assert.AreEqual( 0, healingEvents );
 	}
 
 	private static LargeLadEatState BeginState()

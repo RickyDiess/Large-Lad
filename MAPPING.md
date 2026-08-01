@@ -97,11 +97,11 @@ add role coloring. Clothing colors remain unchanged.
 The player prefab's generic controller starts at 110 walk and 300 run.
 It references the role-profile resource once on `LargeLadPlayer`.
 `LargeLadPlayer` applies movement and body visuals at start and whenever its
-host-synchronized role changes. `LargeLadHealth` and `LargeLadMeleeCombat`
+host-synchronized role changes. `LargeLadHealth` and the ordinary melee system
 resolve the current role through that player reference, so they do not contain
 their own role balance copies. Missing profiles, non-positive movement,
-health, scale, or melee values, and negative incoming-damage multipliers report
-`Large Lad role profiles` validation warnings.
+health, scale, or ordinary-melee values, and negative incoming-damage
+multipliers report `Large Lad role profiles` validation warnings.
 
 The Large Lad's width is visual only, so routes must fit the normal player
 capsule. Useful greybox starting points are a 96-unit comfortable main corridor,
@@ -156,8 +156,9 @@ The two presets are:
 - `Skinny Progression Barricade`: 300 health; only Skinny Kid melee damages it.
   This lets maps place the first firearms beyond an opening melee barricade
   without allowing those firearms to break later progression barricades.
-- `Lad Shortcut Barricade`: 300 health; only Large Lad melee damages it.
-  Minions can use the route after it opens but cannot open it.
+- `Lad Shortcut Barricade`: 300 health; only the Large Lad's Eat structural
+  fallback damages it. Minions can use the route after it opens but cannot
+  open it.
 
 Firearms, Minion melee, environmental damage, and unrelated damage types do not
 damage either gameplay barricade preset.
@@ -226,27 +227,39 @@ barricade.
 The gameplay prefab folder contains pistol, SMG, and kill-volume presets. Loose
 ammunition pickups are not part of the map contract.
 
-Only Skinny Kids have firearm inventory. Large Lad and Minions use their
-built-in melee role ability and never receive firearm entries. Holding primary
-attack auto-swings that role ability at the authoritative role-profile
-cooldown:
+Only Skinny Kids have firearm inventory. Primary attacks remain role abilities
+rather than firearm entries.
+
+The Large Lad's only primary attack is committed Eat. The host searches for a
+valid living Skinny Kid first; that victim takes priority even when an eligible
+structural fallback is closer. Once accepted, Eat runs its short committed
+sequence and lethally executes the victim at completion. Ordinary damage,
+including otherwise-lethal damage and environmental hazards, cannot interrupt
+the accepted victim's sequence. Killing the Large Lad cancels it. A successful
+execution heals the Large Lad by the configured percentage of health currently
+missing, exactly once.
+
+If no valid Skinny Kid is caught, the same primary input may apply its
+configured structural damage to an eligible `Lad Shortcut` barricade or a
+mapper-authored `LargeLadEatSmashable`. Generic props and other damageable
+objects are not fallback targets. Ground Slam is the Large Lad's secondary
+attack; it is documented separately below.
+
+Skinny Kids and Minions retain their ordinary primary melee attacks. Holding
+primary attack auto-swings at the authoritative role-profile cooldown:
 
 | Role | Damage | Range | Cooldown | Fallback aim assist |
 | --- | ---: | ---: | ---: | --- |
 | Skinny Kid | 25 | 80 | 0.65 seconds | On |
-| Large Lad | 10 | 100 | 0.1 seconds | Off |
 | Minion | 25 | 80 | 0.5 seconds | On |
 
-All roles use an 18-unit swing-trace radius. Fallback aim assist requires a
-minimum facing dot of 0.55. Maintaining roughly one second of accurate Large
-Lad contact drains a full-health Skinny Kid and converts them on death.
+Both ordinary melee roles use an 18-unit swing-trace radius. Fallback aim
+assist requires a minimum facing dot of 0.55.
 
-Melee remains a role ability rather than a firearm entry. Skinny Kids can select
-their role melee before the catalog-ordered core weapons; Large Lad and Minions
-always have built-in melee selected because they have no firearm inventory. In
-first-person mode every active role receives overlay-rendered melee arms
-bone-merged to the Citizen body. The optional Skinny Kid melee model remains
-presentation-only; Large Lad and Minions attack unarmed.
+Skinny Kids can select ordinary melee before the catalog-ordered core weapons.
+Minions always have ordinary melee selected because they have no firearm
+inventory. The Large Lad also has no firearm inventory, but primary input is
+routed exclusively to Eat rather than the ordinary melee system.
 
 ## Large Lad Ground Slam
 
@@ -257,19 +270,24 @@ Skinny Kids and Minions. The host completes the windup and decides every hit.
 Walls, floors, and blocking geometry stop the radial visibility trace, so a
 player or prop on the other side of geometry is not affected.
 
-Ground Slam deals no damage. A visible living Skinny Kid in range receives the
-configured physics impulse and briefly loses movement input without losing the
-impulse's velocity. A visible living Minion can receive the separately tuned
-friendly impulse, but never takes friendly damage or stagger. Replicated
-windup, impact, camera/audio-feedback, cooldown-started, and cooldown-ready
-presentation events are available on `LargeLadGroundSlam`; those events cannot
-add targets or apply gameplay effects.
+Ground Slam is zero-damage crowd control. A visible living Skinny Kid in range
+receives the configured physics impulse and briefly loses movement input without
+losing the impulse's velocity. A visible living Minion can receive the
+separately tuned friendly impulse, but never takes friendly damage or stagger.
+Replicated windup, impact, camera/audio-feedback, cooldown-started, and
+cooldown-ready presentation events are available on `LargeLadGroundSlam`; those
+events cannot add targets or apply gameplay effects.
 
-Ordinary physics bodies never react. To opt in, add
-`LargeLadGroundSlamReactiveProp` directly to a collidable model or `Prop` and
-choose one behavior. The component automatically makes its GameObject a
-network object before play. A plain collidable model also receives an automatic
-Rigidbody for `Move` or `Unanchor`; `Prop` keeps using its own generated physics.
+Ground Slam and reactive-prop diagnostic logging default to off. The options
+remain available for a mapper to enable temporarily while tracing a focused
+multiplayer problem.
+
+Ordinary physics bodies never react: only explicitly authored props are
+eligible. To opt in, add `LargeLadGroundSlamReactiveProp` directly to a
+collidable model or `Prop` and choose one behavior. The component automatically
+makes its GameObject a network object before play. A plain collidable model also
+receives an automatic Rigidbody for `Move` or `Unanchor`; `Prop` keeps using its
+own generated physics.
 `Start Frozen` is enabled by default, holding that physics body at its authored
 transform until its first slam. Disable it for an already-live physics object
 such as the future dodgeball.

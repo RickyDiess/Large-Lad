@@ -6,7 +6,8 @@ public enum LargeLadGroundSlamPresentationPhase
 	Impact,
 	CameraAudioFeedback,
 	CooldownStarted,
-	CooldownReady
+	CooldownReady,
+	Cancelled
 }
 
 public readonly struct LargeLadGroundSlamPresentation
@@ -41,8 +42,9 @@ public readonly struct LargeLadGroundSlamPresentation
 /// eligibility, and obstruction decision at the end of the windup.
 /// </summary>
 [Description(
-	"Large Lad secondary Ground Slam. The host owns windup completion, " +
-	"line-of-sight checks, player stagger, and explicitly mapped prop reactions." )]
+	"Large Lad's secondary, zero-damage crowd-control attack. Skinny Kids are " +
+	"impulsed and staggered; Minions receive friendly impulse without damage " +
+	"or stagger; only explicitly authored props can react." )]
 public sealed class LargeLadGroundSlam : Component
 {
 	private const float HostCadenceTolerance = 0.025f;
@@ -81,21 +83,6 @@ public sealed class LargeLadGroundSlam : Component
 	[Property, Group( "Minion Friendly Impulse" ), Title( "Upward Impulse" )]
 	public float MinionUpwardImpulse { get; set; } = 75000.0f;
 
-	[Property, Group( "Presentation" ), Title( "Windup Animation Parameter" )]
-	public string WindupAnimationParameter { get; set; } = "b_attack";
-
-	[Property, Group( "Presentation" ), Title( "Impact Animation Parameter" )]
-	public string ImpactAnimationParameter { get; set; } = "b_attack";
-
-	[Property, Group( "Presentation" )]
-	public SoundEvent WindupSound { get; set; }
-
-	[Property, Group( "Presentation" )]
-	public SoundEvent ImpactSound { get; set; }
-
-	[Property, Group( "Presentation" ), Title( "Cooldown Ready Sound" )]
-	public SoundEvent CooldownReadySound { get; set; }
-
 	[Property, Group( "Presentation" ), Title( "Feedback Radius" )]
 	public float FeedbackRadius { get; set; } = 700.0f;
 
@@ -105,8 +92,9 @@ public sealed class LargeLadGroundSlam : Component
 	[Property, Group( "Diagnostics" )]
 	[Description(
 		"Logs accepted activations, host impact selection totals, and owner-side " +
-		"velocity application. Useful for multiplayer map testing." )]
-	public bool EnableDebugLogging { get; set; }
+		"velocity application. Enable manually for focused multiplayer diagnosis; " +
+		"leave disabled for normal play." )]
+	public bool EnableDebugLogging { get; set; } = false;
 
 	[Sync( SyncFlags.FromHost )]
 	public bool IsWindingUp { get; private set; }
@@ -118,14 +106,12 @@ public sealed class LargeLadGroundSlam : Component
 	/// </summary>
 	public event System.Action<LargeLadGroundSlamPresentation> Presentation;
 
-	private TimeSince timeSinceLocalActivation;
+	private readonly LargeLadGroundSlamHostState hostState = new();
+	private readonly LargeLadGroundSlamOwnerState ownerState = new();
 	private int nextOwnerActivationSequence;
-	private int lastHostActivationSequence;
-	private int activeSequence;
 	private float impactTime;
-	private bool hasHostActivationSchedule;
-	private float nextHostActivationTime;
-	private bool cooldownReadyPresentationPending;
+	private int lastLocalPresentationSequence;
+	private int lastLocalCancellationSequence;
 	private LargeLadPlayer cachedAttacker;
 	private PlayerController cachedController;
 	private LargeLadGameManager cachedGameManager;
@@ -147,28 +133,29 @@ public sealed class LargeLadGroundSlam : Component
 		if ( Networking.IsHost )
 			TickAuthoritativeState();
 
+		TickLocalPresentationState();
+
 		if ( IsProxy ||
 			!Input.Pressed( "Attack2" ) )
 		{
 			return;
 		}
 
-		var localCooldown = System.MathF.Max( 0.01f, Cooldown );
+		var cooldownRemaining = ownerState.GetCooldownRemaining( Time.Now );
 
-		if ( timeSinceLocalActivation < localCooldown )
+		if ( cooldownRemaining > 0.0f )
 		{
 			if ( EnableDebugLogging )
 			{
 				Log.Info(
-					$"[Debug/Ground Slam] Owner input ignored during local " +
-					$"cooldown ({timeSinceLocalActivation.Relative:0.###}/" +
-					$"{localCooldown:0.###} seconds)." );
+					$"[Debug/Ground Slam] Owner input ignored during " +
+					$"accepted authoritative cooldown " +
+					$"({cooldownRemaining:0.###} seconds remaining)." );
 			}
 
 			return;
 		}
 
-		timeSinceLocalActivation = 0.0f;
 		nextOwnerActivationSequence++;
 
 		if ( EnableDebugLogging )
@@ -186,13 +173,13 @@ public sealed class LargeLadGroundSlam : Component
 
 	protected override void OnDisabled()
 	{
-		CancelAuthoritativeWindup();
+		CancelForLifecycle( resetOwnerState: false );
 		base.OnDisabled();
 	}
 
 	protected override void OnDestroy()
 	{
-		CancelAuthoritativeWindup();
+		CancelForLifecycle( resetOwnerState: true );
 		base.OnDestroy();
 	}
 
@@ -228,52 +215,49 @@ public sealed class LargeLadGroundSlam : Component
 	[Rpc.Host( NetFlags.OwnerOnly )]
 	private void RequestGroundSlam( int ownerActivationSequence )
 	{
-		if ( !Networking.IsHost ||
-			ownerActivationSequence <= lastHostActivationSequence )
-		{
+		if ( !Networking.IsHost )
 			return;
-		}
 
-		lastHostActivationSequence = ownerActivationSequence;
 		ResolveCachedReferences();
-
-		if ( !CanActivate( cachedAttacker, cachedController ) )
-			return;
-
 		var hostNow = Time.Now;
+		var decision = hostState.EvaluateRequest(
+			ownerActivationSequence,
+			CanActivate( cachedAttacker, cachedController ),
+			hostNow,
+			Cooldown,
+			HostCadenceTolerance );
 
-		if ( hasHostActivationSchedule &&
-			hostNow + HostCadenceTolerance < nextHostActivationTime )
-		{
+		if ( !decision.IsNewRequest )
 			return;
-		}
 
-		CommitHostCadence( hostNow );
-		activeSequence = ownerActivationSequence;
-		impactTime = hostNow + System.MathF.Max( 0.0f, Windup );
-		IsWindingUp = true;
-		cooldownReadyPresentationPending = true;
 		var origin = GetSlamOrigin( cachedAttacker );
-		var windup = System.MathF.Max( 0.0f, Windup );
-		var cooldownRemaining = System.MathF.Max(
-			0.0f,
-			nextHostActivationTime - hostNow );
+		ReceiveHostActivationResult(
+			ownerActivationSequence,
+			decision.Accepted,
+			decision.CooldownEndTime,
+			origin );
 
-		ReceiveWindupPresentation( activeSequence, origin, windup );
-		BroadcastWindupPresentation( activeSequence, origin, windup );
-		ReceiveCooldownStartedPresentation(
-			activeSequence,
+		if ( !decision.Accepted )
+			return;
+
+		var windup = System.MathF.Max( 0.0f, Windup );
+		impactTime = hostNow + windup;
+		IsWindingUp = true;
+
+		ReceiveWindupPresentation(
+			hostState.ActiveSequence,
 			origin,
-			cooldownRemaining );
-		BroadcastCooldownStartedPresentation(
-			activeSequence,
+			windup );
+		BroadcastWindupPresentation(
+			hostState.ActiveSequence,
 			origin,
-			cooldownRemaining );
+			windup );
 
 		if ( EnableDebugLogging )
 		{
 			Log.Info(
-				$"[Debug/Ground Slam] Host accepted sequence {activeSequence} " +
+				$"[Debug/Ground Slam] Host accepted sequence " +
+				$"{hostState.ActiveSequence} " +
 				$"from {GameObject.Name}; impact in {windup:0.###} seconds, " +
 				$"radius {Radius:0.###}." );
 		}
@@ -282,27 +266,20 @@ public sealed class LargeLadGroundSlam : Component
 	private void TickAuthoritativeState()
 	{
 		var now = Time.Now;
+		var result = hostState.ResolveWindup(
+			CanCompleteWindup( cachedAttacker ),
+			now >= impactTime );
 
-		if ( IsWindingUp )
+		switch ( result )
 		{
-			if ( !CanCompleteWindup( cachedAttacker ) )
-			{
+			case LargeLadGroundSlamWindupResult.Cancelled:
 				IsWindingUp = false;
-			}
-			else if ( now >= impactTime )
-			{
+				BroadcastCancellation( hostState.ActiveSequence );
+				break;
+			case LargeLadGroundSlamWindupResult.Impact:
+				IsWindingUp = false;
 				CompleteAuthoritativeSlam();
-			}
-		}
-
-		if ( cooldownReadyPresentationPending &&
-			hasHostActivationSchedule &&
-			now >= nextHostActivationTime )
-		{
-			cooldownReadyPresentationPending = false;
-			var origin = GetSlamOrigin( cachedAttacker );
-			ReceiveCooldownReadyPresentation( activeSequence, origin );
-			BroadcastCooldownReadyPresentation( activeSequence, origin );
+				break;
 		}
 	}
 
@@ -311,21 +288,21 @@ public sealed class LargeLadGroundSlam : Component
 		if ( !Networking.IsHost || !CanCompleteWindup( cachedAttacker ) )
 		{
 			IsWindingUp = false;
+			BroadcastCancellation( hostState.ActiveSequence );
 			return;
 		}
 
 		var origin = GetSlamOrigin( cachedAttacker );
 		var playerSelection = ApplyPlayerEffects( origin );
 		var affectedPropCount = ApplyReactivePropEffects( origin );
-		IsWindingUp = false;
-		ReceiveImpactPresentation( activeSequence, origin );
-		BroadcastImpactPresentation( activeSequence, origin );
+		ReceiveImpactPresentation( hostState.ActiveSequence, origin );
+		BroadcastImpactPresentation( hostState.ActiveSequence, origin );
 
 		if ( EnableDebugLogging )
 		{
 			Log.Info(
 				$"[Debug/Ground Slam] Host completed sequence " +
-				$"{activeSequence} at {origin}: affected " +
+				$"{hostState.ActiveSequence} at {origin}: affected " +
 				$"{playerSelection.AffectedPlayers} player(s) and " +
 				$"{affectedPropCount} mapped prop(s); considered " +
 				$"{playerSelection.RoleCandidates} Skinny Kid/Minion " +
@@ -513,31 +490,86 @@ public sealed class LargeLadGroundSlam : Component
 			GetGameManager()?.Phase == LargeLadRoundPhase.Playing;
 	}
 
-	private void CommitHostCadence( float hostNow )
-	{
-		var cooldown = System.MathF.Max( 0.01f, Cooldown );
-
-		if ( !hasHostActivationSchedule )
-		{
-			hasHostActivationSchedule = true;
-			nextHostActivationTime = hostNow + cooldown;
-			return;
-		}
-
-		nextHostActivationTime =
-			System.MathF.Max( hostNow, nextHostActivationTime ) + cooldown;
-	}
-
 	private Vector3 GetSlamOrigin( LargeLadPlayer attacker )
 	{
 		return (attacker?.GameObject.WorldPosition ?? GameObject.WorldPosition) +
 			Vector3.Up * System.MathF.Max( 0.0f, TraceHeight );
 	}
 
-	private void CancelAuthoritativeWindup()
+	private void TickLocalPresentationState()
 	{
-		if ( Networking.IsHost )
+		if ( IsProxy )
+			return;
+
+		if ( ownerState.HasCooldownPresentation &&
+			!CanRetainPresentation() )
+		{
+			CancelLocalPresentation( ownerState.AcceptedSequence );
+			return;
+		}
+
+		if ( ownerState.TryTakeCooldownReadyPresentation( Time.Now ) )
+		{
+			ReceiveCooldownReadyPresentation(
+				ownerState.AcceptedSequence,
+				GetSlamOrigin( cachedAttacker ) );
+		}
+	}
+
+	private bool CanRetainPresentation()
+	{
+		return cachedAttacker is not null &&
+			cachedAttacker.IsValid &&
+			cachedAttacker.Enabled &&
+			cachedAttacker.Scene == Scene &&
+			cachedAttacker.Role == LargeLadRole.LargeLad &&
+			cachedAttacker.Health?.IsDead == false &&
+			cachedAttacker.Health.CurrentHealth > 0.0f &&
+			GetGameManager()?.Phase == LargeLadRoundPhase.Playing;
+	}
+
+	private void CancelForLifecycle( bool resetOwnerState )
+	{
+		var sequence = hostState.ActiveSequence > 0
+			? hostState.ActiveSequence
+			: ownerState.AcceptedSequence > 0
+				? ownerState.AcceptedSequence
+				: lastLocalPresentationSequence;
+
+		if ( Networking.IsHost && hostState.CancelWindup() )
+		{
 			IsWindingUp = false;
+			BroadcastCancellation( sequence );
+		}
+		else
+		{
+			CancelLocalPresentation( sequence );
+		}
+
+		if ( resetOwnerState )
+			ownerState.Reset();
+	}
+
+	private void CancelLocalPresentation( int sequence )
+	{
+		ownerState.CancelPresentation();
+
+		if ( sequence <= 0 || sequence <= lastLocalCancellationSequence )
+			return;
+
+		ReceiveCancellationPresentation(
+			sequence,
+			GetSlamOrigin( cachedAttacker ) );
+	}
+
+	private void BroadcastCancellation( int sequence )
+	{
+		if ( sequence <= 0 )
+			return;
+
+		var origin = GetSlamOrigin( cachedAttacker );
+		ReceiveCancellationPresentation( sequence, origin );
+		BroadcastCancellationPresentation( sequence, origin );
 	}
 
 	private void ResolveCachedReferences()
@@ -574,10 +606,12 @@ public sealed class LargeLadGroundSlam : Component
 		Vector3 origin,
 		float duration )
 	{
-		TriggerAnimation( WindupAnimationParameter );
+		if ( sequence <= lastLocalCancellationSequence )
+			return;
 
-		if ( WindupSound is not null )
-			Sound.Play( WindupSound, origin );
+		lastLocalPresentationSequence = System.Math.Max(
+			lastLocalPresentationSequence,
+			sequence );
 
 		RaisePresentation(
 			LargeLadGroundSlamPresentationPhase.Windup,
@@ -602,10 +636,12 @@ public sealed class LargeLadGroundSlam : Component
 
 	private void ReceiveImpactPresentation( int sequence, Vector3 origin )
 	{
-		TriggerAnimation( ImpactAnimationParameter );
+		if ( sequence <= lastLocalCancellationSequence )
+			return;
 
-		if ( ImpactSound is not null )
-			Sound.Play( ImpactSound, origin );
+		lastLocalPresentationSequence = System.Math.Max(
+			lastLocalPresentationSequence,
+			sequence );
 
 		RaisePresentation(
 			LargeLadGroundSlamPresentationPhase.Impact,
@@ -632,39 +668,54 @@ public sealed class LargeLadGroundSlam : Component
 		ReceiveImpactPresentation( sequence, origin );
 	}
 
-	private void ReceiveCooldownStartedPresentation(
+	[Rpc.Owner( NetFlags.HostOnly )]
+	private void ReceiveHostActivationResult(
 		int sequence,
-		Vector3 origin,
-		float duration )
+		bool accepted,
+		float authoritativeCooldownEndTime,
+		Vector3 origin )
 	{
+		if ( !ownerState.ApplyHostResult(
+			sequence,
+			accepted,
+			authoritativeCooldownEndTime,
+			Time.Now ) )
+		{
+			return;
+		}
+
+		if ( !accepted )
+			return;
+
+		if ( sequence <= lastLocalCancellationSequence )
+		{
+			ownerState.CancelPresentation();
+			return;
+		}
+
+		if ( !CanRetainPresentation() )
+		{
+			ownerState.CancelPresentation();
+			return;
+		}
+
+		lastLocalPresentationSequence = System.Math.Max(
+			lastLocalPresentationSequence,
+			sequence );
+		var cooldownRemaining = ownerState.GetCooldownRemaining( Time.Now );
 		RaisePresentation(
 			LargeLadGroundSlamPresentationPhase.CooldownStarted,
 			sequence,
 			origin,
 			0.0f,
-			duration,
+			cooldownRemaining,
 			0.0f );
-	}
-
-	[Rpc.Broadcast]
-	private void BroadcastCooldownStartedPresentation(
-		int sequence,
-		Vector3 origin,
-		float duration )
-	{
-		if ( Networking.IsHost )
-			return;
-
-		ReceiveCooldownStartedPresentation( sequence, origin, duration );
 	}
 
 	private void ReceiveCooldownReadyPresentation(
 		int sequence,
 		Vector3 origin )
 	{
-		if ( !IsProxy && CooldownReadySound is not null )
-			Sound.Play( CooldownReadySound, origin );
-
 		RaisePresentation(
 			LargeLadGroundSlamPresentationPhase.CooldownReady,
 			sequence,
@@ -674,15 +725,33 @@ public sealed class LargeLadGroundSlam : Component
 			0.0f );
 	}
 
+	private void ReceiveCancellationPresentation(
+		int sequence,
+		Vector3 origin )
+	{
+		if ( sequence <= 0 || sequence <= lastLocalCancellationSequence )
+			return;
+
+		lastLocalCancellationSequence = sequence;
+		ownerState.CancelPresentation();
+		RaisePresentation(
+			LargeLadGroundSlamPresentationPhase.Cancelled,
+			sequence,
+			origin,
+			0.0f,
+			0.0f,
+			0.0f );
+	}
+
 	[Rpc.Broadcast]
-	private void BroadcastCooldownReadyPresentation(
+	private void BroadcastCancellationPresentation(
 		int sequence,
 		Vector3 origin )
 	{
 		if ( Networking.IsHost )
 			return;
 
-		ReceiveCooldownReadyPresentation( sequence, origin );
+		ReceiveCancellationPresentation( sequence, origin );
 	}
 
 	private void RaisePresentation(
@@ -701,17 +770,6 @@ public sealed class LargeLadGroundSlam : Component
 				System.MathF.Max( 0.0f, radius ),
 				System.MathF.Max( 0.0f, duration ),
 				System.MathF.Max( 0.0f, strength ) ) );
-	}
-
-	private void TriggerAnimation( string parameter )
-	{
-		if ( cachedAttacker?.BodyRenderer is null ||
-			string.IsNullOrWhiteSpace( parameter ) )
-		{
-			return;
-		}
-
-		cachedAttacker.BodyRenderer.Set( parameter, true );
 	}
 
 	private void ValidatePositive( string name, float value )

@@ -46,7 +46,8 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 	[Property]
 	[Description(
 		"Skinny Progression accepts Skinny Kid melee and may opt into a final " +
-		"announcement. Lad Shortcut accepts Large Lad melee and never announces." )]
+		"announcement. Lad Shortcut accepts the Large Lad Eat structural " +
+		"fallback and never announces." )]
 	public LargeLadBarricadeMode Mode { get; set; }
 
 	[Property, Title( "Base Maximum Health" )]

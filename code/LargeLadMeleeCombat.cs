@@ -9,7 +9,8 @@ public enum LargeLadMeleeResult
 }
 
 /// <summary>
-/// Owner-input, host-authoritative melee combat for every playable role.
+/// Owner-input, host-authoritative ordinary melee for Skinny Kids and Minions.
+/// The Large Lad's primary input is handled exclusively by committed Eat.
 /// The owner only asks to swing; the host chooses and validates the target.
 /// </summary>
 public sealed class LargeLadMeleeCombat : Component

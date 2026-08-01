@@ -7,7 +7,7 @@ using System.Collections.Generic;
 /// this component, a prop is never selected by the slam.
 /// </summary>
 [Description(
-	"Attach directly to a collidable model or Prop to make it react to Ground " +
+	"Explicitly author a collidable model or Prop to react to zero-damage Ground " +
 	"Slam. Networking and simple model physics are configured automatically; " +
 	"critical gameplay objects and authoritative blockers are always rejected." )]
 public sealed class LargeLadGroundSlamReactiveProp :
@@ -62,8 +62,9 @@ public sealed class LargeLadGroundSlamReactiveProp :
 	[Property, Group( "Diagnostics" )]
 	[Description(
 		"Logs host-side initialization, queued slam impulses, and the resulting " +
-		"physics velocity. Intended for focused multiplayer testing." )]
-	public bool EnableDebugLogging { get; set; } = true;
+		"physics velocity. Enable manually for focused multiplayer diagnosis; " +
+		"leave disabled for normal play." )]
+	public bool EnableDebugLogging { get; set; } = false;
 
 	[Sync( SyncFlags.FromHost ), Change( nameof( OnBrokenChanged ) )]
 	public bool IsBroken { get; private set; }

@@ -128,30 +128,81 @@ and network ownership:
    while overlapping Large Lad or another Minion, and confirm collision
    filtering never disables Rigidbody motion.
 
+## Eat multiplayer checklist
+
+Use a host, the Large Lad owner, a remote Skinny Kid victim, and another remote
+client able to deal ordinary damage. Set the Large Lad below maximum health and
+note the configured Missing-health Heal Fraction before testing completion.
+
+1. Press Primary Attack with a valid Skinny Kid and an eligible Lad Shortcut
+   barricade or explicitly authored Eat smashable both in range. Confirm the
+   Skinny Kid is selected even when the structure is closer. Remove every valid
+   Skinny Kid and confirm the same primary input can damage either eligible
+   structural fallback, while an ordinary prop remains unchanged. Confirm the
+   Large Lad never performs an ordinary player-damaging melee swing.
+2. Accept an Eat on the remote Skinny Kid, then apply firearm or ordinary melee
+   damage that would otherwise be lethal before the committed duration ends.
+   Confirm the victim loses no health from that damage, the accepted Eat is not
+   interrupted, and the Eat still executes lethally after its full sequence.
+3. Repeat with the active victim inside a kill volume or another environmental
+   hazard. Confirm the environmental death request is rejected during the
+   commitment and Eat remains the single lethal cause at completion.
+4. During separate accepted Eats, kill the Large Lad once with ordinary damage
+   and once with an environmental hazard before completion. Confirm each Eat is
+   cancelled, the victim is released alive, and no execution or healing occurs.
+5. Complete a successful Eat from the noted Large Lad health. Confirm exactly
+   one victim lethal transition/conversion and exactly one heal occur on the
+   host and are observed by every remote client. The final health must equal
+   `old health + (maximum health - old health) * configured fraction`; waiting,
+   replaying presentation, and repeated cleanup must not execute or heal again.
+
 ## Ground Slam multiplayer checklist
 
 Use a host, the Large Lad owner, a remote Skinny Kid, and a remote Minion.
-The player prefab currently enables focused Ground Slam diagnostics. One
-successful remote hit should log an accepted host sequence, a completed impact
-with one affected player, the target owner's received velocity delta, and the
-Skinny Kid stagger state changing on and off.
+Ground Slam diagnostics are disabled on the player prefab for normal play, and
+reactive-prop logging defaults off on mapper components. Turn either option on
+temporarily only while tracing a specific multiplayer problem.
 
-1. Press Secondary Attack and confirm the accepted windup, impact,
-   camera/audio-feedback, cooldown-started, and cooldown-ready presentation
-   hooks occur on host and remote peers. Spam and replay requests during the
-   configured cooldown and confirm the host accepts no early impact.
-2. Put a living Skinny Kid inside the radius with clear line of sight. Confirm
+An accepted activation consumes its authoritative cooldown at the start of the
+windup. Death, role/phase changes, Eat conflicts, component teardown, or another
+windup cancellation suppress the impact and clear all pending presentation,
+including the ready cue, but do not refund or restart that accepted cooldown.
+
+1. Attempt Secondary Attack while role, round phase, health, movement, or Eat
+   state makes Slam invalid. Confirm rejection shows no cooldown HUD and the
+   owner can try again. Then make the state valid, press Secondary Attack, and
+   confirm the owner countdown starts only after host acceptance and matches
+   the host's remaining cadence.
+2. On both the host and each remote client, confirm the accepted windup animation
+   and windup sound occur, followed exactly once by the impact sound, local
+   dirt/debris particles, and camera shake. Check cameras at the impact, midway
+   to the configured Feedback Radius, exactly at the boundary, and beyond it;
+   screenshake must weaken with distance and be zero at and beyond the boundary.
+   Confirm no target marker, direction cue, outline, pulse, or other gameplay
+   reveal is present.
+3. Confirm only the owning Large Lad receives the cooldown HUD and ready sound.
+   Observers must receive neither. Spam and replay requests during the
+   configured cooldown and confirm the host accepts no early activation and no
+   peer receives a duplicate impact.
+4. During separate accepted windups, kill the Large Lad, end the round, change
+   its role, start Eat, disable the Slam component, and transition scenes.
+   Confirm each case produces no impact, stops any windup cue, clears the owner
+   cooldown and ready HUD, and never emits a delayed cooldown-ready sound or
+   stale camera feedback. Trying again before the accepted cadence expires
+   remains host-rejected; after it expires, a valid request can be accepted
+   normally.
+5. Put a living Skinny Kid inside the radius with clear line of sight. Confirm
    the impact applies the upward/radial impulse, briefly suppresses movement
    input without clearing velocity, deals no damage, and restores movement at
    the configured stagger deadline.
-3. Repeat with the Skinny Kid beyond range, dead, behind a wall, across a floor
+6. Repeat with the Skinny Kid beyond range, dead, behind a wall, across a floor
    on another level, and behind blocking map geometry. Confirm no impulse or
    stagger occurs. Confirm changing the configured radius changes the accepted
    boundary.
-4. Put a Minion in visible range. Confirm the separately configured friendly
+7. Put a Minion in visible range. Confirm the separately configured friendly
    impulse can move the Minion, but health never changes and movement is not
    staggered.
-5. Place one ordinary Rigidbody and three otherwise identical collidable models
+8. Place one ordinary Rigidbody and three otherwise identical collidable models
    or Props. Attach only `LargeLadGroundSlamReactiveProp`, select Move,
    Unanchor, and Break, then save and reopen the scene. Confirm each mapped root
    was automatically set to Network Mode Object on the host and remote client.
@@ -159,14 +210,18 @@ Skinny Kid stagger state changing on and off.
    transforms until hit. Confirm the ordinary body does nothing, Move releases
    and remains intact, Unanchor becomes dynamic, and Break disables only its
    mapped prop state. Put each behind geometry and confirm it does not react.
-6. Configure a dodgeball stand-in as Move. Confirm repeated slams move but never
+   After exercising all three behaviors, join a new remote client and confirm it
+   sees the current moved, unanchored, and broken states without replaying the
+   Slam.
+9. Configure a dodgeball stand-in as Move. Confirm repeated slams move but never
    destroy it. Attempt to add the mapper to a pickup, spawn, barricade, Eat
    smashable, kill volume, or Minion-passage gate and confirm map validation
    rejects it and runtime slam leaves it unchanged.
-7. End the round after moving, unanchoring, breaking, and cleaning up props.
-   Confirm reset restores authored transform, enabled state, anchored/static
-   state, Rigidbody state, and break state on all peers.
-8. Enable out-of-bounds cleanup and move a mapped prop below Minimum World Z and
+10. End the round after moving, unanchoring, breaking, late joining, and cleaning
+   up props. Confirm reset restores authored transform, enabled state,
+   anchored/static state, Rigidbody state, and break state on all peers,
+   including the late joiner.
+11. Enable out-of-bounds cleanup and move a mapped prop below Minimum World Z and
    beyond Maximum Distance From Start. Confirm it stays cleaned up until reset.
    Push one toward a Minion vent and confirm this generic cleanup does not claim
    vent clearance; protected-passage clearance remains responsible there.

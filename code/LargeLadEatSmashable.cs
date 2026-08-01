@@ -6,6 +6,9 @@ using System.Collections.Generic;
 /// physics body never makes an entity eligible; a mapper must add this
 /// component (or use a Lad Shortcut barricade).
 /// </summary>
+[Description(
+	"Explicit mapper-authored structural fallback for the Large Lad's Eat " +
+	"primary. Ordinary props are not eligible." )]
 public sealed class LargeLadEatSmashable : LargeLadRoundResettableComponent,
 	ILargeLadDamageable
 {

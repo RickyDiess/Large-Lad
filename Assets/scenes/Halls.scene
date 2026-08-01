@@ -2420,7 +2420,7 @@
           "__enabled": true,
           "Flags": 0,
           "Behavior": "Unanchor",
-          "EnableDebugLogging": true,
+          "EnableDebugLogging": false,
           "EnableOutOfBoundsCleanup": false,
           "HorizontalImpulse": 125000,
           "MaximumDistanceFromStart": 4096,

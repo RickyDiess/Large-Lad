@@ -14,6 +14,10 @@ public enum LargeLadEatAttackResult
 /// host selects a target, owns one short Eat transaction, and commits one
 /// lethal Eat damage event only after the transaction remains valid.
 /// </summary>
+[Description(
+	"Large Lad's only primary attack. A valid Skinny Kid takes priority over " +
+	"eligible Lad Shortcut or explicitly authored Eat-smashable fallbacks; a " +
+	"successful committed execution heals a percentage of missing health." )]
 public sealed class LargeLadEatAttack : Component
 {
 	private const float HostCadenceTolerance = 0.025f;
@@ -38,9 +42,15 @@ public sealed class LargeLadEatAttack : Component
 	public float VictimMovementMultiplier { get; set; } = 0.05f;
 
 	[Property, Group( "Results" ), Title( "Breakable Damage" )]
+	[Description(
+		"Damage applied only when no valid Skinny Kid is caught and the selected " +
+		"fallback is a Lad Shortcut or explicitly authored Eat smashable." )]
 	public float BreakableDamage { get; set; } = 100.0f;
 
 	[Property, Group( "Results" ), Title( "Missing-health Heal Fraction" )]
+	[Description(
+		"Percentage of the Large Lad's currently missing health restored once " +
+		"after a committed Eat executes its victim successfully." )]
 	public float MissingHealthHealFraction { get; set; } = 0.1f;
 
 	[Property, Group( "Presentation" ), Title( "Attack Animation Parameter" )]
@@ -353,6 +363,7 @@ public sealed class LargeLadEatAttack : Component
 		var attacker = activeAttacker;
 		var victim = activeVictim;
 		var killed = victim?.Health?.TryExecuteEat(
+			this,
 			attacker,
 			out _ ) == true;
 

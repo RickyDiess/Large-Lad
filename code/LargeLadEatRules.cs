@@ -154,6 +154,29 @@ public sealed class LargeLadEatState
 /// </summary>
 public static class LargeLadEatRules
 {
+	/// <summary>
+	/// Gives a committed Eat victim exclusive ownership of its lethal edge.
+	/// Ordinary damage is rejected while Victim participation is active, and
+	/// Eat damage is accepted only through LargeLadHealth.TryExecuteEat.
+	/// </summary>
+	public static float FilterDamageForEatCommit(
+		LargeLadEatParticipation participation,
+		LargeLadDamageType damageType,
+		float requestedDamage,
+		bool isAuthorizedEatExecution )
+	{
+		if ( damageType == LargeLadDamageType.Eat )
+		{
+			return isAuthorizedEatExecution
+				? requestedDamage
+				: 0.0f;
+		}
+
+		return participation == LargeLadEatParticipation.Victim
+			? 0.0f
+			: requestedDamage;
+	}
+
 	public static bool TrySelectTarget(
 		Vector3 attackerPosition,
 		Vector3 attackerForward,

@@ -1,7 +1,9 @@
 using Sandbox;
 
 /// <summary>
-/// Every gameplay value that varies by player role.
+/// Movement, health, and presentation values for every role. The serialized
+/// melee fields are ordinary-melee balance consumed only by Skinny Kids and
+/// Minions; the Large Lad's primary balance belongs to Eat.
 /// </summary>
 public sealed class LargeLadRoleProfile
 {

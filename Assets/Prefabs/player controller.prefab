@@ -241,6 +241,12 @@
           "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
           "component_type": "LargeLadGroundSlam"
         },
+        "GroundSlamPresentation": {
+          "_type": "component",
+          "component_id": "4c065aa3-70cc-47da-a0d4-75100d08e64e",
+          "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
+          "component_type": "LargeLadGroundSlamPresentationController"
+        },
         "Health": {
           "_type": "component",
           "component_id": "8ff41dc2-a36e-4bbf-9526-bff01566ba8d",
@@ -253,6 +259,7 @@
           "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
           "component_type": "LargeLadInventory"
         },
+        "IsGroundSlamStaggered": false,
         "MeleeCombat": {
           "_type": "component",
           "component_id": "f9fa267a-1412-4ddb-a419-79fa17a78854",
@@ -357,9 +364,12 @@
         "__type": "LargeLadEatAttack",
         "__guid": "c60c2cbd-2bee-4b82-a6ce-f9ce97f124f4",
         "__enabled": true,
+        "Flags": 0,
         "AttackAnimationParameter": "b_attack",
+        "AttackSound": null,
         "BloodDecalScale": 2,
         "BloodDecalTraceDistance": 96,
+        "BloodEffectPrefab": null,
         "BloodSplatterDecals": [
           "decals/blood/blood_splatter_01.decal",
           "decals/blood/blood_splatter_02.decal",
@@ -367,24 +377,318 @@
           "decals/blood/blood_splatter_04.decal"
         ],
         "BloodSplatterTextureDependencies": [
-          "textures/generated/imagefile/7056d04ce78898cf.vtex",
-          "textures/generated/imagefile/6be0b0d6c0e1d2e.vtex",
-          "textures/generated/imagefile/e5a9079f56d9dcd5.vtex",
+          {
+            "$compiler": "texture",
+            "$source": "imagefile",
+            "data": {
+              "FilePath": "decals/blood/decal_blood_splatter_01_color.png",
+              "MaxSize": 4096,
+              "ConvertHeightToNormals": false,
+              "NormalScale": 1,
+              "Rotate": 0,
+              "FlipVertical": false,
+              "FlipHorizontal": false,
+              "Cropping": {
+                "Left": 0,
+                "Top": 0,
+                "Right": 0,
+                "Bottom": 0
+              },
+              "Padding": {
+                "Left": 0,
+                "Top": 0,
+                "Right": 0,
+                "Bottom": 0
+              },
+              "InvertColor": false,
+              "Tint": "1,1,1,1",
+              "Blur": 0,
+              "Sharpen": 0,
+              "Brightness": 1,
+              "Contrast": 1,
+              "Saturation": 1,
+              "Hue": 0,
+              "Colorize": false,
+              "TargetColor": "0,1,0,1",
+              "CacheToDisk": true,
+              "FormatOverride": "RGBA8888"
+            },
+            "compiled": "textures/generated/imagefile/7056d04ce78898cf.vtex"
+          },
+          {
+            "$compiler": "texture",
+            "$source": "imagefile",
+            "data": {
+              "FilePath": "decals/blood/decal_blood_splatter_01_normal.png",
+              "MaxSize": 4096,
+              "ConvertHeightToNormals": false,
+              "NormalScale": 1,
+              "Rotate": 0,
+              "FlipVertical": false,
+              "FlipHorizontal": false,
+              "Padding": {
+                "Size": "0,0",
+                "EdgeSize": "0,0"
+              },
+              "Sharpen": 0,
+              "InvertColor": false,
+              "Blur": 0,
+              "Brightness": 1,
+              "Contrast": 1,
+              "Saturation": 1,
+              "Hue": 0,
+              "Colorize": false,
+              "TargetColor": "0,1,0,1",
+              "CacheToDisk": true
+            },
+            "compiled": "textures/generated/imagefile/6be0b0d6c0e1d2e.vtex"
+          },
+          {
+            "$compiler": "texture",
+            "$source": "imagefile",
+            "data": {
+              "FilePath": "decals/blood/decal_blood_splatter_01_rmo.png",
+              "MaxSize": 4096,
+              "ConvertHeightToNormals": false,
+              "NormalScale": 1,
+              "Rotate": 0,
+              "FlipVertical": false,
+              "FlipHorizontal": false,
+              "Cropping": {
+                "Left": 0,
+                "Top": 0,
+                "Right": 0,
+                "Bottom": 0
+              },
+              "Padding": {
+                "Left": 0,
+                "Top": 0,
+                "Right": 0,
+                "Bottom": 0
+              },
+              "InvertColor": false,
+              "Tint": "1,1,1,1",
+              "Blur": 0,
+              "Sharpen": 0,
+              "Brightness": 1,
+              "Contrast": 1,
+              "Saturation": 1,
+              "Hue": 0,
+              "Colorize": false,
+              "TargetColor": "0,1,0,1",
+              "CacheToDisk": true,
+              "FormatOverride": "RGBA8888"
+            },
+            "compiled": "textures/generated/imagefile/e5a9079f56d9dcd5.vtex"
+          },
           "textures/generated/imagefile/b7195b89828358f9.vtex",
           "textures/generated/imagefile/715b00c3c4e7f07c.vtex",
           "textures/generated/imagefile/aa63678440ca4f12.vtex",
-          "textures/generated/imagefile/1994c0fb96089632.vtex",
-          "textures/generated/imagefile/1b6c3920589cfa96.vtex",
-          "textures/generated/imagefile/90dab872b2c4c1af.vtex",
-          "textures/generated/imagefile/d9b7827f182b9f68.vtex",
-          "textures/generated/imagefile/3a4564a2c36a95bc.vtex",
-          "textures/generated/imagefile/2b52917f6841d3bc.vtex"
+          {
+            "$compiler": "texture",
+            "$source": "imagefile",
+            "data": {
+              "FilePath": "decals/blood/decal_blood_splatter_03_color.png",
+              "MaxSize": 4096,
+              "ConvertHeightToNormals": false,
+              "NormalScale": 1,
+              "Rotate": 0,
+              "FlipVertical": false,
+              "FlipHorizontal": false,
+              "Cropping": {
+                "Left": 0,
+                "Top": 0,
+                "Right": 0,
+                "Bottom": 0
+              },
+              "Padding": {
+                "Left": 0,
+                "Top": 0,
+                "Right": 0,
+                "Bottom": 0
+              },
+              "InvertColor": false,
+              "Tint": "1,1,1,1",
+              "Blur": 0,
+              "Sharpen": 0,
+              "Brightness": 1,
+              "Contrast": 1,
+              "Saturation": 1,
+              "Hue": 0,
+              "Colorize": false,
+              "TargetColor": "0,1,0,1",
+              "CacheToDisk": true,
+              "FormatOverride": "RGBA8888"
+            },
+            "compiled": "textures/generated/imagefile/1994c0fb96089632.vtex"
+          },
+          {
+            "$compiler": "texture",
+            "$source": "imagefile",
+            "data": {
+              "FilePath": "decals/blood/decal_blood_splatter_03_normal.png",
+              "MaxSize": 4096,
+              "ConvertHeightToNormals": false,
+              "NormalScale": 1,
+              "Rotate": 0,
+              "FlipVertical": false,
+              "FlipHorizontal": false,
+              "Cropping": {
+                "Left": 0,
+                "Top": 0,
+                "Right": 0,
+                "Bottom": 0
+              },
+              "Padding": {
+                "Left": 0,
+                "Top": 0,
+                "Right": 0,
+                "Bottom": 0
+              },
+              "InvertColor": false,
+              "Tint": "1,1,1,1",
+              "Blur": 0,
+              "Sharpen": 0,
+              "Brightness": 1,
+              "Contrast": 1,
+              "Saturation": 1,
+              "Hue": 0,
+              "Colorize": false,
+              "TargetColor": "0,1,0,1",
+              "CacheToDisk": true,
+              "FormatOverride": "RGBA8888"
+            },
+            "compiled": "textures/generated/imagefile/1b6c3920589cfa96.vtex"
+          },
+          {
+            "$compiler": "texture",
+            "$source": "imagefile",
+            "data": {
+              "FilePath": "decals/blood/decal_blood_splatter_03_rmo.png",
+              "MaxSize": 4096,
+              "ConvertHeightToNormals": false,
+              "NormalScale": 1,
+              "Rotate": 0,
+              "FlipVertical": false,
+              "FlipHorizontal": false,
+              "Cropping": {
+                "Left": 0,
+                "Top": 0,
+                "Right": 0,
+                "Bottom": 0
+              },
+              "Padding": {
+                "Left": 0,
+                "Top": 0,
+                "Right": 0,
+                "Bottom": 0
+              },
+              "InvertColor": false,
+              "Tint": "1,1,1,1",
+              "Blur": 0,
+              "Sharpen": 0,
+              "Brightness": 1,
+              "Contrast": 1,
+              "Saturation": 1,
+              "Hue": 0,
+              "Colorize": false,
+              "TargetColor": "0,1,0,1",
+              "CacheToDisk": true,
+              "FormatOverride": "RGBA8888"
+            },
+            "compiled": "textures/generated/imagefile/90dab872b2c4c1af.vtex"
+          },
+          {
+            "$compiler": "texture",
+            "$source": "imagefile",
+            "data": {
+              "FilePath": "decals/blood/decal_blood_splatter_04_color.png",
+              "MaxSize": 4096,
+              "ConvertHeightToNormals": false,
+              "NormalScale": 1,
+              "Rotate": 0,
+              "FlipVertical": false,
+              "FlipHorizontal": false,
+              "Padding": {
+                "Size": "0,0",
+                "EdgeSize": "0,0"
+              },
+              "Sharpen": 0,
+              "InvertColor": false,
+              "Blur": 0,
+              "Brightness": 1,
+              "Contrast": 1,
+              "Saturation": 1,
+              "Hue": 0,
+              "Colorize": false,
+              "TargetColor": "0,1,0,1",
+              "CacheToDisk": true
+            },
+            "compiled": "textures/generated/imagefile/d9b7827f182b9f68.vtex"
+          },
+          {
+            "$compiler": "texture",
+            "$source": "imagefile",
+            "data": {
+              "FilePath": "decals/blood/decal_blood_splatter_04_normal.png",
+              "MaxSize": 4096,
+              "ConvertHeightToNormals": false,
+              "NormalScale": 1,
+              "Rotate": 0,
+              "FlipVertical": false,
+              "FlipHorizontal": false,
+              "Padding": {
+                "Size": "0,0",
+                "EdgeSize": "0,0"
+              },
+              "Sharpen": 0,
+              "InvertColor": false,
+              "Blur": 0,
+              "Brightness": 1,
+              "Contrast": 1,
+              "Saturation": 1,
+              "Hue": 0,
+              "Colorize": false,
+              "TargetColor": "0,1,0,1",
+              "CacheToDisk": true
+            },
+            "compiled": "textures/generated/imagefile/3a4564a2c36a95bc.vtex"
+          },
+          {
+            "$compiler": "texture",
+            "$source": "imagefile",
+            "data": {
+              "FilePath": "decals/blood/decal_blood_splatter_04_rmo.png",
+              "MaxSize": 4096,
+              "ConvertHeightToNormals": false,
+              "NormalScale": 1,
+              "Rotate": 0,
+              "FlipVertical": false,
+              "FlipHorizontal": false,
+              "Padding": {
+                "Size": "0,0",
+                "EdgeSize": "0,0"
+              },
+              "Sharpen": 0,
+              "InvertColor": false,
+              "Blur": 0,
+              "Brightness": 1,
+              "Contrast": 1,
+              "Saturation": 1,
+              "Hue": 0,
+              "Colorize": false,
+              "TargetColor": "0,1,0,1",
+              "CacheToDisk": true
+            },
+            "compiled": "textures/generated/imagefile/2b52917f6841d3bc.vtex"
+          }
         ],
         "BreakableDamage": 100,
+        "BreakableHitEffectPrefab": null,
+        "BreakableHitSound": null,
         "Cooldown": 1,
         "DefaultBloodEffectPath": "prefabs/surface/flesh_bullet.prefab",
         "EatDuration": 0.3,
-        "Flags": 0,
         "FleshSounds": [
           "sounds/impacts/melee/impact-melee-flesh.sound"
         ],
@@ -400,18 +704,18 @@
         "PresentationInterval": 0.1,
         "SearchRadius": 50,
         "VictimAnimationParameter": "b_flinch",
-        "VictimMovementMultiplier": 0.05
+        "VictimMovementMultiplier": 0.05,
+        "VictimScream": null
       },
       {
         "__type": "LargeLadGroundSlam",
         "__guid": "662fb9de-7a22-4cb4-b981-43d2dbbc8f40",
         "__enabled": true,
+        "Flags": 0,
         "Cooldown": 5,
-        "EnableDebugLogging": true,
+        "EnableDebugLogging": false,
         "FeedbackRadius": 700,
         "FeedbackStrength": 1,
-        "Flags": 0,
-        "ImpactAnimationParameter": "b_attack",
         "MinionHorizontalImpulse": 50000,
         "MinionUpwardImpulse": 75000,
         "OnComponentDestroy": null,
@@ -422,11 +726,41 @@
         "OnComponentUpdate": null,
         "Radius": 180,
         "SkinnyKidHorizontalImpulse": 70000,
-        "SkinnyKidStaggerDuration": 0.65,
+        "SkinnyKidStaggerDuration": 1,
         "SkinnyKidUpwardImpulse": 125000,
         "TraceHeight": 36,
-        "Windup": 0.45,
-        "WindupAnimationParameter": "b_attack"
+        "Windup": 0.45
+      },
+      {
+        "__type": "LargeLadGroundSlamPresentationController",
+        "__guid": "4c065aa3-70cc-47da-a0d4-75100d08e64e",
+        "__enabled": true,
+        "Flags": 0,
+        "CooldownReadySound": "sounds/machine/button_pass.sound",
+        "GroundSlam": {
+          "_type": "component",
+          "component_id": "662fb9de-7a22-4cb4-b981-43d2dbbc8f40",
+          "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
+          "component_type": "LargeLadGroundSlam"
+        },
+        "ImpactAnimationParameter": "b_attack",
+        "ImpactEffectPrefab": "prefabs/surface/dirt-bullet.prefab",
+        "ImpactEffectScale": 2,
+        "ImpactSound": "surfaces/sounds/concrete/concrete_foot_land.sound",
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "ReadyHudDuration": 1,
+        "ShakeAmplitude": 8,
+        "ShakeDuration": 0.35,
+        "ShakeFrequency": 32,
+        "WindupAnimationParameter": "b_attack",
+        "WindupEffectPrefab": null,
+        "WindupEffectScale": 0.5,
+        "WindupSound": "sounds/weapon/swing.sound"
       },
       {
         "__type": "LargeLadHud",
@@ -567,7 +901,7 @@
         ],
         "Children": [
           {
-            "__guid": "5b4fa1ba-0e87-47c0-806a-49cc112055c2",
+            "__guid": "23b40f27-9545-4da5-9784-ff46488ec910",
             "__version": 2,
             "Flags": 0,
             "Name": "Clothing - y_front_pants_white",
@@ -584,7 +918,7 @@
             "Components": [
               {
                 "__type": "Sandbox.SkinnedModelRenderer",
-                "__guid": "ad53e358-0fc7-42d5-b62d-c6c9d21ae1b7",
+                "__guid": "3554bac5-d830-4eaa-8c6f-f117553978c6",
                 "__enabled": true,
                 "Flags": 0,
                 "AnimationGraph": null,

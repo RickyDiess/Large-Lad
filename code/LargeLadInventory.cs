@@ -4,8 +4,9 @@ using System.Collections.Generic;
 /// <summary>
 /// Host-authoritative Skinny Kid firearm inventory. Core weapons live in a
 /// variable-size delta-synchronized collection; the one physical exclusive
-/// instance is synchronized separately. Large Lad and Minion melee remains a
-/// role ability owned by LargeLadPlayer, not an inventory entry.
+/// instance is synchronized separately. Skinny Kid and Minion ordinary melee,
+/// plus the Large Lad's Eat primary, remain role abilities rather than
+/// inventory entries.
 /// </summary>
 public sealed class LargeLadInventory : Component
 {

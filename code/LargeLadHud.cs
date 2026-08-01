@@ -42,6 +42,7 @@ public sealed class LargeLadHud : Component
 		DrawBarricadeDestructionAnnouncement( hud, round );
 		DrawRoleStatus( hud, player );
 		DrawWeaponStatus( hud, player );
+		DrawGroundSlamFeedback( hud, player );
 		DrawPickupFeedback( hud, player );
 		DrawCrosshair( hud, player, cachedController );
 		DrawConfirmedHitmarker( hud, player );
@@ -487,7 +488,7 @@ public sealed class LargeLadHud : Component
 		if ( player.Role is LargeLadRole.LargeLad or
 			LargeLadRole.Minion )
 		{
-			DrawBuiltInMeleeStatus( hud );
+			DrawBuiltInRoleAttackStatus( hud, player.Role );
 			return;
 		}
 
@@ -589,10 +590,15 @@ public sealed class LargeLadHud : Component
 		}
 	}
 
-	private static void DrawBuiltInMeleeStatus( HudPainter hud )
+	private static void DrawBuiltInRoleAttackStatus(
+		HudPainter hud,
+		LargeLadRole role )
 	{
 		var definition =
 			LargeLadWeaponCatalog.Get( LargeLadWeaponId.Melee );
+		var label = role == LargeLadRole.LargeLad
+			? "EAT  [PRIMARY]"
+			: "BUILT-IN MELEE";
 		var panel = new Rect(
 			Screen.Width - 318.0f,
 			Screen.Height - 88.0f,
@@ -601,11 +607,46 @@ public sealed class LargeLadHud : Component
 
 		DrawPanel( hud, panel, definition.PickupColor );
 		hud.DrawText(
-			"BUILT-IN MELEE",
+			label,
 			18.0f,
 			definition.PickupColor,
 			new Vector2( panel.Right - 18.0f, panel.Center.y ),
 			TextFlag.RightCenter );
+	}
+
+	private static void DrawGroundSlamFeedback(
+		HudPainter hud,
+		LargeLadPlayer player )
+	{
+		var presentation = player.GroundSlamPresentation;
+
+		if ( player.Role != LargeLadRole.LargeLad ||
+			player.Health?.IsDead != false ||
+			presentation is null ||
+			(!presentation.HasCooldownHud && !presentation.HasReadyHud) )
+		{
+			return;
+		}
+
+		var accent = presentation.HasReadyHud
+			? new Color( 0.45f, 1.0f, 0.38f )
+			: new Color( 1.0f, 0.48f, 0.12f );
+		var panel = new Rect(
+			Screen.Width - 318.0f,
+			Screen.Height - 142.0f,
+			290.0f,
+			46.0f );
+		var status = presentation.HasReadyHud
+			? "GROUND SLAM READY"
+			: $"GROUND SLAM  {FormatSeconds( presentation.CooldownRemaining )}";
+
+		DrawPanel( hud, panel, accent );
+		hud.DrawText(
+			status,
+			16.0f,
+			accent,
+			panel.Center,
+			TextFlag.Center );
 	}
 
 	private static void DrawPickupFeedback(
@@ -752,7 +793,7 @@ public sealed class LargeLadHud : Component
 		return role switch
 		{
 			LargeLadRole.SkinnyKid => "Melee through early barricades. Find mapped weapons and survive.",
-			LargeLadRole.LargeLad => "Eat every Skinny Kid. Primary fire: melee.",
+			LargeLadRole.LargeLad => "Eat every Skinny Kid. Primary: Eat. Secondary: Ground Slam.",
 			LargeLadRole.Minion => "Help the Lad eat the Skinny Kids. Primary fire: melee.",
 			_ => "A new round will begin shortly."
 		};
