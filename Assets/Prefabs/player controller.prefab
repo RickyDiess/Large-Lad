@@ -318,6 +318,7 @@
         "__enabled": true,
         "Flags": 0,
         "EnableFireDebug": false,
+		"HeadshotConfirmationSound": "sounds/machine/button_pass.sound",
         "OnComponentDestroy": null,
         "OnComponentDisabled": null,
         "OnComponentEnabled": null,

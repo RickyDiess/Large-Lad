@@ -21,6 +21,17 @@ When setting up the tests for the first time:
 The tests can also be run from Visual Studio's Test Explorer after the generated
 unit-test project appears in the solution.
 
+## Timer-only Hunter movement escalation
+
+During the survival phase, the host's replicated start time and phase deadline
+define normalized elapsed round time. Hunter movement stays at the role-profile
+baseline through the first 60% of the round, then smoothsteps to 1.10x for the
+Large Lad and 1.15x for Minions at the deadline. The ramp interval and both
+maximums are configurable on the gameplay manager. Outside the survival phase
+the modifier is exactly neutral; barricades, map progress, roster changes,
+conversions, and remaining Skinny Kids are not inputs. Minion respawn delay is
+unchanged.
+
 ## Fixed round-balance bands
 
 The host selects a band from the number of Skinny Kids only after a round has

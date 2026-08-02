@@ -40,6 +40,7 @@ public sealed class LargeLadHud : Component
 		DrawRoundStatus( hud, round, player );
 		DrawLargeLadStatus( hud, round );
 		DrawBarricadeDestructionAnnouncement( hud, round );
+		DrawLastSkinnyKidAnnouncement( hud, round );
 		DrawRoleStatus( hud, player );
 		DrawWeaponStatus( hud, player );
 		DrawGroundSlamFeedback( hud, player );
@@ -131,6 +132,34 @@ public sealed class LargeLadHud : Component
 		hud.DrawText(
 			round.BarricadeDestructionAnnouncement,
 			17.0f,
+			Color.White,
+			panel.Center,
+			TextFlag.Center );
+	}
+
+	private static void DrawLastSkinnyKidAnnouncement(
+		HudPainter hud,
+		LargeLadGameManager round )
+	{
+		if ( !round.HasLastSkinnyKidAnnouncement ||
+			string.IsNullOrWhiteSpace( round.LastSkinnyKidAnnouncement ) )
+		{
+			return;
+		}
+
+		var center = new Vector2(
+			Screen.Width * 0.5f,
+			Screen.Height * 0.31f );
+		var panel = new Rect(
+			center.x - 310.0f,
+			center.y - 46.0f,
+			620.0f,
+			92.0f );
+		var accent = new Color( 0.25f, 0.85f, 1.0f );
+		DrawPanel( hud, panel, accent );
+		hud.DrawText(
+			round.LastSkinnyKidAnnouncement,
+			36.0f,
 			Color.White,
 			panel.Center,
 			TextFlag.Center );
@@ -352,6 +381,19 @@ public sealed class LargeLadHud : Component
 			return;
 
 		var center = new Vector2( Screen.Width * 0.5f, Screen.Height * 0.5f );
+		if ( weapon.LastShotResult == LargeLadShotResult.PlayerHeadshot )
+		{
+			var headshotColor = new Color( 1.0f, 0.22f, 0.12f );
+			DrawDiagonalMarker( hud, center, 7.0f, 18.0f, headshotColor );
+			hud.DrawText(
+				"HEADSHOT",
+				13.0f,
+				headshotColor,
+				new Vector2( center.x, center.y + 31.0f ),
+				TextFlag.Center );
+			return;
+		}
+
 		var color = weapon.LastShotResult == LargeLadShotResult.BarricadeHit
 			? new Color( 1.0f, 0.72f, 0.12f )
 			: Color.White;

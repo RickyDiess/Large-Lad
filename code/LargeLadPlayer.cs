@@ -139,6 +139,16 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 		{
 			IsGroundSlamStaggered = false;
 		}
+
+		// The owning peer rebuilds current Hunter speeds from the immutable role
+		// profile and the host-authored survival timer. Updating continuously keeps
+		// the smooth ramp smooth without ever compounding or mutating the profile.
+		if ( !IsProxy &&
+			LargeLadGameplayRules.IsHunterRole( Role ) &&
+			TryGetRoleProfile( Role, out var profile ) )
+		{
+			ApplyLocalMovementSettings( profile );
+		}
 	}
 
 	protected override void OnRefresh()
@@ -227,6 +237,7 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 		{
 			CancelEatParticipationForLifecycle();
 			CancelGroundSlamStagger();
+			Health?.ClearPassiveRegenerationState();
 		}
 
 		// The synchronized role is sufficient to update presentation on every
@@ -584,8 +595,13 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 			EatMovementMultiplier,
 			0.0f,
 			1.0f );
-		controller.WalkSpeed = profile.WalkSpeed * eatMultiplier;
-		controller.RunSpeed = profile.RunSpeed * eatMultiplier;
+		var escalationMultiplier =
+			LargeLadGameManager.FindForScene( Scene )?
+				.GetHunterMovementEscalationMultiplier( Role ) ?? 1.0f;
+		controller.WalkSpeed =
+			profile.WalkSpeed * eatMultiplier * escalationMultiplier;
+		controller.RunSpeed =
+			profile.RunSpeed * eatMultiplier * escalationMultiplier;
 	}
 
 	private void LogRoleProfileWarnings()

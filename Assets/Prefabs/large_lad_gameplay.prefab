@@ -21,7 +21,10 @@
         "__enabled": true,
         "Flags": 0,
         "HeadStartDuration": 10,
+        "HunterMovementRampEndNormalizedTime": 1,
+        "HunterMovementRampStartNormalizedTime": 0.6,
         "IntermissionDuration": 5,
+        "LargeLadMovementMaximumMultiplier": 1.1,
         "LargeLadRespawnDelay": 5,
         "MinimumPlayers": 2,
         "NetworkHelper": {
@@ -38,6 +41,9 @@
         "OnComponentUpdate": null,
         "PlayerReadyDelay": 0.5,
         "PlayerRespawnDelay": 5,
+        "SkinnyKidRegenerationDelay": 5,
+        "SkinnyKidRegenerationRate": 5,
+        "MinionMovementMaximumMultiplier": 1.15,
         "RoundBalanceSettings": "gameplay/default_round_balance.llbalance",
         "SpawnAllocator": {
           "_type": "component",

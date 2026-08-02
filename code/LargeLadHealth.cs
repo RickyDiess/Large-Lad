@@ -20,6 +20,8 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 	private GameObject deathRagdoll;
 	private bool hasReportedLethalTransition;
 	private bool isApplyingAuthorizedEatExecution;
+	private bool hasPendingPassiveRegeneration;
+	private float lastDamageTime;
 	private LargeLadPlayer cachedPlayer;
 	private PlayerController cachedController;
 	private LargeLadGameManager cachedGameManager;
@@ -66,8 +68,55 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 		ApplyLifeState( IsDead );
 	}
 
+	protected override void OnUpdate()
+	{
+		if ( !Networking.IsHost || !hasPendingPassiveRegeneration )
+			return;
+
+		var player = cachedPlayer;
+		var manager = GetGameManager();
+		var maximumHealth = MaximumHealth;
+		var cap = LargeLadSkinnyKidSurvivabilityRules
+			.GetRegenerationCap( maximumHealth );
+		var isRoundActive = manager?.Phase is
+			LargeLadRoundPhase.HeadStart or LargeLadRoundPhase.Playing;
+
+		if ( player is null ||
+			player.Role != LargeLadRole.SkinnyKid ||
+			IsDead ||
+			CurrentHealth <= 0.0f ||
+			!isRoundActive ||
+			CurrentHealth >= cap )
+		{
+			ClearPassiveRegenerationState();
+			return;
+		}
+
+		CurrentHealth = LargeLadSkinnyKidSurvivabilityRules
+			.GetRegeneratedHealth(
+				player.Role,
+				isLiving: true,
+				isRoundActive: true,
+				CurrentHealth,
+				maximumHealth,
+				Time.Now - lastDamageTime,
+				Time.Delta,
+				manager.SkinnyKidRegenerationDelay,
+				manager.SkinnyKidRegenerationRate );
+
+		if ( CurrentHealth >= cap )
+			ClearPassiveRegenerationState();
+	}
+
+	protected override void OnDisabled()
+	{
+		ClearPassiveRegenerationState();
+		base.OnDisabled();
+	}
+
 	protected override void OnDestroy()
 	{
+		ClearPassiveRegenerationState();
 		RemoveDeathRagdoll();
 	}
 
@@ -79,6 +128,7 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 		CurrentHealth = MaximumHealth;
 		RespawnEndTime = 0.0f;
 		hasReportedLethalTransition = false;
+		ClearPassiveRegenerationState();
 
 		var wasDead = IsDead;
 		IsDead = false;
@@ -117,7 +167,7 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 	{
 		appliedDamage = damage.WithAppliedDamage( 0.0f );
 
-		if ( !Networking.IsHost || IsDead || CurrentHealth <= 0.0f || damage.BaseDamage <= 0.0f )
+		if ( !Networking.IsHost || IsDead || CurrentHealth <= 0.0f )
 			return false;
 
 		var player = cachedPlayer;
@@ -142,11 +192,29 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 		// Eat is an execution, not ordinary damage. It deliberately bypasses
 		// incoming-damage modifiers (including any Last Skinny Kid reduction)
 		// and crosses the lethal edge exactly once through the normal manager.
-		var amount = isEatExecution
-			? CurrentHealth
-			: damage.BaseDamage * System.MathF.Max(
+		// A valid Minion firearm headshot similarly resolves to current health,
+		// but remains firearm damage with its shot and hit-region attribution.
+		var ordinaryIncomingDamage =
+			damage.BaseDamage * System.MathF.Max(
 				0.0f,
 				profile.IncomingDamageMultiplier );
+		var amount = isEatExecution
+			? CurrentHealth
+			: LargeLadFirearmHitRules.ResolveIncomingDamage(
+				player.Role,
+				isLiving: true,
+				damage.SourceWeapon,
+				damage.DamageType,
+				damage.HitRegion,
+				CurrentHealth,
+				ordinaryIncomingDamage );
+		amount = LargeLadSkinnyKidSurvivabilityRules
+			.ApplyLastSkinnyKidDamageReduction(
+				player.Role,
+				GetGameManager()?
+					.IsLastEffectiveLivingSkinnyKid( player ) == true,
+				damage.DamageType,
+				amount );
 		amount = LargeLadEatRules.FilterDamageForEatCommit(
 			player.EatParticipation,
 			damage.DamageType,
@@ -155,6 +223,8 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 
 		if ( amount <= 0.0f )
 			return false;
+
+		RestartPassiveRegenerationDelay( player );
 
 		var previousHealth = CurrentHealth;
 		CurrentHealth = System.MathF.Max( 0.0f, previousHealth - amount );
@@ -263,49 +333,15 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 		if ( player is null || player.Role == LargeLadRole.Unassigned )
 			return false;
 
-		var previousHealth = CurrentHealth;
-
-		if ( LargeLadEatRules.FilterDamageForEatCommit(
-			player.EatParticipation,
-			LargeLadDamageType.Environment,
-			previousHealth,
-			isAuthorizedEatExecution: false ) <= 0.0f )
-		{
-			return false;
-		}
-
-		CurrentHealth = 0.0f;
 		var death = new LargeLadDamageContext
 		{
 			AttackerRole = LargeLadRole.Unassigned,
 			SourceWeapon = LargeLadWeaponId.None,
 			DamageType = LargeLadDamageType.Environment,
-			BaseDamage = previousHealth,
-			AppliedDamage = previousHealth
+			BaseDamage = CurrentHealth
 		};
 
-		if ( !LargeLadGameplayRules.IsNewLethalTransition(
-			previousHealth,
-			CurrentHealth,
-			hasReportedLethalTransition ) )
-		{
-			return false;
-		}
-
-		var managerAccepted = TryReportLethalTransition( player, death );
-
-		if ( LargeLadGameplayRules.CanCommitLethalTransition(
-			previousHealth,
-			CurrentHealth,
-			hasReportedLethalTransition,
-			managerAccepted ) )
-		{
-			hasReportedLethalTransition = true;
-			return true;
-		}
-
-		CurrentHealth = previousHealth;
-		return false;
+		return TryApplyDamage( death, out _ );
 	}
 
 	internal bool TryBeginDeath( float duration, bool useRagdoll )
@@ -314,6 +350,7 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 			return false;
 
 		CurrentHealth = 0.0f;
+		ClearPassiveRegenerationState();
 		RespawnEndTime = LargeLadGameplayRules.GetTimerDeadline(
 			Time.Now,
 			duration );
@@ -330,6 +367,24 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 		return LargeLadGameplayRules.HasTimerReachedDeadline(
 			RespawnEndTime,
 			Time.Now );
+	}
+
+	internal void ClearPassiveRegenerationState()
+	{
+		hasPendingPassiveRegeneration = false;
+		lastDamageTime = 0.0f;
+	}
+
+	private void RestartPassiveRegenerationDelay( LargeLadPlayer player )
+	{
+		if ( player?.Role != LargeLadRole.SkinnyKid || IsDead )
+		{
+			ClearPassiveRegenerationState();
+			return;
+		}
+
+		hasPendingPassiveRegeneration = true;
+		lastDamageTime = Time.Now;
 	}
 
 	private bool TryReportLethalTransition(

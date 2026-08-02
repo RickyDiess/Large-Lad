@@ -26,6 +26,7 @@ public sealed class LargeLadGameManager : Component
 	public const int MinimumSupportedPlayerCount = 2;
 	public const int TargetPlayerCount = 32;
 	private const float BarricadeAnnouncementDuration = 3.5f;
+	private const float LastSkinnyKidAnnouncementDuration = 4.0f;
 
 	[Property]
 	public int MinimumPlayers { get; set; } = MinimumSupportedPlayerCount;
@@ -47,6 +48,40 @@ public sealed class LargeLadGameManager : Component
 
 	[Property]
 	public float PlayerRespawnDelay { get; set; } = 5.0f;
+
+	[Property, Group( "Skinny Kid Survivability" ),
+		Title( "Regeneration Delay" )]
+	public float SkinnyKidRegenerationDelay { get; set; } =
+		LargeLadSkinnyKidSurvivabilityRules.DefaultRegenerationDelay;
+
+	[Property, Group( "Skinny Kid Survivability" ),
+		Title( "Regeneration Rate (Health Per Second)" )]
+	public float SkinnyKidRegenerationRate { get; set; } =
+		LargeLadSkinnyKidSurvivabilityRules.DefaultRegenerationRate;
+
+	[Property, Group( "Hunter Movement Escalation" ),
+		Title( "Ramp Start (Normalized Round Time)" )]
+	public float HunterMovementRampStartNormalizedTime { get; set; } =
+		LargeLadHunterMovementEscalationRules
+			.DefaultRampStartNormalizedTime;
+
+	[Property, Group( "Hunter Movement Escalation" ),
+		Title( "Ramp End (Normalized Round Time)" )]
+	public float HunterMovementRampEndNormalizedTime { get; set; } =
+		LargeLadHunterMovementEscalationRules
+			.DefaultRampEndNormalizedTime;
+
+	[Property, Group( "Hunter Movement Escalation" ),
+		Title( "Large Lad Maximum Multiplier" )]
+	public float LargeLadMovementMaximumMultiplier { get; set; } =
+		LargeLadHunterMovementEscalationRules
+			.DefaultLargeLadMaximumMultiplier;
+
+	[Property, Group( "Hunter Movement Escalation" ),
+		Title( "Minion Maximum Multiplier" )]
+	public float MinionMovementMaximumMultiplier { get; set; } =
+		LargeLadHunterMovementEscalationRules
+			.DefaultMinionMaximumMultiplier;
 
 	[Property, Group( "Round Balance" )]
 	public LargeLadRoundBalanceSettings RoundBalanceSettings { get; set; }
@@ -79,6 +114,14 @@ public sealed class LargeLadGameManager : Component
 	[Sync( SyncFlags.FromHost )]
 	public float PhaseEndTime { get; private set; }
 
+	/// <summary>
+	/// Replicated host timestamp for the beginning of the survival interval.
+	/// Together with PhaseEndTime, this is the complete escalation state a
+	/// movement owner or optional non-directional presentation cue consumes.
+	/// </summary>
+	[Sync( SyncFlags.FromHost )]
+	public float SurvivalRoundStartTime { get; private set; }
+
 	[Sync( SyncFlags.FromHost )]
 	public LargeLadWinner Winner { get; private set; } = LargeLadWinner.None;
 
@@ -103,8 +146,26 @@ public sealed class LargeLadGameManager : Component
 			: null;
 
 	/// <summary>
+	/// The complete gameplay interval in which role survivability rules apply.
+	/// </summary>
+	public bool IsRoundActive =>
+		Phase is LargeLadRoundPhase.HeadStart or LargeLadRoundPhase.Playing;
+
+	public bool HasLastSkinnyKidAnnouncement =>
+		IsRoundActive &&
+		!string.IsNullOrWhiteSpace( lastSkinnyKidAnnouncement ) &&
+		timeSinceLastSkinnyKidAnnouncement <
+			LastSkinnyKidAnnouncementDuration;
+
+	public string LastSkinnyKidAnnouncement =>
+		HasLastSkinnyKidAnnouncement
+			? lastSkinnyKidAnnouncement
+			: null;
+
+	/// <summary>
 	/// Host-only lethal attribution hook for scoring and kill-feed systems.
-	/// The damage envelope retains both the attacking object and the Eat cause.
+	/// The damage envelope retains the attacker, weapon, shot sequence, hit
+	/// region, and stable killfeed cause.
 	/// </summary>
 	public event System.Action<
 		LargeLadPlayer,
@@ -116,6 +177,35 @@ public sealed class LargeLadGameManager : Component
 			: LargeLadGameplayRules.GetTimerTimeRemaining(
 				PhaseEndTime,
 				Time.Now );
+
+	/// <summary>
+	/// Elapsed survival-round time normalized from the replicated host interval.
+	/// It is exactly zero outside Playing, including every between-round phase.
+	/// </summary>
+	public float NormalizedElapsedSurvivalRoundTime =>
+		LargeLadHunterMovementEscalationRules
+			.GetNormalizedElapsedSurvivalRoundTime(
+				Phase == LargeLadRoundPhase.Playing,
+				SurvivalRoundStartTime,
+				PhaseEndTime,
+				Time.Now );
+
+	/// <summary>
+	/// Timer-only role modifier derived from the host's replicated survival
+	/// interval. No roster, map, objective, or conversion state is consulted.
+	/// </summary>
+	public float GetHunterMovementEscalationMultiplier(
+		LargeLadRole role )
+	{
+		return LargeLadHunterMovementEscalationRules
+			.GetMovementMultiplier(
+				role,
+				NormalizedElapsedSurvivalRoundTime,
+				HunterMovementRampStartNormalizedTime,
+				HunterMovementRampEndNormalizedTime,
+				LargeLadMovementMaximumMultiplier,
+				MinionMovementMaximumMultiplier );
+	}
 
 	/// <summary>
 	/// Returns the current round's band factor composed with an optional future
@@ -201,6 +291,29 @@ public sealed class LargeLadGameManager : Component
 		timeSinceBarricadeDestructionAnnouncement = 0.0f;
 	}
 
+	private void PublishLastSkinnyKidAnnouncement()
+	{
+		const string message = "LAST SKINNY KID";
+		ReceiveLastSkinnyKidAnnouncement( message );
+		BroadcastLastSkinnyKidAnnouncement( message );
+	}
+
+	[Rpc.Broadcast]
+	private void BroadcastLastSkinnyKidAnnouncement( string message )
+	{
+		// The host applied it before issuing the one broadcast.
+		if ( Networking.IsHost )
+			return;
+
+		ReceiveLastSkinnyKidAnnouncement( message );
+	}
+
+	private void ReceiveLastSkinnyKidAnnouncement( string message )
+	{
+		lastSkinnyKidAnnouncement = message;
+		timeSinceLastSkinnyKidAnnouncement = 0.0f;
+	}
+
 	private int nextLargeLadIndex;
 	private int waitingPlayerCount = -1;
 	private float playerReadyTimeRemaining;
@@ -212,6 +325,10 @@ public sealed class LargeLadGameManager : Component
 	private LargeLadPlayer currentLargeLad;
 	private string barricadeDestructionAnnouncement;
 	private TimeSince timeSinceBarricadeDestructionAnnouncement;
+	private string lastSkinnyKidAnnouncement;
+	private TimeSince timeSinceLastSkinnyKidAnnouncement;
+	private int previousEffectiveLivingSkinnyKidCount;
+	private bool hasAnnouncedLastSkinnyKidThisRound;
 	private readonly List<LargeLadPlayer> activePlayers = new();
 	private readonly HashSet<LargeLadPlayer> registeredPlayers = new();
 	private readonly Dictionary<LargeLadRole, List<LargeLadPlayer>> playersByRole =
@@ -566,6 +683,47 @@ public sealed class LargeLadGameManager : Component
 		if ( PlayerRespawnDelay < 0.0f )
 			issues.Add( "Player respawn delay cannot be negative." );
 
+		if ( !LargeLadSkinnyKidSurvivabilityRules
+			.IsValidRegenerationDelay( SkinnyKidRegenerationDelay ) )
+		{
+			issues.Add(
+				"Skinny Kid regeneration delay must be finite and non-negative." );
+		}
+
+		if ( !LargeLadSkinnyKidSurvivabilityRules
+			.IsValidRegenerationRate( SkinnyKidRegenerationRate ) )
+		{
+			issues.Add(
+				"Skinny Kid regeneration rate must be finite and non-negative." );
+		}
+
+		if ( !LargeLadHunterMovementEscalationRules.IsValidRampInterval(
+			HunterMovementRampStartNormalizedTime,
+			HunterMovementRampEndNormalizedTime ) )
+		{
+			issues.Add(
+				"Hunter movement escalation needs normalized ramp start/end " +
+				"values from zero through one, with start before end." );
+		}
+
+		if ( !LargeLadHunterMovementEscalationRules
+			.IsValidMaximumMultiplier(
+				LargeLadMovementMaximumMultiplier ) )
+		{
+			issues.Add(
+				"Large Lad movement escalation maximum must be finite and " +
+				"at least one." );
+		}
+
+		if ( !LargeLadHunterMovementEscalationRules
+			.IsValidMaximumMultiplier(
+				MinionMovementMaximumMultiplier ) )
+		{
+			issues.Add(
+				"Minion movement escalation maximum must be finite and at " +
+				"least one." );
+		}
+
 		if ( RoundBalanceSettings is null )
 		{
 			issues.Add(
@@ -768,6 +926,7 @@ public sealed class LargeLadGameManager : Component
 			player.Role != LargeLadRole.Unassigned );
 		reportedSpawnAllocationFailures.RemoveWhere( failure =>
 			!registeredPlayers.Contains( failure.Player ) );
+		RefreshLastSkinnyKidState();
 
 		switch ( Phase )
 		{
@@ -898,6 +1057,8 @@ public sealed class LargeLadGameManager : Component
 			player.Inventory?.ClearForRoundReset();
 
 		ResetMapState();
+		ResetSurvivalRoundTiming();
+		ResetLastSkinnyKidState();
 		Winner = LargeLadWinner.None;
 		nextLargeLadIndex = (nextLargeLadIndex + 1) % players.Count;
 		lobbyPlacedPlayers.Clear();
@@ -916,6 +1077,7 @@ public sealed class LargeLadGameManager : Component
 		spawnFailureReported = false;
 		SetPhaseDeadline( HeadStartDuration );
 		SetPhase( LargeLadRoundPhase.HeadStart );
+		RefreshLastSkinnyKidState();
 		Log.Info(
 			$"Round started with {players.Count} players, " +
 			$"{skinnyKidPlayers.Count} Skinny Kids, the " +
@@ -946,7 +1108,7 @@ public sealed class LargeLadGameManager : Component
 		foreach ( var player in players )
 			player.MovementLocked = false;
 
-		SetPhaseDeadline( SurvivalDuration );
+		BeginSurvivalRoundTiming();
 		SetPhase( LargeLadRoundPhase.Playing );
 		Log.Info( $"Head start finished. Skinny Kids must survive {SurvivalDuration:0.#} seconds." );
 	}
@@ -961,13 +1123,18 @@ public sealed class LargeLadGameManager : Component
 		}
 
 		Winner = winner;
+		ResetSurvivalRoundTiming();
+		ResetLastSkinnyKidState();
 		SetPhaseDeadline( IntermissionDuration );
 		SetPhase( LargeLadRoundPhase.RoundOver );
 
 		var players = GetActivePlayerSnapshot();
 
 		foreach ( var player in players )
+		{
 			player.CancelEatParticipationForLifecycle();
+			player.Health?.ClearPassiveRegenerationState();
+		}
 
 		var returningPlayers = players
 			.Where( player => player.Health?.IsDead != true )
@@ -1009,6 +1176,8 @@ public sealed class LargeLadGameManager : Component
 	private void FinishIntermission( List<LargeLadPlayer> players )
 	{
 		PhaseEndTime = 0.0f;
+		ResetSurvivalRoundTiming();
+		ResetLastSkinnyKidState();
 		Winner = LargeLadWinner.None;
 
 		if ( LargeLadGameplayRules.HasMinimumPlayers(
@@ -1054,6 +1223,66 @@ public sealed class LargeLadGameManager : Component
 					"joined the active round as a Minion." );
 			}
 		}
+	}
+
+	internal bool IsLastEffectiveLivingSkinnyKid( LargeLadPlayer player )
+	{
+		return Networking.IsHost &&
+			IsRoundActive &&
+			player is not null &&
+			registeredPlayers.Contains( player ) &&
+			IsEffectiveLivingSkinnyKid( player ) &&
+			CountEffectiveLivingSkinnyKids() == 1;
+	}
+
+	private void RefreshLastSkinnyKidState()
+	{
+		if ( !Networking.IsHost || !OwnsSceneGameplay() )
+			return;
+
+		var currentCount = IsRoundActive
+			? CountEffectiveLivingSkinnyKids()
+			: 0;
+
+		if ( LargeLadSkinnyKidSurvivabilityRules
+			.ShouldAnnounceLastSkinnyKid(
+				IsRoundActive,
+				previousEffectiveLivingSkinnyKidCount,
+				currentCount,
+				hasAnnouncedLastSkinnyKidThisRound ) )
+		{
+			hasAnnouncedLastSkinnyKidThisRound = true;
+			PublishLastSkinnyKidAnnouncement();
+		}
+
+		previousEffectiveLivingSkinnyKidCount = currentCount;
+	}
+
+	private int CountEffectiveLivingSkinnyKids()
+	{
+		return activePlayers.Count( player =>
+			registeredPlayers.Contains( player ) &&
+			IsEffectiveLivingSkinnyKid( player ) );
+	}
+
+	private static bool IsEffectiveLivingSkinnyKid(
+		LargeLadPlayer player )
+	{
+		return player?.Health is not null &&
+			LargeLadSkinnyKidSurvivabilityRules
+				.IsEffectiveLivingSkinnyKid(
+					player.Role,
+					player.PendingRespawnRole,
+					player.Health.IsDead,
+					player.Health.CurrentHealth );
+	}
+
+	private void ResetLastSkinnyKidState()
+	{
+		previousEffectiveLivingSkinnyKidCount = 0;
+		hasAnnouncedLastSkinnyKidThisRound = false;
+		lastSkinnyKidAnnouncement = null;
+		timeSinceLastSkinnyKidAnnouncement = 0.0f;
 	}
 
 	private void EvaluateWinnerAfterLifecycleChange()
@@ -1117,11 +1346,12 @@ public sealed class LargeLadGameManager : Component
 		{
 			Log.Info(
 				$"[Debug/Player Lifecycle] {player.GameObject.Name} died " +
-				$"from {damage.DamageType}{conversion}; respawn in " +
+				$"from {damage.KillfeedCause}{conversion}; respawn in " +
 				$"{plan.RespawnDelay:0.#} seconds." );
 		}
 
 		AuthoritativePlayerKilled?.Invoke( player, damage );
+		RefreshLastSkinnyKidState();
 		EvaluateWinnerAfterLifecycleChange();
 		return true;
 	}
@@ -1322,7 +1552,10 @@ public sealed class LargeLadGameManager : Component
 		IndexPlayerRole( player, player.Role );
 
 		if ( !isHydratingRegistrations )
+		{
+			RefreshLastSkinnyKidState();
 			EvaluateWinnerAfterLifecycleChange();
+		}
 	}
 
 	internal void UnregisterPlayer( LargeLadPlayer player )
@@ -1349,7 +1582,10 @@ public sealed class LargeLadGameManager : Component
 			failure => failure.Player == player );
 
 		if ( !isHydratingRegistrations )
+		{
+			RefreshLastSkinnyKidState();
 			EvaluateWinnerAfterLifecycleChange();
+		}
 	}
 
 	internal void UpdatePlayerRole(
@@ -1373,7 +1609,10 @@ public sealed class LargeLadGameManager : Component
 		}
 
 		if ( !isHydratingRegistrations )
+		{
+			RefreshLastSkinnyKidState();
 			EvaluateWinnerAfterLifecycleChange();
+		}
 	}
 
 	internal void RegisterRoundResettable(
@@ -1457,6 +1696,7 @@ public sealed class LargeLadGameManager : Component
 
 		// Hydration is one lifecycle transaction. A partially restored role
 		// index must never be visible to the winner check.
+		RefreshLastSkinnyKidState();
 		EvaluateWinnerAfterLifecycleChange();
 	}
 
@@ -1619,6 +1859,20 @@ public sealed class LargeLadGameManager : Component
 		PhaseEndTime = LargeLadGameplayRules.GetTimerDeadline(
 			Time.Now,
 			duration );
+	}
+
+	private void BeginSurvivalRoundTiming()
+	{
+		var hostNow = Time.Now;
+		SurvivalRoundStartTime = hostNow;
+		PhaseEndTime = LargeLadGameplayRules.GetTimerDeadline(
+			hostNow,
+			SurvivalDuration );
+	}
+
+	private void ResetSurvivalRoundTiming()
+	{
+		SurvivalRoundStartTime = 0.0f;
 	}
 
 	private static void ApplyRespawnAllocations(

@@ -4,6 +4,7 @@ public enum LargeLadShotResult
 {
 	AcceptedMiss,
 	PlayerHit,
+	PlayerHeadshot,
 	BarricadeHit
 }
 
@@ -22,17 +23,20 @@ public sealed class LargeLadPrototypeWeapon : Component
 	private TimeSince timeSinceLocalShot;
 	private TimeSince timeSinceConfirmedHit;
 	private int nextOwnerShotSequence;
-	private int lastHostShotSequence;
 	private int lastOwnerResultSequence;
 	private bool hasHostShotSchedule;
 	private float nextHostShotTime;
 	private bool hasConfirmedHit;
+	private readonly LargeLadFirearmShotRequestGate hostShotRequestGate = new();
 	private LargeLadPlayer cachedPlayer;
 	private PlayerController cachedController;
 	private LargeLadGameManager cachedGameManager;
 
 	[Property, Title( "Firearm Debug Logging" )]
 	public bool EnableFireDebug { get; set; }
+
+	[Property, Group( "Feedback" ), Title( "Headshot Confirmation Sound" )]
+	public SoundEvent HeadshotConfirmationSound { get; set; }
 
 	public bool HasConfirmedHitmarker =>
 		hasConfirmedHit && timeSinceConfirmedHit < ConfirmedHitmarkerDuration;
@@ -100,7 +104,7 @@ public sealed class LargeLadPrototypeWeapon : Component
 		if ( !Networking.IsHost )
 			return;
 
-		if ( ownerShotSequence <= lastHostShotSequence )
+		if ( !hostShotRequestGate.TryConsume( ownerShotSequence ) )
 		{
 			DebugFire(
 				$"Shot {ownerShotSequence} rejected: duplicate or out-of-order sequence." );
@@ -109,8 +113,6 @@ public sealed class LargeLadPrototypeWeapon : Component
 
 		// Consume every new sequence even when its payload is invalid so the same
 		// malformed request cannot be replayed.
-		lastHostShotSequence = ownerShotSequence;
-
 		var attacker = cachedPlayer;
 		var inventory = attacker?.Inventory;
 		var definition = inventory?.EquippedDefinition;
@@ -184,13 +186,18 @@ public sealed class LargeLadPrototypeWeapon : Component
 		var targetPlayer = trace.GameObject?.Components.Get<LargeLadPlayer>(
 			FindMode.EverythingInSelfAndAncestors );
 		var barricade = LargeLadBarricade.FindFor( trace.GameObject );
+		var hitRegion = targetPlayer is null
+			? LargeLadHitRegion.None
+			: ClassifyHitRegion( trace );
 
 		var damage = new LargeLadDamageContext
 		{
 			Attacker = GameObject,
 			AttackerRole = attacker.Role,
 			SourceWeapon = inventory.EquippedWeapon,
+			SourceShotSequence = ownerShotSequence,
 			DamageType = LargeLadDamageType.Firearm,
+			HitRegion = hitRegion,
 			BaseDamage = definition.Damage
 		};
 
@@ -204,9 +211,12 @@ public sealed class LargeLadPrototypeWeapon : Component
 
 			if ( applied.AppliedDamage > 0.0f )
 			{
-				result = LargeLadShotResult.PlayerHit;
+				result = applied.IsFirearmHeadshot
+					? LargeLadShotResult.PlayerHeadshot
+					: LargeLadShotResult.PlayerHit;
 				DebugFire(
-					$"Shot {ownerShotSequence}: confirmed player hit for " +
+					$"Shot {ownerShotSequence}: confirmed " +
+					$"{(applied.IsFirearmHeadshot ? "headshot" : "player hit")} for " +
 					$"{applied.AppliedDamage:0.#} damage." );
 			}
 		}
@@ -243,6 +253,16 @@ public sealed class LargeLadPrototypeWeapon : Component
 			definition.FireInterval;
 	}
 
+	private static LargeLadHitRegion ClassifyHitRegion(
+		SceneTraceResult trace )
+	{
+		var hitbox = trace.Hitbox;
+		return LargeLadFirearmHitRules.ClassifyHitRegion(
+			hitbox?.Bone?.Name,
+			hitbox?.Tags?.Has(
+				LargeLadFirearmHitRules.HeadHitboxTag ) == true );
+	}
+
 	[Rpc.Owner( NetFlags.HostOnly )]
 	private void ReceiveShotResult(
 		int ownerShotSequence,
@@ -255,6 +275,7 @@ public sealed class LargeLadPrototypeWeapon : Component
 		LastShotResult = result;
 
 		if ( result is not (LargeLadShotResult.PlayerHit or
+			LargeLadShotResult.PlayerHeadshot or
 			LargeLadShotResult.BarricadeHit) )
 		{
 			return;
@@ -262,6 +283,14 @@ public sealed class LargeLadPrototypeWeapon : Component
 
 		hasConfirmedHit = true;
 		timeSinceConfirmedHit = 0.0f;
+
+		if ( result == LargeLadShotResult.PlayerHeadshot &&
+			HeadshotConfirmationSound is not null )
+		{
+			Sound.Play(
+				HeadshotConfirmationSound,
+				GameObject.WorldPosition );
+		}
 	}
 
 	private void DebugFire( string message )

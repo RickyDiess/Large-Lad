@@ -17,9 +17,23 @@ public struct LargeLadDamageContext
 	public GameObject Attacker { get; set; }
 	public LargeLadRole AttackerRole { get; set; }
 	public LargeLadWeaponId SourceWeapon { get; set; }
+	public int SourceShotSequence { get; set; }
 	public LargeLadDamageType DamageType { get; set; }
+	public LargeLadHitRegion HitRegion { get; set; }
 	public float BaseDamage { get; set; }
 	public float AppliedDamage { get; set; }
+
+	public bool IsFirearmHeadshot =>
+		LargeLadFirearmHitRules.IsFirearmHeadshot(
+			SourceWeapon,
+			DamageType,
+			HitRegion );
+
+	public LargeLadKillfeedCause KillfeedCause =>
+		LargeLadFirearmHitRules.GetKillfeedCause(
+			SourceWeapon,
+			DamageType,
+			HitRegion );
 
 	public LargeLadDamageContext WithAppliedDamage( float amount )
 	{
