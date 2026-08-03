@@ -1,5 +1,6 @@
 using Sandbox;
 using System.Collections.Generic;
+using System.Linq;
 
 /// <summary>
 /// One round's focused cover-destruction edge. Reset rearms the event without
@@ -115,6 +116,8 @@ public sealed class LargeLadMinionPassage :
 	private bool appliedCoverEnabled;
 	private bool? appliedCoverDestroyed;
 	private bool? appliedPassageOpen;
+	private Collider capturedOpeningCollider;
+	private GameObject capturedCoverRoot;
 
 	public static LargeLadMinionPassage FindCoverFor( GameObject target )
 	{
@@ -127,7 +130,7 @@ public sealed class LargeLadMinionPassage :
 
 	public Vector3 GetClosestCoverWorldPoint( Vector3 worldPoint )
 	{
-		if ( OpeningCollider is not null )
+		if ( OpeningCollider is not null && OpeningCollider.IsValid )
 			return OpeningCollider.FindClosestPoint( worldPoint );
 
 		return CoverRoot?.WorldPosition ?? GameObject.WorldPosition;
@@ -151,6 +154,9 @@ public sealed class LargeLadMinionPassage :
 
 	protected override void OnUpdate()
 	{
+		if ( ResolveReferences() && hasCapturedAuthoredState )
+			CaptureAuthoredState( true );
+
 		if ( appliedCoverEnabled == EnableBreakableCover &&
 			appliedCoverDestroyed == IsCoverDestroyed &&
 			appliedPassageOpen == IsPassageOpen )
@@ -410,7 +416,8 @@ public sealed class LargeLadMinionPassage :
 		if ( target is null ||
 			!EnableBreakableCover ||
 			IsCoverDestroyed ||
-			OpeningCollider is null )
+			OpeningCollider is null ||
+			!OpeningCollider.IsValid )
 		{
 			return false;
 		}
@@ -427,22 +434,68 @@ public sealed class LargeLadMinionPassage :
 			(target == GameObject || GameObject.IsDescendant( target ));
 	}
 
-	private void ResolveReferences()
+	private bool ResolveReferences()
 	{
+		var previousOpeningCollider = OpeningCollider;
+		var previousCoverRoot = CoverRoot;
+
+		if ( OpeningCollider is not null &&
+			(!OpeningCollider.IsValid ||
+				OpeningCollider.GameObject != GameObject) )
+		{
+			OpeningCollider = null;
+		}
+
 		OpeningCollider ??= Components.Get<Collider>(
 			FindMode.EverythingInSelf );
 
+		if ( CoverRoot is not null &&
+			(!CoverRoot.IsValid ||
+				CoverRoot.Parent != GameObject) )
+		{
+			CoverRoot = null;
+		}
+
+		if ( CoverRoot is null && EnableBreakableCover )
+		{
+			CoverRoot = GameObject.Children.FirstOrDefault( child =>
+				child.Components.Get<MeshComponent>(
+					FindMode.EverythingInSelfAndDescendants ) is not null ||
+				child.Components.Get<Renderer>(
+					FindMode.EverythingInSelfAndDescendants ) is not null );
+		}
+
 		if ( CoverRoot is not null )
 		{
+			if ( CoverProp is not null &&
+				(!CoverProp.IsValid ||
+					!CoverRoot.IsDescendant( CoverProp.GameObject ) &&
+					CoverProp.GameObject != CoverRoot) )
+			{
+				CoverProp = null;
+			}
+
 			CoverProp ??= CoverRoot.Components.Get<Prop>(
 				FindMode.EverythingInSelfAndDescendants );
 		}
+		else
+		{
+			CoverProp = null;
+		}
+
+		return !ReferenceEquals( previousOpeningCollider, OpeningCollider ) ||
+			!ReferenceEquals( previousCoverRoot, CoverRoot );
 	}
 
-	private void CaptureAuthoredState()
+	private void CaptureAuthoredState( bool force = false )
 	{
-		if ( hasCapturedAuthoredState )
+		if ( hasCapturedAuthoredState &&
+			!force &&
+			ReferenceEquals( capturedOpeningCollider, OpeningCollider ) &&
+			ReferenceEquals( capturedCoverRoot, CoverRoot ) )
+		{
 			return;
+		}
 
 		authoredOpeningColliderEnabled =
 			OpeningCollider?.Enabled == true;
@@ -450,6 +503,8 @@ public sealed class LargeLadMinionPassage :
 			OpeningCollider?.GameObject?.Tags.Has(
 				LargeLadGameplayRules.MinionPassageTag ) == true;
 		authoredCoverTransform = CoverRoot?.LocalTransform ?? default;
+		capturedOpeningCollider = OpeningCollider;
+		capturedCoverRoot = CoverRoot;
 		hasCapturedAuthoredState = true;
 	}
 

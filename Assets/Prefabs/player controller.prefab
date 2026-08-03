@@ -318,7 +318,7 @@
         "__enabled": true,
         "Flags": 0,
 		"EnableFireDebug": false,
-		"HeadshotConfirmationSound": "sounds/machine/button_pass.sound",
+		"HeadshotConfirmationSound": "sounds/kenney/ui/ui.upvote.sound",
         "OnComponentDestroy": null,
         "OnComponentDisabled": null,
         "OnComponentEnabled": null,
@@ -759,7 +759,7 @@
         "__guid": "4c065aa3-70cc-47da-a0d4-75100d08e64e",
         "__enabled": true,
         "Flags": 0,
-        "CooldownReadySound": "sounds/machine/button_pass.sound",
+        "CooldownReadySound": "sounds/kenney/ui/ui.navigate.forward.sound",
         "GroundSlam": {
           "_type": "component",
           "component_id": "662fb9de-7a22-4cb4-b981-43d2dbbc8f40",
@@ -769,7 +769,7 @@
         "ImpactAnimationParameter": "b_attack",
         "ImpactEffectPrefab": "prefabs/surface/dirt-bullet.prefab",
         "ImpactEffectScale": 2,
-        "ImpactSound": "surfaces/sounds/concrete/concrete_foot_land.sound",
+        "ImpactSound": "sounds/impacts/melee/impact-melee-concrete.sound",
         "OnComponentDestroy": null,
         "OnComponentDisabled": null,
         "OnComponentEnabled": null,
@@ -783,7 +783,7 @@
         "WindupAnimationParameter": "b_attack",
         "WindupEffectPrefab": null,
         "WindupEffectScale": 0.5,
-        "WindupSound": "sounds/weapon/swing.sound"
+        "WindupSound": null
       },
       {
         "__type": "LargeLadHud",

@@ -140,7 +140,8 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 		}
 	}
 
-	public bool HasCollision => BarricadeCollider is not null;
+	public bool HasCollision =>
+		BarricadeCollider is not null && BarricadeCollider.IsValid;
 
 	public GameObject AuthoredTarget => GameObject;
 
@@ -159,7 +160,7 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 
 	public Vector3 GetClosestWorldPoint( Vector3 worldPoint )
 	{
-		if ( BarricadeCollider is not null )
+		if ( BarricadeCollider is not null && BarricadeCollider.IsValid )
 			return BarricadeCollider.FindClosestPoint( worldPoint );
 
 		var localPoint = GameObject.WorldTransform.PointToLocal( worldPoint );
@@ -197,6 +198,14 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 
 	protected override void OnUpdate()
 	{
+		ResolveAuthoredParts();
+
+		if ( hasCapturedAuthoredState && AuthoredStateNeedsRefresh() )
+		{
+			RecaptureAuthoredState();
+			FreezeAuthoredChildren();
+		}
+
 		if ( !hasCapturedAuthoredState )
 			return;
 
@@ -283,6 +292,13 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 
 	private void ResolveAuthoredParts()
 	{
+		if ( BarricadeCollider is not null &&
+			(!BarricadeCollider.IsValid ||
+				BarricadeCollider.GameObject != GameObject) )
+		{
+			BarricadeCollider = null;
+		}
+
 		var editableMesh = Components.Get<MeshComponent>(
 			FindMode.EverythingInSelf );
 
@@ -450,7 +466,7 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 		appliedDestroyedState = IsDestroyed;
 		appliedPassageOpenState = IsPassageOpen;
 
-		if ( BarricadeCollider is not null )
+		if ( BarricadeCollider is not null && BarricadeCollider.IsValid )
 		{
 			BarricadeCollider.Enabled =
 				GetAuthoredEnabled( BarricadeCollider ) &&
@@ -628,6 +644,50 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 		hasCapturedAuthoredState = true;
 	}
 
+	private bool AuthoredStateNeedsRefresh()
+	{
+		if ( BarricadeCollider is not null &&
+			(!BarricadeCollider.IsValid ||
+				!authoredComponentStates.ContainsKey( BarricadeCollider )) )
+		{
+			return true;
+		}
+
+		var currentChildRoots = GameObject.Children.ToList();
+
+		if ( authoredChildRoots.Count != currentChildRoots.Count )
+			return true;
+
+		for ( var index = 0; index < authoredChildRoots.Count; index++ )
+		{
+			var authoredChild = authoredChildRoots[index];
+			var currentChild = currentChildRoots[index];
+
+			if ( authoredChild is null ||
+				!authoredChild.IsValid ||
+				!ReferenceEquals( authoredChild, currentChild ) )
+			{
+				return true;
+			}
+		}
+
+		return authoredComponentStates.Values.Any( state =>
+			state.Target is null || !state.Target.IsValid );
+	}
+
+	private void RecaptureAuthoredState()
+	{
+		authoredObjectStates.Clear();
+		authoredComponentStates.Clear();
+		authoredChildRoots.Clear();
+		brokenChildRoots.Clear();
+		hasCapturedAuthoredState = false;
+		appliedStageCount = 0;
+		appliedDestroyedState = null;
+		appliedPassageOpenState = null;
+		CaptureAuthoredState();
+	}
+
 	private void CaptureRootVisualStates()
 	{
 		CaptureComponentState( Components.Get<MeshComponent>(
@@ -783,7 +843,7 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 		ResolveAuthoredParts();
 
 		var padding = new Vector3( System.MathF.Max( 0.0f, GizmoPadding ) );
-		var bounds = BarricadeCollider is not null
+		var bounds = BarricadeCollider is not null && BarricadeCollider.IsValid
 			? BarricadeCollider.GetWorldBounds()
 			: GameObject.GetBounds();
 		var padded = new BBox(

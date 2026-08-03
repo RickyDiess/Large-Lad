@@ -27,6 +27,8 @@ public sealed class LargeLadGameManager : Component
 	public const int TargetPlayerCount = 32;
 	private const float BarricadeAnnouncementDuration = 3.5f;
 	private const float LastSkinnyKidAnnouncementDuration = 4.0f;
+	private readonly LargeLadRoundBalanceSettings defaultRoundBalanceSettings =
+		new();
 
 	[Property]
 	public int MinimumPlayers { get; set; } = MinimumSupportedPlayerCount;
@@ -85,6 +87,9 @@ public sealed class LargeLadGameManager : Component
 
 	[Property, Group( "Round Balance" )]
 	public LargeLadRoundBalanceSettings RoundBalanceSettings { get; set; }
+
+	private LargeLadRoundBalanceSettings EffectiveRoundBalanceSettings =>
+		RoundBalanceSettings ?? defaultRoundBalanceSettings;
 
 	[Property]
 	public NetworkHelper NetworkHelper { get; set; }
@@ -218,9 +223,9 @@ public sealed class LargeLadGameManager : Component
 		var bandMultiplier = 1.0f;
 
 		if ( HasSelectedBalanceBand &&
-			RoundBalanceSettings?.TryGetMultipliers(
+			EffectiveRoundBalanceSettings.TryGetMultipliers(
 				SelectedBalanceBand,
-				out var multipliers ) == true )
+				out var multipliers ) )
 		{
 			bandMultiplier = multipliers.LargeLadMaximumHealth;
 		}
@@ -240,9 +245,9 @@ public sealed class LargeLadGameManager : Component
 		var bandMultiplier = 1.0f;
 
 		if ( HasSelectedBalanceBand &&
-			RoundBalanceSettings?.TryGetMultipliers(
+			EffectiveRoundBalanceSettings.TryGetMultipliers(
 				SelectedBalanceBand,
-				out var multipliers ) == true )
+				out var multipliers ) )
 		{
 			bandMultiplier =
 				multipliers.SkinnyProgressionBarricadeMaximumHealth;
@@ -724,16 +729,8 @@ public sealed class LargeLadGameManager : Component
 				"least one." );
 		}
 
-		if ( RoundBalanceSettings is null )
-		{
-			issues.Add(
-				"Round balance settings are missing; player-count health " +
-				"multipliers will remain neutral." );
-		}
-		else
-		{
-			issues.AddRange( RoundBalanceSettings.GetValidationWarnings() );
-		}
+		issues.AddRange(
+			EffectiveRoundBalanceSettings.GetValidationWarnings() );
 
 		ValidateSpawnGroup(
 			blockingSpawnIssues,

@@ -118,7 +118,8 @@ shell through the vent. The prefab has exactly two mapper-facing objects:
 - `Minion Vent Opening`: the networked root, component, and one 8-by-64-by-80
   solid collider.
 - `Destroyable Vent Cover`: one visual child that can be replaced with the
-  finished cover model.
+  finished cover model. It uses a `ModelRenderer`, not an editable prefab
+  brush, so prefab refreshes do not create per-instance polygon-mesh blobs.
 
 Duplicate and rotate this prefab for additional openings. The tunnel geometry
 itself needs no special collision shell or layer. Loose items cannot enter the
@@ -178,6 +179,16 @@ For a custom Scene Mapping barrier:
 3. Add `LargeLadBarricade` to that same object.
 4. Set Network Mode to `Object`.
 5. Choose `SkinnyProgression` or `LadShortcut`.
+
+Keep this editable mesh scene-local. Do not turn the brush itself into a prefab
+instance or move it beneath an unbroken prefab instance root: the editor stores
+editable prefab meshes as per-instance polygon blobs, and a prefab refresh or
+undo can invalidate that override. A reusable barricade prefab should instead
+keep a stable root collider and use model-backed renderer children. The supplied
+Lad Shortcut and Minion Vent prefabs follow that layout. New Skinny Progression
+placements automatically break their prefab link because that preset is a
+scene-local mapping template. For an older connected Skinny Progression
+placement, use `Break Prefab` before adding an editable brush beneath it.
 
 The component automatically uses a same-object `MeshComponent` or collider as
 the authoritative blocker. There is no renderer assignment: same-object mesh
@@ -395,7 +406,8 @@ the Large Lad respawn timer.
 - Spawn circles produce clear floor positions and do not cross walls.
 - Every barricade has an authoritative root collider, uses Network Mode
   `Object`, and keeps compound `Prop` pieces as direct children in their break
-  order. Root rendering is optional.
+  order. Root rendering is optional. Reusable barricade and vent prefabs contain
+  no editable `MeshComponent`; custom mapping brushes remain scene-local.
 - Every weapon pickup has a deliberate per-instance policy, visible model, and
   trigger collider; exclusive pickups use Network Mode `Object`.
 - Every dodgeball placement uses the supplied prefab with its solid ball

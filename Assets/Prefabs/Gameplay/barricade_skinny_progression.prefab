@@ -95,7 +95,7 @@
   "ShowInMenu": true,
   "MenuPath": "Large Lad/Barricades/Skinny Progression",
   "MenuIcon": "route",
-  "DontBreakAsTemplate": true,
+  "DontBreakAsTemplate": false,
   "__references": [],
   "__version": 2
 }

@@ -49,7 +49,7 @@
         "BaseCoverHealth": 50,
         "BrokenCoverVisual": null,
         "CoverBreakSound": null,
-        "CoverHitSound": null,
+        "CoverHitSound": "sounds/impacts/melee/impact-melee-metal.sound",
         "CoverProp": null,
         "CoverRoot": {
           "_type": "gameobject",
@@ -77,9 +77,9 @@
         "__version": 2,
         "Flags": 0,
         "Name": "Destroyable Vent Cover",
-        "Position": "-4,0,40",
+        "Position": "-4,1.90734863E-06,40",
         "Rotation": "0,0,0,1",
-        "Scale": "1,1,1",
+        "Scale": "0.100000001,1.27999997,1.60000002",
         "Tags": "",
         "Enabled": true,
         "NetworkMode": 2,
@@ -89,40 +89,31 @@
         "OwnerTransfer": 1,
         "Components": [
           {
-            "__type": "Sandbox.MeshComponent",
-            "__guid": "f5515e8f-08a5-4f1c-a0f8-554664007b6f",
+            "__type": "Sandbox.ModelRenderer",
+            "__guid": "8a400001-0000-4000-8000-000000000004",
             "__enabled": true,
             "Flags": 0,
-            "ColliderFlags": 0,
-            "Collision": "None",
-            "Color": "1,1,1,1",
-            "Elasticity": null,
-            "Friction": null,
-            "HideInGame": false,
-            "IsTrigger": false,
-            "Mesh": {
-              "Data": "AQAAAAcAAAAIAAAAdG9wb2xvZ3nEAQAACAAAABgAAAAGAAAAAAAAAAIAAAAEAAAABgAAAAgAAAAKAAAADAAAAA4AAAABAAAAAQAAAAIAAAAAAAAAAAAAAAAAAAARAAAABQAAAAIAAAADAAAABAAAAAAAAAABAAAAAgAAABQAAAADAAAAAwAAAAUAAAAGAAAAAAAAAAIAAAAEAAAAFwAAAAQAAAAAAAAABwAAAAAAAAAAAAAAAwAAAAYAAAASAAAAAgAAAAUAAAAJAAAACgAAAAEAAAAEAAAACAAAABMAAAAEAAAABgAAAAsAAAAMAAAAAQAAAAUAAAAKAAAAFgAAAAMAAAAHAAAADQAAAA4AAAABAAAABgAAAAwAAAAVAAAABQAAAAQAAAAPAAAACAAAAAEAAAAHAAAADgAAABAAAAACAAAAAAAAABEAAAAHAAAAAgAAAAcAAAAQAAAADQAAAAUAAAAEAAAAEwAAAA8AAAACAAAAAwAAABIAAAAFAAAABAAAAAYAAAAVAAAACwAAAAMAAAABAAAAFAAAAAEAAAAFAAAAAgAAABcAAAADAAAAAwAAAAUAAAAWAAAACQAAAAQAAAAGAAAADgAAABIAAAAWAAAAFwAAABUAAAAJAAAAcG9zaXRpb25zYAAAAAAAgMAAAADCAAAgQgAAgEAAAADCAAAgQgAAgEAAAABCAAAgQgAAgMAAAABCAAAgQgAAgMAAAABCAAAgwgAAgEAAAABCAAAgwgAAgEAAAADCAAAgwgAAgMAAAADCAAAgwgYAAABibGVuZHNgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABgAAAGNvbG9yc2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAdGV4Y29vcmTAAAAAAAAAAAAAgD0AAIC8AAAgvgAAAAAAAIC9AAAAAAAAAAAAAIC8AACAvQAAAAAAACC+AACAvAAAgD0AAAAAAAAAAAAAAAAAAIC9AACAPAAAAAAAAAAAAACAPQAAgD8AAIA/AACAvAAAgD0AAAAAAAAAAAAAgLwAAIC9AACAPwAAgD8AAIA/AAAAAAAAgLwAAAAAAAAAAAAAgD8AAIA8AAAgvgAAAAAAAIA/AAAAAAAAIL4AAIA/AAAAAAAAAAAAAAAADQAAAG1hdGVyaWFsaW5kZXgYAAAAAAAAAAAAAAABAAAAAQAAAAAAAAAAAAAACQAAAGVkZ2VmbGFnc2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-              "Materials": [
-                "materials/dev/gray_grid_4.vmat",
-                "models/sbox_props/wall_vent_a/wall_vent_a.vmat"
-              ]
-            },
+            "BodyGroups": 18446744073709551615,
+            "CreateAttachments": false,
+            "LodOverride": null,
+            "MaterialGroup": null,
+            "MaterialOverride": "models/sbox_props/wall_vent_a/wall_vent_a.vmat",
+            "Materials": null,
+            "Model": "models/dev/box.vmdl",
             "OnComponentDestroy": null,
             "OnComponentDisabled": null,
             "OnComponentEnabled": null,
             "OnComponentFixedUpdate": null,
             "OnComponentStart": null,
             "OnComponentUpdate": null,
-            "OnObjectTriggerEnter": null,
-            "OnObjectTriggerExit": null,
-            "OnTriggerEnter": null,
-            "OnTriggerExit": null,
+            "RenderOptions": {
+              "GameLayer": true,
+              "OverlayLayer": false,
+              "BloomLayer": false,
+              "AfterUILayer": false
+            },
             "RenderType": "On",
-            "RollingResistance": null,
-            "SmoothingAngle": 40,
-            "Static": true,
-            "Surface": null,
-            "SurfaceVelocity": "0,0,0"
+            "Tint": "1,1,1,1"
           }
         ],
         "Children": []

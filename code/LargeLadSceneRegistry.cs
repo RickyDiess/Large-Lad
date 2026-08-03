@@ -56,6 +56,15 @@ internal static class LargeLadSceneRegistry
 		if ( registrations.Managers.Remove( manager ) )
 			registrations.GameplayOwnershipDirty = true;
 
+		// Play Mode tears components down before the scene itself is destroyed.
+		// Once the game is no longer actively playing, a missing manager is
+		// expected teardown rather than a broken live gameplay bootstrap.
+		if ( Game.IsClosing || !Game.IsPlaying || !scene.IsValid )
+		{
+			ReleaseGameplayOwnerForTeardown( registrations );
+			return;
+		}
+
 		EnsureGameplayOwner( scene, registrations );
 	}
 
@@ -421,6 +430,16 @@ internal static class LargeLadSceneRegistry
 		}
 
 		registrations.SuppressedPlayerPrefabs.Clear();
+	}
+
+	private static void ReleaseGameplayOwnerForTeardown(
+		SceneRegistrations registrations )
+	{
+		registrations.GameplayOwner?.ReleaseSceneGameplayOwnership();
+		registrations.GameplayOwner = null;
+		RestorePlayerSpawning( registrations );
+		registrations.LastBlockingBootstrapSignature = null;
+		registrations.GameplayOwnershipDirty = false;
 	}
 
 	private static void LogBlockingBootstrapIssueOnce(
