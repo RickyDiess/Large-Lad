@@ -166,8 +166,11 @@ public sealed class LargeLadLastSkinnyKidRulesTests
 		Assert.AreEqual( 40.0f, damage );
 	}
 
-	[TestMethod]
-	public void EnvironmentalExecution_ConsumesCurrentHealthWithEnvironmentalCauseOnce()
+	[DataTestMethod]
+	[DataRow( true )]
+	[DataRow( false )]
+	public void KillVolumeExecution_OutsideEatConsumesCurrentHealthWithEnvironmentalCauseOnce(
+		bool isLastSkinnyKid )
 	{
 		var context = new LargeLadDamageContext
 		{
@@ -181,10 +184,10 @@ public sealed class LargeLadLastSkinnyKidRulesTests
 
 		void ApplyExecution()
 		{
-			var damage = LargeLadDamageRules.ResolveIncomingDamage(
+			var resolvedDamage = LargeLadDamageRules.ResolveIncomingDamage(
 				LargeLadRole.SkinnyKid,
 				isLiving: health > 0.0f,
-				isLastSkinnyKid: true,
+				isLastSkinnyKid,
 				context.SourceWeapon,
 				context.DamageType,
 				context.HitRegion,
@@ -192,6 +195,11 @@ public sealed class LargeLadLastSkinnyKidRulesTests
 				health,
 				context.BaseDamage,
 				incomingDamageMultiplier: 0.5f );
+			var damage = LargeLadEatRules.FilterDamageForEatCommit(
+				LargeLadEatParticipation.None,
+				context.DamageType,
+				resolvedDamage,
+				isAuthorizedEatExecution: false );
 			var previousHealth = health;
 			health = System.MathF.Max( 0.0f, health - damage );
 

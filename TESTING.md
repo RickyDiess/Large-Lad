@@ -155,11 +155,12 @@ note the configured Missing-health Heal Fraction before testing completion.
    damage that would otherwise be lethal before the committed duration ends.
    Confirm the victim loses no health from that damage, the accepted Eat is not
    interrupted, and the Eat still executes lethally after its full sequence.
-3. Repeat with the active victim entering a kill volume. Confirm the explicit
-   environmental execution immediately wins the lethal edge once, cancels the
-   Eat, grants no Eat healing, and retains the environmental cause. Separately
-   apply ordinary nonlethal environmental/impact damage and confirm it remains
-   rejected during the commitment so the accepted Eat can complete normally.
+3. Repeat with the active victim entering a kill volume. Confirm the committed
+   victim takes no environmental damage, the Eat remains active, and no
+   environmental lethal event is emitted. Confirm Eat completes lethally once
+   with the Eat cause and heals the Large Lad exactly once. Separately apply
+   ordinary nonlethal environmental/impact damage and confirm it is also
+   rejected during the commitment.
 4. During separate accepted Eats, kill the Large Lad once with ordinary damage
    and once with an environmental hazard before completion. Confirm each Eat is
    cancelled, the victim is released alive, and no execution or healing occurs.
@@ -184,8 +185,10 @@ overlays disappear again when it is disabled.
    hitbox produces `Head`; edge misses, neck, and upper torso remain body hits.
 2. Repeat step 1 while the Minion walks, runs, changes direction, crouches, and
    plays normal movement animations. Confirm the movement capsule/box can appear
-   as the first authoritative hit without masking a same-ray model-head hitbox,
-   and confirm no world-height, camera-height, origin-distance, or upper-torso
+   first without becoming the classification result. Among bounded same-target
+   model hitboxes, confirm the nearest hitbox alone determines Head or Body: a
+   nearer body must not be promoted by a later head, while a nearer head remains
+   Head. Confirm no world-height, camera-height, origin-distance, or upper-torso
    shortcut produces a headshot.
 3. Partially obscure a Minion behind solid world geometry. Test a visible head,
    a hidden head with visible torso, and a fully hidden target. Confirm the
@@ -214,8 +217,10 @@ overlays disappear again when it is disabled.
    environmental damage is unreduced and kill-volume execution remains lethal.
 7. Complete an Eat against the Last Skinny Kid and confirm it still consumes all
    current health once with the Eat cause. In a separate attempt, move the
-   committed victim into a kill volume and confirm the environmental execution
-   wins once, cancels Eat, and produces no Eat heal or second lethal transition.
+   committed victim into a kill volume before completion. Confirm the victim
+   takes no environmental damage, Eat stays active and completes as the sole
+   lethal event, the Large Lad heals once, and no environmental lethal event is
+   emitted.
 
 ## Ground Slam multiplayer checklist
 

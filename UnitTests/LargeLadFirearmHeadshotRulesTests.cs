@@ -50,7 +50,88 @@ public sealed class LargeLadFirearmHeadshotRulesTests
 	}
 
 	[TestMethod]
-	public void AlignedSecondPlayerHead_CannotPromoteSelectedVictim()
+	public void ColliderFirst_SameTargetBodyHitboxClassifiesBody()
+	{
+		var candidates = new[]
+		{
+			new LargeLadFirearmHitboxCandidate(
+				BelongsToSelectedTarget: true,
+				HasHitbox: false,
+				Distance: 100.0f,
+				HitboxBoneName: null,
+				HasHeadHitboxTag: false ),
+			new LargeLadFirearmHitboxCandidate(
+				BelongsToSelectedTarget: true,
+				HasHitbox: true,
+				Distance: 110.0f,
+				HitboxBoneName: "spine_2",
+				HasHeadHitboxTag: false )
+		};
+
+		Assert.AreEqual(
+			LargeLadHitRegion.Body,
+			LargeLadFirearmHitRules.ResolveSelectedTargetHitRegion(
+				candidates,
+				maximumClassificationDistance: 150.0f ) );
+	}
+
+	[TestMethod]
+	public void SameTargetBodyBeforeHead_ClassifiesBody()
+	{
+		var candidates = new[]
+		{
+			new LargeLadFirearmHitboxCandidate(
+				BelongsToSelectedTarget: true,
+				HasHitbox: true,
+				Distance: 90.0f,
+				HitboxBoneName: "spine_2",
+				HasHeadHitboxTag: false ),
+			new LargeLadFirearmHitboxCandidate(
+				BelongsToSelectedTarget: true,
+				HasHitbox: true,
+				Distance: 110.0f,
+				HitboxBoneName: "head",
+				HasHeadHitboxTag: true )
+		};
+
+		Assert.AreEqual(
+			LargeLadHitRegion.Body,
+			LargeLadFirearmHitRules.ResolveSelectedTargetHitRegion(
+				candidates,
+				maximumClassificationDistance: 150.0f ) );
+	}
+
+	[TestMethod]
+	public void SameTargetHeadBeforeBody_ClassifiesHead()
+	{
+		var candidates = new[]
+		{
+			new LargeLadFirearmHitboxCandidate(
+				BelongsToSelectedTarget: true,
+				HasHitbox: true,
+				Distance: 90.0f,
+				HitboxBoneName: "head",
+				HasHeadHitboxTag: true ),
+			new LargeLadFirearmHitboxCandidate(
+				BelongsToSelectedTarget: true,
+				HasHitbox: true,
+				Distance: 110.0f,
+				HitboxBoneName: "spine_2",
+				HasHeadHitboxTag: false )
+		};
+
+		Assert.AreEqual(
+			LargeLadHitRegion.Head,
+			LargeLadFirearmHitRules.ResolveSelectedTargetHitRegion(
+				candidates,
+				maximumClassificationDistance: 150.0f ) );
+	}
+
+	[DataTestMethod]
+	[DataRow( 70.0f )]
+	[DataRow( 130.0f )]
+	public void AlignedSecondPlayerHead_CannotPromoteSelectedVictim(
+		float otherPlayerDistance )
 	{
 		var candidates = new[]
 		{
@@ -63,9 +144,63 @@ public sealed class LargeLadFirearmHeadshotRulesTests
 			new LargeLadFirearmHitboxCandidate(
 				BelongsToSelectedTarget: false,
 				HasHitbox: true,
-				Distance: 130.0f,
+				Distance: otherPlayerDistance,
 				HitboxBoneName: "head",
 				HasHeadHitboxTag: true )
+		};
+
+		Assert.AreEqual(
+			LargeLadHitRegion.Body,
+			LargeLadFirearmHitRules.ResolveSelectedTargetHitRegion(
+				candidates,
+				maximumClassificationDistance: 150.0f ) );
+	}
+
+	[TestMethod]
+	public void UnsortedCandidates_SelectSmallestValidDistance()
+	{
+		var candidates = new[]
+		{
+			new LargeLadFirearmHitboxCandidate(
+				BelongsToSelectedTarget: true,
+				HasHitbox: true,
+				Distance: 120.0f,
+				HitboxBoneName: "head",
+				HasHeadHitboxTag: true ),
+			new LargeLadFirearmHitboxCandidate(
+				BelongsToSelectedTarget: true,
+				HasHitbox: false,
+				Distance: 60.0f,
+				HitboxBoneName: null,
+				HasHeadHitboxTag: false ),
+			new LargeLadFirearmHitboxCandidate(
+				BelongsToSelectedTarget: true,
+				HasHitbox: true,
+				Distance: 80.0f,
+				HitboxBoneName: "spine_2",
+				HasHeadHitboxTag: false )
+		};
+
+		Assert.AreEqual(
+			LargeLadHitRegion.Body,
+			LargeLadFirearmHitRules.ResolveSelectedTargetHitRegion(
+				candidates,
+				maximumClassificationDistance: 150.0f ) );
+	}
+
+	[TestMethod]
+	public void InvalidCandidateDistances_AreIgnored()
+	{
+		var candidates = new[]
+		{
+			new LargeLadFirearmHitboxCandidate(
+				true, true, float.NaN, "head", true ),
+			new LargeLadFirearmHitboxCandidate(
+				true, true, float.PositiveInfinity, "head", true ),
+			new LargeLadFirearmHitboxCandidate(
+				true, true, -1.0f, "head", true ),
+			new LargeLadFirearmHitboxCandidate(
+				true, true, 90.0f, "spine_2", false )
 		};
 
 		Assert.AreEqual(

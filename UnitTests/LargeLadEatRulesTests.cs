@@ -119,7 +119,7 @@ public sealed class LargeLadEatDamageCommitTests
 			LargeLadEatParticipation.Victim,
 			damageType,
 			requestedDamage: 25.0f,
-			isAuthorizedExecution: false );
+			isAuthorizedEatExecution: false );
 
 		Assert.AreEqual( 0.0f, appliedDamage );
 	}
@@ -135,23 +135,142 @@ public sealed class LargeLadEatDamageCommitTests
 			LargeLadEatParticipation.Victim,
 			damageType,
 			requestedDamage: 1000.0f,
-			isAuthorizedExecution: false );
+			isAuthorizedEatExecution: false );
 
 		Assert.AreEqual( 0.0f, appliedDamage );
 	}
 
-	[TestMethod]
-	public void EnvironmentalExecution_DuringCommittedEatRemainsLethal()
+	[DataTestMethod]
+	[DataRow( false )]
+	[DataRow( true )]
+	public void EnvironmentalExecution_DuringCommittedEatIsRejected(
+		bool isAuthorizedEatExecution )
 	{
 		const float currentHealth = 100.0f;
 		var appliedDamage = LargeLadEatRules.FilterDamageForEatCommit(
 			LargeLadEatParticipation.Victim,
 			LargeLadDamageType.Environment,
 			currentHealth,
-			isAuthorizedExecution: true );
+			isAuthorizedEatExecution );
 
-		Assert.AreEqual( currentHealth, appliedDamage );
-		Assert.AreEqual( 0.0f, currentHealth - appliedDamage );
+		Assert.AreEqual( 0.0f, appliedDamage );
+		Assert.AreEqual( currentHealth, currentHealth - appliedDamage );
+	}
+
+	[TestMethod]
+	public void EnvironmentalExecution_CannotStealCommittedEatLethalOrHealing()
+	{
+		var state = BeginState();
+		var victimHealth = 100.0f;
+		var largeLadHealth = 50.0f;
+		var hasReportedLethalTransition = false;
+		var environmentalLethalEvents = 0;
+		var eatLethalEvents = 0;
+		var healingEvents = 0;
+		var environmentalExecution = new LargeLadDamageContext
+		{
+			DamageType = LargeLadDamageType.Environment,
+			IsExecution = true,
+			BaseDamage = victimHealth
+		};
+
+		var resolvedEnvironmentalDamage =
+			LargeLadDamageRules.ResolveIncomingDamage(
+				LargeLadRole.SkinnyKid,
+				isLiving: true,
+				isLastSkinnyKid: true,
+				environmentalExecution.SourceWeapon,
+				environmentalExecution.DamageType,
+				environmentalExecution.HitRegion,
+				environmentalExecution.IsExecution,
+				victimHealth,
+				environmentalExecution.BaseDamage,
+				incomingDamageMultiplier: 0.5f );
+		var appliedEnvironmentalDamage =
+			LargeLadEatRules.FilterDamageForEatCommit(
+				LargeLadEatParticipation.Victim,
+				environmentalExecution.DamageType,
+				resolvedEnvironmentalDamage,
+				isAuthorizedEatExecution: false );
+		var healthBeforeEnvironment = victimHealth;
+		victimHealth = System.MathF.Max(
+			0.0f,
+			victimHealth - appliedEnvironmentalDamage );
+
+		if ( LargeLadGameplayRules.IsNewLethalTransition(
+			healthBeforeEnvironment,
+			victimHealth,
+			hasReportedLethalTransition ) )
+		{
+			hasReportedLethalTransition = true;
+			environmentalLethalEvents++;
+		}
+
+		Assert.IsTrue( environmentalExecution.IsExplicitExecution );
+		Assert.AreEqual(
+			LargeLadKillfeedCause.Environment,
+			environmentalExecution.KillfeedCause );
+		Assert.AreEqual( 0.0f, appliedEnvironmentalDamage );
+		Assert.AreEqual( 100.0f, victimHealth );
+		Assert.AreEqual( 0, environmentalLethalEvents );
+		Assert.IsTrue( state.IsActive );
+		Assert.AreEqual(
+			LargeLadEatStateTransition.None,
+			state.GetTransition(
+				now: 0.1f,
+				participantsRemainValid: true ) );
+
+		for ( var attempt = 0; attempt < 3; attempt++ )
+		{
+			if ( state.GetTransition(
+				now: 0.3f,
+				participantsRemainValid: true ) ==
+				LargeLadEatStateTransition.Complete &&
+				state.TryCommitExecution() )
+			{
+				var eatExecution = new LargeLadDamageContext
+				{
+					DamageType = LargeLadDamageType.Eat,
+					IsExecution = true,
+					BaseDamage = victimHealth
+				};
+				var eatDamage = LargeLadEatRules.FilterDamageForEatCommit(
+					LargeLadEatParticipation.Victim,
+					eatExecution.DamageType,
+					victimHealth,
+					isAuthorizedEatExecution: true );
+				var healthBeforeEat = victimHealth;
+				victimHealth = System.MathF.Max(
+					0.0f,
+					victimHealth - eatDamage );
+
+				if ( LargeLadGameplayRules.IsNewLethalTransition(
+					healthBeforeEat,
+					victimHealth,
+					hasReportedLethalTransition ) )
+				{
+					hasReportedLethalTransition = true;
+					eatLethalEvents++;
+					Assert.AreEqual(
+						LargeLadKillfeedCause.Eat,
+						eatExecution.KillfeedCause );
+					largeLadHealth = LargeLadEatRules.GetHealedHealth(
+						largeLadHealth,
+						maximumHealth: 100.0f,
+						missingHealthFraction: 0.1f );
+					healingEvents++;
+				}
+			}
+
+			state.TryCommitCleanup();
+		}
+
+		Assert.AreEqual( 0.0f, victimHealth );
+		Assert.AreEqual( 0, environmentalLethalEvents );
+		Assert.AreEqual( 1, eatLethalEvents );
+		Assert.AreEqual( 1, healingEvents );
+		Assert.AreEqual( 55.0f, largeLadHealth, 0.0001f );
+		Assert.IsFalse( state.IsActive );
 	}
 
 	[TestMethod]
@@ -162,7 +281,7 @@ public sealed class LargeLadEatDamageCommitTests
 			LargeLadEatParticipation.Attacker,
 			LargeLadDamageType.Firearm,
 			requestedDamage: 25.0f,
-			isAuthorizedExecution: false );
+			isAuthorizedEatExecution: false );
 
 		Assert.AreEqual( 25.0f, appliedDamage );
 		Assert.AreEqual(
@@ -180,7 +299,7 @@ public sealed class LargeLadEatDamageCommitTests
 			LargeLadEatParticipation.Attacker,
 			LargeLadDamageType.Firearm,
 			requestedDamage: 1000.0f,
-			isAuthorizedExecution: false );
+			isAuthorizedEatExecution: false );
 
 		Assert.AreEqual( 1000.0f, appliedDamage );
 		Assert.AreEqual(
@@ -201,14 +320,14 @@ public sealed class LargeLadEatDamageCommitTests
 				LargeLadEatParticipation.Victim,
 				LargeLadDamageType.Eat,
 				requestedDamage: 100.0f,
-				isAuthorizedExecution: false ) );
+				isAuthorizedEatExecution: false ) );
 		Assert.AreEqual(
 			100.0f,
 			LargeLadEatRules.FilterDamageForEatCommit(
 				LargeLadEatParticipation.Victim,
 				LargeLadDamageType.Eat,
 				requestedDamage: 100.0f,
-				isAuthorizedExecution: true ) );
+				isAuthorizedEatExecution: true ) );
 	}
 
 	private static LargeLadEatState BeginState()
@@ -283,7 +402,7 @@ public sealed class LargeLadEatStateTests
 						LargeLadEatParticipation.Victim,
 						LargeLadDamageType.Eat,
 						requestedDamage: 100.0f,
-						isAuthorizedExecution: true );
+						isAuthorizedEatExecution: true );
 
 				if ( executionDamage > 0.0f )
 				{

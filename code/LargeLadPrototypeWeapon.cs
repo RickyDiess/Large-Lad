@@ -323,8 +323,8 @@ public sealed class LargeLadPrototypeWeapon : Component
 				shotOrigin + shotDirection * maximumClassificationDistance )
 			// This s&box build returns no animated-model hitboxes when the physics
 			// world is disabled. RunAll keeps the movement collider result but also
-			// exposes model hitboxes behind it; the deterministic rule below accepts
-			// only an actual same-target head hitbox.
+			// exposes model hitboxes behind it; the deterministic rule below classifies
+			// the nearest actual same-target model hitbox.
 			.UseHitboxes( true )
 			.IgnoreGameObjectHierarchy( GameObject );
 
@@ -393,11 +393,16 @@ public sealed class LargeLadPrototypeWeapon : Component
 			maximumClassificationDistance );
 
 		reason = region == LargeLadHitRegion.Head
-			? "same-target head hitbox confirmed"
-			: obstructionTrace.Hit
-				? $"no same-target head hitbox before " +
-					$"{GetObjectName( obstructionTrace.GameObject )} obstruction"
-				: "no same-target head hitbox confirmed";
+			? "nearest bounded same-target model hitbox classified Head"
+			: "nearest bounded same-target model hitbox classified Body " +
+				"(Body defaults when none)";
+
+		if ( obstructionTrace.Hit )
+		{
+			reason += $" before {GetObjectName( obstructionTrace.GameObject )} " +
+				"obstruction";
+		}
+
 		return region;
 	}
 

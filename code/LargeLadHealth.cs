@@ -181,9 +181,6 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 		var isEatExecution =
 			damage.DamageType == LargeLadDamageType.Eat &&
 			damage.IsExecution;
-		var isEnvironmentalExecution =
-			damage.DamageType == LargeLadDamageType.Environment &&
-			damage.IsExecution;
 
 		if ( damage.DamageType == LargeLadDamageType.Eat &&
 			(!isEatExecution ||
@@ -215,8 +212,7 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 			player.EatParticipation,
 			damage.DamageType,
 			amount,
-			isApplyingAuthorizedEatExecution ||
-				isEnvironmentalExecution );
+			isApplyingAuthorizedEatExecution );
 
 		if ( amount <= 0.0f )
 			return false;

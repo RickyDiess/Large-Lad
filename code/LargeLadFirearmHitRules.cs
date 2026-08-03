@@ -55,10 +55,9 @@ public static class LargeLadFirearmHitRules
 	}
 
 	/// <summary>
-	/// Promotes the already-selected authoritative victim to Head only when a
-	/// same-player head hitbox was observed before the classification boundary.
-	/// Collider-only results and hitboxes belonging to aligned players are never
-	/// candidates for promotion.
+	/// Classifies the nearest actual model hitbox belonging to the already-selected
+	/// authoritative victim within the obstruction boundary. Collider-only results
+	/// and hitboxes belonging to aligned players are never classification candidates.
 	/// </summary>
 	public static LargeLadHitRegion ResolveSelectedTargetHitRegion(
 		IReadOnlyList<LargeLadFirearmHitboxCandidate> candidates,
@@ -71,6 +70,10 @@ public static class LargeLadFirearmHitRules
 			return LargeLadHitRegion.Body;
 		}
 
+		var found = false;
+		var nearestDistance = float.MaxValue;
+		var nearestCandidate = default( LargeLadFirearmHitboxCandidate );
+
 		foreach ( var candidate in candidates )
 		{
 			if ( !candidate.BelongsToSelectedTarget ||
@@ -82,15 +85,19 @@ public static class LargeLadFirearmHitRules
 				continue;
 			}
 
-			if ( ClassifyHitRegion(
-				candidate.HitboxBoneName,
-				candidate.HasHeadHitboxTag ) == LargeLadHitRegion.Head )
+			if ( !found || candidate.Distance < nearestDistance )
 			{
-				return LargeLadHitRegion.Head;
+				found = true;
+				nearestDistance = candidate.Distance;
+				nearestCandidate = candidate;
 			}
 		}
 
-		return LargeLadHitRegion.Body;
+		return found
+			? ClassifyHitRegion(
+				nearestCandidate.HitboxBoneName,
+				nearestCandidate.HasHeadHitboxTag )
+			: LargeLadHitRegion.Body;
 	}
 
 	public static bool IsFirearmHeadshot(
