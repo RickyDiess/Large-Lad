@@ -223,7 +223,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "9cd2a2e0-628a-4563-a2bd-1105a46626d2"
+                      "$blob": "22718c23-3c78-41be-aea7-9940ae588242"
                     },
                     "Materials": [
                       "materials/trimsheets/wood/wood_trim_02.vmat",
@@ -280,7 +280,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "cbd1fec4-0a33-4b7a-822b-261cf8a4d7b8"
+                      "$blob": "752ddc3d-0a55-44cc-9b9c-b4fcf1bfbe0e"
                     },
                     "Materials": [
                       "materials/trimsheets/wood/wood_trim_02.vmat",
@@ -337,7 +337,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "18e0bdfe-9da3-492b-84fa-533e92d81665"
+                      "$blob": "5a35b5ce-3af8-4275-ae00-80341514e30b"
                     },
                     "Materials": [
                       "materials/wood/floor/wooden_flooring_b2.vmat"
@@ -393,7 +393,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "2641bdf1-0001-41b5-ac30-e9b39cb83427"
+                      "$blob": "6c07dbbf-3898-4706-bbc4-1b9d4261a992"
                     },
                     "Materials": [
                       "materials/generic/wall_brick_paint.vmat",
@@ -451,7 +451,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "222ff7f1-3a48-41b2-8edb-84d609b8b025"
+                      "$blob": "b804040b-394c-4c89-ba17-43995d231dc0"
                     },
                     "Materials": [
                       "materials/generic/wall_brick_paint.vmat",
@@ -696,7 +696,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "dbd61bfa-f7ea-483e-942e-2b8bd6d68096"
+                      "$blob": "2e34773f-4bc8-429c-a848-523e45366088"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat"
@@ -752,7 +752,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "c448d135-7b14-43de-b8a6-197da058b967"
+                      "$blob": "a51ecd16-1fd6-4e1d-86d6-cb6435cd09cc"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -809,7 +809,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "65eddfb3-8f2f-4edd-9698-78b1dc13b4c1"
+                      "$blob": "cd861804-9173-4de4-9167-2df13470fe23"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -866,7 +866,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "29cad2c8-97bf-4b8c-b748-aa585cae72a6"
+                      "$blob": "90cea245-9a61-48f3-b1e7-1d951fc0a89a"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -923,7 +923,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "a0bc8b8c-715f-40ef-b645-18c5f8dde756"
+                      "$blob": "49d334ce-0fd3-47bf-bc0b-6d5fb37dae85"
                     },
                     "Materials": [
                       "materials/dev/primary_white.vmat",
@@ -979,7 +979,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "11c3b617-0af9-49b4-996f-a9d39ce7b93d"
+                          "$blob": "922eeff7-c12e-4b22-8632-0516f5230c7c"
                         },
                         "Materials": [
                           "materials/dev/primary_red.vmat"
@@ -1035,7 +1035,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "d94a75e8-0d23-4348-98a9-211c91b0583c"
+                          "$blob": "61af154e-5086-4164-8f90-52027dd4a58c"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1091,7 +1091,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "0349c05c-373d-4751-a637-33af01f1c971"
+                          "$blob": "545a64ce-c6f0-4a70-84b9-5b3be2026219"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1147,7 +1147,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "c1a27ec6-136b-4362-a336-d76e25c0caef"
+                          "$blob": "b511084e-efe1-49b1-b4ce-3c11fba35b76"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1203,7 +1203,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "e65714a6-99f0-46fa-a9fe-a77fbe2fb296"
+                          "$blob": "d8f22440-e672-410e-bc6d-681230f7d074"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1259,7 +1259,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "03da1f5f-fbe1-483a-ad10-0a4f1fc66075"
+                          "$blob": "27188927-e52d-4282-a770-ce70e99ff96b"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1315,7 +1315,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "d078efba-e818-4b37-98d1-f3bd2715e65d"
+                          "$blob": "6560af26-8ebf-41b2-9ba5-1d48f4f80112"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1373,7 +1373,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "da4530a8-b512-4e0a-b80a-a6f005364265"
+                      "$blob": "adde60b1-2de5-4526-b984-8fb79930840d"
                     },
                     "Materials": [
                       "materials/dev/primary_white.vmat",
@@ -1429,7 +1429,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "e3b4f68a-4091-439d-b396-38f939e61cae"
+                          "$blob": "a2ad6724-ff17-457a-9936-834405e8fda2"
                         },
                         "Materials": [
                           "materials/dev/primary_red.vmat"
@@ -1485,7 +1485,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "15b297d5-6222-4e54-a13e-41c6482321ec"
+                          "$blob": "6dc7b428-40d9-4dc6-95e4-fd92f1b48655"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1541,7 +1541,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "b57f311b-f6ec-42fb-8594-b8dded9c2b18"
+                          "$blob": "ec9e0a4d-8ee3-4626-ad1f-8d67ffbb3d1b"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1597,7 +1597,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "9128102d-58e9-4a30-b3df-742ec598e5c8"
+                          "$blob": "c6bd6184-5315-4754-93a7-e96a5b684708"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1653,7 +1653,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "dbcd13c7-0462-485b-82e1-e33e7645ad38"
+                          "$blob": "feb95169-fe79-45fd-9e5d-d78cd950ae28"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1709,7 +1709,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "95b5f21b-6cbe-466e-82fb-927096b83203"
+                          "$blob": "1f6cc89e-6ea8-4b73-96b9-6cc101c2d1ea"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1765,7 +1765,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "b324eeed-f2c0-457f-84dc-4cc909dda8bc"
+                          "$blob": "39b0b64d-874d-49e4-90c9-d5dea6e4a723"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1823,7 +1823,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "906343c3-7b9c-40cb-ae6e-27ef14ab0ef1"
+                      "$blob": "70babaca-ce9b-41a8-b0f2-01a5fb58fe6b"
                     },
                     "Materials": [
                       "materials/generic/wall_brick_paint.vmat"
@@ -2814,7 +2814,7 @@
                   "BodyGroups": 18446744073709551615,
                   "Health": 0,
                   "IsStatic": true,
-                  "MaterialGroup": null,
+                  "MaterialGroup": "on",
                   "Model": "models/sbox_props/industrial_light/industrial_light.vmdl",
                   "OnComponentDestroy": null,
                   "OnComponentDisabled": null,
@@ -2836,7 +2836,7 @@
                   "BodyGroups": 18446744073709551615,
                   "CreateAttachments": false,
                   "LodOverride": null,
-                  "MaterialGroup": null,
+                  "MaterialGroup": "on",
                   "MaterialOverride": null,
                   "Materials": null,
                   "Model": "models/sbox_props/industrial_light/industrial_light.vmdl",
@@ -2948,7 +2948,7 @@
                   "BodyGroups": 18446744073709551615,
                   "Health": 0,
                   "IsStatic": true,
-                  "MaterialGroup": null,
+                  "MaterialGroup": "on",
                   "Model": "models/sbox_props/industrial_light/industrial_light.vmdl",
                   "OnComponentDestroy": null,
                   "OnComponentDisabled": null,
@@ -3030,7 +3030,7 @@
                   "BodyGroups": 18446744073709551615,
                   "Health": 0,
                   "IsStatic": true,
-                  "MaterialGroup": null,
+                  "MaterialGroup": "on",
                   "Model": "models/sbox_props/industrial_light/industrial_light.vmdl",
                   "OnComponentDestroy": null,
                   "OnComponentDisabled": null,
@@ -3052,7 +3052,7 @@
                   "BodyGroups": 18446744073709551615,
                   "CreateAttachments": false,
                   "LodOverride": null,
-                  "MaterialGroup": null,
+                  "MaterialGroup": "on",
                   "MaterialOverride": null,
                   "Materials": null,
                   "Model": "models/sbox_props/industrial_light/industrial_light.vmdl",
@@ -3164,7 +3164,7 @@
                   "BodyGroups": 18446744073709551615,
                   "Health": 0,
                   "IsStatic": true,
-                  "MaterialGroup": null,
+                  "MaterialGroup": "on",
                   "Model": "models/sbox_props/industrial_light/industrial_light.vmdl",
                   "OnComponentDestroy": null,
                   "OnComponentDisabled": null,
@@ -3186,7 +3186,7 @@
                   "BodyGroups": 18446744073709551615,
                   "CreateAttachments": false,
                   "LodOverride": null,
-                  "MaterialGroup": null,
+                  "MaterialGroup": "on",
                   "MaterialOverride": null,
                   "Materials": null,
                   "Model": "models/sbox_props/industrial_light/industrial_light.vmdl",
@@ -3298,7 +3298,7 @@
                   "BodyGroups": 18446744073709551615,
                   "Health": 0,
                   "IsStatic": true,
-                  "MaterialGroup": null,
+                  "MaterialGroup": "on",
                   "Model": "models/sbox_props/industrial_light/industrial_light.vmdl",
                   "OnComponentDestroy": null,
                   "OnComponentDisabled": null,
@@ -3320,7 +3320,7 @@
                   "BodyGroups": 18446744073709551615,
                   "CreateAttachments": false,
                   "LodOverride": null,
-                  "MaterialGroup": null,
+                  "MaterialGroup": "on",
                   "MaterialOverride": null,
                   "Materials": null,
                   "Model": "models/sbox_props/industrial_light/industrial_light.vmdl",
@@ -3432,7 +3432,7 @@
                   "BodyGroups": 18446744073709551615,
                   "Health": 0,
                   "IsStatic": true,
-                  "MaterialGroup": null,
+                  "MaterialGroup": "on",
                   "Model": "models/sbox_props/industrial_light/industrial_light.vmdl",
                   "OnComponentDestroy": null,
                   "OnComponentDisabled": null,
@@ -3454,7 +3454,7 @@
                   "BodyGroups": 18446744073709551615,
                   "CreateAttachments": false,
                   "LodOverride": null,
-                  "MaterialGroup": null,
+                  "MaterialGroup": "on",
                   "MaterialOverride": null,
                   "Materials": null,
                   "Model": "models/sbox_props/industrial_light/industrial_light.vmdl",
@@ -28959,7 +28959,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "9bcbd8a6-828b-44b1-b622-b31ae08aaec2"
+                          "$blob": "292ca759-528b-483b-8b59-7d8bdf5a1b54"
                         },
                         "Materials": [
                           "materials/dev/gray_grid_4.vmat",
@@ -29107,7 +29107,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "58de62cb-9cf5-417c-a695-cfd8b92b0a25"
+                          "$blob": "04c28cbb-9a7e-41b0-aed5-8b6322dffd73"
                         },
                         "Materials": [
                           "materials/dev/gray_grid_4.vmat",
@@ -29409,12 +29409,8 @@
             "Property": "Mesh",
             "Value": {
               "Data": {
-                "$blob": "46e6c92f-4ee4-4b30-9dc4-6959247de76a"
-              },
-              "Materials": [
-                "materials/dev/gray_grid_4.vmat",
-                "models/sbox_props/wall_vent_a/wall_vent_a.vmat"
-              ]
+                "$blob": "4352d425-580e-4b77-8b1f-de6b2d497e28"
+              }
             }
           }
         ],
@@ -29468,12 +29464,8 @@
             "Property": "Mesh",
             "Value": {
               "Data": {
-                "$blob": "f174e6fe-9dcb-4bf0-a022-8971cccafcd6"
-              },
-              "Materials": [
-                "materials/dev/gray_grid_4.vmat",
-                "models/sbox_props/wall_vent_a/wall_vent_a.vmat"
-              ]
+                "$blob": "c1212388-99e7-4612-b9f2-75b6a88aaccc"
+              }
             }
           }
         ],
@@ -29527,12 +29519,8 @@
             "Property": "Mesh",
             "Value": {
               "Data": {
-                "$blob": "5a9891ac-c73b-4973-8aba-4b4ecd1dbabe"
-              },
-              "Materials": [
-                "materials/dev/gray_grid_4.vmat",
-                "models/sbox_props/wall_vent_a/wall_vent_a.vmat"
-              ]
+                "$blob": "1b9c687b-c1b1-4515-aff9-6eeabfe4f6ca"
+              }
             }
           }
         ],
@@ -29586,12 +29574,8 @@
             "Property": "Mesh",
             "Value": {
               "Data": {
-                "$blob": "407485c6-6223-41e3-8823-3c765a87c980"
-              },
-              "Materials": [
-                "materials/dev/gray_grid_4.vmat",
-                "models/sbox_props/wall_vent_a/wall_vent_a.vmat"
-              ]
+                "$blob": "bb416b37-d905-40f3-a6b1-47c8fd36a9fa"
+              }
             }
           }
         ],
@@ -29645,12 +29629,8 @@
             "Property": "Mesh",
             "Value": {
               "Data": {
-                "$blob": "c45ad62e-6dd9-4e92-87de-66b374dee0b0"
-              },
-              "Materials": [
-                "materials/dev/gray_grid_4.vmat",
-                "models/sbox_props/wall_vent_a/wall_vent_a.vmat"
-              ]
+                "$blob": "376fc395-81c1-41ef-a495-4cb75114e254"
+              }
             }
           }
         ],
@@ -29662,6 +29642,45 @@
         "8a400001-0000-4000-8000-000000000003": "b18598ce-09ac-4c06-8a4a-667433c4e496",
         "cd746e02-03bb-40f2-af6f-9150faf5ef28": "9d739ae9-1296-4112-a4e7-118a4085e708",
         "f5515e8f-08a5-4f1c-a0f8-554664007b6f": "b69a0bfd-6b65-4c0d-ac8f-9344abd71c60"
+      }
+    },
+    {
+      "__guid": "28c7e353-2d51-43bf-8a18-fc5240e7d426",
+      "__version": 2,
+      "__Prefab": "prefabs/gameplay/pickup_dodgeball.prefab",
+      "__PrefabInstancePatch": {
+        "AddedObjects": [],
+        "RemovedObjects": [],
+        "PropertyOverrides": [
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a400005-0000-4000-8000-000000000001"
+            },
+            "Property": "Name",
+            "Value": "Dodgeball"
+          },
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a400005-0000-4000-8000-000000000001"
+            },
+            "Property": "Position",
+            "Value": "212.398682,-151.544495,67.5328369"
+          }
+        ],
+        "MovedObjects": []
+      },
+      "__PrefabIdToInstanceId": {
+        "8a400005-0000-4000-8000-000000000001": "28c7e353-2d51-43bf-8a18-fc5240e7d426",
+        "8a400005-0000-4000-8000-000000000002": "7fcbd75a-9ece-4532-9f1f-0f6245b36388",
+        "8a400005-0000-4000-8000-000000000003": "52f528df-3ea5-4937-8262-eb00980ca679",
+        "8a400005-0000-4000-8000-000000000004": "49916111-0044-429d-8e06-9e6d333c6ab7",
+        "8a400005-0000-4000-8000-000000000005": "dd070934-5bb4-48fd-a5a0-9c926a69051f",
+        "8a400005-0000-4000-8000-000000000009": "b6777e38-7688-43aa-aefe-3dbcef37da72",
+        "8a400005-0000-4000-8000-000000000006": "f41941e0-7b5b-4f16-8637-e649aea697ed",
+        "8a400005-0000-4000-8000-000000000007": "e7b7a52d-e9c1-432d-958a-111fd384ad19",
+        "8a400005-0000-4000-8000-000000000008": "bf445dbe-12c1-497c-bc4d-67008076cc6b"
       }
     }
   ],
@@ -29710,7 +29729,6 @@
     "facepunch.office_chair#308565",
     "facepunch.stonebricktile#313594",
     "facepunch.wall_brick_paint#291897",
-    "facepunch.wall_vent_a#293115",
     "facepunch.wood_trim_02#274181",
     "facepunch.woodenflooringblight#291852"
   ],

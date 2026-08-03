@@ -6,11 +6,18 @@ using System.Collections.Generic;
 /// </summary>
 public static class LargeLadInventoryRules
 {
-	public static bool CanUseFirearmInventory(
+	public static bool CanUseInventory(
 		LargeLadRole role,
 		bool isDead )
 	{
 		return role == LargeLadRole.SkinnyKid && !isDead;
+	}
+
+	public static bool CanUseFirearmInventory(
+		LargeLadRole role,
+		bool isDead )
+	{
+		return CanUseInventory( role, isDead );
 	}
 
 	public static bool CanProcessOwnerRequest(
@@ -21,7 +28,7 @@ public static class LargeLadInventoryRules
 	{
 		return isHost &&
 			ownerRequest &&
-			CanUseFirearmInventory( role, isDead );
+			CanUseInventory( role, isDead );
 	}
 
 	public static bool CanCollectCore(
@@ -115,7 +122,7 @@ public static class LargeLadInventoryRules
 			IsValidExclusiveState( state );
 	}
 
-	public static bool CanSelect(
+	public static bool CanSelectFirearm(
 		bool isHost,
 		bool ownerRequest,
 		LargeLadRole role,
@@ -137,7 +144,7 @@ public static class LargeLadInventoryRules
 		LargeLadRole role,
 		bool isDead,
 		LargeLadWeaponState state,
-		LargeLadWeaponSelection activeSelection )
+		LargeLadInventorySelection activeSelection )
 	{
 		return CanProcessOwnerRequest(
 				isHost,
@@ -145,7 +152,7 @@ public static class LargeLadInventoryRules
 				role,
 				isDead ) &&
 			IsValidExclusiveState( state ) &&
-			activeSelection == SelectionFor( state );
+			activeSelection == FirearmSelectionFor( state );
 	}
 
 	public static bool CanReload(
@@ -156,7 +163,7 @@ public static class LargeLadInventoryRules
 		bool isAlreadyReloading,
 		LargeLadWeaponState state )
 	{
-		if ( !CanSelect(
+		if ( !CanSelectFirearm(
 			isHost,
 			ownerRequest,
 			role,
@@ -209,15 +216,17 @@ public static class LargeLadInventoryRules
 		return true;
 	}
 
-	public static int GetSelectionIndex(
+	public static int GetFirearmSelectionIndex(
 		IList<LargeLadWeaponState> coreWeapons,
 		LargeLadWeaponState exclusiveWeapon,
-		LargeLadWeaponSelection selection )
+		LargeLadInventorySelection selection )
 	{
-		if ( selection.Kind == LargeLadWeaponSelectionKind.Core )
+		if ( selection.Kind ==
+			LargeLadInventorySelectionKind.CoreFirearm )
 			return FindCoreWeapon( coreWeapons, selection.Weapon );
 
-		if ( selection.Kind == LargeLadWeaponSelectionKind.Exclusive &&
+		if ( selection.Kind ==
+				LargeLadInventorySelectionKind.ExclusiveFirearm &&
 			IsValidExclusiveState( exclusiveWeapon ) &&
 			selection.Weapon == exclusiveWeapon.Weapon &&
 			selection.ExclusiveInstanceId ==
@@ -229,7 +238,7 @@ public static class LargeLadInventoryRules
 		return -1;
 	}
 
-	public static bool TryGetWeaponAt(
+	public static bool TryGetFirearmAt(
 		IList<LargeLadWeaponState> coreWeapons,
 		LargeLadWeaponState exclusiveWeapon,
 		int index,
@@ -258,20 +267,20 @@ public static class LargeLadInventoryRules
 
 	public static int GetCycledIndex(
 		int currentIndex,
-		int weaponCount,
+		int selectionCount,
 		int direction )
 	{
-		if ( weaponCount <= 0 || direction == 0 )
+		if ( selectionCount <= 0 || direction == 0 )
 			return -1;
 
-		if ( currentIndex < 0 || currentIndex >= weaponCount )
-			return direction > 0 ? 0 : weaponCount - 1;
+		if ( currentIndex < 0 || currentIndex >= selectionCount )
+			return direction > 0 ? 0 : selectionCount - 1;
 
-		var candidate = (currentIndex + direction) % weaponCount;
-		return candidate < 0 ? candidate + weaponCount : candidate;
+		var candidate = (currentIndex + direction) % selectionCount;
+		return candidate < 0 ? candidate + selectionCount : candidate;
 	}
 
-	public static LargeLadWeaponSelection GetCoreFallback(
+	public static LargeLadInventorySelection GetFirearmFallback(
 		IList<LargeLadWeaponState> coreWeapons,
 		LargeLadWeaponId lastSelectedCoreWeapon )
 	{
@@ -282,23 +291,140 @@ public static class LargeLadInventoryRules
 		if ( remembered >= 0 &&
 			IsValidCoreState( coreWeapons[remembered] ) )
 		{
-			return LargeLadWeaponSelection.ForCore(
+			return LargeLadInventorySelection.ForCoreFirearm(
 				coreWeapons[remembered].Weapon );
 		}
 
-		return LargeLadWeaponSelection.ForRoleMelee();
+		return LargeLadInventorySelection.ForRoleMelee();
 	}
 
-	public static LargeLadWeaponSelection SelectionFor(
+	public static LargeLadInventorySelection FirearmSelectionFor(
 		LargeLadWeaponState state )
 	{
 		return IsValidExclusiveState( state )
-			? LargeLadWeaponSelection.ForExclusive(
+			? LargeLadInventorySelection.ForExclusiveFirearm(
 				state.Weapon,
 				state.ExclusiveInstanceId )
 			: IsValidCoreState( state )
-				? LargeLadWeaponSelection.ForCore( state.Weapon )
-				: LargeLadWeaponSelection.None;
+				? LargeLadInventorySelection.ForCoreFirearm( state.Weapon )
+				: LargeLadInventorySelection.None;
+	}
+
+	public static int GetInventorySelectionCount(
+		IList<LargeLadWeaponState> coreWeapons,
+		LargeLadWeaponState exclusiveWeapon,
+		LargeLadUtilityState utility )
+	{
+		return 1 +
+			(coreWeapons?.Count ?? 0) +
+			(IsValidExclusiveState( exclusiveWeapon ) ? 1 : 0) +
+			(LargeLadUtilityRules.IsValidState( utility ) ? 1 : 0);
+	}
+
+	/// <summary>
+	/// Returns the absolute ordered inventory position: role melee, catalog-
+	/// ordered core firearms, exclusive firearm, then the utility slot.
+	/// </summary>
+	public static int GetInventorySelectionIndex(
+		IList<LargeLadWeaponState> coreWeapons,
+		LargeLadWeaponState exclusiveWeapon,
+		LargeLadUtilityState utility,
+		LargeLadInventorySelection selection )
+	{
+		if ( selection == LargeLadInventorySelection.ForRoleMelee() )
+			return 0;
+
+		var firearmIndex = GetFirearmSelectionIndex(
+			coreWeapons,
+			exclusiveWeapon,
+			selection );
+
+		if ( firearmIndex >= 0 )
+			return firearmIndex + 1;
+
+		if ( LargeLadUtilityRules.IsValidState( utility ) &&
+			selection == LargeLadUtilityRules.SelectionFor( utility ) )
+		{
+			return 1 +
+				(coreWeapons?.Count ?? 0) +
+				(IsValidExclusiveState( exclusiveWeapon ) ? 1 : 0);
+		}
+
+		return -1;
+	}
+
+	public static bool TryGetInventorySelectionAt(
+		IList<LargeLadWeaponState> coreWeapons,
+		LargeLadWeaponState exclusiveWeapon,
+		LargeLadUtilityState utility,
+		int index,
+		out LargeLadInventorySelection selection )
+	{
+		selection = LargeLadInventorySelection.None;
+
+		if ( index < 0 )
+			return false;
+
+		if ( index == 0 )
+		{
+			selection = LargeLadInventorySelection.ForRoleMelee();
+			return true;
+		}
+
+		var firearmIndex = index - 1;
+
+		if ( TryGetFirearmAt(
+			coreWeapons,
+			exclusiveWeapon,
+			firearmIndex,
+			out var firearm ) )
+		{
+			selection = FirearmSelectionFor( firearm );
+			return true;
+		}
+
+		var utilityIndex = 1 +
+			(coreWeapons?.Count ?? 0) +
+			(IsValidExclusiveState( exclusiveWeapon ) ? 1 : 0);
+
+		if ( index == utilityIndex &&
+			LargeLadUtilityRules.IsValidState( utility ) )
+		{
+			selection = LargeLadUtilityRules.SelectionFor( utility );
+			return true;
+		}
+
+		return false;
+	}
+
+	public static bool TryGetFirearmForSelection(
+		IList<LargeLadWeaponState> coreWeapons,
+		LargeLadWeaponState exclusiveWeapon,
+		LargeLadInventorySelection selection,
+		out LargeLadWeaponState state )
+	{
+		var index = GetFirearmSelectionIndex(
+			coreWeapons,
+			exclusiveWeapon,
+			selection );
+		return TryGetFirearmAt(
+			coreWeapons,
+			exclusiveWeapon,
+			index,
+			out state );
+	}
+
+	public static LargeLadInventorySelection GetUtilityRemovalFallback(
+		IList<LargeLadWeaponState> coreWeapons,
+		LargeLadWeaponState exclusiveWeapon,
+		LargeLadWeaponId lastSelectedCoreWeapon )
+	{
+		if ( IsValidExclusiveState( exclusiveWeapon ) )
+			return FirearmSelectionFor( exclusiveWeapon );
+
+		return GetFirearmFallback(
+			coreWeapons,
+			lastSelectedCoreWeapon );
 	}
 }
 

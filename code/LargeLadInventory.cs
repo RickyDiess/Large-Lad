@@ -2,11 +2,10 @@ using Sandbox;
 using System.Collections.Generic;
 
 /// <summary>
-/// Host-authoritative Skinny Kid firearm inventory. Core weapons live in a
-/// variable-size delta-synchronized collection; the one physical exclusive
-/// instance is synchronized separately. Skinny Kid and Minion ordinary melee,
-/// plus the Large Lad's Eat primary, remain role abilities rather than
-/// inventory entries.
+/// Host-authoritative Skinny Kid inventory. Core firearms live in a variable-
+/// size delta-synchronized collection; the physical exclusive firearm and the
+/// one dodgeball utility slot are synchronized separately. Role melee remains
+/// an ability rather than an owned item.
 /// </summary>
 public sealed class LargeLadInventory : Component
 {
@@ -38,7 +37,10 @@ public sealed class LargeLadInventory : Component
 	public LargeLadWeaponState ExclusiveWeapon { get; private set; }
 
 	[Sync( SyncFlags.FromHost )]
-	public LargeLadWeaponSelection ActiveSelection { get; private set; }
+	public LargeLadUtilityState UtilityState { get; private set; }
+
+	[Sync( SyncFlags.FromHost )]
+	public LargeLadInventorySelection ActiveSelection { get; private set; }
 
 	[Sync( SyncFlags.FromHost )]
 	public LargeLadWeaponId LastSelectedCoreWeapon { get; private set; }
@@ -50,38 +52,57 @@ public sealed class LargeLadInventory : Component
 	public float ReloadEndTime { get; private set; }
 
 	private LargeLadWeaponPickup exclusiveSource;
+	private LargeLadDodgeballPickup utilitySource;
+	private int nextOwnerUtilityThrowRequestSequence;
+	private int lastHostUtilityThrowRequestSequence;
 	private string pickupFeedback;
 	private bool hasPickupFeedback;
 	private TimeSince timeSincePickupFeedback;
 
-	public int OwnedWeaponCount =>
+	public int OwnedFirearmCount =>
 		CoreWeapons.Count + (HasExclusiveWeapon ? 1 : 0);
-	public int WeaponSelectionCount => OwnedWeaponCount + 1;
+	public int InventorySelectionCount =>
+		LargeLadInventoryRules.GetInventorySelectionCount(
+			CoreWeapons,
+			ExclusiveWeapon,
+			UtilityState );
 	public bool HasExclusiveWeapon =>
 		LargeLadInventoryRules.IsValidExclusiveState( ExclusiveWeapon );
+	public bool HasUtility =>
+		LargeLadUtilityRules.IsValidState( UtilityState );
 	public bool IsExclusiveEquipped =>
-		ActiveSelection.Kind == LargeLadWeaponSelectionKind.Exclusive &&
-		TryGetActiveState( out var state ) &&
+		ActiveSelection.Kind ==
+			LargeLadInventorySelectionKind.ExclusiveFirearm &&
+		TryGetActiveFirearmState( out var state ) &&
 		LargeLadInventoryRules.IsValidExclusiveState( state );
+	public bool IsUtilityEquipped =>
+		ActiveSelection.Kind == LargeLadInventorySelectionKind.Utility &&
+		HasUtility &&
+		ActiveSelection ==
+			LargeLadUtilityRules.SelectionFor( UtilityState );
+	public LargeLadUtilityId EquippedUtility =>
+		IsUtilityEquipped
+			? UtilityState.Utility
+			: LargeLadUtilityId.None;
 	public LargeLadWeaponId EquippedWeapon =>
 		ActiveSelection.Kind ==
-			LargeLadWeaponSelectionKind.RoleAbility
+			LargeLadInventorySelectionKind.RoleAbility
 			? LargeLadWeaponId.Melee
-			: TryGetActiveState( out var state )
+			: TryGetActiveFirearmState( out var state )
 			? state.Weapon
 			: LargeLadWeaponId.None;
 	public LargeLadWeaponDefinition EquippedDefinition =>
 		LargeLadWeaponCatalog.Get( EquippedWeapon );
 	public int EquippedMagazine =>
-		TryGetActiveState( out var state ) ? state.Magazine : 0;
+		TryGetActiveFirearmState( out var state ) ? state.Magazine : 0;
 	public int EquippedReserve =>
-		TryGetActiveState( out var state ) ? state.Reserve : 0;
+		TryGetActiveFirearmState( out var state ) ? state.Reserve : 0;
 	public LargeLadAmmunitionMode EquippedAmmunitionMode =>
-		TryGetActiveState( out var state )
+		TryGetActiveFirearmState( out var state )
 			? state.AmmunitionMode
 			: LargeLadAmmunitionMode.FiniteReserve;
 	public bool EquippedHasInfiniteReserve =>
-		TryGetActiveState( out var state ) && state.HasInfiniteReserve;
+		TryGetActiveFirearmState( out var state ) && state.HasInfiniteReserve;
 	public float ReloadTimeRemaining =>
 		IsReloading
 			? LargeLadGameplayRules.GetTimerTimeRemaining(
@@ -109,25 +130,32 @@ public sealed class LargeLadInventory : Component
 			index++ )
 		{
 			if ( Input.Pressed( DirectSelectionActions[index] ) )
-				RequestSelectWeaponIndex( index );
+				RequestSelectInventoryIndex( index );
 		}
 
 		if ( Input.MouseWheel.y > 0.0f ||
 			Input.Pressed( "SlotPrev" ) )
 		{
-			RequestCycleWeapon( -1 );
+			RequestCycleInventory( -1 );
 		}
 		else if ( Input.MouseWheel.y < 0.0f ||
 			Input.Pressed( "SlotNext" ) )
 		{
-			RequestCycleWeapon( 1 );
+			RequestCycleInventory( 1 );
 		}
 
 		if ( Input.Pressed( "Reload" ) )
 			RequestReload();
 
 		if ( Input.Pressed( "DropWeapon" ) )
-			RequestDropExclusive();
+			RequestDropSelectedItem();
+
+		if ( IsUtilityEquipped && Input.Pressed( "Attack1" ) )
+		{
+			nextOwnerUtilityThrowRequestSequence++;
+			RequestThrowSelectedUtility(
+				nextOwnerUtilityThrowRequestSequence );
+		}
 	}
 
 	protected override void OnValidate()
@@ -169,6 +197,9 @@ public sealed class LargeLadInventory : Component
 		ReleaseExclusiveForLifecycle(
 			GameObject.WorldPosition,
 			preferForward: false );
+		ReleaseUtilityForLifecycle(
+			GameObject.WorldPosition,
+			preferForward: false );
 		ClearInventoryState();
 
 		if ( role != LargeLadRole.SkinnyKid )
@@ -205,8 +236,8 @@ public sealed class LargeLadInventory : Component
 		}
 
 		if ( ActiveSelection.Kind is
-			LargeLadWeaponSelectionKind.None or
-			LargeLadWeaponSelectionKind.RoleAbility )
+			LargeLadInventorySelectionKind.None or
+			LargeLadInventorySelectionKind.RoleAbility )
 		{
 			SelectCore( weapon );
 		}
@@ -249,8 +280,8 @@ public sealed class LargeLadInventory : Component
 		exclusiveSource = source;
 
 		if ( ActiveSelection.Kind is
-			LargeLadWeaponSelectionKind.None or
-			LargeLadWeaponSelectionKind.RoleAbility )
+			LargeLadInventorySelectionKind.None or
+			LargeLadInventorySelectionKind.RoleAbility )
 		{
 			SelectState( state );
 		}
@@ -258,24 +289,88 @@ public sealed class LargeLadInventory : Component
 		return true;
 	}
 
-	public bool TryGetWeaponAt(
+	internal bool CanAcceptUtility(
+		LargeLadDodgeballPickup source,
+		LargeLadUtilityState state,
+		bool pickupAvailable )
+	{
+		var player = Components.Get<LargeLadPlayer>();
+
+		return Networking.IsHost &&
+			player?.IsEatBusy != true &&
+			source is not null &&
+			source.IsValid &&
+			LargeLadUtilityRules.CanAccept(
+				player?.Role ?? LargeLadRole.Unassigned,
+				player?.Health?.IsDead != false,
+				HasUtility,
+				pickupAvailable,
+				state );
+	}
+
+	internal bool TryGrantUtility(
+		LargeLadDodgeballPickup source,
+		LargeLadUtilityState state )
+	{
+		if ( !CanAcceptUtility(
+			source,
+			state,
+			pickupAvailable: true ) )
+		{
+			return false;
+		}
+
+		UtilityState = state;
+		utilitySource = source;
+
+		if ( ActiveSelection.Kind is
+			LargeLadInventorySelectionKind.None or
+			LargeLadInventorySelectionKind.RoleAbility )
+		{
+			SelectUtility();
+		}
+
+		return true;
+	}
+
+	public bool TryGetFirearmAt(
 		int index,
 		out LargeLadWeaponState state )
 	{
-		return LargeLadInventoryRules.TryGetWeaponAt(
+		return LargeLadInventoryRules.TryGetFirearmAt(
 			CoreWeapons,
 			ExclusiveWeapon,
 			index,
 			out state );
 	}
 
-	public bool TryGetActiveState( out LargeLadWeaponState state )
+	public bool TryGetInventorySelectionAt(
+		int index,
+		out LargeLadInventorySelection selection )
 	{
-		var index = LargeLadInventoryRules.GetSelectionIndex(
+		return LargeLadInventoryRules.TryGetInventorySelectionAt(
 			CoreWeapons,
 			ExclusiveWeapon,
-			ActiveSelection );
-		return TryGetWeaponAt( index, out state );
+			UtilityState,
+			index,
+			out selection );
+	}
+
+	public bool TryGetFirearmForSelection(
+		LargeLadInventorySelection selection,
+		out LargeLadWeaponState state )
+	{
+		return LargeLadInventoryRules.TryGetFirearmForSelection(
+			CoreWeapons,
+			ExclusiveWeapon,
+			selection,
+			out state );
+	}
+
+	public bool TryGetActiveFirearmState(
+		out LargeLadWeaponState state )
+	{
+		return TryGetFirearmForSelection( ActiveSelection, out state );
 	}
 
 	public bool TryConsumeShot(
@@ -285,7 +380,7 @@ public sealed class LargeLadInventory : Component
 
 		if ( !CanHostMutateLivingSkinnyKid() ||
 			IsReloading ||
-			!TryGetActiveState( out var state ) ||
+			!TryGetActiveFirearmState( out var state ) ||
 			!LargeLadInventoryRules.TryConsumeShot( ref state ) )
 		{
 			return false;
@@ -299,7 +394,7 @@ public sealed class LargeLadInventory : Component
 	{
 		var player = Components.Get<LargeLadPlayer>();
 
-		if ( !TryGetActiveState( out var state ) ||
+		if ( !TryGetActiveFirearmState( out var state ) ||
 			player?.IsEatBusy == true ||
 			!LargeLadInventoryRules.CanReload(
 				isHost: Networking.IsHost,
@@ -333,6 +428,9 @@ public sealed class LargeLadInventory : Component
 		ReleaseExclusiveForLifecycle(
 			dropPosition,
 			preferForward: false );
+		ReleaseUtilityForLifecycle(
+			dropPosition,
+			preferForward: false );
 		ClearInventoryState();
 	}
 
@@ -344,6 +442,9 @@ public sealed class LargeLadInventory : Component
 		ReleaseExclusiveForLifecycle(
 			GameObject.WorldPosition,
 			preferForward: false );
+		ReleaseUtilityForLifecycle(
+			GameObject.WorldPosition,
+			preferForward: false );
 		ClearInventoryState();
 	}
 
@@ -353,6 +454,29 @@ public sealed class LargeLadInventory : Component
 			return;
 
 		ResolveExclusiveSource()?.ReleaseCarrierForRoundReset( this );
+		ResolveUtilitySource()?.ReleaseCarrierForRoundReset( this );
+		ClearInventoryState();
+	}
+
+	internal void HandleMapTransition( Scene departingScene )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		if ( HasExclusiveWeapon )
+		{
+			ResolveExclusiveSource( departingScene )?.ReturnCarrierToOrigin(
+				this,
+				ExclusiveWeapon );
+		}
+
+		if ( HasUtility )
+		{
+			ResolveUtilitySource( departingScene )?.ReturnCarrierToOrigin(
+				this,
+				UtilityState );
+		}
+
 		ClearInventoryState();
 	}
 
@@ -365,13 +489,22 @@ public sealed class LargeLadInventory : Component
 		}
 	}
 
-	[Rpc.Host( NetFlags.OwnerOnly )]
-	private void RequestSelectWeaponIndex( int index )
+	internal void NotifyUtilitySlotFull()
 	{
-		TrySelectWeaponIndex( index );
+		if ( Networking.IsHost )
+		{
+			ReceivePickupFeedback(
+				"You can only carry one utility item." );
+		}
 	}
 
-	internal bool TrySelectWeaponIndex( int index )
+	[Rpc.Host( NetFlags.OwnerOnly )]
+	private void RequestSelectInventoryIndex( int index )
+	{
+		TrySelectInventoryIndex( index );
+	}
+
+	internal bool TrySelectInventoryIndex( int index )
 	{
 		var player = Components.Get<LargeLadPlayer>();
 
@@ -385,15 +518,37 @@ public sealed class LargeLadInventory : Component
 			return false;
 		}
 
-		if ( index == 0 )
+		if ( !TryGetInventorySelectionAt( index, out var selection ) )
+			return false;
+
+		if ( selection.Kind ==
+			LargeLadInventorySelectionKind.RoleAbility )
 		{
 			CancelReload();
 			SelectRoleMelee();
 			return true;
 		}
 
-		if ( !TryGetWeaponAt( index - 1, out var state ) ||
-			!LargeLadInventoryRules.CanSelect(
+		if ( selection.Kind ==
+			LargeLadInventorySelectionKind.Utility )
+		{
+			if ( !LargeLadUtilityRules.CanSelect(
+				isHost: true,
+				ownerRequest: true,
+				player.Role,
+				isDead: false,
+				UtilityState ) )
+			{
+				return false;
+			}
+
+			CancelReload();
+			SelectUtility();
+			return true;
+		}
+
+		if ( !TryGetFirearmForSelection( selection, out var state ) ||
+			!LargeLadInventoryRules.CanSelectFirearm(
 				isHost: true,
 				ownerRequest: true,
 				player.Role,
@@ -409,7 +564,7 @@ public sealed class LargeLadInventory : Component
 	}
 
 	[Rpc.Host( NetFlags.OwnerOnly )]
-	private void RequestCycleWeapon( int direction )
+	private void RequestCycleInventory( int direction )
 	{
 		if ( !Networking.IsHost ||
 			!CanHostMutateLivingSkinnyKid() ||
@@ -418,23 +573,17 @@ public sealed class LargeLadInventory : Component
 			return;
 		}
 
-		var firearmIndex = LargeLadInventoryRules.GetSelectionIndex(
-				CoreWeapons,
-				ExclusiveWeapon,
-				ActiveSelection );
-		var current =
-			ActiveSelection.Kind ==
-				LargeLadWeaponSelectionKind.RoleAbility
-				? 0
-				: firearmIndex >= 0
-					? firearmIndex + 1
-					: -1;
+		var current = LargeLadInventoryRules.GetInventorySelectionIndex(
+			CoreWeapons,
+			ExclusiveWeapon,
+			UtilityState,
+			ActiveSelection );
 		var candidate = LargeLadInventoryRules.GetCycledIndex(
 			current,
-			WeaponSelectionCount,
+			InventorySelectionCount,
 			direction );
 
-		TrySelectWeaponIndex( candidate );
+		TrySelectInventoryIndex( candidate );
 	}
 
 	[Rpc.Host( NetFlags.OwnerOnly )]
@@ -444,19 +593,29 @@ public sealed class LargeLadInventory : Component
 	}
 
 	[Rpc.Host( NetFlags.OwnerOnly )]
-	private void RequestDropExclusive()
+	private void RequestDropSelectedItem()
 	{
 		if ( !Networking.IsHost ||
-			!CanHostMutateLivingSkinnyKid() ||
-			!IsExclusiveEquipped )
+			!CanHostMutateLivingSkinnyKid() )
 		{
 			return;
 		}
 
-		if ( !TryDropSelectedExclusive() )
+		if ( IsExclusiveEquipped )
+		{
+			if ( !TryDropSelectedExclusive() )
+			{
+				ReceivePickupFeedback(
+					"No safe place to drop the exclusive weapon." );
+			}
+
+			return;
+		}
+
+		if ( IsUtilityEquipped && !TryDropSelectedUtility() )
 		{
 			ReceivePickupFeedback(
-				"No safe place to drop the exclusive weapon." );
+				"No safe place to drop the dodgeball." );
 		}
 	}
 
@@ -497,6 +656,98 @@ public sealed class LargeLadInventory : Component
 		return true;
 	}
 
+	internal bool TryDropSelectedUtility()
+	{
+		var player = Components.Get<LargeLadPlayer>();
+
+		if ( !Networking.IsHost ||
+			player?.IsEatBusy == true ||
+			!LargeLadUtilityRules.CanDrop(
+				isHost: true,
+				ownerRequest: true,
+				player?.Role ?? LargeLadRole.Unassigned,
+				player?.Health?.IsDead != false,
+				UtilityState,
+				ActiveSelection ) ||
+			ResolveUtilitySource() is not
+				LargeLadDodgeballPickup source )
+		{
+			return false;
+		}
+
+		var controller = Components.Get<PlayerController>();
+		var forward = controller?.EyeTransform.Rotation.Forward ??
+			GameObject.WorldRotation.Forward;
+
+		if ( !source.TryDropFromCarrier(
+			this,
+			UtilityState,
+			GameObject.WorldPosition,
+			forward ) )
+		{
+			return false;
+		}
+
+		ClearUtilityAndSelectFallback();
+		return true;
+	}
+
+	[Rpc.Host( NetFlags.OwnerOnly )]
+	private void RequestThrowSelectedUtility( int ownerRequestSequence )
+	{
+		if ( !Networking.IsHost ||
+			ownerRequestSequence <= lastHostUtilityThrowRequestSequence )
+		{
+			return;
+		}
+
+		// Consume the request before state validation. Replaying it after a
+		// pickup, death, reset, or transfer can never throw the same ball again.
+		lastHostUtilityThrowRequestSequence = ownerRequestSequence;
+		TryThrowSelectedUtility();
+	}
+
+	internal bool TryThrowSelectedUtility()
+	{
+		var player = Components.Get<LargeLadPlayer>();
+
+		if ( !Networking.IsHost ||
+			player?.IsEatBusy == true ||
+			!LargeLadUtilityRules.CanDrop(
+				isHost: true,
+				ownerRequest: true,
+				player?.Role ?? LargeLadRole.Unassigned,
+				player?.Health?.IsDead != false,
+				UtilityState,
+				ActiveSelection ) ||
+			ResolveUtilitySource() is not
+				LargeLadDodgeballPickup source )
+		{
+			return false;
+		}
+
+		var controller = Components.Get<PlayerController>();
+
+		if ( controller is null )
+			return false;
+
+		var eye = controller.EyeTransform;
+		var inheritedVelocity = controller.Body?.Velocity ?? Vector3.Zero;
+
+		if ( !source.TryThrowFromCarrier(
+			this,
+			UtilityState,
+			eye.Position,
+			eye.Rotation.Forward,
+			inheritedVelocity ) )
+		{
+			return false;
+		}
+
+		ClearUtilityAndSelectFallback();
+		return true;
+	}
+
 	[Rpc.Owner( NetFlags.HostOnly )]
 	private void ReceivePickupFeedback( string message )
 	{
@@ -510,7 +761,7 @@ public sealed class LargeLadInventory : Component
 		var player = Components.Get<LargeLadPlayer>();
 		return Networking.IsHost &&
 			player?.IsEatBusy != true &&
-			LargeLadInventoryRules.CanUseFirearmInventory(
+			LargeLadInventoryRules.CanUseInventory(
 				player?.Role ?? LargeLadRole.Unassigned,
 				player?.Health?.IsDead != false );
 	}
@@ -525,7 +776,7 @@ public sealed class LargeLadInventory : Component
 			return;
 		}
 
-		if ( !TryGetActiveState( out var state ) )
+		if ( !TryGetActiveFirearmState( out var state ) )
 		{
 			CancelReload();
 			return;
@@ -567,16 +818,24 @@ public sealed class LargeLadInventory : Component
 
 	private void SelectState( LargeLadWeaponState state )
 	{
-		ActiveSelection = LargeLadInventoryRules.SelectionFor( state );
+		ActiveSelection =
+			LargeLadInventoryRules.FirearmSelectionFor( state );
 
-		if ( ActiveSelection.Kind == LargeLadWeaponSelectionKind.Core )
+		if ( ActiveSelection.Kind ==
+			LargeLadInventorySelectionKind.CoreFirearm )
 			LastSelectedCoreWeapon = state.Weapon;
 	}
 
 	private void SelectRoleMelee()
 	{
 		ActiveSelection =
-			LargeLadWeaponSelection.ForRoleMelee();
+			LargeLadInventorySelection.ForRoleMelee();
+	}
+
+	private void SelectUtility()
+	{
+		ActiveSelection =
+			LargeLadUtilityRules.SelectionFor( UtilityState );
 	}
 
 	private void SelectCore( LargeLadWeaponId weapon )
@@ -594,12 +853,31 @@ public sealed class LargeLadInventory : Component
 		CancelReload();
 		ExclusiveWeapon = default;
 		exclusiveSource = null;
-		ActiveSelection = LargeLadInventoryRules.GetCoreFallback(
+		ActiveSelection = LargeLadInventoryRules.GetFirearmFallback(
 			CoreWeapons,
 			LastSelectedCoreWeapon );
 
-		if ( ActiveSelection.Kind == LargeLadWeaponSelectionKind.Core )
+		if ( ActiveSelection.Kind ==
+			LargeLadInventorySelectionKind.CoreFirearm )
 			LastSelectedCoreWeapon = ActiveSelection.Weapon;
+	}
+
+	private void ClearUtilityAndSelectFallback()
+	{
+		CancelReload();
+		UtilityState = default;
+		utilitySource = null;
+		ActiveSelection =
+			LargeLadInventoryRules.GetUtilityRemovalFallback(
+				CoreWeapons,
+				ExclusiveWeapon,
+				LastSelectedCoreWeapon );
+
+		if ( ActiveSelection.Kind ==
+			LargeLadInventorySelectionKind.CoreFirearm )
+		{
+			LastSelectedCoreWeapon = ActiveSelection.Weapon;
+		}
 	}
 
 	private void ReleaseExclusiveForLifecycle(
@@ -647,7 +925,8 @@ public sealed class LargeLadInventory : Component
 		exclusiveSource = null;
 	}
 
-	private LargeLadWeaponPickup ResolveExclusiveSource()
+	private LargeLadWeaponPickup ResolveExclusiveSource(
+		Scene sourceScene = null )
 	{
 		if ( !HasExclusiveWeapon )
 			return null;
@@ -661,7 +940,8 @@ public sealed class LargeLadInventory : Component
 		}
 
 		foreach ( var pickup in
-			Scene?.GetAllComponents<LargeLadWeaponPickup>() ??
+			(sourceScene ?? Scene)?
+				.GetAllComponents<LargeLadWeaponPickup>() ??
 			System.Array.Empty<LargeLadWeaponPickup>() )
 		{
 			if ( pickup.PickupPolicy !=
@@ -680,12 +960,86 @@ public sealed class LargeLadInventory : Component
 		return null;
 	}
 
+	private void ReleaseUtilityForLifecycle(
+		Vector3 dropPosition,
+		bool preferForward )
+	{
+		if ( !HasUtility )
+			return;
+
+		var source = ResolveUtilitySource();
+
+		if ( source is null || !source.IsValid )
+		{
+			UtilityState = default;
+			utilitySource = null;
+			return;
+		}
+
+		var controller = Components.Get<PlayerController>();
+		var forward = preferForward
+			? controller?.EyeTransform.Rotation.Forward ??
+				GameObject.WorldRotation.Forward
+			: GameObject.WorldRotation.Forward;
+
+		if ( !source.TryDropFromCarrier(
+			this,
+			UtilityState,
+			dropPosition,
+			forward ) )
+		{
+			source.ReturnCarrierToOrigin( this, UtilityState );
+		}
+
+		UtilityState = default;
+		utilitySource = null;
+	}
+
+	private LargeLadDodgeballPickup ResolveUtilitySource(
+		Scene sourceScene = null )
+	{
+		if ( !HasUtility )
+			return null;
+
+		if ( utilitySource is not null &&
+			utilitySource.IsValid &&
+			utilitySource.UtilityInstanceId == UtilityState.InstanceId )
+		{
+			return utilitySource;
+		}
+
+		foreach ( var pickup in
+			(sourceScene ?? Scene)?
+				.GetAllComponents<LargeLadDodgeballPickup>() ??
+			System.Array.Empty<LargeLadDodgeballPickup>() )
+		{
+			if ( pickup.UtilityInstanceId != UtilityState.InstanceId )
+				continue;
+
+			utilitySource = pickup;
+			return pickup;
+		}
+
+		return null;
+	}
+
+	internal void HandleUtilitySourceDestroyed(
+		LargeLadDodgeballPickup source )
+	{
+		if ( !Networking.IsHost || source != utilitySource )
+			return;
+
+		ClearUtilityAndSelectFallback();
+	}
+
 	private void ClearInventoryState()
 	{
 		CoreWeapons.Clear();
 		ExclusiveWeapon = default;
 		exclusiveSource = null;
-		ActiveSelection = LargeLadWeaponSelection.None;
+		UtilityState = default;
+		utilitySource = null;
+		ActiveSelection = LargeLadInventorySelection.None;
 		LastSelectedCoreWeapon = LargeLadWeaponId.None;
 		CancelReload();
 	}

@@ -22,7 +22,8 @@ public enum LargeLadKillfeedCause
 	FirearmHeadshot,
 	Melee,
 	Eat,
-	Environment
+	Environment,
+	Dodgeball
 }
 
 /// <summary>
@@ -172,6 +173,7 @@ public static class LargeLadFirearmHitRules
 			LargeLadDamageType.Melee => LargeLadKillfeedCause.Melee,
 			LargeLadDamageType.Eat => LargeLadKillfeedCause.Eat,
 			LargeLadDamageType.Environment => LargeLadKillfeedCause.Environment,
+			LargeLadDamageType.Dodgeball => LargeLadKillfeedCause.Dodgeball,
 			_ => LargeLadKillfeedCause.Unknown
 		};
 	}

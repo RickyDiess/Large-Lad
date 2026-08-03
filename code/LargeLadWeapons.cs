@@ -28,63 +28,86 @@ public enum LargeLadAmmunitionMode
 	FiniteReserve
 }
 
-public enum LargeLadWeaponSelectionKind
+public enum LargeLadInventorySelectionKind
 {
 	None,
 	RoleAbility,
-	Core,
-	Exclusive
+	CoreFirearm,
+	ExclusiveFirearm,
+	Utility
 }
 
-public struct LargeLadWeaponSelection :
-	System.IEquatable<LargeLadWeaponSelection>
+/// <summary>
+/// The selected entry in the Skinny Kid's deliberately small ordered
+/// inventory. Role melee, firearms, and the one utility slot keep distinct
+/// identities so utility selection never needs a fake weapon definition.
+/// </summary>
+public struct LargeLadInventorySelection :
+	System.IEquatable<LargeLadInventorySelection>
 {
-	public LargeLadWeaponSelectionKind Kind { get; set; }
+	public LargeLadInventorySelectionKind Kind { get; set; }
 	public LargeLadWeaponId Weapon { get; set; }
 	public int ExclusiveInstanceId { get; set; }
+	public LargeLadUtilityId Utility { get; set; }
+	public int UtilityInstanceId { get; set; }
 
-	public static LargeLadWeaponSelection None => default;
+	public static LargeLadInventorySelection None => default;
 
-	public static LargeLadWeaponSelection ForCore( LargeLadWeaponId weapon )
+	public static LargeLadInventorySelection ForCoreFirearm(
+		LargeLadWeaponId weapon )
 	{
-		return new LargeLadWeaponSelection
+		return new LargeLadInventorySelection
 		{
-			Kind = LargeLadWeaponSelectionKind.Core,
+			Kind = LargeLadInventorySelectionKind.CoreFirearm,
 			Weapon = weapon
 		};
 	}
 
-	public static LargeLadWeaponSelection ForRoleMelee()
+	public static LargeLadInventorySelection ForRoleMelee()
 	{
-		return new LargeLadWeaponSelection
+		return new LargeLadInventorySelection
 		{
-			Kind = LargeLadWeaponSelectionKind.RoleAbility,
+			Kind = LargeLadInventorySelectionKind.RoleAbility,
 			Weapon = LargeLadWeaponId.Melee
 		};
 	}
 
-	public static LargeLadWeaponSelection ForExclusive(
+	public static LargeLadInventorySelection ForExclusiveFirearm(
 		LargeLadWeaponId weapon,
 		int instanceId )
 	{
-		return new LargeLadWeaponSelection
+		return new LargeLadInventorySelection
 		{
-			Kind = LargeLadWeaponSelectionKind.Exclusive,
+			Kind = LargeLadInventorySelectionKind.ExclusiveFirearm,
 			Weapon = weapon,
 			ExclusiveInstanceId = instanceId
 		};
 	}
 
-	public bool Equals( LargeLadWeaponSelection other )
+	public static LargeLadInventorySelection ForUtility(
+		LargeLadUtilityId utility,
+		int instanceId )
+	{
+		return new LargeLadInventorySelection
+		{
+			Kind = LargeLadInventorySelectionKind.Utility,
+			Utility = utility,
+			UtilityInstanceId = instanceId
+		};
+	}
+
+	public bool Equals( LargeLadInventorySelection other )
 	{
 		return Kind == other.Kind &&
 			Weapon == other.Weapon &&
-			ExclusiveInstanceId == other.ExclusiveInstanceId;
+			ExclusiveInstanceId == other.ExclusiveInstanceId &&
+			Utility == other.Utility &&
+			UtilityInstanceId == other.UtilityInstanceId;
 	}
 
 	public override bool Equals( object obj )
 	{
-		return obj is LargeLadWeaponSelection other && Equals( other );
+		return obj is LargeLadInventorySelection other && Equals( other );
 	}
 
 	public override int GetHashCode()
@@ -92,19 +115,21 @@ public struct LargeLadWeaponSelection :
 		return System.HashCode.Combine(
 			Kind,
 			Weapon,
-			ExclusiveInstanceId );
+			ExclusiveInstanceId,
+			Utility,
+			UtilityInstanceId );
 	}
 
 	public static bool operator ==(
-		LargeLadWeaponSelection left,
-		LargeLadWeaponSelection right )
+		LargeLadInventorySelection left,
+		LargeLadInventorySelection right )
 	{
 		return left.Equals( right );
 	}
 
 	public static bool operator !=(
-		LargeLadWeaponSelection left,
-		LargeLadWeaponSelection right )
+		LargeLadInventorySelection left,
+		LargeLadInventorySelection right )
 	{
 		return !left.Equals( right );
 	}

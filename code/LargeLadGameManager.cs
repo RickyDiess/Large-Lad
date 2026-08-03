@@ -824,6 +824,87 @@ public sealed class LargeLadGameManager : Component
 				issues.Add( $"Weapon pickup '{pickup.GameObject.Name}' needs visible scene geometry." );
 		}
 
+		var utilityPickupNamesById = new Dictionary<int, string>();
+
+		foreach ( var pickup in
+			Scene?.GetAllComponents<LargeLadDodgeballPickup>() ??
+			Enumerable.Empty<LargeLadDodgeballPickup>() )
+		{
+			if ( pickup.GameObject.NetworkMode != NetworkMode.Object )
+			{
+				issues.Add(
+					$"Dodgeball utility pickup '{pickup.GameObject.Name}' must " +
+					"use Network Mode Object so its single physical instance " +
+					"replicates." );
+			}
+
+			if ( Networking.IsHost )
+			{
+				pickup.EnsureUtilityIdentityForHost();
+				var instanceId = pickup.UtilityInstanceId;
+
+				if ( instanceId <= 0 )
+				{
+					issues.Add(
+						$"Dodgeball utility pickup '{pickup.GameObject.Name}' " +
+						"could not establish a stable instance identity." );
+				}
+				else if ( utilityPickupNamesById.TryGetValue(
+					instanceId,
+					out var existingName ) )
+				{
+					issues.Add(
+						$"Dodgeball utility pickups '{existingName}' and " +
+						$"'{pickup.GameObject.Name}' have the same runtime " +
+						$"instance id {instanceId}." );
+				}
+				else
+				{
+					utilityPickupNamesById.Add(
+						instanceId,
+						pickup.GameObject.Name );
+				}
+			}
+
+			if ( pickup.PickupCollider is null )
+			{
+				issues.Add(
+					$"Dodgeball utility pickup '{pickup.GameObject.Name}' " +
+					"needs a separate pickup trigger." );
+			}
+
+			if ( pickup.BallCollider is null ||
+				pickup.BallCollider.IsTrigger )
+			{
+				issues.Add(
+					$"Dodgeball utility pickup '{pickup.GameObject.Name}' " +
+					"needs a solid ball collider." );
+			}
+
+			if ( pickup.BallRigidbody is null )
+			{
+				issues.Add(
+					$"Dodgeball utility pickup '{pickup.GameObject.Name}' " +
+					"needs a Rigidbody for authoritative bounded physics." );
+			}
+
+			if ( !pickup.GameObject.Tags.Has(
+				LargeLadDodgeballRules.CollisionTag ) )
+			{
+				issues.Add(
+					$"Dodgeball utility pickup '{pickup.GameObject.Name}' needs " +
+					$"the '{LargeLadDodgeballRules.CollisionTag}' collision tag so " +
+					"Minion vent openings remain solid to it." );
+			}
+
+			if ( pickup.PickupRenderer is null )
+			{
+				issues.Add(
+					$"Dodgeball utility pickup '{pickup.GameObject.Name}' " +
+					"needs visible scene geometry." );
+			}
+		}
+
 		foreach ( var barricade in
 			Scene?.GetAllComponents<LargeLadBarricade>() ??
 			Enumerable.Empty<LargeLadBarricade>() )
@@ -1051,8 +1132,8 @@ public sealed class LargeLadGameManager : Component
 
 		CommitRoundBalanceState( skinnyKidPlayers.Count );
 
-		// Player-held exclusive items are cleared before their authored pickup
-		// returns, so a reset can never create a second copy.
+		// Player-held exclusive and utility items are cleared before their
+		// authored pickups reset, so a reset can never create a second copy.
 		foreach ( var player in players )
 			player.Inventory?.ClearForRoundReset();
 

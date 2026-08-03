@@ -327,9 +327,9 @@ the project collision matrix is loaded at startup.
 
 ## Release inventory multiplayer checklist
 
-Use a host and at least one remote client. Author one core pickup plus two
-exclusive placements; make the two exclusives use the same weapon definition to
-verify they remain independent physical instances.
+Use a host and at least one remote client. Author one core pickup, two exclusive
+placements, and one `LargeLadDodgeballPickup`; make the two exclusives use the
+same weapon definition to verify they remain independent physical instances.
 
 1. Let both Skinny Kids touch the same core pickup. Confirm both unlock it, the
    pickup remains visible, and a second touch changes neither magazine nor HUD.
@@ -341,7 +341,7 @@ verify they remain independent physical instances.
    confirm the local `You can only carry one exclusive weapon.` feedback.
 4. Fire an exclusive, switch weapons, drop it with G, and have the other player
    repick it after dropping their own exclusive. Confirm magazine and reserve
-   remain exact through every transition and the exclusive is last in scrolling.
+   remain exact through every transition and the exclusive is the final firearm.
 5. Kill a Skinny Kid carrying an exclusive. Confirm the weapon drops near the
    death location (or safely returns to origin when blocked), core inventory is
    cleared, and the respawned Minion has built-in melee only.
@@ -350,6 +350,35 @@ verify they remain independent physical instances.
 7. End the round with exclusives carried and dropped. Confirm every runtime drop
    disappears, every authored exclusive returns, and its configured magazine and
    reserve are full exactly once.
-8. Repeat selection, reload, pickup, and drop requests from the remote client
+8. Collect the dodgeball and confirm it appears after the exclusive in direct
+   slot and mouse-wheel order. Confirm the utility HUD row has no ammunition,
+   selecting it cannot fire or reload a firearm, Primary Attack throws it, and
+   G drops the same authored instance for another Skinny Kid to collect.
+9. Attempt dodgeball collection and selection as Large Lad, Minion, a dead
+   Skinny Kid, and a Skinny Kid already carrying a dodgeball. Confirm every
+   attempt is rejected without changing the physical or synchronized state.
+10. Repeat role change, death, disconnect, round reset, and map transition while
+   the dodgeball is carried or dropped. Confirm it drops safely or returns to
+   origin, never duplicates, and only round reset restores its authored
+   transform.
+11. Repeat selection, reload, pickup, and drop requests from the remote client
    while dead and after conversion. Confirm the host rejects them without ammo,
    ownership, visibility, or active-selection changes.
+12. Throw directly into a living Minion and confirm one immediate lethal event
+   and one Minion-kill presentation. Repeat against the Large Lad and confirm a
+   strong bounded knockback horizontally away from the thrower, no stun/movement
+   lock, the configured 0-5 damage, and one Large-Lad-hit presentation. Friendly,
+   dead, low-speed, and replayed contacts must produce no combat event.
+13. Throw from both host and remote ownership. Confirm launch starts clear of
+   the thrower, including while sprinting, and the solid ball passes through all
+   Skinny Kid bodies without being deflected while touch callbacks remain active.
+   Confirm the separate pickup trigger stays disabled for its configured cooldown
+   and then still retrieves the ball, world motion is host simulated and smoothly
+   interpolated, and the first solid non-self impact makes the ball harmless until
+   it is picked up and thrown again.
+14. Ground Slam a resting and airborne dodgeball repeatedly. Confirm impulse is
+   visibly capped, the ball remains intact and collectible, and it never enters
+   the mapper's broken, unanchored, or cleaned-up state.
+15. Throw and roll the ball against both sides of every Minion vent entrance.
+   Confirm the opening remains solid to the ball whether its cover is intact or
+   broken, while a Minion still traverses the open passage.

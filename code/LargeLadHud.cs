@@ -543,39 +543,57 @@ public sealed class LargeLadHud : Component
 		const float rowHeight = 29.0f;
 		const float panelWidth = 350.0f;
 		var panelHeight = 18.0f +
-			inventory.WeaponSelectionCount * rowHeight;
+			inventory.InventorySelectionCount * rowHeight;
 		var panel = new Rect(
 			Screen.Width - panelWidth - 28.0f,
 			Screen.Height - panelHeight - 28.0f,
 			panelWidth,
 			panelHeight );
-		var panelAccent = inventory.IsExclusiveEquipped
-			? new Color( 1.0f, 0.58f, 0.16f )
-			: LargeLadWeaponCatalog.Get(
-				inventory.EquippedWeapon ).PickupColor;
+		var panelAccent = inventory.IsUtilityEquipped
+			? LargeLadUtilityRules.GetColor(
+				inventory.EquippedUtility )
+			: inventory.IsExclusiveEquipped
+				? new Color( 1.0f, 0.58f, 0.16f )
+				: LargeLadWeaponCatalog.Get(
+					inventory.EquippedWeapon ).PickupColor;
 
 		DrawPanel( hud, panel, panelAccent );
 
 		for ( var index = 0;
-			index < inventory.WeaponSelectionCount;
+			index < inventory.InventorySelectionCount;
 			index++ )
 		{
-			var isRoleAbility = index == 0;
-			var state = default( LargeLadWeaponState );
-
-			if ( !isRoleAbility &&
-				!inventory.TryGetWeaponAt( index - 1, out state ) )
+			if ( !inventory.TryGetInventorySelectionAt(
+				index,
+				out var selection ) )
 			{
 				continue;
 			}
 
-			var definition = LargeLadWeaponCatalog.Get(
-				isRoleAbility
-					? LargeLadWeaponId.Melee
-					: state.Weapon );
-			var selection = isRoleAbility
-				? LargeLadWeaponSelection.ForRoleMelee()
-				: LargeLadInventoryRules.SelectionFor( state );
+			var isRoleAbility = selection.Kind ==
+				LargeLadInventorySelectionKind.RoleAbility;
+			var isUtility = selection.Kind ==
+				LargeLadInventorySelectionKind.Utility;
+			var state = default( LargeLadWeaponState );
+
+			if ( !isRoleAbility &&
+				!isUtility &&
+				!inventory.TryGetFirearmForSelection(
+					selection,
+					out state ) )
+			{
+				continue;
+			}
+
+			var definition = isUtility
+				? null
+				: LargeLadWeaponCatalog.Get(
+					isRoleAbility
+						? LargeLadWeaponId.Melee
+						: state.Weapon );
+			var color = isUtility
+				? LargeLadUtilityRules.GetColor( selection.Utility )
+				: definition.PickupColor;
 			var selected =
 				inventory.ActiveSelection == selection;
 			var rowTop = panel.Top + 9.0f + index * rowHeight;
@@ -590,27 +608,32 @@ public sealed class LargeLadHud : Component
 				DrawSolidRect(
 					hud,
 					row,
-					definition.PickupColor.WithAlpha( 0.22f ) );
+					color.WithAlpha( 0.22f ) );
 			}
 
+			var displayName = isUtility
+				? LargeLadUtilityRules.GetDisplayName( selection.Utility )
+				: definition.DisplayName;
 			var name = $"{index + 1}. " +
-				definition.DisplayName.ToUpperInvariant();
+				displayName.ToUpperInvariant();
 
 			if ( isRoleAbility )
 				name += "  [ROLE]";
+			else if ( isUtility )
+				name += "  [UTILITY]";
 			else if ( state.IsExclusive )
 				name += "  [EXCLUSIVE]";
 
 			hud.DrawText(
 				name,
-				!isRoleAbility && state.IsExclusive
+				!isRoleAbility && !isUtility && state.IsExclusive
 					? 13.0f
 					: 14.0f,
-				selected ? definition.PickupColor : MutedTextColor,
+				selected ? color : MutedTextColor,
 				new Vector2( row.Left + 8.0f, row.Center.y ),
 				TextFlag.LeftCenter );
 
-			if ( isRoleAbility )
+			if ( isRoleAbility || isUtility )
 				continue;
 
 			var ammo = state.HasInfiniteReserve

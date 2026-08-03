@@ -227,8 +227,9 @@ barricade.
 The gameplay prefab folder contains pistol, SMG, and kill-volume presets. Loose
 ammunition pickups are not part of the map contract.
 
-Only Skinny Kids have firearm inventory. Primary attacks remain role abilities
-rather than firearm entries.
+Only Skinny Kids have firearm inventory and the single dodgeball utility slot.
+Primary attacks remain role abilities rather than firearm entries. Large Lad
+and Minions cannot collect or select the dodgeball.
 
 The Large Lad's only primary attack is committed Eat. The host searches for a
 valid living Skinny Kid first; that victim takes priority even when an eligible
@@ -256,10 +257,12 @@ primary attack auto-swings at the authoritative role-profile cooldown:
 Both ordinary melee roles use an 18-unit swing-trace radius. Fallback aim
 assist requires a minimum facing dot of 0.55.
 
-Skinny Kids can select ordinary melee before the catalog-ordered core weapons.
-Minions always have ordinary melee selected because they have no firearm
-inventory. The Large Lad also has no firearm inventory, but primary input is
-routed exclusively to Eat rather than the ordinary melee system.
+Skinny Kids select ordinary melee before the catalog-ordered core firearms,
+then any carried exclusive firearm, then the separately categorized dodgeball.
+The exclusive therefore remains the final firearm. Minions always have ordinary
+melee selected because they have no firearm or utility inventory. The Large Lad
+also has neither inventory, and primary input is routed exclusively to Eat
+rather than the ordinary melee system.
 
 ## Large Lad Ground Slam
 
@@ -289,12 +292,11 @@ makes its GameObject a network object before play. A plain collidable model also
 receives an automatic Rigidbody for `Move` or `Unanchor`; `Prop` keeps using its
 own generated physics.
 `Start Frozen` is enabled by default, holding that physics body at its authored
-transform until its first slam. Disable it for an already-live physics object
-such as the future dodgeball.
+transform until its first slam. Disable it for an already-live dodgeball.
 
 - `Move` applies the bounded configured horizontal/upward impulse to an already
-  dynamic Rigidbody. This is the intended future dodgeball configuration and
-  never destroys it.
+  dynamic Rigidbody. This is the intended dodgeball configuration and never
+  destroys it.
 - `Unanchor` changes the mapped prop to dynamic, then applies the bounded
   impulse.
 - `Break` creates Prop gibs when available and disables the mapped presentation
@@ -302,10 +304,12 @@ such as the future dodgeball.
 
 The optional `Reactive Root` may point to a child containing the visuals and
 physics while the networked mapper component remains active on its parent.
-Critical gameplay objects, pickups, spawns, kill volumes, Eat smashables,
-barricades, and Minion-passage blockers are rejected even if someone adds the
-component. Round reset restores the authored local transform, object/component
-enabled state, static/anchored state, Rigidbody state, and broken state.
+Critical gameplay objects, firearm pickups, spawns, kill volumes, Eat
+smashables, barricades, and Minion-passage blockers are rejected even if someone
+adds the component. The dodgeball utility pickup is the focused exception: it
+may react while available on the ground, but never while carried. Round reset
+restores the authored local transform, object/component enabled state,
+static/anchored state, Rigidbody state, and broken state.
 
 Out-of-bounds cleanup is opt-in. It disables a lost prop until round reset when
 the prop falls below the configured world Z or exceeds the configured distance
@@ -332,7 +336,7 @@ entry's `StartingReserve` for the round. Reserve ammunition is not configured
 independently per pickup placement, and there are no ammo refills.
 
 While an exclusive is carried or dropped, its authored pickup stays hidden and
-reserved. Press the `Drop Exclusive Weapon` input (G by default) while it is
+reserved. Press the drop input (G by default) while it is
 selected to place a runtime pickup near the player. Magazine and reserve values
 survive switching, dropping, repicking, transfer, death, and disconnect. A
 Skinny Kid who already carries one receives local HUD feedback and cannot
@@ -340,8 +344,43 @@ replace it. Round reset destroys any runtime drop, restores the authored pickup,
 and alone restores a full magazine plus the catalog-defined `StartingReserve`.
 
 Skinny Kid starting loadouts are configured as a list of core weapon
-definitions on `LargeLadInventory`; they are not numeric slots. The HUD and
-scroll order use stable weapon-catalog order with the carried exclusive last.
+definitions on `LargeLadInventory`; they are not numeric slots. The HUD, direct
+slots, and scroll order are role melee, stable weapon-catalog core order, the
+carried exclusive firearm, and then the separately synchronized utility.
+
+Author the utility with the `Large Lad/Pickups/Dodgeball` prefab. Each placement
+is exactly one stable physical ball and each Skinny Kid has one utility slot.
+The prefab already supplies the visible model, solid ball collider, separate
+pickup trigger, Rigidbody with enhanced continuous collision detection, the
+`large_lad_dodgeball` vent-blocking tag, Network Mode `Object`, interpolation,
+host-safe orphan handling, and a Move-only Ground Slam reaction. The solid ball
+uses a touch-only response against Skinny Kid bodies, so it cannot physically
+deflect off them while the separate trigger still receives pickup overlaps after
+its cooldown; Large Lad and Minion bodies remain solid targets. Do not replace
+its solid collider with a trigger or change the slam behavior to Unanchor or
+Break.
+
+The authored object hides while carried. Primary Attack throws it from a
+clearance-tested point beyond the carrier; G manually drops it at a safe nearby
+position. Both paths reclaim host physics, cap linear/angular velocity, apply a
+pickup cooldown, and preserve the same instance identity. Ownership may move to
+the carrier while hidden, but world physics and hit decisions always return to
+the host. The launch offset plus thrower grace prevents self contact from
+consuming a throw. Death, role change, and disconnect safely drop the carried
+ball or return it to origin when no safe drop exists. Map transition returns it
+to its departing authored source. Round reset invalidates stale throw tokens,
+clears motion and interpolation, and restores exactly the authored object; the
+dodgeball path never creates a runtime copy.
+
+A thrown ball becomes harmless on its first non-self impact. A direct living
+Minion hit consumes all current Minion health. A direct living Large Lad hit
+applies configured bounded knockback horizontally away from the thrower without
+a movement lock or stun, plus zero damage by default (configurable only from 0
+through 5). Friendly, dead, low-speed, world, stale, and replayed impacts cannot
+produce a combat effect.
+Ground Slam may impulse an available ball, but runtime validation prevents
+breaking, unanchoring, or cleanup. The component exposes distinct replicated
+presentation phases for Throw, Impact, Pickup, MinionKill, and LargeLadHit.
 
 A kill volume is an ordinary GameObject with a trigger collider and
 `LargeLadKillVolume`. Resize the collider to cover the hazard. Skinny Kids killed
@@ -359,6 +398,9 @@ the Large Lad respawn timer.
   order. Root rendering is optional.
 - Every weapon pickup has a deliberate per-instance policy, visible model, and
   trigger collider; exclusive pickups use Network Mode `Object`.
+- Every dodgeball placement uses the supplied prefab with its solid ball
+  collider, separate pickup trigger, Rigidbody, dodgeball collision tag,
+  interpolation, and Move-only non-cleanup Ground Slam configuration intact.
 - Every Ground Slam-reactive prop is an intentional component opt-in with a
   valid Move/Unanchor/Break behavior and no critical gameplay or
   authoritative-blocker component in its hierarchy. Its Network Mode `Object`

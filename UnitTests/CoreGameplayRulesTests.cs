@@ -1624,19 +1624,21 @@ public sealed class InventoryRulesTests
 		core[0] = pistol;
 
 		var smgSelection =
-			LargeLadWeaponSelection.ForCore( LargeLadWeaponId.Smg );
+			LargeLadInventorySelection.ForCoreFirearm(
+				LargeLadWeaponId.Smg );
 		var pistolSelection =
-			LargeLadWeaponSelection.ForCore( LargeLadWeaponId.Pistol );
+			LargeLadInventorySelection.ForCoreFirearm(
+				LargeLadWeaponId.Pistol );
 
 		Assert.AreEqual(
 			1,
-			LargeLadInventoryRules.GetSelectionIndex(
+			LargeLadInventoryRules.GetFirearmSelectionIndex(
 				core,
 				default,
 				smgSelection ) );
 		Assert.AreEqual(
 			0,
-			LargeLadInventoryRules.GetSelectionIndex(
+			LargeLadInventoryRules.GetFirearmSelectionIndex(
 				core,
 				default,
 				pistolSelection ) );
@@ -1804,12 +1806,12 @@ public sealed class InventoryRulesTests
 			core,
 			LargeLadWeaponId.Smg );
 
-		var fallback = LargeLadInventoryRules.GetCoreFallback(
+		var fallback = LargeLadInventoryRules.GetFirearmFallback(
 			core,
 			LargeLadWeaponId.Smg );
 
 		Assert.AreEqual(
-			LargeLadWeaponSelectionKind.Core,
+			LargeLadInventorySelectionKind.CoreFirearm,
 			fallback.Kind );
 		Assert.AreEqual( LargeLadWeaponId.Smg, fallback.Weapon );
 	}
@@ -1817,12 +1819,12 @@ public sealed class InventoryRulesTests
 	[TestMethod]
 	public void DroppingExclusive_WithoutCore_SelectsRoleMelee()
 	{
-		var fallback = LargeLadInventoryRules.GetCoreFallback(
+		var fallback = LargeLadInventoryRules.GetFirearmFallback(
 			new List<LargeLadWeaponState>(),
 			LargeLadWeaponId.Pistol );
 
 		Assert.AreEqual(
-			LargeLadWeaponSelection.ForRoleMelee(),
+			LargeLadInventorySelection.ForRoleMelee(),
 			fallback );
 	}
 
@@ -1831,7 +1833,7 @@ public sealed class InventoryRulesTests
 	{
 		var exclusive = CreateExclusiveState( instanceId: 905 );
 		var exclusiveSelection =
-			LargeLadInventoryRules.SelectionFor( exclusive );
+			LargeLadInventoryRules.FirearmSelectionFor( exclusive );
 
 		Assert.IsTrue(
 			LargeLadInventoryRules.CanDropExclusive(
@@ -1842,7 +1844,7 @@ public sealed class InventoryRulesTests
 				exclusive,
 				exclusiveSelection ) );
 
-		var fallback = LargeLadInventoryRules.GetCoreFallback(
+		var fallback = LargeLadInventoryRules.GetFirearmFallback(
 			new List<LargeLadWeaponState>
 			{
 				LargeLadWeaponState.CreateCore(
@@ -1851,10 +1853,10 @@ public sealed class InventoryRulesTests
 			LargeLadWeaponId.Smg );
 
 		Assert.AreNotEqual(
-			LargeLadWeaponSelectionKind.None,
+			LargeLadInventorySelectionKind.None,
 			fallback.Kind );
 		Assert.AreEqual(
-			LargeLadWeaponSelection.ForRoleMelee(),
+			LargeLadInventorySelection.ForRoleMelee(),
 			fallback );
 	}
 
@@ -1873,7 +1875,7 @@ public sealed class InventoryRulesTests
 		Assert.AreEqual( LargeLadWeaponId.Pistol, core[0].Weapon );
 		Assert.AreEqual( LargeLadWeaponId.Smg, core[1].Weapon );
 		Assert.IsTrue(
-			LargeLadInventoryRules.TryGetWeaponAt(
+			LargeLadInventoryRules.TryGetFirearmAt(
 				core,
 				exclusive,
 				2,
@@ -1909,7 +1911,7 @@ public sealed class InventoryRulesTests
 		coreState.Magazine = 1;
 		var exclusive = CreateExclusiveState( instanceId: 904 );
 		var exclusiveSelection =
-			LargeLadInventoryRules.SelectionFor( exclusive );
+			LargeLadInventoryRules.FirearmSelectionFor( exclusive );
 
 		Assert.IsFalse(
 			LargeLadInventoryRules.CanCollectCore(
@@ -1927,7 +1929,7 @@ public sealed class InventoryRulesTests
 				isAlreadyReloading: false,
 				coreState ) );
 		Assert.IsFalse(
-			LargeLadInventoryRules.CanSelect(
+			LargeLadInventoryRules.CanSelectFirearm(
 				isHost: false,
 				ownerRequest: true,
 				LargeLadRole.SkinnyKid,
@@ -1948,8 +1950,269 @@ public sealed class InventoryRulesTests
 				LargeLadRole.SkinnyKid,
 				isDead: false,
 				exclusive,
-				LargeLadWeaponSelection.ForCore(
+				LargeLadInventorySelection.ForCoreFirearm(
 					LargeLadWeaponId.Pistol ) ) );
+	}
+
+	[TestMethod]
+	public void InventoryOrdering_IsRoleCoreExclusiveThenUtility()
+	{
+		var core = new List<LargeLadWeaponState>();
+		LargeLadInventoryRules.TryAddCoreWeapon(
+			core,
+			LargeLadWeaponId.Smg );
+		LargeLadInventoryRules.TryAddCoreWeapon(
+			core,
+			LargeLadWeaponId.Pistol );
+		var exclusive = CreateExclusiveState( instanceId: 1001 );
+		var utility = LargeLadUtilityState.CreateDodgeball(
+			instanceId: 2001 );
+		var expected = new[]
+		{
+			LargeLadInventorySelection.ForRoleMelee(),
+			LargeLadInventorySelection.ForCoreFirearm(
+				LargeLadWeaponId.Pistol ),
+			LargeLadInventorySelection.ForCoreFirearm(
+				LargeLadWeaponId.Smg ),
+			LargeLadInventoryRules.FirearmSelectionFor( exclusive ),
+			LargeLadUtilityRules.SelectionFor( utility )
+		};
+
+		Assert.AreEqual(
+			expected.Length,
+			LargeLadInventoryRules.GetInventorySelectionCount(
+				core,
+				exclusive,
+				utility ) );
+
+		for ( var index = 0; index < expected.Length; index++ )
+		{
+			Assert.IsTrue(
+				LargeLadInventoryRules.TryGetInventorySelectionAt(
+					core,
+					exclusive,
+					utility,
+					index,
+					out var actual ) );
+			Assert.AreEqual( expected[index], actual, $"slot {index}" );
+			Assert.AreEqual(
+				index,
+				LargeLadInventoryRules.GetInventorySelectionIndex(
+					core,
+					exclusive,
+					utility,
+					actual ),
+				$"round trip slot {index}" );
+		}
+
+		Assert.IsTrue(
+			LargeLadInventoryRules.TryGetFirearmAt(
+				core,
+				exclusive,
+				2,
+				out var finalFirearm ) );
+		Assert.AreEqual( exclusive, finalFirearm );
+		Assert.IsFalse(
+			LargeLadInventoryRules.TryGetFirearmAt(
+				core,
+				exclusive,
+				3,
+				out _ ),
+			"The utility after the exclusive is not another firearm." );
+	}
+
+	[TestMethod]
+	public void InventoryCycling_WrapsDeterministicallyAcrossUtility()
+	{
+		const int selectionCount = 5;
+
+		Assert.AreEqual(
+			0,
+			LargeLadInventoryRules.GetCycledIndex(
+				currentIndex: 4,
+				selectionCount,
+				direction: 1 ) );
+		Assert.AreEqual(
+			4,
+			LargeLadInventoryRules.GetCycledIndex(
+				currentIndex: 0,
+				selectionCount,
+				direction: -1 ) );
+		Assert.AreEqual(
+			0,
+			LargeLadInventoryRules.GetCycledIndex(
+				currentIndex: -1,
+				selectionCount,
+				direction: 1 ) );
+		Assert.AreEqual(
+			4,
+			LargeLadInventoryRules.GetCycledIndex(
+				currentIndex: -1,
+				selectionCount,
+				direction: -1 ) );
+	}
+
+	[TestMethod]
+	public void UtilityEligibility_AllowsOnlyLivingSkinnyKids()
+	{
+		var utility = LargeLadUtilityState.CreateDodgeball(
+			instanceId: 2002 );
+
+		foreach ( var role in System.Enum.GetValues<LargeLadRole>() )
+		{
+			var expected = role == LargeLadRole.SkinnyKid;
+
+			Assert.AreEqual(
+				expected,
+				LargeLadUtilityRules.CanUseUtility(
+					role,
+					isDead: false ),
+				role.ToString() );
+			Assert.AreEqual(
+				expected,
+				LargeLadUtilityRules.CanAccept(
+					role,
+					isDead: false,
+					alreadyHasUtility: false,
+					pickupAvailable: true,
+					utility ),
+				role.ToString() );
+		}
+
+		Assert.IsFalse(
+			LargeLadUtilityRules.CanUseUtility(
+				LargeLadRole.SkinnyKid,
+				isDead: true ) );
+		Assert.IsFalse(
+			LargeLadUtilityRules.CanSelect(
+				isHost: false,
+				ownerRequest: true,
+				LargeLadRole.SkinnyKid,
+				isDead: false,
+				utility ) );
+	}
+
+	[TestMethod]
+	public void UtilityState_HasNoFirearmOrAmmunitionFields()
+	{
+		var stateType = typeof( LargeLadUtilityState );
+
+		Assert.IsNull( stateType.GetProperty( "Weapon" ) );
+		Assert.IsNull( stateType.GetProperty( "Magazine" ) );
+		Assert.IsNull( stateType.GetProperty( "Reserve" ) );
+		Assert.IsNull( stateType.GetProperty( "AmmunitionMode" ) );
+		Assert.IsNull( stateType.GetProperty( "PickupPolicy" ) );
+	}
+
+	[TestMethod]
+	public void UtilityExclusivity_RejectsSecondUtilityAndWrongDropSelection()
+	{
+		var state = LargeLadUtilityState.CreateDodgeball(
+			instanceId: 2003 );
+		var utilitySelection =
+			LargeLadUtilityRules.SelectionFor( state );
+
+		Assert.IsTrue(
+			LargeLadUtilityRules.CanAccept(
+				LargeLadRole.SkinnyKid,
+				isDead: false,
+				alreadyHasUtility: false,
+				pickupAvailable: true,
+				state ) );
+		Assert.IsFalse(
+			LargeLadUtilityRules.CanAccept(
+				LargeLadRole.SkinnyKid,
+				isDead: false,
+				alreadyHasUtility: true,
+				pickupAvailable: true,
+				state ) );
+		Assert.IsTrue(
+			LargeLadUtilityRules.CanDrop(
+				isHost: true,
+				ownerRequest: true,
+				LargeLadRole.SkinnyKid,
+				isDead: false,
+				state,
+				utilitySelection ) );
+		Assert.IsFalse(
+			LargeLadUtilityRules.CanDrop(
+				isHost: true,
+				ownerRequest: true,
+				LargeLadRole.SkinnyKid,
+				isDead: false,
+				state,
+				LargeLadInventorySelection.ForCoreFirearm(
+					LargeLadWeaponId.Pistol ) ) );
+	}
+
+	[TestMethod]
+	public void UtilityDrop_PreservesIdentityAndCanTransfer()
+	{
+		var firstCarrier = new object();
+		var secondCarrier = new object();
+		var instance = new LargeLadUtilityInstance( instanceId: 2004 );
+
+		Assert.IsTrue(
+			instance.TryCollectFromOrigin( firstCarrier, out var state ) );
+		Assert.IsTrue( instance.TryDrop( firstCarrier, state ) );
+		Assert.AreEqual( LargeLadUtilityLocation.Dropped, instance.Location );
+		Assert.IsNull( instance.Carrier );
+		Assert.IsTrue(
+			instance.TryCollectDropped(
+				secondCarrier,
+				out var transferred ) );
+		Assert.AreEqual( state, transferred );
+		Assert.AreSame( secondCarrier, instance.Carrier );
+	}
+
+	[TestMethod]
+	public void UtilityReset_RestoresOriginAndClearsCarrier()
+	{
+		var carrier = new object();
+		var instance = new LargeLadUtilityInstance( instanceId: 2005 );
+		instance.TryCollectFromOrigin( carrier, out _ );
+
+		instance.ResetForRound();
+
+		Assert.AreEqual(
+			LargeLadUtilityLocation.OriginAvailable,
+			instance.Location );
+		Assert.IsNull( instance.Carrier );
+		Assert.AreEqual(
+			LargeLadUtilityState.CreateDodgeball( 2005 ),
+			instance.State );
+
+		instance.TryCollectFromOrigin( carrier, out var state );
+		instance.TryDrop( carrier, state );
+		instance.ResetForRound();
+		Assert.AreEqual(
+			LargeLadUtilityLocation.OriginAvailable,
+			instance.Location,
+			"A dropped dodgeball also returns on reset." );
+	}
+
+	[TestMethod]
+	public void UtilityRemovalFallback_PrefersFinalExclusiveFirearm()
+	{
+		var core = new List<LargeLadWeaponState>();
+		LargeLadInventoryRules.TryAddCoreWeapon(
+			core,
+			LargeLadWeaponId.Smg );
+		var exclusive = CreateExclusiveState( instanceId: 1002 );
+
+		Assert.AreEqual(
+			LargeLadInventoryRules.FirearmSelectionFor( exclusive ),
+			LargeLadInventoryRules.GetUtilityRemovalFallback(
+				core,
+				exclusive,
+				LargeLadWeaponId.Smg ) );
+		Assert.AreEqual(
+			LargeLadInventorySelection.ForCoreFirearm(
+				LargeLadWeaponId.Smg ),
+			LargeLadInventoryRules.GetUtilityRemovalFallback(
+				core,
+				default,
+				LargeLadWeaponId.Smg ) );
 	}
 
 	private static LargeLadWeaponState CreateExclusiveState(

@@ -34,7 +34,7 @@ public sealed class LargeLadGroundSlamReactiveProp :
 	[Description(
 		"Hold the prop in its authored position until Ground Slam first moves it. " +
 		"Disable this for props that should already be live physics, such as the " +
-		"future dodgeball." )]
+		"dodgeball." )]
 	public bool StartFrozen { get; set; } = true;
 
 	[Property, Group( "Impulse" ), Title( "Horizontal Impulse" )]
@@ -139,6 +139,7 @@ public sealed class LargeLadGroundSlamReactiveProp :
 
 		if ( !Networking.IsHost ||
 			!EnableOutOfBoundsCleanup ||
+			HasInHierarchy<LargeLadDodgeballPickup>( GetReactiveRoot() ) ||
 			IsBroken ||
 			IsCleanedUp ||
 			!hasCapturedAuthoredState )
@@ -228,6 +229,8 @@ public sealed class LargeLadGroundSlamReactiveProp :
 
 		var isCritical = IsCriticalGameplayObject();
 		var isBlocker = IsAuthoritativeBlocker();
+		var dodgeball = root.Components.Get<LargeLadDodgeballPickup>(
+			FindMode.EverythingInSelfAndAncestors );
 
 		if ( isCritical )
 		{
@@ -239,6 +242,28 @@ public sealed class LargeLadGroundSlamReactiveProp :
 		{
 			warnings.Add(
 				"authoritative blockers cannot opt into Ground Slam prop reactions." );
+		}
+
+		if ( dodgeball is not null && Behavior !=
+			LargeLadGroundSlamPropBehavior.Move )
+		{
+			warnings.Add(
+				"a dodgeball may only use Move; Ground Slam can never unanchor " +
+				"or break it." );
+		}
+
+		if ( dodgeball is not null && StartFrozen )
+		{
+			warnings.Add(
+				"a dodgeball must disable Start Frozen so pickup and throw physics " +
+				"remain live." );
+		}
+
+		if ( dodgeball is not null && EnableOutOfBoundsCleanup )
+		{
+			warnings.Add(
+				"a dodgeball cannot use reactive-prop cleanup; it persists until " +
+				"retrieved or round reset." );
 		}
 
 		if ( Behavior != LargeLadGroundSlamPropBehavior.Break &&
@@ -313,6 +338,14 @@ public sealed class LargeLadGroundSlamReactiveProp :
 
 		ResolveReactiveParts();
 		var root = GetReactiveRoot();
+		var dodgeball = root?.Components.Get<LargeLadDodgeballPickup>(
+			FindMode.EverythingInSelfAndAncestors );
+
+		if ( dodgeball is not null &&
+			(dodgeball.Available == false ||
+				Behavior != LargeLadGroundSlamPropBehavior.Move) )
+			return false;
+
 		var body = reactiveRigidbody?.PhysicsBody;
 		var hasUsableRigidbody = body is not null;
 
@@ -447,6 +480,9 @@ public sealed class LargeLadGroundSlamReactiveProp :
 
 		var velocityBefore = body.Velocity;
 		body.Velocity = velocityBefore + impulse / body.Mass;
+		GetReactiveRoot()?.Components.Get<LargeLadDodgeballPickup>(
+			FindMode.EverythingInSelfAndAncestors )?
+			.ClampPhysicsVelocityNow();
 
 		if ( EnableDebugLogging )
 		{

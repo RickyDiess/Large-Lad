@@ -5,7 +5,8 @@ public enum LargeLadDamageType
 	Firearm,
 	Melee,
 	Eat,
-	Environment
+	Environment,
+	Dodgeball
 }
 
 /// <summary>
@@ -74,7 +75,11 @@ public static class LargeLadDamageRules
 			baseDamage * System.MathF.Max(
 				0.0f,
 				incomingDamageMultiplier );
-		var amount = isExplicitExecution
+		var isLethalMinionDodgeball =
+			damageType == LargeLadDamageType.Dodgeball &&
+			victimRole == LargeLadRole.Minion &&
+			isLiving;
+		var amount = isExplicitExecution || isLethalMinionDodgeball
 			? SafeDamage( currentHealth )
 			: LargeLadFirearmHitRules.ResolveIncomingDamage(
 				victimRole,

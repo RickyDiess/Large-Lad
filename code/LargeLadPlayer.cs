@@ -673,6 +673,43 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 		ReceiveGroundSlamImpulse( impulse, staggerDuration );
 	}
 
+	internal void ApplyDodgeballKnockback( Vector3 impulse )
+	{
+		if ( !Networking.IsHost ||
+			Role != LargeLadRole.LargeLad ||
+			Health?.IsDead != false ||
+			Health.CurrentHealth <= 0.0f )
+		{
+			return;
+		}
+
+		ReceiveDodgeballKnockback( impulse );
+	}
+
+	[Rpc.Owner( NetFlags.HostOnly )]
+	private void ReceiveDodgeballKnockback( Vector3 impulse )
+	{
+		if ( Role != LargeLadRole.LargeLad || Health?.IsDead != false )
+			return;
+
+		var controller = Components.Get<PlayerController>();
+
+		if ( controller?.Body is null )
+			return;
+
+		var bodyMass = System.MathF.Max( 0.001f, controller.Body.Mass );
+		var velocityDelta = impulse / bodyMass;
+		controller.Body.MotionEnabled = true;
+		controller.Body.Sleeping = false;
+
+		if ( velocityDelta.z > 0.0f )
+			controller.PreventGrounding( 0.12f );
+
+		// Jump injects the velocity through PlayerController's managed movement
+		// path. No movement lock or stagger state is set, so this never stuns.
+		controller.Jump( velocityDelta );
+	}
+
 	private void CancelGroundSlamStagger()
 	{
 		if ( !Networking.IsHost )
@@ -817,6 +854,7 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 	{
 		if ( registeredScene is not null && registeredScene != Scene )
 		{
+			Inventory?.HandleMapTransition( registeredScene );
 			LargeLadSceneRegistry.UnregisterPlayer( registeredScene, this );
 		}
 
