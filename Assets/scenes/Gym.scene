@@ -223,7 +223,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "22718c23-3c78-41be-aea7-9940ae588242"
+                      "$blob": "a3db97fd-e211-4179-961d-b9bb34b31765"
                     },
                     "Materials": [
                       "materials/trimsheets/wood/wood_trim_02.vmat",
@@ -280,7 +280,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "752ddc3d-0a55-44cc-9b9c-b4fcf1bfbe0e"
+                      "$blob": "e82032bc-da58-40c9-aedc-f6f5b5e73342"
                     },
                     "Materials": [
                       "materials/trimsheets/wood/wood_trim_02.vmat",
@@ -337,7 +337,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "5a35b5ce-3af8-4275-ae00-80341514e30b"
+                      "$blob": "d6166ed2-7297-4d02-a970-4dc5a9ed3ba7"
                     },
                     "Materials": [
                       "materials/wood/floor/wooden_flooring_b2.vmat"
@@ -393,7 +393,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "6c07dbbf-3898-4706-bbc4-1b9d4261a992"
+                      "$blob": "f98db5a6-efac-4254-8405-b9a4313e4e12"
                     },
                     "Materials": [
                       "materials/generic/wall_brick_paint.vmat",
@@ -451,7 +451,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "b804040b-394c-4c89-ba17-43995d231dc0"
+                      "$blob": "47029c80-1e0c-47e4-b94c-68ba1e7d3634"
                     },
                     "Materials": [
                       "materials/generic/wall_brick_paint.vmat",
@@ -696,7 +696,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "2e34773f-4bc8-429c-a848-523e45366088"
+                      "$blob": "f327320c-38da-4a6f-8b78-b55bec17e128"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat"
@@ -752,7 +752,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "a51ecd16-1fd6-4e1d-86d6-cb6435cd09cc"
+                      "$blob": "924220f4-a9df-474b-8b78-7d99bd4819da"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -809,7 +809,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "cd861804-9173-4de4-9167-2df13470fe23"
+                      "$blob": "ffaf666c-7614-4c49-8c3e-99fe26fb55ac"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -866,7 +866,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "90cea245-9a61-48f3-b1e7-1d951fc0a89a"
+                      "$blob": "d127b90d-0bd4-47d3-a4f6-baef1a34c673"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -923,7 +923,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "49d334ce-0fd3-47bf-bc0b-6d5fb37dae85"
+                      "$blob": "51422560-5e31-468f-b44a-c7d9c4ba4247"
                     },
                     "Materials": [
                       "materials/dev/primary_white.vmat",
@@ -979,7 +979,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "922eeff7-c12e-4b22-8632-0516f5230c7c"
+                          "$blob": "3944c7ae-e99f-4f85-adc8-99b2c8f6abf8"
                         },
                         "Materials": [
                           "materials/dev/primary_red.vmat"
@@ -1035,7 +1035,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "61af154e-5086-4164-8f90-52027dd4a58c"
+                          "$blob": "ff8826fe-4b7e-499f-963c-34566173d3da"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1091,7 +1091,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "545a64ce-c6f0-4a70-84b9-5b3be2026219"
+                          "$blob": "2ae2b9a9-9e44-45e4-bfd7-2c2775ad4fd2"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1147,7 +1147,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "b511084e-efe1-49b1-b4ce-3c11fba35b76"
+                          "$blob": "93d40526-31b7-455b-ade9-f4bf266f174f"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1203,7 +1203,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "d8f22440-e672-410e-bc6d-681230f7d074"
+                          "$blob": "711b72a2-d740-41cc-8cd1-5d0126315986"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1259,7 +1259,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "27188927-e52d-4282-a770-ce70e99ff96b"
+                          "$blob": "1785ac7d-a8f7-4767-8264-0dd51f0c1a71"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1315,7 +1315,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "6560af26-8ebf-41b2-9ba5-1d48f4f80112"
+                          "$blob": "22d64837-ab77-4307-9e34-2e2858e1b94f"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1373,7 +1373,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "adde60b1-2de5-4526-b984-8fb79930840d"
+                      "$blob": "9f3d3eac-b450-4a45-8fe8-fbdefe78cfc9"
                     },
                     "Materials": [
                       "materials/dev/primary_white.vmat",
@@ -1429,7 +1429,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "a2ad6724-ff17-457a-9936-834405e8fda2"
+                          "$blob": "ec2e3447-b3c4-424f-b42b-d500946649c9"
                         },
                         "Materials": [
                           "materials/dev/primary_red.vmat"
@@ -1485,7 +1485,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "6dc7b428-40d9-4dc6-95e4-fd92f1b48655"
+                          "$blob": "60d773ec-8293-4255-b0e4-4838a7ec33d9"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1541,7 +1541,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "ec9e0a4d-8ee3-4626-ad1f-8d67ffbb3d1b"
+                          "$blob": "29ca37db-c61c-4fd2-ba39-53c5e9bcbd5f"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1597,7 +1597,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "c6bd6184-5315-4754-93a7-e96a5b684708"
+                          "$blob": "afaaac9c-75ce-4d7b-9387-28deeff5fc71"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1653,7 +1653,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "feb95169-fe79-45fd-9e5d-d78cd950ae28"
+                          "$blob": "974b8a49-cedb-45a3-a653-bccb59d6ff40"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1709,7 +1709,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "1f6cc89e-6ea8-4b73-96b9-6cc101c2d1ea"
+                          "$blob": "19fe191e-2f75-48b3-aabe-d36ed53e099e"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1765,7 +1765,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "39b0b64d-874d-49e4-90c9-d5dea6e4a723"
+                          "$blob": "c7fd9457-d0a1-4e7b-b61e-93a00ad87cf5"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1823,10 +1823,66 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "70babaca-ce9b-41a8-b0f2-01a5fb58fe6b"
+                      "$blob": "37591cbd-b7f2-476f-9d32-2043e753f059"
                     },
                     "Materials": [
                       "materials/generic/wall_brick_paint.vmat"
+                    ]
+                  },
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OnObjectTriggerEnter": null,
+                  "OnObjectTriggerExit": null,
+                  "OnTriggerEnter": null,
+                  "OnTriggerExit": null,
+                  "RenderType": "On",
+                  "RollingResistance": null,
+                  "SmoothingAngle": 40,
+                  "Static": true,
+                  "Surface": null,
+                  "SurfaceVelocity": "0,0,0"
+                }
+              ],
+              "Children": []
+            },
+            {
+              "__guid": "e4e143e9-0e55-453d-843d-fdb5309572ea",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Block",
+              "Position": "-468.431824,908.868713,-76.8695374",
+              "Rotation": "0,0,0,1",
+              "Scale": "1,1,1",
+              "Tags": "world",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.MeshComponent",
+                  "__guid": "fbfb817b-ef0b-44ba-8ee5-78279b749c67",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "ColliderFlags": 0,
+                  "Collision": "Mesh",
+                  "Color": "1,1,1,1",
+                  "Elasticity": null,
+                  "Friction": null,
+                  "HideInGame": false,
+                  "IsTrigger": false,
+                  "Mesh": {
+                    "Data": {
+                      "$blob": "96cf52c2-e1c4-4a71-88e4-158737d8119b"
+                    },
+                    "Materials": [
+                      "materials/trimsheets/wood/wood_trim_02.vmat"
                     ]
                   },
                   "OnComponentDestroy": null,
@@ -28959,7 +29015,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "292ca759-528b-483b-8b59-7d8bdf5a1b54"
+                          "$blob": "071a1f3a-e50a-410b-9261-2da7ad014765"
                         },
                         "Materials": [
                           "materials/dev/gray_grid_4.vmat",
@@ -29107,7 +29163,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "04c28cbb-9a7e-41b0-aed5-8b6322dffd73"
+                          "$blob": "b4acd869-1cda-4949-b770-25f383bae642"
                         },
                         "Materials": [
                           "materials/dev/gray_grid_4.vmat",
@@ -29320,6 +29376,279 @@
                 "8ceaf3e7-a031-4113-9e89-4aa6b75792af": "f5ef50bc-d3ab-8db0-a41a-4edb352e2e3a",
                 "c1db096c-9625-4cf5-86ae-7d13ae01183c": "42ab070b-0aff-8c6d-b47d-2c38d220d12e"
               }
+            },
+            {
+              "__guid": "9357a7be-a6f2-4bac-acb5-5bb0f40a5345",
+              "__version": 2,
+              "__Prefab": "prefabs/gameplay/pickup_dodgeball.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400005-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Name",
+                    "Value": "Dodgeball"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400005-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Position",
+                    "Value": "-612.431824,908.868713,-80"
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "8a400005-0000-4000-8000-000000000001": "9357a7be-a6f2-4bac-acb5-5bb0f40a5345",
+                "8a400005-0000-4000-8000-000000000002": "55f4f9e3-8e44-4ab1-b14d-0e9bf0a005f0",
+                "8a400005-0000-4000-8000-000000000003": "35bb0f56-9cd3-49c1-b3b7-aa802377510c",
+                "8a400005-0000-4000-8000-000000000004": "fac2c946-b536-4733-8651-dc8e2885f83f",
+                "8a400005-0000-4000-8000-000000000005": "67f9b669-4962-4df3-a231-115e59626c08",
+                "8a400005-0000-4000-8000-000000000009": "5397b48e-3789-4334-ae80-b5f6635b99fa",
+                "8a400005-0000-4000-8000-000000000006": "7b346102-c605-4f07-b37a-c75557e174fa",
+                "8a400005-0000-4000-8000-000000000007": "6a30770a-3de5-4637-b74e-ed9cf270f38a",
+                "8a400005-0000-4000-8000-000000000008": "5bf1649c-f54b-4d3d-9066-c0ed5b23b838"
+              }
+            },
+            {
+              "__guid": "29f05e83-b672-4a5a-be17-31fa8019b228",
+              "__version": 2,
+              "__Prefab": "prefabs/gameplay/pickup_dodgeball.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400005-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Name",
+                    "Value": "Dodgeball (6)"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400005-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Position",
+                    "Value": "-564.431824,908.868713,-80"
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "8a400005-0000-4000-8000-000000000001": "29f05e83-b672-4a5a-be17-31fa8019b228",
+                "8a400005-0000-4000-8000-000000000002": "e1cfac73-73e2-485b-b560-6e24ef99ed73",
+                "8a400005-0000-4000-8000-000000000003": "2fe02719-6ae5-41c3-842f-a5e11fef348e",
+                "8a400005-0000-4000-8000-000000000004": "d930c3a2-4fbd-463b-bfe3-0974ea43b6c4",
+                "8a400005-0000-4000-8000-000000000005": "ac82ef36-4954-4ef0-9237-31d048d6c1e4",
+                "8a400005-0000-4000-8000-000000000009": "205c0b7e-da6a-47c1-bf0c-4072808c957b",
+                "8a400005-0000-4000-8000-000000000006": "e18acf50-3809-4104-b8be-7bdb60068945",
+                "8a400005-0000-4000-8000-000000000007": "04fc6f1e-57ca-4395-a78d-cc183152d5bb",
+                "8a400005-0000-4000-8000-000000000008": "df434f6f-fef6-4917-b8b3-de300e397c9a"
+              }
+            },
+            {
+              "__guid": "0bef2a77-a458-45c8-af61-13a4b223f176",
+              "__version": 2,
+              "__Prefab": "prefabs/gameplay/pickup_dodgeball.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400005-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Name",
+                    "Value": "Dodgeball (5)"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400005-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Position",
+                    "Value": "-516.431824,908.868713,-80"
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "8a400005-0000-4000-8000-000000000001": "0bef2a77-a458-45c8-af61-13a4b223f176",
+                "8a400005-0000-4000-8000-000000000002": "f3d6e5f3-f90a-459c-8b1f-01f47839c3c5",
+                "8a400005-0000-4000-8000-000000000003": "d71edce3-2dfa-46dd-8b11-5a27052f78fa",
+                "8a400005-0000-4000-8000-000000000004": "e2ceeed4-0984-46b8-903a-9038a86e6f59",
+                "8a400005-0000-4000-8000-000000000005": "8f6b9afd-b044-4f7a-9df2-7c1be307e75a",
+                "8a400005-0000-4000-8000-000000000009": "f7055d84-575f-4939-9a59-f74ca2d2049d",
+                "8a400005-0000-4000-8000-000000000006": "74b3afb2-767b-4bdb-bdca-538de0b2f90e",
+                "8a400005-0000-4000-8000-000000000007": "5ca4ccf0-7d8e-4aa7-8877-0195d7341319",
+                "8a400005-0000-4000-8000-000000000008": "c10d1895-21ed-441a-96cc-4568f9217a68"
+              }
+            },
+            {
+              "__guid": "f91304c0-c20f-4cf9-a8e9-14db807d0388",
+              "__version": 2,
+              "__Prefab": "prefabs/gameplay/pickup_dodgeball.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400005-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Name",
+                    "Value": "Dodgeball (4)"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400005-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Position",
+                    "Value": "-468.431824,908.868713,-80"
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "8a400005-0000-4000-8000-000000000001": "f91304c0-c20f-4cf9-a8e9-14db807d0388",
+                "8a400005-0000-4000-8000-000000000002": "abdb3d1a-ee0d-4b13-a115-7f556d4c3757",
+                "8a400005-0000-4000-8000-000000000003": "1c232658-0e21-41c0-baf9-e845fcd4bb89",
+                "8a400005-0000-4000-8000-000000000004": "bd7e9b9d-5056-4935-9457-0d2822e6cccd",
+                "8a400005-0000-4000-8000-000000000005": "faf50b70-a925-4239-a020-c16ba6399fcb",
+                "8a400005-0000-4000-8000-000000000009": "453db6df-590d-4136-971c-5f25f6338ffa",
+                "8a400005-0000-4000-8000-000000000006": "fa5cc1d0-c9b1-4311-a0c2-df52ceb7520f",
+                "8a400005-0000-4000-8000-000000000007": "ab1c8b59-ad86-4539-a392-01f2a294ada5",
+                "8a400005-0000-4000-8000-000000000008": "453c94f5-c004-466d-a55c-2856e3b8cfaa"
+              }
+            },
+            {
+              "__guid": "897b0271-3e61-4090-8b26-db8f14a57add",
+              "__version": 2,
+              "__Prefab": "prefabs/gameplay/pickup_dodgeball.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400005-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Name",
+                    "Value": "Dodgeball (2)"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400005-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Position",
+                    "Value": "-420.431824,908.868713,-80"
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "8a400005-0000-4000-8000-000000000001": "897b0271-3e61-4090-8b26-db8f14a57add",
+                "8a400005-0000-4000-8000-000000000002": "140f0753-6049-4d3a-81a4-32bc61650a94",
+                "8a400005-0000-4000-8000-000000000003": "3700b372-fdd4-418e-9241-b061d381c295",
+                "8a400005-0000-4000-8000-000000000004": "03a1dbdb-1134-49e7-bf78-6bbbcfce52b9",
+                "8a400005-0000-4000-8000-000000000005": "0dc51eea-e80a-428c-a2b5-4911eccd8bd4",
+                "8a400005-0000-4000-8000-000000000009": "290f52c1-0e72-4e7e-a07c-15d4e8dd7d5d",
+                "8a400005-0000-4000-8000-000000000006": "c513d39d-1ecb-4861-be39-347700ddd5a1",
+                "8a400005-0000-4000-8000-000000000007": "ec66518e-91c2-4034-afaf-573925479ef7",
+                "8a400005-0000-4000-8000-000000000008": "9a515e79-83a2-4fa5-8ea1-91b807f15d14"
+              }
+            },
+            {
+              "__guid": "b59a9f6a-b963-433a-b36b-a7f850638787",
+              "__version": 2,
+              "__Prefab": "prefabs/gameplay/pickup_dodgeball.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400005-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Name",
+                    "Value": "Dodgeball (1)"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400005-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Position",
+                    "Value": "-372.431824,908.868713,-80"
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "8a400005-0000-4000-8000-000000000001": "b59a9f6a-b963-433a-b36b-a7f850638787",
+                "8a400005-0000-4000-8000-000000000002": "3769b7c5-1053-4419-bfb7-057a67369d4f",
+                "8a400005-0000-4000-8000-000000000003": "0a08a48a-5528-4c44-9c43-c9e55af64ca9",
+                "8a400005-0000-4000-8000-000000000004": "2aad3649-43f6-4a8c-9512-baaff572d244",
+                "8a400005-0000-4000-8000-000000000005": "02db943e-0c8b-472f-95dc-4ce8dda2c3ed",
+                "8a400005-0000-4000-8000-000000000009": "6b24f3d8-e327-4267-9daf-d68627c228bd",
+                "8a400005-0000-4000-8000-000000000006": "090df16c-5f21-49bc-b924-b103b0f75bb4",
+                "8a400005-0000-4000-8000-000000000007": "a8160ebd-04f0-4fea-8834-f509c6ca20df",
+                "8a400005-0000-4000-8000-000000000008": "7c85ca6d-cf45-4afc-8056-c46723676352"
+              }
+            },
+            {
+              "__guid": "28c7e353-2d51-43bf-8a18-fc5240e7d426",
+              "__version": 2,
+              "__Prefab": "prefabs/gameplay/pickup_dodgeball.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400005-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Name",
+                    "Value": "Dodgeball"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400005-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Position",
+                    "Value": "-324.431824,908.868713,-80"
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "8a400005-0000-4000-8000-000000000001": "28c7e353-2d51-43bf-8a18-fc5240e7d426",
+                "8a400005-0000-4000-8000-000000000002": "7fcbd75a-9ece-4532-9f1f-0f6245b36388",
+                "8a400005-0000-4000-8000-000000000003": "52f528df-3ea5-4937-8262-eb00980ca679",
+                "8a400005-0000-4000-8000-000000000004": "49916111-0044-429d-8e06-9e6d333c6ab7",
+                "8a400005-0000-4000-8000-000000000005": "dd070934-5bb4-48fd-a5a0-9c926a69051f",
+                "8a400005-0000-4000-8000-000000000009": "b6777e38-7688-43aa-aefe-3dbcef37da72",
+                "8a400005-0000-4000-8000-000000000006": "f41941e0-7b5b-4f16-8637-e649aea697ed",
+                "8a400005-0000-4000-8000-000000000007": "e7b7a52d-e9c1-432d-958a-111fd384ad19",
+                "8a400005-0000-4000-8000-000000000008": "bf445dbe-12c1-497c-bc4d-67008076cc6b"
+              }
             }
           ]
         },
@@ -29409,7 +29738,7 @@
             "Property": "Mesh",
             "Value": {
               "Data": {
-                "$blob": "4352d425-580e-4b77-8b1f-de6b2d497e28"
+                "$blob": "a5e7a5a0-d02a-44d7-a4bb-6fdc2925085b"
               }
             }
           }
@@ -29464,7 +29793,7 @@
             "Property": "Mesh",
             "Value": {
               "Data": {
-                "$blob": "c1212388-99e7-4612-b9f2-75b6a88aaccc"
+                "$blob": "87046951-da83-41ac-af75-70cbadef2b2f"
               }
             }
           }
@@ -29519,7 +29848,7 @@
             "Property": "Mesh",
             "Value": {
               "Data": {
-                "$blob": "1b9c687b-c1b1-4515-aff9-6eeabfe4f6ca"
+                "$blob": "62fe7606-6101-4b19-a5b6-ae22322705ba"
               }
             }
           }
@@ -29574,7 +29903,7 @@
             "Property": "Mesh",
             "Value": {
               "Data": {
-                "$blob": "bb416b37-d905-40f3-a6b1-47c8fd36a9fa"
+                "$blob": "ab320bb1-e56f-47a1-8345-13cf15bb27f2"
               }
             }
           }
@@ -29629,7 +29958,7 @@
             "Property": "Mesh",
             "Value": {
               "Data": {
-                "$blob": "376fc395-81c1-41ef-a495-4cb75114e254"
+                "$blob": "e4bd1e80-6099-4410-81cd-18963f2d026c"
               }
             }
           }
@@ -29642,45 +29971,6 @@
         "8a400001-0000-4000-8000-000000000003": "b18598ce-09ac-4c06-8a4a-667433c4e496",
         "cd746e02-03bb-40f2-af6f-9150faf5ef28": "9d739ae9-1296-4112-a4e7-118a4085e708",
         "f5515e8f-08a5-4f1c-a0f8-554664007b6f": "b69a0bfd-6b65-4c0d-ac8f-9344abd71c60"
-      }
-    },
-    {
-      "__guid": "28c7e353-2d51-43bf-8a18-fc5240e7d426",
-      "__version": 2,
-      "__Prefab": "prefabs/gameplay/pickup_dodgeball.prefab",
-      "__PrefabInstancePatch": {
-        "AddedObjects": [],
-        "RemovedObjects": [],
-        "PropertyOverrides": [
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "8a400005-0000-4000-8000-000000000001"
-            },
-            "Property": "Name",
-            "Value": "Dodgeball"
-          },
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "8a400005-0000-4000-8000-000000000001"
-            },
-            "Property": "Position",
-            "Value": "212.398682,-151.544495,67.5328369"
-          }
-        ],
-        "MovedObjects": []
-      },
-      "__PrefabIdToInstanceId": {
-        "8a400005-0000-4000-8000-000000000001": "28c7e353-2d51-43bf-8a18-fc5240e7d426",
-        "8a400005-0000-4000-8000-000000000002": "7fcbd75a-9ece-4532-9f1f-0f6245b36388",
-        "8a400005-0000-4000-8000-000000000003": "52f528df-3ea5-4937-8262-eb00980ca679",
-        "8a400005-0000-4000-8000-000000000004": "49916111-0044-429d-8e06-9e6d333c6ab7",
-        "8a400005-0000-4000-8000-000000000005": "dd070934-5bb4-48fd-a5a0-9c926a69051f",
-        "8a400005-0000-4000-8000-000000000009": "b6777e38-7688-43aa-aefe-3dbcef37da72",
-        "8a400005-0000-4000-8000-000000000006": "f41941e0-7b5b-4f16-8637-e649aea697ed",
-        "8a400005-0000-4000-8000-000000000007": "e7b7a52d-e9c1-432d-958a-111fd384ad19",
-        "8a400005-0000-4000-8000-000000000008": "bf445dbe-12c1-497c-bc4d-67008076cc6b"
       }
     }
   ],

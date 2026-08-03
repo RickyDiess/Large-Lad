@@ -3,8 +3,19 @@ using Sandbox.Rendering;
 
 public sealed class LargeLadHud : Component
 {
-	private static readonly Color PanelColor = new( 0.025f, 0.03f, 0.045f, 0.88f );
-	private static readonly Color MutedTextColor = new( 0.75f, 0.78f, 0.84f, 1.0f );
+	private const string HudFont = "Roboto Condensed";
+	private const int RegularFontWeight = 400;
+	private const int BoldFontWeight = 700;
+	private const float ReferenceWidth = 1920.0f;
+	private const float ReferenceHeight = 1080.0f;
+	private const float MinimumHudScale = 0.85f;
+	private const float MaximumHudScale = 2.0f;
+	private static readonly Color PanelColor =
+		new( 0.025f, 0.03f, 0.045f, 0.78f );
+	private static readonly Color BarTrackColor =
+		new( 0.72f, 0.76f, 0.84f, 0.18f );
+	private static readonly Color MutedTextColor =
+		new( 0.75f, 0.78f, 0.84f, 1.0f );
 	private LargeLadPlayer cachedPlayer;
 	private PlayerController cachedController;
 	private LargeLadGameManager cachedGameManager;
@@ -36,27 +47,29 @@ public sealed class LargeLadHud : Component
 			return;
 
 		var hud = Scene.Camera.Hud;
+		var scale = GetHudScale();
 
-		DrawRoundStatus( hud, round, player );
-		DrawLargeLadStatus( hud, round );
-		DrawBarricadeDestructionAnnouncement( hud, round );
-		DrawLastSkinnyKidAnnouncement( hud, round );
-		DrawRoleStatus( hud, player );
-		DrawWeaponStatus( hud, player );
-		DrawGroundSlamFeedback( hud, player );
-		DrawPickupFeedback( hud, player );
-		DrawCrosshair( hud, player, cachedController );
-		DrawConfirmedHitmarker( hud, player );
+		DrawRoundStatus( hud, round, scale );
+		DrawLargeLadStatus( hud, round, scale );
+		DrawBarricadeDestructionAnnouncement( hud, round, scale );
+		DrawLastSkinnyKidAnnouncement( hud, round, scale );
+		DrawRoleStatus( hud, player, scale );
+		DrawWeaponStatus( hud, player, scale );
+		DrawGroundSlamFeedback( hud, player, scale );
+		DrawPickupFeedback( hud, player, scale );
+		DrawCrosshair( hud, player, cachedController, scale );
+		DrawConfirmedHitmarker( hud, player, scale );
 
 		if ( round.Phase == LargeLadRoundPhase.RoundOver )
 		{
-			DrawWinnerBanner( hud, round );
+			DrawWinnerBanner( hud, round, scale );
 		}
 	}
 
 	private static void DrawLargeLadStatus(
 		HudPainter hud,
-		LargeLadGameManager round )
+		LargeLadGameManager round,
+		float scale )
 	{
 		if ( round.Phase != LargeLadRoundPhase.HeadStart &&
 			round.Phase != LargeLadRoundPhase.Playing )
@@ -70,53 +83,130 @@ public sealed class LargeLadHud : Component
 		if ( health is null )
 			return;
 
-		var accent = new Color( 1.0f, 0.32f, 0.10f );
+		var accent = GetRoleColor( LargeLadRole.LargeLad );
 		var centerX = Screen.Width * 0.5f;
-		var panel = new Rect( centerX - 190.0f, 116.0f, 380.0f, 42.0f );
+		var panel = new Rect(
+			centerX - 180.0f * scale,
+			72.0f * scale,
+			360.0f * scale,
+			32.0f * scale );
 
-		DrawPanel( hud, panel, accent );
+		DrawPanel( hud, panel, accent, scale );
 
-		var status = health.IsDead
-			? $"LARGE LAD RESPAWNING IN {FormatSeconds( health.RespawnTimeRemaining )}"
-			: $"LARGE LAD  {health.CurrentHealth:0} / {health.MaximumHealth:0}";
+		var labelRect = new Rect(
+			panel.Left + 14.0f * scale,
+			panel.Top,
+			82.0f * scale,
+			panel.Height );
+		DrawHudText(
+			hud,
+			"LARGE LAD",
+			12.0f * scale,
+			10.0f * scale,
+			accent,
+			labelRect,
+			TextFlag.LeftCenter | TextFlag.SingleLine,
+			BoldFontWeight );
 
-		hud.DrawText(
-			status,
-			16.0f,
-			health.IsDead ? Color.White : accent,
-			new Vector2( centerX, panel.Center.y ),
-			TextFlag.Center );
+		if ( health.IsDead )
+		{
+			DrawHudText(
+				hud,
+				$"RESPAWN {FormatSeconds( health.RespawnTimeRemaining )}",
+				13.0f * scale,
+				11.0f * scale,
+				Color.White,
+				new Rect(
+					panel.Left + 102.0f * scale,
+					panel.Top,
+					panel.Width - 116.0f * scale,
+					panel.Height ),
+				TextFlag.RightCenter | TextFlag.SingleLine,
+				BoldFontWeight );
+			return;
+		}
+
+		var healthBar = new Rect(
+			panel.Left + 104.0f * scale,
+			panel.Center.y - 3.0f * scale,
+			174.0f * scale,
+			6.0f * scale );
+		DrawBar(
+			hud,
+			healthBar,
+			GetHealthFraction( health.CurrentHealth, health.MaximumHealth ),
+			accent,
+			scale );
+		DrawHudText(
+			hud,
+			$"{health.CurrentHealth:0}",
+			14.0f * scale,
+			11.0f * scale,
+			Color.White,
+			new Rect(
+				healthBar.Right + 8.0f * scale,
+				panel.Top,
+				panel.Right - healthBar.Right - 20.0f * scale,
+				panel.Height ),
+			TextFlag.RightCenter | TextFlag.SingleLine,
+			BoldFontWeight );
 	}
 
 	private static void DrawRoundStatus(
 		HudPainter hud,
 		LargeLadGameManager round,
-		LargeLadPlayer player )
+		float scale )
 	{
 		var centerX = Screen.Width * 0.5f;
 		var accent = GetPhaseColor( round );
-		var panel = new Rect( centerX - 190.0f, 28.0f, 380.0f, 78.0f );
+		var panel = new Rect(
+			centerX - 180.0f * scale,
+			24.0f * scale,
+			360.0f * scale,
+			40.0f * scale );
 
-		DrawPanel( hud, panel, accent );
+		DrawPanel( hud, panel, accent, scale );
 
-		hud.DrawText(
+		var hasTimer = round.Phase != LargeLadRoundPhase.WaitingForPlayers;
+		var titleRect = new Rect(
+			panel.Left + 16.0f * scale,
+			panel.Top,
+			panel.Width - (hasTimer ? 112.0f : 32.0f) * scale,
+			panel.Height );
+		DrawHudText(
+			hud,
 			GetPhaseTitle( round ),
-			22.0f,
+			16.0f * scale,
+			12.0f * scale,
 			Color.White,
-			new Vector2( centerX, 51.0f ),
-			TextFlag.Center );
+			titleRect,
+			hasTimer
+				? TextFlag.LeftCenter | TextFlag.SingleLine
+				: TextFlag.Center | TextFlag.SingleLine,
+			BoldFontWeight );
 
-		hud.DrawText(
-			GetPhaseSubtitle( round, player ),
-			16.0f,
+		if ( !hasTimer )
+			return;
+
+		DrawHudText(
+			hud,
+			FormatClock( round.PhaseTimeRemaining ),
+			20.0f * scale,
+			16.0f * scale,
 			accent,
-			new Vector2( centerX, 82.0f ),
-			TextFlag.Center );
+			new Rect(
+				panel.Right - 94.0f * scale,
+				panel.Top,
+				78.0f * scale,
+				panel.Height ),
+			TextFlag.RightCenter | TextFlag.SingleLine,
+			BoldFontWeight );
 	}
 
 	private static void DrawBarricadeDestructionAnnouncement(
 		HudPainter hud,
-		LargeLadGameManager round )
+		LargeLadGameManager round,
+		float scale )
 	{
 		if ( !round.HasBarricadeDestructionAnnouncement ||
 			string.IsNullOrWhiteSpace(
@@ -126,20 +216,28 @@ public sealed class LargeLadHud : Component
 		}
 
 		var centerX = Screen.Width * 0.5f;
-		var panel = new Rect( centerX - 235.0f, 168.0f, 470.0f, 48.0f );
+		var panel = new Rect(
+			centerX - 210.0f * scale,
+			112.0f * scale,
+			420.0f * scale,
+			44.0f * scale );
 		var accent = new Color( 0.25f, 0.85f, 1.0f );
-		DrawPanel( hud, panel, accent );
-		hud.DrawText(
+		DrawPanel( hud, panel, accent, scale );
+		DrawHudText(
+			hud,
 			round.BarricadeDestructionAnnouncement,
-			17.0f,
+			15.0f * scale,
+			12.0f * scale,
 			Color.White,
-			panel.Center,
-			TextFlag.Center );
+			Inset( panel, 16.0f * scale, 6.0f * scale ),
+			TextFlag.Center | TextFlag.WordWrap,
+			RegularFontWeight );
 	}
 
 	private static void DrawLastSkinnyKidAnnouncement(
 		HudPainter hud,
-		LargeLadGameManager round )
+		LargeLadGameManager round,
+		float scale )
 	{
 		if ( !round.HasLastSkinnyKidAnnouncement ||
 			string.IsNullOrWhiteSpace( round.LastSkinnyKidAnnouncement ) )
@@ -151,67 +249,117 @@ public sealed class LargeLadHud : Component
 			Screen.Width * 0.5f,
 			Screen.Height * 0.31f );
 		var panel = new Rect(
-			center.x - 310.0f,
-			center.y - 46.0f,
-			620.0f,
-			92.0f );
+			center.x - 220.0f * scale,
+			center.y - 32.0f * scale,
+			440.0f * scale,
+			64.0f * scale );
 		var accent = new Color( 0.25f, 0.85f, 1.0f );
-		DrawPanel( hud, panel, accent );
-		hud.DrawText(
+		DrawPanel( hud, panel, accent, scale );
+		DrawHudText(
+			hud,
 			round.LastSkinnyKidAnnouncement,
-			36.0f,
+			28.0f * scale,
+			22.0f * scale,
 			Color.White,
-			panel.Center,
-			TextFlag.Center );
+			Inset( panel, 18.0f * scale, 8.0f * scale ),
+			TextFlag.Center | TextFlag.SingleLine,
+			BoldFontWeight );
 	}
 
-	private static void DrawRoleStatus( HudPainter hud, LargeLadPlayer player )
+	private static void DrawRoleStatus(
+		HudPainter hud,
+		LargeLadPlayer player,
+		float scale )
 	{
+		if ( player.Role == LargeLadRole.Unassigned )
+			return;
+
 		var accent = GetRoleColor( player.Role );
-		var panel = new Rect( 28.0f, Screen.Height - 130.0f, 360.0f, 102.0f );
+		var panel = new Rect(
+			24.0f * scale,
+			Screen.Height - 88.0f * scale,
+			260.0f * scale,
+			64.0f * scale );
 
-		DrawPanel( hud, panel, accent );
-
-		hud.DrawText(
-			$"ROLE: {GetRoleName( player.Role )}",
-			20.0f,
+		DrawPanel( hud, panel, accent, scale );
+		DrawHudText(
+			hud,
+			GetRoleName( player.Role ),
+			15.0f * scale,
+			12.0f * scale,
 			accent,
-			new Vector2( panel.Left + 18.0f, panel.Top + 24.0f ),
-			TextFlag.LeftCenter );
-
-		hud.DrawText(
-			GetRoleObjective( player.Role ),
-			14.0f,
-			MutedTextColor,
-			new Vector2( panel.Left + 18.0f, panel.Top + 53.0f ),
-			TextFlag.LeftCenter );
+			new Rect(
+				panel.Left + 14.0f * scale,
+				panel.Top + 7.0f * scale,
+				150.0f * scale,
+				22.0f * scale ),
+			TextFlag.LeftCenter | TextFlag.SingleLine,
+			BoldFontWeight );
 
 		var health = player.Health;
 
-		if ( health is null || player.Role == LargeLadRole.Unassigned )
+		if ( health is null )
 			return;
 
-		var healthText = health.IsDead
-			? $"RESPAWNING IN {FormatSeconds( health.RespawnTimeRemaining )}"
-			: $"HEALTH {health.CurrentHealth:0} / {health.MaximumHealth:0}";
+		if ( health.IsDead )
+		{
+			DrawHudText(
+				hud,
+				$"RESPAWN {FormatSeconds( health.RespawnTimeRemaining )}",
+				17.0f * scale,
+				13.0f * scale,
+				GetRoleColor( LargeLadRole.LargeLad ),
+				new Rect(
+					panel.Left + 124.0f * scale,
+					panel.Top + 7.0f * scale,
+					panel.Width - 138.0f * scale,
+					22.0f * scale ),
+				TextFlag.RightCenter | TextFlag.SingleLine,
+				BoldFontWeight );
+			return;
+		}
 
-		hud.DrawText(
-			healthText,
-			14.0f,
-			health.IsDead ? new Color( 1.0f, 0.32f, 0.10f ) : accent,
-			new Vector2( panel.Left + 18.0f, panel.Top + 80.0f ),
-			TextFlag.LeftCenter );
+		DrawHudText(
+			hud,
+			$"{health.CurrentHealth:0}",
+			20.0f * scale,
+			15.0f * scale,
+			Color.White,
+			new Rect(
+				panel.Right - 70.0f * scale,
+				panel.Top + 5.0f * scale,
+				56.0f * scale,
+				26.0f * scale ),
+			TextFlag.RightCenter | TextFlag.SingleLine,
+			BoldFontWeight );
+		DrawBar(
+			hud,
+			new Rect(
+				panel.Left + 14.0f * scale,
+				panel.Bottom - 15.0f * scale,
+				panel.Width - 28.0f * scale,
+				6.0f * scale ),
+			GetHealthFraction( health.CurrentHealth, health.MaximumHealth ),
+			accent,
+			scale );
 	}
 
-	private static void DrawWinnerBanner( HudPainter hud, LargeLadGameManager round )
+	private static void DrawWinnerBanner(
+		HudPainter hud,
+		LargeLadGameManager round,
+		float scale )
 	{
 		var center = new Vector2( Screen.Width * 0.5f, Screen.Height * 0.42f );
 		var accent = round.Winner == LargeLadWinner.SkinnyKids
 			? new Color( 0.25f, 0.85f, 1.0f )
 			: new Color( 1.0f, 0.32f, 0.10f );
 
-		var panel = new Rect( center.x - 250.0f, center.y - 52.0f, 500.0f, 104.0f );
-		DrawPanel( hud, panel, accent );
+		var panel = new Rect(
+			center.x - 240.0f * scale,
+			center.y - 42.0f * scale,
+			480.0f * scale,
+			84.0f * scale );
+		DrawPanel( hud, panel, accent, scale );
 
 		var winnerText = round.Winner switch
 		{
@@ -220,25 +368,22 @@ public sealed class LargeLadHud : Component
 			_ => "ROUND OVER"
 		};
 
-		hud.DrawText(
+		DrawHudText(
+			hud,
 			winnerText,
-			34.0f,
+			28.0f * scale,
+			21.0f * scale,
 			Color.White,
-			new Vector2( center.x, center.y - 10.0f ),
-			TextFlag.Center );
-
-		hud.DrawText(
-			$"Next round in {FormatSeconds( round.PhaseTimeRemaining )}",
-			16.0f,
-			accent,
-			new Vector2( center.x, center.y + 27.0f ),
-			TextFlag.Center );
+			Inset( panel, 20.0f * scale, 12.0f * scale ),
+			TextFlag.Center | TextFlag.SingleLine,
+			BoldFontWeight );
 	}
 
 	private static void DrawCrosshair(
 		HudPainter hud,
 		LargeLadPlayer player,
-		PlayerController controller )
+		PlayerController controller,
+		float scale )
 	{
 		if ( player.Health is null ||
 			player.Health.IsDead ||
@@ -250,24 +395,32 @@ public sealed class LargeLadHud : Component
 
 		var centerX = Screen.Width * 0.5f;
 		var centerY = Screen.Height * 0.5f;
+		var markerScale = GetCrosshairScale( scale );
 
 		var crosshair = LargeLadWeaponCatalog.Get(
 			player.EquippedWeapon ).Crosshair;
 
 		if ( crosshair == LargeLadCrosshairStyle.Dot )
 		{
+			var dotSize = 4.0f * markerScale;
 			DrawCrosshairSegment(
 				hud,
-				new Rect( centerX - 2.5f, centerY - 2.5f, 5.0f, 5.0f ) );
+				new Rect(
+					centerX - dotSize * 0.5f,
+					centerY - dotSize * 0.5f,
+					dotSize,
+					dotSize ),
+				Color.White,
+				markerScale );
 			return;
 		}
 
 		if ( crosshair != LargeLadCrosshairStyle.FourSegment )
 			return;
 
-		const float gap = 6.0f;
-		const float armLength = 10.0f;
-		const float thickness = 2.0f;
+		var gap = 5.0f * markerScale;
+		var armLength = 8.0f * markerScale;
+		var thickness = 1.5f * markerScale;
 		var halfThickness = thickness * 0.5f;
 
 		DrawCrosshairSegment(
@@ -276,28 +429,36 @@ public sealed class LargeLadHud : Component
 				centerX - gap - armLength,
 				centerY - halfThickness,
 				armLength,
-				thickness ) );
+				thickness ),
+			Color.White,
+			markerScale );
 		DrawCrosshairSegment(
 			hud,
 			new Rect(
 				centerX + gap,
 				centerY - halfThickness,
 				armLength,
-				thickness ) );
+				thickness ),
+			Color.White,
+			markerScale );
 		DrawCrosshairSegment(
 			hud,
 			new Rect(
 				centerX - halfThickness,
 				centerY - gap - armLength,
 				thickness,
-				armLength ) );
+				armLength ),
+			Color.White,
+			markerScale );
 		DrawCrosshairSegment(
 			hud,
 			new Rect(
 				centerX - halfThickness,
 				centerY + gap,
 				thickness,
-				armLength ) );
+				armLength ),
+			Color.White,
+			markerScale );
 
 		var center = new Vector2( centerX, centerY );
 		var definition = player.Inventory.EquippedDefinition;
@@ -318,12 +479,17 @@ public sealed class LargeLadHud : Component
 		// the predicted eye-origin impact, so the two markers collapse into one.
 		DrawCrosshairSegment(
 			hud,
-			new Rect( centerX - 1.5f, centerY - 1.5f, 3.0f, 3.0f ),
-			intentColor );
+			new Rect(
+				centerX - 1.25f * markerScale,
+				centerY - 1.25f * markerScale,
+				2.5f * markerScale,
+				2.5f * markerScale ),
+			intentColor,
+			markerScale );
 
 		if ( !validAim )
 		{
-			DrawInvalidAimMarker( hud, center );
+			DrawInvalidAimMarker( hud, center, markerScale );
 			return;
 		}
 
@@ -335,20 +501,24 @@ public sealed class LargeLadHud : Component
 			aim.ActualImpactPoint,
 			out var impactPosition ) )
 		{
-			DrawInvalidAimMarker( hud, center );
+			DrawInvalidAimMarker( hud, center, markerScale );
 			return;
 		}
 
 		DrawImpactMarker(
 			hud,
 			impactPosition,
-			new Color( 1.0f, 0.72f, 0.12f ) );
+			new Color( 1.0f, 0.72f, 0.12f ),
+			markerScale );
 	}
 
 	private static void DrawConfirmedHitmarker(
 		HudPainter hud,
-		LargeLadPlayer player )
+		LargeLadPlayer player,
+		float scale )
 	{
+		var markerScale = GetCrosshairScale( scale );
+
 		if ( player.EquippedWeapon == LargeLadWeaponId.Melee )
 		{
 			var melee = player.MeleeCombat;
@@ -369,9 +539,10 @@ public sealed class LargeLadHud : Component
 			DrawDiagonalMarker(
 				hud,
 				meleeCenter,
-				8.0f,
-				14.0f,
-				meleeColor );
+				7.0f,
+				13.0f,
+				meleeColor,
+				markerScale );
 			return;
 		}
 
@@ -384,13 +555,26 @@ public sealed class LargeLadHud : Component
 		if ( weapon.LastShotResult == LargeLadShotResult.PlayerHeadshot )
 		{
 			var headshotColor = new Color( 1.0f, 0.22f, 0.12f );
-			DrawDiagonalMarker( hud, center, 7.0f, 18.0f, headshotColor );
-			hud.DrawText(
-				"HEADSHOT",
-				13.0f,
+			DrawDiagonalMarker(
+				hud,
+				center,
+				7.0f,
+				16.0f,
 				headshotColor,
-				new Vector2( center.x, center.y + 31.0f ),
-				TextFlag.Center );
+				markerScale );
+			DrawHudText(
+				hud,
+				"HEADSHOT",
+				12.0f * markerScale,
+				10.0f * markerScale,
+				headshotColor,
+				new Rect(
+					center.x - 70.0f * markerScale,
+					center.y + 23.0f * markerScale,
+					140.0f * markerScale,
+					20.0f * markerScale ),
+				TextFlag.Center | TextFlag.SingleLine,
+				BoldFontWeight );
 			return;
 		}
 
@@ -398,7 +582,13 @@ public sealed class LargeLadHud : Component
 			? new Color( 1.0f, 0.72f, 0.12f )
 			: Color.White;
 
-		DrawDiagonalMarker( hud, center, 8.0f, 14.0f, color );
+		DrawDiagonalMarker(
+			hud,
+			center,
+			7.0f,
+			13.0f,
+			color,
+			markerScale );
 	}
 
 	private static bool TryProjectImpactPoint(
@@ -457,40 +647,64 @@ public sealed class LargeLadHud : Component
 	private static void DrawImpactMarker(
 		HudPainter hud,
 		Vector2 center,
-		Color color )
+		Color color,
+		float scale )
 	{
-		const float gap = 4.0f;
-		const float length = 5.0f;
-		const float thickness = 2.0f;
+		var gap = 3.5f * scale;
+		var length = 4.0f * scale;
+		var thickness = 1.5f * scale;
+		var halfThickness = thickness * 0.5f;
 
 		DrawCrosshairSegment(
 			hud,
-			new Rect( center.x - gap - length, center.y - 1.0f, length, thickness ),
-			color );
+			new Rect(
+				center.x - gap - length,
+				center.y - halfThickness,
+				length,
+				thickness ),
+			color,
+			scale );
 		DrawCrosshairSegment(
 			hud,
-			new Rect( center.x + gap, center.y - 1.0f, length, thickness ),
-			color );
+			new Rect(
+				center.x + gap,
+				center.y - halfThickness,
+				length,
+				thickness ),
+			color,
+			scale );
 		DrawCrosshairSegment(
 			hud,
-			new Rect( center.x - 1.0f, center.y - gap - length, thickness, length ),
-			color );
+			new Rect(
+				center.x - halfThickness,
+				center.y - gap - length,
+				thickness,
+				length ),
+			color,
+			scale );
 		DrawCrosshairSegment(
 			hud,
-			new Rect( center.x - 1.0f, center.y + gap, thickness, length ),
-			color );
+			new Rect(
+				center.x - halfThickness,
+				center.y + gap,
+				thickness,
+				length ),
+			color,
+			scale );
 	}
 
 	private static void DrawInvalidAimMarker(
 		HudPainter hud,
-		Vector2 center )
+		Vector2 center,
+		float scale )
 	{
 		DrawDiagonalMarker(
 			hud,
 			center,
 			4.0f,
 			9.0f,
-			new Color( 1.0f, 0.2f, 0.14f ) );
+			new Color( 1.0f, 0.2f, 0.14f ),
+			scale );
 	}
 
 	private static void DrawDiagonalMarker(
@@ -498,7 +712,8 @@ public sealed class LargeLadHud : Component
 		Vector2 center,
 		float innerRadius,
 		float outerRadius,
-		Color color )
+		Color color,
+		float scale )
 	{
 		var directions = new[]
 		{
@@ -511,177 +726,282 @@ public sealed class LargeLadHud : Component
 		foreach ( var direction in directions )
 		{
 			var normalized = direction.Normal;
-			var start = center + normalized * innerRadius;
-			var end = center + normalized * outerRadius;
-			hud.DrawLine( start, end, 4.0f, new Color( 0.0f, 0.0f, 0.0f, 0.8f ), default );
-			hud.DrawLine( start, end, 2.0f, color, default );
+			var start = center + normalized * innerRadius * scale;
+			var end = center + normalized * outerRadius * scale;
+			hud.DrawLine(
+				start,
+				end,
+				3.0f * scale,
+				new Color( 0.0f, 0.0f, 0.0f, 0.8f ),
+				default );
+			hud.DrawLine( start, end, 1.5f * scale, color, default );
 		}
 	}
 
-	private static void DrawWeaponStatus( HudPainter hud, LargeLadPlayer player )
+	private static void DrawWeaponStatus(
+		HudPainter hud,
+		LargeLadPlayer player,
+		float scale )
 	{
 		var inventory = player.Inventory;
 
 		if ( player.Health?.IsDead != false )
+			return;
+
+		if ( player.Role is LargeLadRole.LargeLad or LargeLadRole.Minion )
+		{
+			DrawBuiltInRoleAttackStatus( hud, player.Role, scale );
+			return;
+		}
+
+		if ( player.Role != LargeLadRole.SkinnyKid || inventory is null )
+			return;
+
+		if ( !TryGetSelectionPresentation(
+			inventory,
+			inventory.ActiveSelection,
+			out var displayName,
+			out var accent,
+			out var activeState,
+			out var isFirearm,
+			out var tag ) )
 		{
 			return;
 		}
 
-		if ( player.Role is LargeLadRole.LargeLad or
-			LargeLadRole.Minion )
-		{
-			DrawBuiltInRoleAttackStatus( hud, player.Role );
-			return;
-		}
-
-		if ( player.Role != LargeLadRole.SkinnyKid ||
-			inventory is null )
-		{
-			return;
-		}
-
-		const float rowHeight = 29.0f;
-		const float panelWidth = 350.0f;
-		var panelHeight = 18.0f +
-			inventory.InventorySelectionCount * rowHeight;
 		var panel = new Rect(
-			Screen.Width - panelWidth - 28.0f,
-			Screen.Height - panelHeight - 28.0f,
-			panelWidth,
-			panelHeight );
-		var panelAccent = inventory.IsUtilityEquipped
-			? LargeLadUtilityRules.GetColor(
-				inventory.EquippedUtility )
-			: inventory.IsExclusiveEquipped
-				? new Color( 1.0f, 0.58f, 0.16f )
-				: LargeLadWeaponCatalog.Get(
-					inventory.EquippedWeapon ).PickupColor;
+			Screen.Width - 324.0f * scale,
+			Screen.Height - 96.0f * scale,
+			300.0f * scale,
+			72.0f * scale );
 
-		DrawPanel( hud, panel, panelAccent );
+		DrawPanel( hud, panel, accent, scale );
+		DrawHudText(
+			hud,
+			displayName.ToUpperInvariant(),
+			18.0f * scale,
+			13.0f * scale,
+			accent,
+			new Rect(
+				panel.Left + 14.0f * scale,
+				panel.Top + 6.0f * scale,
+				isFirearm ? 152.0f * scale : panel.Width - 28.0f * scale,
+				24.0f * scale ),
+			TextFlag.LeftCenter | TextFlag.SingleLine,
+			BoldFontWeight );
 
-		for ( var index = 0;
-			index < inventory.InventorySelectionCount;
-			index++ )
+		if ( isFirearm )
 		{
-			if ( !inventory.TryGetInventorySelectionAt(
-				index,
-				out var selection ) )
-			{
-				continue;
-			}
+			var ammo = activeState.HasInfiniteReserve
+				? $"{activeState.Magazine} / \u221E"
+				: $"{activeState.Magazine} / {activeState.Reserve}";
+			DrawHudText(
+				hud,
+				ammo,
+				22.0f * scale,
+				16.0f * scale,
+				Color.White,
+				new Rect(
+					panel.Right - 128.0f * scale,
+					panel.Top + 4.0f * scale,
+					114.0f * scale,
+					28.0f * scale ),
+				TextFlag.RightCenter | TextFlag.SingleLine,
+				BoldFontWeight );
+		}
 
-			var isRoleAbility = selection.Kind ==
-				LargeLadInventorySelectionKind.RoleAbility;
-			var isUtility = selection.Kind ==
-				LargeLadInventorySelectionKind.Utility;
-			var state = default( LargeLadWeaponState );
+		var status = tag;
+		if ( isFirearm && inventory.IsReloading )
+		{
+			var reload =
+				$"RELOADING {FormatSeconds( inventory.ReloadTimeRemaining )}";
+			status = string.IsNullOrWhiteSpace( status )
+				? reload
+				: $"{status} / {reload}";
+		}
 
-			if ( !isRoleAbility &&
-				!isUtility &&
-				!inventory.TryGetFirearmForSelection(
+		if ( !string.IsNullOrWhiteSpace( status ) )
+		{
+			DrawHudText(
+				hud,
+				status,
+				10.0f * scale,
+				8.0f * scale,
+				MutedTextColor,
+				new Rect(
+					panel.Left + 14.0f * scale,
+					panel.Top + 27.0f * scale,
+					panel.Width - 28.0f * scale,
+					13.0f * scale ),
+				TextFlag.LeftCenter | TextFlag.SingleLine,
+				BoldFontWeight );
+		}
+
+		DrawInventorySlotRail( hud, inventory, panel, scale );
+	}
+
+	private static void DrawInventorySlotRail(
+		HudPainter hud,
+		LargeLadInventory inventory,
+		Rect panel,
+		float scale )
+	{
+		var selectionCount = inventory.InventorySelectionCount;
+		if ( selectionCount <= 0 )
+			return;
+
+		var gap = 4.0f * scale;
+		var availableWidth = panel.Width - 28.0f * scale;
+		var slotWidth = System.MathF.Min(
+			24.0f * scale,
+			(availableWidth - gap * (selectionCount - 1)) / selectionCount );
+		var railLeft = panel.Left + 14.0f * scale;
+		var slotTop = panel.Bottom - 22.0f * scale;
+
+		for ( var index = 0; index < selectionCount; index++ )
+		{
+			if ( !inventory.TryGetInventorySelectionAt( index, out var selection ) ||
+				!TryGetSelectionPresentation(
+					inventory,
 					selection,
-					out state ) )
+					out _,
+					out var color,
+					out _,
+					out _,
+					out _ ) )
 			{
 				continue;
 			}
 
-			var definition = isUtility
-				? null
-				: LargeLadWeaponCatalog.Get(
-					isRoleAbility
-						? LargeLadWeaponId.Melee
-						: state.Weapon );
-			var color = isUtility
-				? LargeLadUtilityRules.GetColor( selection.Utility )
-				: definition.PickupColor;
-			var selected =
-				inventory.ActiveSelection == selection;
-			var rowTop = panel.Top + 9.0f + index * rowHeight;
-			var row = new Rect(
-				panel.Left + 9.0f,
-				rowTop,
-				panel.Width - 18.0f,
-				rowHeight - 3.0f );
-
+			var selected = inventory.ActiveSelection == selection;
+			var slot = new Rect(
+				railLeft + index * (slotWidth + gap),
+				slotTop,
+				slotWidth,
+				14.0f * scale );
+			DrawRoundedRect(
+				hud,
+				slot,
+				selected ? color.WithAlpha( 0.26f ) : BarTrackColor,
+				3.0f * scale );
 			if ( selected )
 			{
 				DrawSolidRect(
 					hud,
-					row,
-					color.WithAlpha( 0.22f ) );
+					new Rect(
+						slot.Left,
+						slot.Bottom - 2.0f * scale,
+						slot.Width,
+						2.0f * scale ),
+					color );
 			}
 
-			var displayName = isUtility
-				? LargeLadUtilityRules.GetDisplayName( selection.Utility )
-				: definition.DisplayName;
-			var name = $"{index + 1}. " +
-				displayName.ToUpperInvariant();
-
-			if ( isRoleAbility )
-				name += "  [ROLE]";
-			else if ( isUtility )
-				name += "  [UTILITY]";
-			else if ( state.IsExclusive )
-				name += "  [EXCLUSIVE]";
-
-			hud.DrawText(
-				name,
-				!isRoleAbility && !isUtility && state.IsExclusive
-					? 13.0f
-					: 14.0f,
-				selected ? color : MutedTextColor,
-				new Vector2( row.Left + 8.0f, row.Center.y ),
-				TextFlag.LeftCenter );
-
-			if ( isRoleAbility || isUtility )
-				continue;
-
-			var ammo = state.HasInfiniteReserve
-				? $"{state.Magazine} / ∞"
-				: $"{state.Magazine} / {state.Reserve}";
-
-			if ( selected && inventory.IsReloading )
-			{
-				ammo +=
-					$"  RELOADING {FormatSeconds( inventory.ReloadTimeRemaining )}";
-			}
-
-			hud.DrawText(
-				ammo,
-				14.0f,
+			var slotNumber = index == 9 ? "0" : $"{index + 1}";
+			DrawHudText(
+				hud,
+				slotNumber,
+				9.0f * scale,
+				7.0f * scale,
 				selected ? Color.White : MutedTextColor,
-				new Vector2( row.Right - 8.0f, row.Center.y ),
-				TextFlag.RightCenter );
+				slot,
+				TextFlag.Center | TextFlag.SingleLine,
+				BoldFontWeight );
 		}
+	}
+
+	private static bool TryGetSelectionPresentation(
+		LargeLadInventory inventory,
+		LargeLadInventorySelection selection,
+		out string displayName,
+		out Color color,
+		out LargeLadWeaponState state,
+		out bool isFirearm,
+		out string tag )
+	{
+		displayName = string.Empty;
+		color = MutedTextColor;
+		state = default;
+		isFirearm = false;
+		tag = string.Empty;
+
+		if ( selection.Kind == LargeLadInventorySelectionKind.RoleAbility )
+		{
+			var definition =
+				LargeLadWeaponCatalog.Get( LargeLadWeaponId.Melee );
+			displayName = definition.DisplayName;
+			color = definition.PickupColor;
+			tag = "ROLE";
+			return true;
+		}
+
+		if ( selection.Kind == LargeLadInventorySelectionKind.Utility )
+		{
+			displayName =
+				LargeLadUtilityRules.GetDisplayName( selection.Utility );
+			color = LargeLadUtilityRules.GetColor( selection.Utility );
+			tag = "UTILITY";
+			return true;
+		}
+
+		if ( !inventory.TryGetFirearmForSelection( selection, out state ) )
+			return false;
+
+		var firearm = LargeLadWeaponCatalog.Get( state.Weapon );
+		displayName = firearm.DisplayName;
+		color = state.IsExclusive
+			? new Color( 1.0f, 0.58f, 0.16f )
+			: firearm.PickupColor;
+		isFirearm = true;
+		tag = state.IsExclusive ? "EXCLUSIVE" : string.Empty;
+		return true;
 	}
 
 	private static void DrawBuiltInRoleAttackStatus(
 		HudPainter hud,
-		LargeLadRole role )
+		LargeLadRole role,
+		float scale )
 	{
-		var definition =
-			LargeLadWeaponCatalog.Get( LargeLadWeaponId.Melee );
-		var label = role == LargeLadRole.LargeLad
-			? "EAT  [PRIMARY]"
-			: "BUILT-IN MELEE";
+		var accent = GetRoleColor( role );
+		var label = role == LargeLadRole.LargeLad ? "EAT" : "MELEE";
 		var panel = new Rect(
-			Screen.Width - 318.0f,
-			Screen.Height - 88.0f,
-			290.0f,
-			60.0f );
+			Screen.Width - 324.0f * scale,
+			Screen.Height - 88.0f * scale,
+			300.0f * scale,
+			64.0f * scale );
 
-		DrawPanel( hud, panel, definition.PickupColor );
-		hud.DrawText(
+		DrawPanel( hud, panel, accent, scale );
+		DrawHudText(
+			hud,
 			label,
-			18.0f,
-			definition.PickupColor,
-			new Vector2( panel.Right - 18.0f, panel.Center.y ),
-			TextFlag.RightCenter );
+			19.0f * scale,
+			14.0f * scale,
+			accent,
+			new Rect(
+				panel.Left + 14.0f * scale,
+				panel.Top,
+				170.0f * scale,
+				panel.Height ),
+			TextFlag.LeftCenter | TextFlag.SingleLine,
+			BoldFontWeight );
+		DrawHudText(
+			hud,
+			"PRIMARY",
+			11.0f * scale,
+			9.0f * scale,
+			MutedTextColor,
+			new Rect(
+				panel.Right - 94.0f * scale,
+				panel.Top,
+				80.0f * scale,
+				panel.Height ),
+			TextFlag.RightCenter | TextFlag.SingleLine,
+			BoldFontWeight );
 	}
 
 	private static void DrawGroundSlamFeedback(
 		HudPainter hud,
-		LargeLadPlayer player )
+		LargeLadPlayer player,
+		float scale )
 	{
 		var presentation = player.GroundSlamPresentation;
 
@@ -697,26 +1017,47 @@ public sealed class LargeLadHud : Component
 			? new Color( 0.45f, 1.0f, 0.38f )
 			: new Color( 1.0f, 0.48f, 0.12f );
 		var panel = new Rect(
-			Screen.Width - 318.0f,
-			Screen.Height - 142.0f,
-			290.0f,
-			46.0f );
+			Screen.Width - 324.0f * scale,
+			Screen.Height - 128.0f * scale,
+			300.0f * scale,
+			32.0f * scale );
 		var status = presentation.HasReadyHud
-			? "GROUND SLAM READY"
-			: $"GROUND SLAM  {FormatSeconds( presentation.CooldownRemaining )}";
+			? "READY"
+			: FormatSeconds( presentation.CooldownRemaining );
 
-		DrawPanel( hud, panel, accent );
-		hud.DrawText(
-			status,
-			16.0f,
+		DrawPanel( hud, panel, accent, scale );
+		DrawHudText(
+			hud,
+			"GROUND SLAM",
+			12.0f * scale,
+			10.0f * scale,
 			accent,
-			panel.Center,
-			TextFlag.Center );
+			new Rect(
+				panel.Left + 14.0f * scale,
+				panel.Top,
+				170.0f * scale,
+				panel.Height ),
+			TextFlag.LeftCenter | TextFlag.SingleLine,
+			BoldFontWeight );
+		DrawHudText(
+			hud,
+			status,
+			13.0f * scale,
+			10.0f * scale,
+			Color.White,
+			new Rect(
+				panel.Right - 90.0f * scale,
+				panel.Top,
+				76.0f * scale,
+				panel.Height ),
+			TextFlag.RightCenter | TextFlag.SingleLine,
+			BoldFontWeight );
 	}
 
 	private static void DrawPickupFeedback(
 		HudPainter hud,
-		LargeLadPlayer player )
+		LargeLadPlayer player,
+		float scale )
 	{
 		var inventory = player.Inventory;
 
@@ -728,37 +1069,37 @@ public sealed class LargeLadHud : Component
 
 		var centerX = Screen.Width * 0.5f;
 		var panel = new Rect(
-			centerX - 235.0f,
+			centerX - 210.0f * scale,
 			Screen.Height * 0.68f,
-			470.0f,
-			48.0f );
+			420.0f * scale,
+			44.0f * scale );
 		var accent = new Color( 1.0f, 0.58f, 0.16f );
-		DrawPanel( hud, panel, accent );
-		hud.DrawText(
+		DrawPanel( hud, panel, accent, scale );
+		DrawHudText(
+			hud,
 			inventory.PickupFeedback,
-			16.0f,
+			15.0f * scale,
+			12.0f * scale,
 			Color.White,
-			panel.Center,
-			TextFlag.Center );
-	}
-
-	private static void DrawCrosshairSegment( HudPainter hud, Rect rect )
-	{
-		DrawCrosshairSegment( hud, rect, Color.White );
+			Inset( panel, 16.0f * scale, 6.0f * scale ),
+			TextFlag.Center | TextFlag.WordWrap,
+			RegularFontWeight );
 	}
 
 	private static void DrawCrosshairSegment(
 		HudPainter hud,
 		Rect rect,
-		Color color )
+		Color color,
+		float scale )
 	{
+		var underlay = System.MathF.Max( 0.75f, scale );
 		DrawSolidRect(
 			hud,
 			new Rect(
-				rect.Left - 1.0f,
-				rect.Top - 1.0f,
-				rect.Width + 2.0f,
-				rect.Height + 2.0f ),
+				rect.Left - underlay,
+				rect.Top - underlay,
+				rect.Width + underlay * 2.0f,
+				rect.Height + underlay * 2.0f ),
 			new Color( 0.0f, 0.0f, 0.0f, 0.8f ) );
 
 		DrawSolidRect( hud, rect, color );
@@ -774,14 +1115,155 @@ public sealed class LargeLadHud : Component
 			new Color( 0.0f, 0.0f, 0.0f, 0.0f ) );
 	}
 
-	private static void DrawPanel( HudPainter hud, Rect rect, Color accent )
+	private static void DrawRoundedRect(
+		HudPainter hud,
+		Rect rect,
+		Color color,
+		float radius )
 	{
 		hud.DrawRect(
 			rect,
-			PanelColor,
-			new Vector4( 10.0f, 10.0f, 10.0f, 10.0f ),
-			new Vector4( 1.5f, 1.5f, 1.5f, 1.5f ),
-			accent.WithAlpha( 0.8f ) );
+			color,
+			new Vector4( radius, radius, radius, radius ),
+			new Vector4( 0.0f, 0.0f, 0.0f, 0.0f ),
+			new Color( 0.0f, 0.0f, 0.0f, 0.0f ) );
+	}
+
+	private static void DrawBar(
+		HudPainter hud,
+		Rect rect,
+		float fraction,
+		Color color,
+		float scale )
+	{
+		var radius = rect.Height * 0.5f;
+		DrawRoundedRect( hud, rect, BarTrackColor, radius );
+
+		var clampedFraction = System.MathF.Max(
+			0.0f,
+			System.MathF.Min( 1.0f, fraction ) );
+		if ( clampedFraction <= 0.0f )
+			return;
+
+		var fill = new Rect(
+			rect.Left,
+			rect.Top,
+			System.MathF.Max( 2.0f * scale, rect.Width * clampedFraction ),
+			rect.Height );
+		DrawRoundedRect( hud, fill, color, radius );
+	}
+
+	private static void DrawHudText(
+		HudPainter hud,
+		string text,
+		float size,
+		float minimumSize,
+		Color color,
+		Rect rect,
+		TextFlag flags,
+		int weight )
+	{
+		if ( string.IsNullOrWhiteSpace( text ) ||
+			rect.Width <= 0.0f ||
+			rect.Height <= 0.0f )
+		{
+			return;
+		}
+
+		var fittedSize = System.MathF.Max( minimumSize, size );
+		var scope = CreateTextScope( text, color, fittedSize, weight );
+		var shouldFitSingleLine = (flags & TextFlag.SingleLine) != 0;
+
+		while ( shouldFitSingleLine &&
+			fittedSize > minimumSize &&
+			scope.Measure().x > rect.Width )
+		{
+			fittedSize = System.MathF.Max( minimumSize, fittedSize - 0.5f );
+			scope = CreateTextScope( text, color, fittedSize, weight );
+		}
+
+		hud.DrawText( scope, rect, flags );
+	}
+
+	private static TextRendering.Scope CreateTextScope(
+		string text,
+		Color color,
+		float size,
+		int weight )
+	{
+		return new TextRendering.Scope(
+			text,
+			color,
+			size,
+			HudFont,
+			weight )
+		{
+			LetterSpacing = weight >= BoldFontWeight ? 0.2f : 0.0f
+		};
+	}
+
+	private static void DrawPanel(
+		HudPainter hud,
+		Rect rect,
+		Color accent,
+		float scale )
+	{
+		var cornerRadius = 3.0f * scale;
+		var shadowOffset = 3.0f * scale;
+		DrawRoundedRect(
+			hud,
+			new Rect(
+				rect.Left + shadowOffset,
+				rect.Top + shadowOffset,
+				rect.Width,
+				rect.Height ),
+			accent.WithAlpha( 0.45f ),
+			cornerRadius );
+		DrawRoundedRect( hud, rect, PanelColor, cornerRadius );
+	}
+
+	private static Rect Inset( Rect rect, float horizontal, float vertical )
+	{
+		return new Rect(
+			rect.Left + horizontal,
+			rect.Top + vertical,
+			System.MathF.Max( 0.0f, rect.Width - horizontal * 2.0f ),
+			System.MathF.Max( 0.0f, rect.Height - vertical * 2.0f ) );
+	}
+
+	private static float GetHealthFraction( float current, float maximum )
+	{
+		if ( !float.IsFinite( current ) ||
+			!float.IsFinite( maximum ) ||
+			maximum <= 0.0f )
+		{
+			return 0.0f;
+		}
+
+		return System.MathF.Max(
+			0.0f,
+			System.MathF.Min( 1.0f, current / maximum ) );
+	}
+
+	private static float GetHudScale()
+	{
+		if ( Screen.Width <= 0.0f || Screen.Height <= 0.0f )
+			return 1.0f;
+
+		var widthScale = Screen.Width / ReferenceWidth;
+		var heightScale = Screen.Height / ReferenceHeight;
+		return System.MathF.Max(
+			MinimumHudScale,
+			System.MathF.Min(
+				MaximumHudScale,
+				System.MathF.Min( widthScale, heightScale ) ) );
+	}
+
+	private static float GetCrosshairScale( float hudScale )
+	{
+		return System.MathF.Max(
+			0.85f,
+			System.MathF.Min( 1.25f, hudScale ) );
 	}
 
 	private static string GetPhaseTitle( LargeLadGameManager round )
@@ -793,27 +1275,6 @@ public sealed class LargeLadHud : Component
 			LargeLadRoundPhase.Playing => "ROUND IN PROGRESS",
 			LargeLadRoundPhase.RoundOver => "INTERMISSION",
 			_ => "LARGE LAD"
-		};
-	}
-
-	private static string GetPhaseSubtitle(
-		LargeLadGameManager round,
-		LargeLadPlayer player )
-	{
-		return round.Phase switch
-		{
-			LargeLadRoundPhase.WaitingForPlayers => "Waiting for another player...",
-			LargeLadRoundPhase.Playing when player.Health?.IsDead == true =>
-				$"Respawning in {FormatSeconds( player.Health.RespawnTimeRemaining )}",
-			LargeLadRoundPhase.HeadStart when player.Role == LargeLadRole.LargeLad =>
-				$"Released in {FormatSeconds( round.PhaseTimeRemaining )}",
-			LargeLadRoundPhase.HeadStart =>
-				$"Run! {FormatSeconds( round.PhaseTimeRemaining )}",
-			LargeLadRoundPhase.Playing =>
-				$"{FormatSeconds( round.PhaseTimeRemaining )} remaining",
-			LargeLadRoundPhase.RoundOver =>
-				$"Next round in {FormatSeconds( round.PhaseTimeRemaining )}",
-			_ => string.Empty
 		};
 	}
 
@@ -853,20 +1314,17 @@ public sealed class LargeLadHud : Component
 		};
 	}
 
-	private static string GetRoleObjective( LargeLadRole role )
-	{
-		return role switch
-		{
-			LargeLadRole.SkinnyKid => "Melee through early barricades. Find mapped weapons and survive.",
-			LargeLadRole.LargeLad => "Eat every Skinny Kid. Primary: Eat. Secondary: Ground Slam.",
-			LargeLadRole.Minion => "Help the Lad eat the Skinny Kids. Primary fire: melee.",
-			_ => "A new round will begin shortly."
-		};
-	}
-
 	private static string FormatSeconds( float seconds )
 	{
 		return $"{System.MathF.Max( 0.0f, System.MathF.Ceiling( seconds ) ):0}s";
+	}
+
+	private static string FormatClock( float seconds )
+	{
+		var totalSeconds = (int)System.MathF.Max(
+			0.0f,
+			System.MathF.Ceiling( seconds ) );
+		return $"{totalSeconds / 60}:{totalSeconds % 60:00}";
 	}
 
 	private LargeLadGameManager GetGameManager()
