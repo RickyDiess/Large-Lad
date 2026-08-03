@@ -155,9 +155,11 @@ note the configured Missing-health Heal Fraction before testing completion.
    damage that would otherwise be lethal before the committed duration ends.
    Confirm the victim loses no health from that damage, the accepted Eat is not
    interrupted, and the Eat still executes lethally after its full sequence.
-3. Repeat with the active victim inside a kill volume or another environmental
-   hazard. Confirm the environmental death request is rejected during the
-   commitment and Eat remains the single lethal cause at completion.
+3. Repeat with the active victim entering a kill volume. Confirm the explicit
+   environmental execution immediately wins the lethal edge once, cancels the
+   Eat, grants no Eat healing, and retains the environmental cause. Separately
+   apply ordinary nonlethal environmental/impact damage and confirm it remains
+   rejected during the commitment so the accepted Eat can complete normally.
 4. During separate accepted Eats, kill the Large Lad once with ordinary damage
    and once with an environmental hazard before completion. Confirm each Eat is
    cancelled, the victim is released alive, and no execution or healing occurs.
@@ -166,6 +168,54 @@ note the configured Missing-health Heal Fraction before testing completion.
    host and are observed by every remote client. The final health must equal
    `old health + (maximum health - old health) * configured fraction`; waiting,
    replaying presentation, and repeated cleanup must not execute or heal again.
+
+## Batch H firearm hit-region and environmental-execution checklist
+
+Use a host, a remote Skinny Kid shooter, two Minions, and a test area with solid
+world geometry. Repeat the shooter checks once with the host as shooter and once
+with the remote client as shooter. Enable `EnableFireDebug` only on the active
+shooter's `LargeLadPrototypeWeapon`; confirm the eye trace and classification
+overlays disappear again when it is disabled.
+
+1. At close, medium, and long firearm range, shoot a stationary Minion at the
+   center and edge of the visible head, the neck, and the upper torso. Repeat
+   from the front, side, and an elevated angle while the Minion is standing and
+   crouched. Confirm only a logged same-target `head` tag or recognized head-bone
+   hitbox produces `Head`; edge misses, neck, and upper torso remain body hits.
+2. Repeat step 1 while the Minion walks, runs, changes direction, crouches, and
+   plays normal movement animations. Confirm the movement capsule/box can appear
+   as the first authoritative hit without masking a same-ray model-head hitbox,
+   and confirm no world-height, camera-height, origin-distance, or upper-torso
+   shortcut produces a headshot.
+3. Partially obscure a Minion behind solid world geometry. Test a visible head,
+   a hidden head with visible torso, and a fully hidden target. Confirm the
+   first world obstruction remains authoritative, the bounded classification
+   cannot promote a hitbox beyond it, fully hidden targets take no damage, and a
+   hidden head never turns a visible body hit into a headshot.
+4. Align two Minions on the same eye-origin ray. Exercise a body hit on the
+   nearer Minion with the farther Minion's head behind it, then a valid head hit
+   on the nearer Minion. Confirm the nearer authoritative victim is the only
+   selected target, the farther head never promotes or receives the shot, and
+   geometry behind either player is never bypassed.
+5. For every accepted miss, body hit, headshot, and lethal Minion headshot,
+   compare the firearm debug record with the visible result. It must contain the
+   shot sequence, camera-selected point, eye start/direction, first object and
+   component, Collider/Hitbox presence, bone and tags, selected target, final
+   region, and obstruction/rejection reason. Confirm one trigger shot consumes
+   one sequence and produces at most one player damage event, one owner feedback
+   result/hitmarker, and one lethal transition; replaying the same sequence must
+   produce none of those again.
+6. Make one Skinny Kid the Last Skinny Kid and apply a known amount of ordinary
+   environmental/impact damage; confirm the approved 50% reduction still
+   applies. Enter a kill volume once and confirm it consumes all remaining
+   health immediately, reports the environmental cause, skips Eat/firearm
+   attribution, and creates exactly one lethal transition without requiring a
+   repeated trigger. Repeat with a non-last Skinny Kid to confirm ordinary
+   environmental damage is unreduced and kill-volume execution remains lethal.
+7. Complete an Eat against the Last Skinny Kid and confirm it still consumes all
+   current health once with the Eat cause. In a separate attempt, move the
+   committed victim into a kill volume and confirm the environmental execution
+   wins once, cancels Eat, and produces no Eat heal or second lethal transition.
 
 ## Ground Slam multiplayer checklist
 

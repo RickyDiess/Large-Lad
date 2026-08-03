@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 /// <summary>
 /// Coarse hit regions retained by the authoritative damage envelope. Firearm
 /// traces classify exactly one region; non-firearm damage leaves this as None.
@@ -24,6 +26,18 @@ public enum LargeLadKillfeedCause
 }
 
 /// <summary>
+/// One result from the bounded mixed collider/hitbox classification trace.
+/// Runtime supplies identity as a boolean so the rule cannot accidentally
+/// promote a different aligned player.
+/// </summary>
+public readonly record struct LargeLadFirearmHitboxCandidate(
+	bool BelongsToSelectedTarget,
+	bool HasHitbox,
+	float Distance,
+	string HitboxBoneName,
+	bool HasHeadHitboxTag );
+
+/// <summary>
 /// Deterministic firearm hit rules shared by the host damage path and tests.
 /// Dodgeballs are deliberately absent: only catalogued firearms can qualify.
 /// </summary>
@@ -38,6 +52,45 @@ public static class LargeLadFirearmHitRules
 		return hasHeadHitboxTag || IsHeadBoneName( hitboxBoneName )
 			? LargeLadHitRegion.Head
 			: LargeLadHitRegion.Body;
+	}
+
+	/// <summary>
+	/// Promotes the already-selected authoritative victim to Head only when a
+	/// same-player head hitbox was observed before the classification boundary.
+	/// Collider-only results and hitboxes belonging to aligned players are never
+	/// candidates for promotion.
+	/// </summary>
+	public static LargeLadHitRegion ResolveSelectedTargetHitRegion(
+		IReadOnlyList<LargeLadFirearmHitboxCandidate> candidates,
+		float maximumClassificationDistance )
+	{
+		if ( candidates is null ||
+			!float.IsFinite( maximumClassificationDistance ) ||
+			maximumClassificationDistance < 0.0f )
+		{
+			return LargeLadHitRegion.Body;
+		}
+
+		foreach ( var candidate in candidates )
+		{
+			if ( !candidate.BelongsToSelectedTarget ||
+				!candidate.HasHitbox ||
+				!float.IsFinite( candidate.Distance ) ||
+				candidate.Distance < 0.0f ||
+				candidate.Distance > maximumClassificationDistance )
+			{
+				continue;
+			}
+
+			if ( ClassifyHitRegion(
+				candidate.HitboxBoneName,
+				candidate.HasHeadHitboxTag ) == LargeLadHitRegion.Head )
+			{
+				return LargeLadHitRegion.Head;
+			}
+		}
+
+		return LargeLadHitRegion.Body;
 	}
 
 	public static bool IsFirearmHeadshot(

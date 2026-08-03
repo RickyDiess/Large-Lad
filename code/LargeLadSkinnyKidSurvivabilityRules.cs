@@ -96,19 +96,24 @@ public static class LargeLadSkinnyKidSurvivabilityRules
 
 	/// <summary>
 	/// Last Skinny Kid protection composes after ordinary role-profile damage.
-	/// Eat remains an explicit execution and is deliberately returned unchanged.
+	/// Explicit Eat and environmental executions are deliberately returned
+	/// unchanged.
 	/// </summary>
 	public static float ApplyLastSkinnyKidDamageReduction(
 		LargeLadRole role,
 		bool isLastSkinnyKid,
 		LargeLadDamageType damageType,
+		bool isExplicitExecution,
 		float ordinaryIncomingDamage )
 	{
 		var safeDamage = System.MathF.Max( 0.0f, ordinaryIncomingDamage );
+		var bypassesProtection = isExplicitExecution &&
+			damageType is LargeLadDamageType.Eat or
+				LargeLadDamageType.Environment;
 
 		if ( role != LargeLadRole.SkinnyKid ||
 			!isLastSkinnyKid ||
-			damageType == LargeLadDamageType.Eat )
+			bypassesProtection )
 		{
 			return safeDamage;
 		}

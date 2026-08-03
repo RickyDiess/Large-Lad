@@ -24,6 +24,88 @@ public sealed class LargeLadFirearmHeadshotRulesTests
 	}
 
 	[TestMethod]
+	public void ColliderFirst_SameTargetHeadHitboxStillClassifiesHead()
+	{
+		var candidates = new[]
+		{
+			new LargeLadFirearmHitboxCandidate(
+				BelongsToSelectedTarget: true,
+				HasHitbox: false,
+				Distance: 100.0f,
+				HitboxBoneName: null,
+				HasHeadHitboxTag: false ),
+			new LargeLadFirearmHitboxCandidate(
+				BelongsToSelectedTarget: true,
+				HasHitbox: true,
+				Distance: 110.0f,
+				HitboxBoneName: "head",
+				HasHeadHitboxTag: false )
+		};
+
+		Assert.AreEqual(
+			LargeLadHitRegion.Head,
+			LargeLadFirearmHitRules.ResolveSelectedTargetHitRegion(
+				candidates,
+				maximumClassificationDistance: 150.0f ) );
+	}
+
+	[TestMethod]
+	public void AlignedSecondPlayerHead_CannotPromoteSelectedVictim()
+	{
+		var candidates = new[]
+		{
+			new LargeLadFirearmHitboxCandidate(
+				BelongsToSelectedTarget: true,
+				HasHitbox: true,
+				Distance: 90.0f,
+				HitboxBoneName: "spine_2",
+				HasHeadHitboxTag: false ),
+			new LargeLadFirearmHitboxCandidate(
+				BelongsToSelectedTarget: false,
+				HasHitbox: true,
+				Distance: 130.0f,
+				HitboxBoneName: "head",
+				HasHeadHitboxTag: true )
+		};
+
+		Assert.AreEqual(
+			LargeLadHitRegion.Body,
+			LargeLadFirearmHitRules.ResolveSelectedTargetHitRegion(
+				candidates,
+				maximumClassificationDistance: 150.0f ) );
+	}
+
+	[TestMethod]
+	public void SameTargetHeadBehindObstructionBoundary_ClassifiesBody()
+	{
+		var candidates = new[]
+		{
+			new LargeLadFirearmHitboxCandidate(
+				BelongsToSelectedTarget: true,
+				HasHitbox: true,
+				Distance: 151.0f,
+				HitboxBoneName: "head",
+				HasHeadHitboxTag: true )
+		};
+
+		Assert.AreEqual(
+			LargeLadHitRegion.Body,
+			LargeLadFirearmHitRules.ResolveSelectedTargetHitRegion(
+				candidates,
+				maximumClassificationDistance: 150.0f ) );
+	}
+
+	[TestMethod]
+	public void MissingValidHeadHitbox_DefaultsToBody()
+	{
+		Assert.AreEqual(
+			LargeLadHitRegion.Body,
+			LargeLadFirearmHitRules.ResolveSelectedTargetHitRegion(
+				new LargeLadFirearmHitboxCandidate[0],
+				maximumClassificationDistance: 150.0f ) );
+	}
+
+	[TestMethod]
 	public void MinionFirearmHeadshot_ConsumesAllCurrentHealth()
 	{
 		var damage = LargeLadFirearmHitRules.ResolveIncomingDamage(
@@ -106,12 +188,13 @@ public sealed class LargeLadFirearmHeadshotRulesTests
 	}
 
 	[TestMethod]
-	public void DuplicateShotRequest_CannotApplyDamageOrReportLethalTwice()
+	public void DuplicateShotRequest_CannotDamageFeedbackOrReportLethalTwice()
 	{
 		var gate = new LargeLadFirearmShotRequestGate();
 		var health = 100.0f;
 		var hasReportedLethalTransition = false;
 		var appliedDamageEvents = 0;
+		var feedbackResults = 0;
 		var lethalEvents = 0;
 
 		void ResolveHeadshot( int shotSequence )
@@ -119,6 +202,7 @@ public sealed class LargeLadFirearmHeadshotRulesTests
 			if ( !gate.TryConsume( shotSequence ) )
 				return;
 
+			feedbackResults++;
 			appliedDamageEvents++;
 			var previousHealth = health;
 			var damage = LargeLadFirearmHitRules.ResolveIncomingDamage(
@@ -147,6 +231,7 @@ public sealed class LargeLadFirearmHeadshotRulesTests
 		ResolveHeadshot( 41 );
 
 		Assert.AreEqual( 1, appliedDamageEvents );
+		Assert.AreEqual( 1, feedbackResults );
 		Assert.AreEqual( 1, lethalEvents );
 		Assert.AreEqual( 0.0f, health );
 	}

@@ -130,6 +130,7 @@ public sealed class LargeLadLastSkinnyKidRulesTests
 					LargeLadRole.SkinnyKid,
 					isLastSkinnyKid: true,
 					damageType,
+					isExplicitExecution: false,
 					ordinaryIncomingDamage: 80.0f ) );
 	}
 
@@ -143,7 +144,130 @@ public sealed class LargeLadLastSkinnyKidRulesTests
 					LargeLadRole.SkinnyKid,
 					isLastSkinnyKid: true,
 					LargeLadDamageType.Eat,
+					isExplicitExecution: true,
 					ordinaryIncomingDamage: 80.0f ) );
+	}
+
+	[TestMethod]
+	public void OrdinaryEnvironmentalDamage_IsReducedForLastSkinnyKid()
+	{
+		var damage = LargeLadDamageRules.ResolveIncomingDamage(
+			LargeLadRole.SkinnyKid,
+			isLiving: true,
+			isLastSkinnyKid: true,
+			LargeLadWeaponId.None,
+			LargeLadDamageType.Environment,
+			LargeLadHitRegion.None,
+			requestsExecution: false,
+			currentHealth: 100.0f,
+			baseDamage: 80.0f,
+			incomingDamageMultiplier: 1.0f );
+
+		Assert.AreEqual( 40.0f, damage );
+	}
+
+	[TestMethod]
+	public void EnvironmentalExecution_ConsumesCurrentHealthWithEnvironmentalCauseOnce()
+	{
+		var context = new LargeLadDamageContext
+		{
+			DamageType = LargeLadDamageType.Environment,
+			IsExecution = true,
+			BaseDamage = 1.0f
+		};
+		var health = 73.0f;
+		var hasReportedLethalTransition = false;
+		var lethalTransitions = 0;
+
+		void ApplyExecution()
+		{
+			var damage = LargeLadDamageRules.ResolveIncomingDamage(
+				LargeLadRole.SkinnyKid,
+				isLiving: health > 0.0f,
+				isLastSkinnyKid: true,
+				context.SourceWeapon,
+				context.DamageType,
+				context.HitRegion,
+				context.IsExecution,
+				health,
+				context.BaseDamage,
+				incomingDamageMultiplier: 0.5f );
+			var previousHealth = health;
+			health = System.MathF.Max( 0.0f, health - damage );
+
+			if ( !LargeLadGameplayRules.IsNewLethalTransition(
+				previousHealth,
+				health,
+				hasReportedLethalTransition ) )
+			{
+				return;
+			}
+
+			hasReportedLethalTransition = true;
+			lethalTransitions++;
+		}
+
+		ApplyExecution();
+		ApplyExecution();
+
+		Assert.IsTrue( context.IsExplicitExecution );
+		Assert.AreEqual( LargeLadKillfeedCause.Environment, context.KillfeedCause );
+		Assert.AreEqual( 0.0f, health );
+		Assert.AreEqual( 1, lethalTransitions );
+	}
+
+	[TestMethod]
+	public void NonLastSkinnyKid_KeepsOrdinaryEnvironmentalDamage()
+	{
+		var ordinaryDamage = LargeLadDamageRules.ResolveIncomingDamage(
+			LargeLadRole.SkinnyKid,
+			isLiving: true,
+			isLastSkinnyKid: false,
+			LargeLadWeaponId.None,
+			LargeLadDamageType.Environment,
+			LargeLadHitRegion.None,
+			requestsExecution: false,
+			currentHealth: 100.0f,
+			baseDamage: 80.0f,
+			incomingDamageMultiplier: 1.0f );
+		var executionDamage = LargeLadDamageRules.ResolveIncomingDamage(
+			LargeLadRole.SkinnyKid,
+			isLiving: true,
+			isLastSkinnyKid: false,
+			LargeLadWeaponId.None,
+			LargeLadDamageType.Environment,
+			LargeLadHitRegion.None,
+			requestsExecution: true,
+			currentHealth: 100.0f,
+			baseDamage: 1.0f,
+			incomingDamageMultiplier: 1.0f );
+
+		Assert.AreEqual( 80.0f, ordinaryDamage );
+		Assert.AreEqual( 100.0f, executionDamage );
+	}
+
+	[TestMethod]
+	public void EatExecution_ConsumesCurrentHealthAndKeepsEatCause()
+	{
+		var damage = LargeLadDamageRules.ResolveIncomingDamage(
+			LargeLadRole.SkinnyKid,
+			isLiving: true,
+			isLastSkinnyKid: true,
+			LargeLadWeaponId.Melee,
+			LargeLadDamageType.Eat,
+			LargeLadHitRegion.None,
+			requestsExecution: true,
+			currentHealth: 83.0f,
+			baseDamage: 1.0f,
+			incomingDamageMultiplier: 0.5f );
+
+		Assert.AreEqual( 83.0f, damage );
+		Assert.AreEqual(
+			LargeLadKillfeedCause.Eat,
+			LargeLadFirearmHitRules.GetKillfeedCause(
+				LargeLadWeaponId.Melee,
+				LargeLadDamageType.Eat,
+				LargeLadHitRegion.None ) );
 	}
 
 	[DataTestMethod]
@@ -161,6 +285,7 @@ public sealed class LargeLadLastSkinnyKidRulesTests
 					role,
 					isLastSkinnyKid,
 					LargeLadDamageType.Firearm,
+					isExplicitExecution: false,
 					ordinaryIncomingDamage: 80.0f ) );
 	}
 

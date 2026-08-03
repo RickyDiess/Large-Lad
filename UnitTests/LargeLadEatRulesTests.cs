@@ -119,7 +119,7 @@ public sealed class LargeLadEatDamageCommitTests
 			LargeLadEatParticipation.Victim,
 			damageType,
 			requestedDamage: 25.0f,
-			isAuthorizedEatExecution: false );
+			isAuthorizedExecution: false );
 
 		Assert.AreEqual( 0.0f, appliedDamage );
 	}
@@ -135,23 +135,23 @@ public sealed class LargeLadEatDamageCommitTests
 			LargeLadEatParticipation.Victim,
 			damageType,
 			requestedDamage: 1000.0f,
-			isAuthorizedEatExecution: false );
+			isAuthorizedExecution: false );
 
 		Assert.AreEqual( 0.0f, appliedDamage );
 	}
 
 	[TestMethod]
-	public void EnvironmentalDeathRequest_DuringCommittedEatIsRejected()
+	public void EnvironmentalExecution_DuringCommittedEatRemainsLethal()
 	{
 		const float currentHealth = 100.0f;
 		var appliedDamage = LargeLadEatRules.FilterDamageForEatCommit(
 			LargeLadEatParticipation.Victim,
 			LargeLadDamageType.Environment,
 			currentHealth,
-			isAuthorizedEatExecution: false );
+			isAuthorizedExecution: true );
 
-		Assert.AreEqual( 0.0f, appliedDamage );
-		Assert.AreEqual( 100.0f, currentHealth - appliedDamage );
+		Assert.AreEqual( currentHealth, appliedDamage );
+		Assert.AreEqual( 0.0f, currentHealth - appliedDamage );
 	}
 
 	[TestMethod]
@@ -162,7 +162,7 @@ public sealed class LargeLadEatDamageCommitTests
 			LargeLadEatParticipation.Attacker,
 			LargeLadDamageType.Firearm,
 			requestedDamage: 25.0f,
-			isAuthorizedEatExecution: false );
+			isAuthorizedExecution: false );
 
 		Assert.AreEqual( 25.0f, appliedDamage );
 		Assert.AreEqual(
@@ -180,7 +180,7 @@ public sealed class LargeLadEatDamageCommitTests
 			LargeLadEatParticipation.Attacker,
 			LargeLadDamageType.Firearm,
 			requestedDamage: 1000.0f,
-			isAuthorizedEatExecution: false );
+			isAuthorizedExecution: false );
 
 		Assert.AreEqual( 1000.0f, appliedDamage );
 		Assert.AreEqual(
@@ -201,14 +201,14 @@ public sealed class LargeLadEatDamageCommitTests
 				LargeLadEatParticipation.Victim,
 				LargeLadDamageType.Eat,
 				requestedDamage: 100.0f,
-				isAuthorizedEatExecution: false ) );
+				isAuthorizedExecution: false ) );
 		Assert.AreEqual(
 			100.0f,
 			LargeLadEatRules.FilterDamageForEatCommit(
 				LargeLadEatParticipation.Victim,
 				LargeLadDamageType.Eat,
 				requestedDamage: 100.0f,
-				isAuthorizedEatExecution: true ) );
+				isAuthorizedExecution: true ) );
 	}
 
 	private static LargeLadEatState BeginState()
@@ -283,7 +283,7 @@ public sealed class LargeLadEatStateTests
 						LargeLadEatParticipation.Victim,
 						LargeLadDamageType.Eat,
 						requestedDamage: 100.0f,
-						isAuthorizedEatExecution: true );
+						isAuthorizedExecution: true );
 
 				if ( executionDamage > 0.0f )
 				{

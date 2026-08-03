@@ -179,47 +179,44 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 			return false;
 
 		var isEatExecution =
-			damage.DamageType == LargeLadDamageType.Eat;
+			damage.DamageType == LargeLadDamageType.Eat &&
+			damage.IsExecution;
+		var isEnvironmentalExecution =
+			damage.DamageType == LargeLadDamageType.Environment &&
+			damage.IsExecution;
 
-		if ( isEatExecution &&
+		if ( damage.DamageType == LargeLadDamageType.Eat &&
+			(!isEatExecution ||
 			(player.Role != LargeLadRole.SkinnyKid ||
 				damage.AttackerRole != LargeLadRole.LargeLad ||
-				damage.Attacker is null) )
+				damage.Attacker is null)) )
 		{
 			return false;
 		}
 
-		// Eat is an execution, not ordinary damage. It deliberately bypasses
-		// incoming-damage modifiers (including any Last Skinny Kid reduction)
-		// and crosses the lethal edge exactly once through the normal manager.
+		// Eat and environmental death are explicit executions. Both consume all
+		// current health before ordinary incoming-damage modifiers, while their
+		// original damage type remains intact for lifecycle and killfeed metadata.
 		// A valid Minion firearm headshot similarly resolves to current health,
 		// but remains firearm damage with its shot and hit-region attribution.
-		var ordinaryIncomingDamage =
-			damage.BaseDamage * System.MathF.Max(
-				0.0f,
-				profile.IncomingDamageMultiplier );
-		var amount = isEatExecution
-			? CurrentHealth
-			: LargeLadFirearmHitRules.ResolveIncomingDamage(
-				player.Role,
-				isLiving: true,
-				damage.SourceWeapon,
-				damage.DamageType,
-				damage.HitRegion,
-				CurrentHealth,
-				ordinaryIncomingDamage );
-		amount = LargeLadSkinnyKidSurvivabilityRules
-			.ApplyLastSkinnyKidDamageReduction(
-				player.Role,
-				GetGameManager()?
-					.IsLastEffectiveLivingSkinnyKid( player ) == true,
-				damage.DamageType,
-				amount );
+		var amount = LargeLadDamageRules.ResolveIncomingDamage(
+			player.Role,
+			isLiving: true,
+			GetGameManager()?
+				.IsLastEffectiveLivingSkinnyKid( player ) == true,
+			damage.SourceWeapon,
+			damage.DamageType,
+			damage.HitRegion,
+			damage.IsExecution,
+			CurrentHealth,
+			damage.BaseDamage,
+			profile.IncomingDamageMultiplier );
 		amount = LargeLadEatRules.FilterDamageForEatCommit(
 			player.EatParticipation,
 			damage.DamageType,
 			amount,
-			isApplyingAuthorizedEatExecution );
+			isApplyingAuthorizedEatExecution ||
+				isEnvironmentalExecution );
 
 		if ( amount <= 0.0f )
 			return false;
@@ -269,6 +266,7 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 			AttackerRole = attacker?.Role ?? LargeLadRole.Unassigned,
 			SourceWeapon = LargeLadWeaponId.Melee,
 			DamageType = LargeLadDamageType.Eat,
+			IsExecution = true,
 			BaseDamage = CurrentHealth
 		};
 
@@ -338,6 +336,7 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 			AttackerRole = LargeLadRole.Unassigned,
 			SourceWeapon = LargeLadWeaponId.None,
 			DamageType = LargeLadDamageType.Environment,
+			IsExecution = true,
 			BaseDamage = CurrentHealth
 		};
 

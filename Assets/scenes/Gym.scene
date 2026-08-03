@@ -223,7 +223,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "91d0e1f1-8aff-4347-91b3-3cd31042a1a0"
+                      "$blob": "9cd2a2e0-628a-4563-a2bd-1105a46626d2"
                     },
                     "Materials": [
                       "materials/trimsheets/wood/wood_trim_02.vmat",
@@ -280,7 +280,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "8e64c294-b85a-43a6-888d-1101e9e2adc8"
+                      "$blob": "cbd1fec4-0a33-4b7a-822b-261cf8a4d7b8"
                     },
                     "Materials": [
                       "materials/trimsheets/wood/wood_trim_02.vmat",
@@ -337,7 +337,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "a5bbed01-6651-4efa-9137-2271898bc892"
+                      "$blob": "18e0bdfe-9da3-492b-84fa-533e92d81665"
                     },
                     "Materials": [
                       "materials/wood/floor/wooden_flooring_b2.vmat"
@@ -393,7 +393,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "f301190d-f1a6-44b3-9372-42f9a72ed1c4"
+                      "$blob": "2641bdf1-0001-41b5-ac30-e9b39cb83427"
                     },
                     "Materials": [
                       "materials/generic/wall_brick_paint.vmat",
@@ -451,7 +451,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "6a0de3c0-846a-4950-ab71-7bd526e1303f"
+                      "$blob": "222ff7f1-3a48-41b2-8edb-84d609b8b025"
                     },
                     "Materials": [
                       "materials/generic/wall_brick_paint.vmat",
@@ -696,7 +696,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "7e57b319-3569-414e-84a5-e6b7d9fcb001"
+                      "$blob": "dbd61bfa-f7ea-483e-942e-2b8bd6d68096"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat"
@@ -752,7 +752,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "362014c1-b6dc-4c53-a497-ff734437b1f4"
+                      "$blob": "c448d135-7b14-43de-b8a6-197da058b967"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -809,7 +809,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "657a5c1a-27b8-4ad0-a135-4ae2cccac6f4"
+                      "$blob": "65eddfb3-8f2f-4edd-9698-78b1dc13b4c1"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -866,7 +866,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "e6f49d7f-9f85-46a9-bec3-e5d6753da283"
+                      "$blob": "29cad2c8-97bf-4b8c-b748-aa585cae72a6"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -923,7 +923,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "1b9c3cb1-e7b9-4faf-9210-4e132e4f33a7"
+                      "$blob": "a0bc8b8c-715f-40ef-b645-18c5f8dde756"
                     },
                     "Materials": [
                       "materials/dev/primary_white.vmat",
@@ -979,7 +979,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "51ebd0b5-858c-4f92-95c5-03403f5cad54"
+                          "$blob": "11c3b617-0af9-49b4-996f-a9d39ce7b93d"
                         },
                         "Materials": [
                           "materials/dev/primary_red.vmat"
@@ -1035,7 +1035,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "6b90141f-14f7-4e15-a2a3-41bc699c7ca5"
+                          "$blob": "d94a75e8-0d23-4348-98a9-211c91b0583c"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1091,7 +1091,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "3069c143-23f8-4dac-9129-7ded48ee59ba"
+                          "$blob": "0349c05c-373d-4751-a637-33af01f1c971"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1147,7 +1147,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "f2d3cda7-7245-4594-a2cb-91abb69c92d4"
+                          "$blob": "c1a27ec6-136b-4362-a336-d76e25c0caef"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1203,7 +1203,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "be3ece8c-79b6-4d3c-8012-74fc65623d14"
+                          "$blob": "e65714a6-99f0-46fa-a9fe-a77fbe2fb296"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1259,7 +1259,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "59e78863-bd28-4c3b-b2c6-92b5b64edae7"
+                          "$blob": "03da1f5f-fbe1-483a-ad10-0a4f1fc66075"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1315,7 +1315,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "e7c009d0-8e40-48d8-af98-9d94ef154176"
+                          "$blob": "d078efba-e818-4b37-98d1-f3bd2715e65d"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1373,7 +1373,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "97063991-3eab-4008-883c-c695ecddecb6"
+                      "$blob": "da4530a8-b512-4e0a-b80a-a6f005364265"
                     },
                     "Materials": [
                       "materials/dev/primary_white.vmat",
@@ -1429,7 +1429,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "2393f1a0-be95-4a2b-a192-68b5854d577c"
+                          "$blob": "e3b4f68a-4091-439d-b396-38f939e61cae"
                         },
                         "Materials": [
                           "materials/dev/primary_red.vmat"
@@ -1485,7 +1485,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "af33714d-6e94-4276-a703-e1e3980c0484"
+                          "$blob": "15b297d5-6222-4e54-a13e-41c6482321ec"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1541,7 +1541,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "da26ff0c-8191-4271-8b13-a45a36f63920"
+                          "$blob": "b57f311b-f6ec-42fb-8594-b8dded9c2b18"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1597,7 +1597,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "ac47ebf5-c25b-464f-a6ad-5d3eedfa620e"
+                          "$blob": "9128102d-58e9-4a30-b3df-742ec598e5c8"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1653,7 +1653,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "9190833d-bdca-4d15-b518-87ef48be5fd9"
+                          "$blob": "dbcd13c7-0462-485b-82e1-e33e7645ad38"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1709,7 +1709,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "fb5002de-d979-4869-b634-70f34b275d66"
+                          "$blob": "95b5f21b-6cbe-466e-82fb-927096b83203"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1765,7 +1765,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "87b8957d-a77a-4ac5-90cc-25c87d8dab4e"
+                          "$blob": "b324eeed-f2c0-457f-84dc-4cc909dda8bc"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1823,7 +1823,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "1d8644fc-83ee-4509-a03c-4fc057a2ee8d"
+                      "$blob": "906343c3-7b9c-40cb-ae6e-27ef14ab0ef1"
                     },
                     "Materials": [
                       "materials/generic/wall_brick_paint.vmat"
@@ -28959,7 +28959,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "0455a048-a541-42a1-8e6a-273a39addccf"
+                          "$blob": "9bcbd8a6-828b-44b1-b622-b31ae08aaec2"
                         },
                         "Materials": [
                           "materials/dev/gray_grid_4.vmat",
@@ -29107,7 +29107,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "bcbe295c-43d6-4e37-8e35-a6ac3d2f1a05"
+                          "$blob": "58de62cb-9cf5-417c-a695-cfd8b92b0a25"
                         },
                         "Materials": [
                           "materials/dev/gray_grid_4.vmat",
@@ -29190,293 +29190,6 @@
                 "8a200001-0000-4000-8000-000000000001": "c20303da-c450-4c33-b025-a790e7983860",
                 "7a30a93d-e248-4917-b120-2b6234d6f03f": "177de273-dfcf-4bf3-815c-9678a1a4b90c",
                 "8a200001-0000-4000-8000-000000000004": "65764750-eb91-4069-9933-1ea63e66b2f2"
-              }
-            },
-            {
-              "__guid": "1d3a2bae-99c1-4ec2-baa1-5a7cf9fe3e50",
-              "__version": 2,
-              "__Prefab": "prefabs/gameplay/minion_vent.prefab",
-              "__PrefabInstancePatch": {
-                "AddedObjects": [],
-                "RemovedObjects": [],
-                "PropertyOverrides": [
-                  {
-                    "Target": {
-                      "Type": "GameObject",
-                      "IdValue": "8a400001-0000-4000-8000-000000000001"
-                    },
-                    "Property": "Name",
-                    "Value": "Minion Vent Opening"
-                  },
-                  {
-                    "Target": {
-                      "Type": "GameObject",
-                      "IdValue": "8a400001-0000-4000-8000-000000000001"
-                    },
-                    "Property": "Position",
-                    "Value": "-663.812195,-1182.13562,-32.2195129"
-                  },
-                  {
-                    "Target": {
-                      "Type": "Component",
-                      "IdValue": "f5515e8f-08a5-4f1c-a0f8-554664007b6f"
-                    },
-                    "Property": "Mesh",
-                    "Value": {
-                      "Data": {
-                        "$blob": "bece2284-f94c-4762-9d19-939fd000ea0e"
-                      },
-                      "Materials": [
-                        "materials/trimsheets/metal/metal_trim_01.vmat",
-                        "half life 2 rtx/materials/metal/m_metal_vent_012a/m_metalvent012a.vmat"
-                      ]
-                    }
-                  }
-                ],
-                "MovedObjects": []
-              },
-              "__PrefabIdToInstanceId": {
-                "8a400001-0000-4000-8000-000000000001": "1d3a2bae-99c1-4ec2-baa1-5a7cf9fe3e50",
-                "8a400001-0000-4000-8000-000000000002": "d1744b63-9be5-4f4b-8335-75002cc3e175",
-                "8a400001-0000-4000-8000-000000000003": "39e39a04-1844-4119-87f4-bb2a58d6523b",
-                "cd746e02-03bb-40f2-af6f-9150faf5ef28": "770e174a-7b5e-464d-a6d1-a7f3f80dfa9b",
-                "f5515e8f-08a5-4f1c-a0f8-554664007b6f": "b0597d5e-fa42-4a9f-a933-0ffa02710741"
-              }
-            },
-            {
-              "__guid": "5287db9b-f6b2-4937-aa12-6bf2f73462ec",
-              "__version": 2,
-              "__Prefab": "prefabs/gameplay/minion_vent.prefab",
-              "__PrefabInstancePatch": {
-                "AddedObjects": [],
-                "RemovedObjects": [],
-                "PropertyOverrides": [
-                  {
-                    "Target": {
-                      "Type": "GameObject",
-                      "IdValue": "8a400001-0000-4000-8000-000000000001"
-                    },
-                    "Property": "Name",
-                    "Value": "Minion Vent Opening"
-                  },
-                  {
-                    "Target": {
-                      "Type": "GameObject",
-                      "IdValue": "8a400001-0000-4000-8000-000000000001"
-                    },
-                    "Property": "Position",
-                    "Value": "-1463.81226,-1414.13562,247.780487"
-                  },
-                  {
-                    "Target": {
-                      "Type": "GameObject",
-                      "IdValue": "8a400001-0000-4000-8000-000000000001"
-                    },
-                    "Property": "Rotation",
-                    "Value": "0,0,-0.707106769,0.707106769"
-                  },
-                  {
-                    "Target": {
-                      "Type": "Component",
-                      "IdValue": "f5515e8f-08a5-4f1c-a0f8-554664007b6f"
-                    },
-                    "Property": "Mesh",
-                    "Value": {
-                      "Data": {
-                        "$blob": "61f16f1c-35dd-4f14-b31c-2e70130393c0"
-                      },
-                      "Materials": [
-                        "materials/trimsheets/metal/metal_trim_01.vmat",
-                        "half life 2 rtx/materials/metal/m_metal_vent_012a/m_metalvent012a.vmat"
-                      ]
-                    }
-                  }
-                ],
-                "MovedObjects": []
-              },
-              "__PrefabIdToInstanceId": {
-                "8a400001-0000-4000-8000-000000000001": "5287db9b-f6b2-4937-aa12-6bf2f73462ec",
-                "8a400001-0000-4000-8000-000000000002": "d231a5e6-ca59-4146-8824-78d9cb9e4fab",
-                "8a400001-0000-4000-8000-000000000003": "402b42f3-677a-4e78-b1a6-c8180bcea63f",
-                "cd746e02-03bb-40f2-af6f-9150faf5ef28": "fb529a5f-ad43-4503-b6e0-e96fbd1c4d63",
-                "f5515e8f-08a5-4f1c-a0f8-554664007b6f": "290d4fe4-449d-4528-b166-1f43a6f3975b"
-              }
-            },
-            {
-              "__guid": "20b4b506-6bfe-435b-b881-c08011138269",
-              "__version": 2,
-              "__Prefab": "prefabs/gameplay/minion_vent.prefab",
-              "__PrefabInstancePatch": {
-                "AddedObjects": [],
-                "RemovedObjects": [],
-                "PropertyOverrides": [
-                  {
-                    "Target": {
-                      "Type": "GameObject",
-                      "IdValue": "8a400001-0000-4000-8000-000000000001"
-                    },
-                    "Property": "Name",
-                    "Value": "Minion Vent Opening"
-                  },
-                  {
-                    "Target": {
-                      "Type": "GameObject",
-                      "IdValue": "8a400001-0000-4000-8000-000000000001"
-                    },
-                    "Property": "Position",
-                    "Value": "584.187805,-966.135559,175.780487"
-                  },
-                  {
-                    "Target": {
-                      "Type": "GameObject",
-                      "IdValue": "8a400001-0000-4000-8000-000000000001"
-                    },
-                    "Property": "Rotation",
-                    "Value": "0,0,-0.707106769,0.707106769"
-                  },
-                  {
-                    "Target": {
-                      "Type": "Component",
-                      "IdValue": "f5515e8f-08a5-4f1c-a0f8-554664007b6f"
-                    },
-                    "Property": "Mesh",
-                    "Value": {
-                      "Data": {
-                        "$blob": "3ab15d40-1ece-4335-8adb-e24e135243b7"
-                      },
-                      "Materials": [
-                        "materials/trimsheets/metal/metal_trim_01.vmat",
-                        "half life 2 rtx/materials/metal/m_metal_vent_012a/m_metalvent012a.vmat"
-                      ]
-                    }
-                  }
-                ],
-                "MovedObjects": []
-              },
-              "__PrefabIdToInstanceId": {
-                "8a400001-0000-4000-8000-000000000001": "20b4b506-6bfe-435b-b881-c08011138269",
-                "8a400001-0000-4000-8000-000000000002": "4d186dc5-c5a9-40e1-b9d4-90f75ed7964c",
-                "8a400001-0000-4000-8000-000000000003": "30380333-6077-41a6-9576-99856130386b",
-                "cd746e02-03bb-40f2-af6f-9150faf5ef28": "4bf74548-7686-4c88-9b1a-20ee279b2aef",
-                "f5515e8f-08a5-4f1c-a0f8-554664007b6f": "c708baef-cf9d-48b2-87bf-3bb77970172d"
-              }
-            },
-            {
-              "__guid": "94714f99-f8f3-4b10-a1ff-7c27642708c0",
-              "__version": 2,
-              "__Prefab": "prefabs/gameplay/minion_vent.prefab",
-              "__PrefabInstancePatch": {
-                "AddedObjects": [],
-                "RemovedObjects": [],
-                "PropertyOverrides": [
-                  {
-                    "Target": {
-                      "Type": "GameObject",
-                      "IdValue": "8a400001-0000-4000-8000-000000000001"
-                    },
-                    "Property": "Name",
-                    "Value": "Minion Vent Opening"
-                  },
-                  {
-                    "Target": {
-                      "Type": "GameObject",
-                      "IdValue": "8a400001-0000-4000-8000-000000000001"
-                    },
-                    "Property": "Position",
-                    "Value": "568.187805,1409.86438,175.780487"
-                  },
-                  {
-                    "Target": {
-                      "Type": "GameObject",
-                      "IdValue": "8a400001-0000-4000-8000-000000000001"
-                    },
-                    "Property": "Rotation",
-                    "Value": "0,0,-0.707106769,0.707106769"
-                  },
-                  {
-                    "Target": {
-                      "Type": "Component",
-                      "IdValue": "f5515e8f-08a5-4f1c-a0f8-554664007b6f"
-                    },
-                    "Property": "Mesh",
-                    "Value": {
-                      "Data": {
-                        "$blob": "985eefe0-f2fb-4801-8e30-991d4aaf785f"
-                      },
-                      "Materials": [
-                        "materials/trimsheets/metal/metal_trim_01.vmat",
-                        "half life 2 rtx/materials/metal/m_metal_vent_012a/m_metalvent012a.vmat"
-                      ]
-                    }
-                  }
-                ],
-                "MovedObjects": []
-              },
-              "__PrefabIdToInstanceId": {
-                "8a400001-0000-4000-8000-000000000001": "94714f99-f8f3-4b10-a1ff-7c27642708c0",
-                "8a400001-0000-4000-8000-000000000002": "4e703802-4023-4e91-9633-082116d28aa5",
-                "8a400001-0000-4000-8000-000000000003": "c3c40237-397d-4229-8da7-798f664d2a3e",
-                "cd746e02-03bb-40f2-af6f-9150faf5ef28": "ff73c36b-abe9-4fbb-adc1-80a5e6aac2dc",
-                "f5515e8f-08a5-4f1c-a0f8-554664007b6f": "fec864b8-70eb-46d1-a3f9-b7d7f97ac457"
-              }
-            },
-            {
-              "__guid": "7ee54563-da55-40d1-a911-90c7c1a3d0f8",
-              "__version": 2,
-              "__Prefab": "prefabs/gameplay/minion_vent.prefab",
-              "__PrefabInstancePatch": {
-                "AddedObjects": [],
-                "RemovedObjects": [],
-                "PropertyOverrides": [
-                  {
-                    "Target": {
-                      "Type": "GameObject",
-                      "IdValue": "8a400001-0000-4000-8000-000000000001"
-                    },
-                    "Property": "Name",
-                    "Value": "Minion Vent Opening"
-                  },
-                  {
-                    "Target": {
-                      "Type": "GameObject",
-                      "IdValue": "8a400001-0000-4000-8000-000000000001"
-                    },
-                    "Property": "Position",
-                    "Value": "280.187805,937.864441,-48.2195129"
-                  },
-                  {
-                    "Target": {
-                      "Type": "GameObject",
-                      "IdValue": "8a400001-0000-4000-8000-000000000001"
-                    },
-                    "Property": "Rotation",
-                    "Value": "0,0,0.707106769,0.707106769"
-                  },
-                  {
-                    "Target": {
-                      "Type": "Component",
-                      "IdValue": "f5515e8f-08a5-4f1c-a0f8-554664007b6f"
-                    },
-                    "Property": "Mesh",
-                    "Value": {
-                      "Data": {
-                        "$blob": "d5a2b5d8-e079-4018-a54d-46b610a02f58"
-                      },
-                      "Materials": [
-                        "materials/trimsheets/metal/metal_trim_01.vmat",
-                        "half life 2 rtx/materials/metal/m_metal_vent_012a/m_metalvent012a.vmat"
-                      ]
-                    }
-                  }
-                ],
-                "MovedObjects": []
-              },
-              "__PrefabIdToInstanceId": {
-                "8a400001-0000-4000-8000-000000000001": "7ee54563-da55-40d1-a911-90c7c1a3d0f8",
-                "8a400001-0000-4000-8000-000000000002": "b39b8b62-e8ae-4baa-93ba-005328d739aa",
-                "8a400001-0000-4000-8000-000000000003": "cbe71fbb-5f7e-48a0-96ae-74217a749ebe",
-                "cd746e02-03bb-40f2-af6f-9150faf5ef28": "26834fc7-3923-48cd-9f13-8fe19bbeef6c",
-                "f5515e8f-08a5-4f1c-a0f8-554664007b6f": "89c133c2-de0a-4e25-a915-f1a345e7247a"
               }
             }
           ]
@@ -29663,6 +29376,293 @@
         "13a94fea-a2de-45da-beb8-61e564e6e245": "5b950835-13dd-41bd-9ca1-42619d2a0310",
         "6ba98835-269e-4ca8-95a4-06e9faf5db59": "9482c824-3f17-42fc-b774-9c38f188f92a"
       }
+    },
+    {
+      "__guid": "6365ccfe-facf-4890-98b6-c51f3891360e",
+      "__version": 2,
+      "__Prefab": "prefabs/gameplay/minion_vent.prefab",
+      "__PrefabInstancePatch": {
+        "AddedObjects": [],
+        "RemovedObjects": [],
+        "PropertyOverrides": [
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a400001-0000-4000-8000-000000000001"
+            },
+            "Property": "Name",
+            "Value": "Minion Vent Opening"
+          },
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a400001-0000-4000-8000-000000000001"
+            },
+            "Property": "Position",
+            "Value": "-224,-1184,64"
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "f5515e8f-08a5-4f1c-a0f8-554664007b6f"
+            },
+            "Property": "Mesh",
+            "Value": {
+              "Data": {
+                "$blob": "46e6c92f-4ee4-4b30-9dc4-6959247de76a"
+              },
+              "Materials": [
+                "materials/dev/gray_grid_4.vmat",
+                "models/sbox_props/wall_vent_a/wall_vent_a.vmat"
+              ]
+            }
+          }
+        ],
+        "MovedObjects": []
+      },
+      "__PrefabIdToInstanceId": {
+        "8a400001-0000-4000-8000-000000000001": "6365ccfe-facf-4890-98b6-c51f3891360e",
+        "8a400001-0000-4000-8000-000000000002": "aaa6399c-9385-4957-b598-c2237a2008fd",
+        "8a400001-0000-4000-8000-000000000003": "69a75f00-9651-40fc-8ebf-6c2f4a279a4e",
+        "cd746e02-03bb-40f2-af6f-9150faf5ef28": "1f9c90da-d9a1-44fb-82c9-ef8bb994dec8",
+        "f5515e8f-08a5-4f1c-a0f8-554664007b6f": "3c2c351a-5375-4309-bb93-5189b1b5b4ec"
+      }
+    },
+    {
+      "__guid": "ead833f7-68a5-4c77-853a-e9b5def24cfc",
+      "__version": 2,
+      "__Prefab": "prefabs/gameplay/minion_vent.prefab",
+      "__PrefabInstancePatch": {
+        "AddedObjects": [],
+        "RemovedObjects": [],
+        "PropertyOverrides": [
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a400001-0000-4000-8000-000000000001"
+            },
+            "Property": "Name",
+            "Value": "Minion Vent Opening"
+          },
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a400001-0000-4000-8000-000000000001"
+            },
+            "Property": "Position",
+            "Value": "1024,-960,272"
+          },
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a400001-0000-4000-8000-000000000001"
+            },
+            "Property": "Rotation",
+            "Value": "0,0,0.707106769,0.707106769"
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "f5515e8f-08a5-4f1c-a0f8-554664007b6f"
+            },
+            "Property": "Mesh",
+            "Value": {
+              "Data": {
+                "$blob": "f174e6fe-9dcb-4bf0-a022-8971cccafcd6"
+              },
+              "Materials": [
+                "materials/dev/gray_grid_4.vmat",
+                "models/sbox_props/wall_vent_a/wall_vent_a.vmat"
+              ]
+            }
+          }
+        ],
+        "MovedObjects": []
+      },
+      "__PrefabIdToInstanceId": {
+        "8a400001-0000-4000-8000-000000000001": "ead833f7-68a5-4c77-853a-e9b5def24cfc",
+        "8a400001-0000-4000-8000-000000000002": "d7b003fc-81ea-45bb-8806-4a000224ceeb",
+        "8a400001-0000-4000-8000-000000000003": "770453da-b1e2-4b6e-b142-07e86c813f7b",
+        "cd746e02-03bb-40f2-af6f-9150faf5ef28": "995de92a-3340-4dc4-bec4-3054ad448054",
+        "f5515e8f-08a5-4f1c-a0f8-554664007b6f": "79b4b80d-dfae-4237-b8e8-4781332bd477"
+      }
+    },
+    {
+      "__guid": "eedd008f-0ad4-4948-b299-5d0cf3100ff7",
+      "__version": 2,
+      "__Prefab": "prefabs/gameplay/minion_vent.prefab",
+      "__PrefabInstancePatch": {
+        "AddedObjects": [],
+        "RemovedObjects": [],
+        "PropertyOverrides": [
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a400001-0000-4000-8000-000000000001"
+            },
+            "Property": "Name",
+            "Value": "Minion Vent Opening"
+          },
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a400001-0000-4000-8000-000000000001"
+            },
+            "Property": "Position",
+            "Value": "1008.20721,1408,272"
+          },
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a400001-0000-4000-8000-000000000001"
+            },
+            "Property": "Rotation",
+            "Value": "0,0,-0.707106709,0.707106769"
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "f5515e8f-08a5-4f1c-a0f8-554664007b6f"
+            },
+            "Property": "Mesh",
+            "Value": {
+              "Data": {
+                "$blob": "5a9891ac-c73b-4973-8aba-4b4ecd1dbabe"
+              },
+              "Materials": [
+                "materials/dev/gray_grid_4.vmat",
+                "models/sbox_props/wall_vent_a/wall_vent_a.vmat"
+              ]
+            }
+          }
+        ],
+        "MovedObjects": []
+      },
+      "__PrefabIdToInstanceId": {
+        "8a400001-0000-4000-8000-000000000001": "eedd008f-0ad4-4948-b299-5d0cf3100ff7",
+        "8a400001-0000-4000-8000-000000000002": "90887bf9-3f69-43d5-8640-81f692f78230",
+        "8a400001-0000-4000-8000-000000000003": "2b69cff0-3094-4d74-8e0b-388e6de3d378",
+        "cd746e02-03bb-40f2-af6f-9150faf5ef28": "3d46bc79-f5de-422f-9e52-ec275cf41e25",
+        "f5515e8f-08a5-4f1c-a0f8-554664007b6f": "d61762d2-2f79-4d3b-9cdf-bac2b8ee4430"
+      }
+    },
+    {
+      "__guid": "bc2ba314-65b6-4426-9406-a89bd1407387",
+      "__version": 2,
+      "__Prefab": "prefabs/gameplay/minion_vent.prefab",
+      "__PrefabInstancePatch": {
+        "AddedObjects": [],
+        "RemovedObjects": [],
+        "PropertyOverrides": [
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a400001-0000-4000-8000-000000000001"
+            },
+            "Property": "Name",
+            "Value": "Minion Vent Opening"
+          },
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a400001-0000-4000-8000-000000000001"
+            },
+            "Property": "Position",
+            "Value": "-1024,-1416,344"
+          },
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a400001-0000-4000-8000-000000000001"
+            },
+            "Property": "Rotation",
+            "Value": "0,0,-0.707106769,0.707106769"
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "f5515e8f-08a5-4f1c-a0f8-554664007b6f"
+            },
+            "Property": "Mesh",
+            "Value": {
+              "Data": {
+                "$blob": "407485c6-6223-41e3-8823-3c765a87c980"
+              },
+              "Materials": [
+                "materials/dev/gray_grid_4.vmat",
+                "models/sbox_props/wall_vent_a/wall_vent_a.vmat"
+              ]
+            }
+          }
+        ],
+        "MovedObjects": []
+      },
+      "__PrefabIdToInstanceId": {
+        "8a400001-0000-4000-8000-000000000001": "bc2ba314-65b6-4426-9406-a89bd1407387",
+        "8a400001-0000-4000-8000-000000000002": "c8352cda-b6b5-4ab3-afd6-0cbd6f415114",
+        "8a400001-0000-4000-8000-000000000003": "c29a222e-6673-4915-95bf-dc79217fb5e5",
+        "cd746e02-03bb-40f2-af6f-9150faf5ef28": "15f0d370-ca94-486a-8367-348f178c3608",
+        "f5515e8f-08a5-4f1c-a0f8-554664007b6f": "cb58f532-4984-45e4-8a00-a2e987b54b79"
+      }
+    },
+    {
+      "__guid": "3b95af68-1db7-48a7-8caf-0622f7c32d69",
+      "__version": 2,
+      "__Prefab": "prefabs/gameplay/minion_vent.prefab",
+      "__PrefabInstancePatch": {
+        "AddedObjects": [],
+        "RemovedObjects": [],
+        "PropertyOverrides": [
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a400001-0000-4000-8000-000000000001"
+            },
+            "Property": "Name",
+            "Value": "Minion Vent Opening"
+          },
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a400001-0000-4000-8000-000000000001"
+            },
+            "Property": "Position",
+            "Value": "720,928,48"
+          },
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a400001-0000-4000-8000-000000000001"
+            },
+            "Property": "Rotation",
+            "Value": "0,0,-0.707106769,0.707106769"
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "f5515e8f-08a5-4f1c-a0f8-554664007b6f"
+            },
+            "Property": "Mesh",
+            "Value": {
+              "Data": {
+                "$blob": "c45ad62e-6dd9-4e92-87de-66b374dee0b0"
+              },
+              "Materials": [
+                "materials/dev/gray_grid_4.vmat",
+                "models/sbox_props/wall_vent_a/wall_vent_a.vmat"
+              ]
+            }
+          }
+        ],
+        "MovedObjects": []
+      },
+      "__PrefabIdToInstanceId": {
+        "8a400001-0000-4000-8000-000000000001": "3b95af68-1db7-48a7-8caf-0622f7c32d69",
+        "8a400001-0000-4000-8000-000000000002": "585405d8-63b6-4d9c-b404-d93716c6cc16",
+        "8a400001-0000-4000-8000-000000000003": "b18598ce-09ac-4c06-8a4a-667433c4e496",
+        "cd746e02-03bb-40f2-af6f-9150faf5ef28": "9d739ae9-1296-4112-a4e7-118a4085e708",
+        "f5515e8f-08a5-4f1c-a0f8-554664007b6f": "b69a0bfd-6b65-4c0d-ac8f-9344abd71c60"
+      }
     }
   ],
   "SceneProperties": {
@@ -29710,9 +29710,9 @@
     "facepunch.office_chair#308565",
     "facepunch.stonebricktile#313594",
     "facepunch.wall_brick_paint#291897",
+    "facepunch.wall_vent_a#293115",
     "facepunch.wood_trim_02#274181",
-    "facepunch.woodenflooringblight#291852",
-    "twothieves.mmetalvent012a#159244"
+    "facepunch.woodenflooringblight#291852"
   ],
   "__version": 3
 }

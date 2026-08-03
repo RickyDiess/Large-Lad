@@ -317,7 +317,7 @@
         "__guid": "7ab7d5da-c1ae-4c15-853e-30de38e3d5a2",
         "__enabled": true,
         "Flags": 0,
-        "EnableFireDebug": false,
+		"EnableFireDebug": false,
 		"HeadshotConfirmationSound": "sounds/machine/button_pass.sound",
         "OnComponentDestroy": null,
         "OnComponentDisabled": null,
@@ -326,6 +326,28 @@
         "OnComponentStart": null,
         "OnComponentUpdate": null
       },
+	  {
+		"__type": "Sandbox.ModelHitboxes",
+		"__guid": "4d645739-c1d7-4ebd-bd5e-c0542b74eef0",
+		"__enabled": true,
+		"Flags": 0,
+		"OnComponentDestroy": null,
+		"OnComponentDisabled": null,
+		"OnComponentEnabled": null,
+		"OnComponentFixedUpdate": null,
+		"OnComponentStart": null,
+		"OnComponentUpdate": null,
+		"Renderer": {
+		  "_type": "component",
+		  "component_id": "4173bfeb-7cf5-4fa1-8cac-1ae353f6cdac",
+		  "go": "663383c9-6bdb-48e2-9c7d-30bedec4b012",
+		  "component_type": "SkinnedModelRenderer"
+		},
+		"Target": {
+		  "_type": "gameobject",
+		  "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431"
+		}
+	  },
       {
         "__type": "LargeLadMeleeCombat",
         "__guid": "f9fa267a-1412-4ddb-a419-79fa17a78854",

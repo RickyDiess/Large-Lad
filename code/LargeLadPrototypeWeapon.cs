@@ -1,4 +1,5 @@
 using Sandbox;
+using System.Collections.Generic;
 
 public enum LargeLadShotResult
 {
@@ -19,6 +20,7 @@ public sealed class LargeLadPrototypeWeapon : Component
 	// frame/network jitter without shortening the sustained fire interval.
 	private const float HostCadenceTolerance = 0.025f;
 	private const float ConfirmedHitmarkerDuration = 0.14f;
+	private const float FireDebugTraceDuration = 2.0f;
 
 	private TimeSince timeSinceLocalShot;
 	private TimeSince timeSinceConfirmedHit;
@@ -32,7 +34,7 @@ public sealed class LargeLadPrototypeWeapon : Component
 	private PlayerController cachedController;
 	private LargeLadGameManager cachedGameManager;
 
-	[Property, Title( "Firearm Debug Logging" )]
+	[Property, Title( "Firearm Debug" )]
 	public bool EnableFireDebug { get; set; }
 
 	[Property, Group( "Feedback" ), Title( "Headshot Confirmation Sound" )]
@@ -186,9 +188,42 @@ public sealed class LargeLadPrototypeWeapon : Component
 		var targetPlayer = trace.GameObject?.Components.Get<LargeLadPlayer>(
 			FindMode.EverythingInSelfAndAncestors );
 		var barricade = LargeLadBarricade.FindFor( trace.GameObject );
-		var hitRegion = targetPlayer is null
-			? LargeLadHitRegion.None
-			: ClassifyHitRegion( trace );
+		var targetCanTakeFirearmDamage = targetPlayer is not null &&
+			targetPlayer.Role is LargeLadRole.LargeLad or LargeLadRole.Minion &&
+			targetPlayer.Health?.IsDead == false;
+		var hitRegion = LargeLadHitRegion.None;
+		var classificationDetails = "not run";
+		var resolutionReason = aim.IsObstructed
+			? "authoritative trace obstructed before camera-selected aim point"
+			: "none";
+
+		if ( targetCanTakeFirearmDamage )
+		{
+			hitRegion = ResolveSelectedTargetHitRegion(
+				targetPlayer,
+				aim.ShotOrigin,
+				aim.ShotDirection,
+				definition.Range,
+				out classificationDetails,
+				out var classificationReason );
+			resolutionReason = aim.IsObstructed
+				? $"{resolutionReason}; {classificationReason}"
+				: classificationReason;
+		}
+		else if ( targetPlayer is not null )
+		{
+			resolutionReason = "first-hit player is not an eligible living victim";
+		}
+		else if ( trace.Hit )
+		{
+			resolutionReason = barricade is not null
+				? "first authoritative hit selected a barricade"
+				: "first authoritative hit was non-player geometry or object";
+		}
+		else
+		{
+			resolutionReason = "authoritative trace reached range without a hit";
+		}
 
 		var damage = new LargeLadDamageContext
 		{
@@ -203,9 +238,7 @@ public sealed class LargeLadPrototypeWeapon : Component
 
 		var result = LargeLadShotResult.AcceptedMiss;
 
-		if ( targetPlayer is not null &&
-			targetPlayer.Role is LargeLadRole.LargeLad or LargeLadRole.Minion &&
-			targetPlayer.Health?.IsDead == false )
+		if ( targetCanTakeFirearmDamage )
 		{
 			targetPlayer.Health.TryApplyDamage( damage, out var applied );
 
@@ -218,6 +251,10 @@ public sealed class LargeLadPrototypeWeapon : Component
 					$"Shot {ownerShotSequence}: confirmed " +
 					$"{(applied.IsFirearmHeadshot ? "headshot" : "player hit")} for " +
 					$"{applied.AppliedDamage:0.#} damage." );
+			}
+			else
+			{
+				resolutionReason += "; damage receiver applied zero damage";
 			}
 		}
 		else if ( barricade is not null &&
@@ -233,6 +270,14 @@ public sealed class LargeLadPrototypeWeapon : Component
 		{
 			DebugFire( $"Shot {ownerShotSequence}: accepted miss." );
 		}
+
+		DebugFireResolution(
+			ownerShotSequence,
+			aim,
+			targetPlayer,
+			hitRegion,
+			classificationDetails,
+			resolutionReason );
 
 		ReceiveShotResult( ownerShotSequence, result );
 	}
@@ -253,14 +298,107 @@ public sealed class LargeLadPrototypeWeapon : Component
 			definition.FireInterval;
 	}
 
-	private static LargeLadHitRegion ClassifyHitRegion(
-		SceneTraceResult trace )
+	private LargeLadHitRegion ResolveSelectedTargetHitRegion(
+		LargeLadPlayer selectedTarget,
+		Vector3 shotOrigin,
+		Vector3 shotDirection,
+		float range,
+		out string classificationDetails,
+		out string reason )
 	{
-		var hitbox = trace.Hitbox;
-		return LargeLadFirearmHitRules.ClassifyHitRegion(
-			hitbox?.Bone?.Name,
-			hitbox?.Tags?.Has(
-				LargeLadFirearmHitRules.HeadHitboxTag ) == true );
+		var shotEnd = shotOrigin + shotDirection * range;
+		var obstructionTrace = Scene.Trace
+			.Ray( shotOrigin, shotEnd )
+			.UseHitboxes( false )
+			.WithoutTags( LargeLadGameplayRules.MinionPassageTag )
+			.IgnoreGameObjectHierarchy( GameObject )
+			.IgnoreGameObjectHierarchy( selectedTarget.GameObject )
+			.Run();
+		var maximumClassificationDistance = obstructionTrace.Hit
+			? System.MathF.Min( range, obstructionTrace.Distance )
+			: range;
+		var hitboxTraceBuilder = Scene.Trace
+			.Ray(
+				shotOrigin,
+				shotOrigin + shotDirection * maximumClassificationDistance )
+			// This s&box build returns no animated-model hitboxes when the physics
+			// world is disabled. RunAll keeps the movement collider result but also
+			// exposes model hitboxes behind it; the deterministic rule below accepts
+			// only an actual same-target head hitbox.
+			.UseHitboxes( true )
+			.IgnoreGameObjectHierarchy( GameObject );
+
+		var hitboxTraces = hitboxTraceBuilder.RunAll();
+		var candidates = new List<LargeLadFirearmHitboxCandidate>();
+		var details = EnableFireDebug
+			? new List<string>()
+			: null;
+
+		if ( EnableFireDebug )
+		{
+			Scene.DebugOverlay.Trace(
+				obstructionTrace,
+				FireDebugTraceDuration,
+				false );
+		}
+
+		foreach ( var hitboxTrace in hitboxTraces )
+		{
+			if ( EnableFireDebug )
+			{
+				Scene.DebugOverlay.Trace(
+					hitboxTrace,
+					FireDebugTraceDuration,
+					false );
+			}
+
+			var hitbox = hitboxTrace.Hitbox;
+			var hitPlayer = hitboxTrace.GameObject?.Components
+				.Get<LargeLadPlayer>( FindMode.EverythingInSelfAndAncestors );
+			var belongsToSelectedTarget = hitPlayer == selectedTarget;
+			var hasHeadTag = hitbox?.Tags?.Has(
+				LargeLadFirearmHitRules.HeadHitboxTag ) == true;
+			var boneName = hitbox?.Bone?.Name;
+
+			candidates.Add( new LargeLadFirearmHitboxCandidate(
+				belongsToSelectedTarget,
+				hitbox is not null,
+				hitboxTrace.Distance,
+				boneName,
+				hasHeadTag ) );
+
+			if ( details is not null )
+			{
+				details.Add(
+					$"object={GetObjectName( hitboxTrace.GameObject )}, " +
+					$"sameTarget={belongsToSelectedTarget}, " +
+					$"collider={hitboxTrace.Collider is not null}, " +
+					$"hitboxQueryResult={hitbox is not null}, " +
+					$"hitboxWrapper={hitboxTrace.Hitbox is not null}, " +
+					$"distance={hitboxTrace.Distance:0.###}, " +
+					$"boneIndex={hitboxTrace.Bone}, " +
+					$"bone={boneName ?? "<none>"}, " +
+					$"headTag={hasHeadTag}, " +
+					$"hitboxTags={FormatTags( hitbox?.Tags )}" );
+			}
+		}
+
+		classificationDetails = details?.Count > 0
+			? string.Join( " | ", details )
+			: EnableFireDebug
+				? "no hitbox results"
+				: "debug disabled";
+		var region = LargeLadFirearmHitRules.ResolveSelectedTargetHitRegion(
+			candidates,
+			maximumClassificationDistance );
+
+		reason = region == LargeLadHitRegion.Head
+			? "same-target head hitbox confirmed"
+			: obstructionTrace.Hit
+				? $"no same-target head hitbox before " +
+					$"{GetObjectName( obstructionTrace.GameObject )} obstruction"
+				: "no same-target head hitbox confirmed";
+		return region;
 	}
 
 	[Rpc.Owner( NetFlags.HostOnly )]
@@ -299,6 +437,63 @@ public sealed class LargeLadPrototypeWeapon : Component
 		{
 			Log.Info( $"[Debug/Firearm] {GameObject.Name}: {message}" );
 		}
+	}
+
+	private void DebugFireResolution(
+		int ownerShotSequence,
+		LargeLadAimResolution aim,
+		LargeLadPlayer selectedTarget,
+		LargeLadHitRegion hitRegion,
+		string classificationDetails,
+		string reason )
+	{
+		if ( !EnableFireDebug )
+			return;
+
+		var firstTrace = aim.ShotTrace;
+		var firstHitbox = firstTrace.Hitbox;
+		var firstComponent = firstTrace.Component?.GetType().Name ?? "<none>";
+		var firstBone = firstHitbox?.Bone?.Name ?? "<none>";
+		var firstHasHeadTag = firstHitbox?.Tags?.Has(
+			LargeLadFirearmHitRules.HeadHitboxTag ) == true;
+		var firstTags = FormatTags( firstHitbox?.Tags );
+
+		Log.Info(
+			$"[Debug/Firearm] {GameObject.Name}: " +
+			$"shotSequence={ownerShotSequence}; " +
+			$"cameraAimPoint={aim.DesiredAimPoint}; " +
+			$"eyeTraceStart={aim.ShotOrigin}; " +
+			$"eyeTraceDirection={aim.ShotDirection}; " +
+			$"firstHitObject={GetObjectName( firstTrace.GameObject )}; " +
+			$"firstHitComponent={firstComponent}; " +
+			$"containsCollider={firstTrace.Collider is not null}; " +
+			$"containsHitbox={firstHitbox is not null}; " +
+			$"firstBoneIndex={firstTrace.Bone}; " +
+			$"firstHitboxBone={firstBone}; " +
+			$"firstHasHeadTag={firstHasHeadTag}; " +
+			$"firstHitboxTags={firstTags}; " +
+			$"selectedTarget={GetObjectName( selectedTarget?.GameObject )}; " +
+			$"finalHitRegion={hitRegion}; " +
+			$"classificationHitboxes=[{classificationDetails}]; " +
+			$"reason={reason}." );
+		Scene.DebugOverlay.Trace(
+			firstTrace,
+			FireDebugTraceDuration,
+			false );
+	}
+
+	private static string FormatTags( ITagSet tags )
+	{
+		return tags is null
+			? "<none>"
+			: string.Join( ",", tags );
+	}
+
+	private static string GetObjectName( GameObject gameObject )
+	{
+		return gameObject is null
+			? "<none>"
+			: gameObject.Name;
 	}
 
 	private LargeLadGameManager GetGameManager()
