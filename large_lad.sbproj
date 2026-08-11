@@ -5,8 +5,10 @@
   "Ident": "large_lad",
   "Schema": 1,
   "IncludeSourceFiles": false,
-  "Resources": null,
-  "PackageReferences": [],
+  "Resources": "/Prefabs/Gameplay/pickup_dodgeball.prefab\n",
+  "PackageReferences": [
+    "facepunch.v_first_person_arms_human"
+  ],
   "EditorReferences": null,
   "Mounts": null,
   "IsStandaloneOnly": false,
@@ -24,7 +26,7 @@
     "LeaderboardType": "None",
     "CsProjName": "",
     "StartupScene": "scenes/gym.scene",
-    "LaunchMode": "Normal",
+    "LaunchMode": "QuickPlay",
     "ControlModes": {
       "Keyboard": true,
       "VR": false,

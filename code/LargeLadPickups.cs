@@ -42,6 +42,7 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 	protected override void OnStart()
 	{
 		ResolveAuthoredParts();
+		ApplyCatalogWorldModel();
 		authoredTransform = GameObject.WorldTransform;
 		hasAuthoredTransform = true;
 
@@ -57,11 +58,22 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 	protected override void OnValidate()
 	{
 		ResolveAuthoredParts();
+		ApplyCatalogWorldModel();
 
 		if ( !LargeLadWeaponCatalog.IsFirearm( Weapon ) )
 		{
 			Log.Warning(
 				$"{GameObject.Name}: weapon pickup must use a firearm definition." );
+		}
+		else
+		{
+			foreach ( var warning in
+				LargeLadWeaponCatalog.Get( Weapon ).GetValidationWarnings() )
+			{
+				Log.Warning(
+					$"{GameObject.Name}: weapon definition '{Weapon}': " +
+					warning );
+			}
 		}
 
 		if ( !System.Enum.IsDefined(
@@ -403,12 +415,18 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 	{
 		var definition = LargeLadWeaponCatalog.Get( state.Weapon );
 		var worldModel = string.IsNullOrWhiteSpace(
-			definition.WorldModelPath )
+			definition.ThirdPersonWorldModelPath )
 			? null
-			: Model.Load( definition.WorldModelPath );
+			: Model.Load( definition.ThirdPersonWorldModelPath );
 
 		if ( worldModel is null )
+		{
+			Log.Warning(
+				$"{GameObject.Name}: cannot create dropped '{state.Weapon}' " +
+				$"because its third-person world model " +
+				$"'{definition.ThirdPersonWorldModelPath}' could not be loaded." );
 			return null;
+		}
 
 		var droppedObject = Scene.CreateObject();
 		droppedObject.Name =
@@ -469,6 +487,31 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 		PickupCollider ??= Components.Get<Collider>();
 		PickupRenderer ??= Components.Get<Renderer>(
 			FindMode.EverythingInSelfAndDescendants );
+	}
+
+	private void ApplyCatalogWorldModel()
+	{
+		if ( PickupRenderer is not ModelRenderer modelRenderer ||
+			!LargeLadWeaponCatalog.TryGetFirearm(
+				Weapon,
+				out var definition ) ||
+			string.IsNullOrWhiteSpace(
+				definition.ThirdPersonWorldModelPath ) )
+		{
+			return;
+		}
+
+		var model = Model.Load( definition.ThirdPersonWorldModelPath );
+		if ( model is null )
+		{
+			Log.Warning(
+				$"{GameObject.Name}: weapon definition '{Weapon}' has an " +
+				$"unloadable third-person world model " +
+				$"'{definition.ThirdPersonWorldModelPath}'." );
+			return;
+		}
+
+		modelRenderer.Model = model;
 	}
 
 	private void RestoreAuthoredTransform()

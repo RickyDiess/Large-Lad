@@ -70,7 +70,7 @@ public sealed class LargeLadMeleeCombat : Component
 			return;
 
 		timeSinceLocalSwing = 0.0f;
-		attacker.MeleePresentation?.TriggerPredictedSwing();
+		attacker.WeaponPresentation?.TriggerPredictedSwing();
 		nextOwnerSwingSequence++;
 		RequestMeleeAttack( nextOwnerSwingSequence );
 	}
@@ -115,7 +115,7 @@ public sealed class LargeLadMeleeCombat : Component
 		}
 
 		CommitHostCadence( profile.MeleeCooldown, hostNow );
-		attacker.MeleePresentation?.BroadcastSwing();
+		attacker.WeaponPresentation?.BroadcastSwing();
 
 		var target = FindMeleeTarget(
 			attacker,

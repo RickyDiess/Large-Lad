@@ -382,3 +382,82 @@ same weapon definition to verify they remain independent physical instances.
 15. Throw and roll the ball against both sides of every Minion vent entrance.
    Confirm the opening remains solid to the ball whether its cover is intact or
    broken, while a Minion still traverses the open passage.
+
+## Weapon presentation manual checks
+
+These are visual and audio checks and are intentionally separate from the
+engine-independent presentation-state tests in `UnitTests/`.
+
+### First-person checks
+
+1. As a Skinny Kid, equip melee, Pistol, and SMG in turn. Confirm each draw
+   settles into idle, only purpose-built arms and the selected first-person
+   weapon render, and no head, torso, back, legs, or copied Citizen body appears
+   while standing, moving, sprinting, crouching, looking sharply up/down, or
+   attacking. Repeat first-person as Large Lad and a converted Minion; confirm
+   the same purpose-built arms appear for both melee roles without a copied
+   player body.
+2. Fire Pistol taps and a sustained SMG burst. Confirm one fire animation, one
+   fire sound, and one muzzle presentation per accepted shot. Strafe and sprint
+   through a burst; confirm the flash stays on the animated muzzle and the local
+   shot sound does not pan, Doppler-shift, or remain behind in world space. Empty
+   each magazine and confirm one local dry-fire response before the authoritative
+   reload begins; no shot, muzzle, hit, or extra ammunition change may occur. Fire
+   while sprinting and confirm the gun immediately snaps out of its lowered sprint
+   pose for the shot, then returns after `SprintFirePoseDuration` without a small
+   intermediate hop.
+3. Reload both guns from partially empty magazines. Confirm the definition's
+   reload animation and sound begin once, end at the synchronized reload state,
+   and return to idle. Confirm authored reload markers are listener-relative, dry,
+   and never layer a fixed world-space duplicate. Assign each optional reload sound
+   override and repeat; confirm it replaces authored reload markers with one chosen
+   sound. Toggle each `Force * Cocking Reload` property and confirm only the visual
+   reload branch changes; reload authority and completion timing must not change.
+   As Large Lad and Minion, confirm `b_attack` drives the dedicated punching graph
+   and the lowered/scaled fists no longer remain static over half the screen.
+   Select a dodgeball and confirm the lowered human arms hold one correctly scaled
+   red ball without obscuring most of the view, then throw it and confirm both held
+   pieces clear while the existing authoritative thrown ball appears. During draw,
+   fire, and
+   reload, switch weapons, select the dodgeball, drop an equipped Exclusive,
+   die, convert, change role, end/reset the round, and transition maps. Confirm
+   the old model, animation, muzzle, and presentation audio stop immediately
+   and never reappear later.
+4. Toggle first/third person repeatedly and recreate the local camera while a
+   weapon is idle and while reloading. Confirm the first-person viewmodel binds
+   only to the current owned camera, never appears in third person, and resumes
+   the current synchronized reload state without replaying its sound.
+5. Disable/destroy the weapon-presentation component in a test copy of the
+   player prefab. Confirm local viewmodel objects, world weapon objects, active
+   muzzle effects, and presentation sounds are cleaned up and the normal body
+   renderer is restored.
+
+### Multiplayer checks
+
+1. Use a host, the owning Skinny Kid, and at least one remote observer. For
+   melee, Pistol, and SMG, confirm the owner alone has first-person geometry;
+   neither the host's remote copy nor another client can see those arms or
+   viewmodels in any normal third-person camera.
+2. From both observer clients, confirm the Skinny Kid's equipped world weapon
+   changes to the exact synchronized selection, uses the right-hand attachment,
+   and remains aligned during idle, locomotion, crouch, fire, reload, and melee.
+   Make the host the Skinny Kid for one pass and confirm remote clients still
+   render the host's selected weapon. Pay particular attention to the crowbar
+   scale, its lower-handle grip, the pistol grip, and both Skinny Kid hands.
+   Select a dodgeball and confirm each observer sees one correctly scaled red
+   ball in the holder's right hand using the configured one-handed held-item pose
+   and normal/strong throw variant, followed by no stale held ball after the throw.
+   Confirm the crowbar is roughly two feet long and its lower handle intersects the
+   right-hand grip rather than hovering above it. In the player prefab inspector,
+   cycle the separate fist, crowbar, and dodgeball hold type, handedness, hold pose,
+   hand pose, and attack variant properties; confirm each affects only its named
+   presentation and does not alter combat timing. Restore the serialized defaults
+	before the remaining checks.
+3. Confirm Pistol/SMG deploy, fire, reload, and muzzle presentation occur once
+   per authoritative transition/shot on every peer. Verify there are no doubled
+   sounds, muzzle effects, shots, reload completions, hitmarkers, damage events,
+   or hit effects.
+4. Repeat switching, utility selection, Exclusive drop, death, conversion, role
+   change, round end/reset, late join, and map transition. Confirm stale world
+   weapons disappear, the fallback/role weapon is correct, and historical shot
+   or empty-fire sequences never replay for a late joiner.

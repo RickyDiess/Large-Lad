@@ -43,7 +43,7 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 	public LargeLadMeleeCombat MeleeCombat { get; set; }
 
 	[Property, RequireComponent]
-	public LargeLadMeleePresentation MeleePresentation { get; set; }
+	public LargeLadWeaponPresentation WeaponPresentation { get; set; }
 
 	[Property, RequireComponent]
 	public LargeLadEatAttack EatAttack { get; set; }

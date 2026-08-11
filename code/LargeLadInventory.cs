@@ -152,6 +152,9 @@ public sealed class LargeLadInventory : Component
 
 		if ( IsUtilityEquipped && Input.Pressed( "Attack1" ) )
 		{
+			Components.Get<LargeLadPlayer>()?
+				.WeaponPresentation?
+				.TriggerPredictedUtilityUse();
 			nextOwnerUtilityThrowRequestSequence++;
 			RequestThrowSelectedUtility(
 				nextOwnerUtilityThrowRequestSequence );
@@ -744,6 +747,7 @@ public sealed class LargeLadInventory : Component
 			return false;
 		}
 
+		player.WeaponPresentation?.BroadcastUtilityUse();
 		ClearUtilityAndSelectFallback();
 		return true;
 	}

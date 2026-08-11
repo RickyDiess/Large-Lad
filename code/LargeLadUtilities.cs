@@ -11,6 +11,76 @@ public enum LargeLadUtilityId
 }
 
 /// <summary>
+/// Presentation-only data for a utility item. Utilities remain separate from
+/// firearm definitions and never acquire ammo, reload, or damage behavior.
+/// </summary>
+public sealed class LargeLadUtilityPresentationDefinition
+{
+	public LargeLadUtilityId Id { get; init; }
+	public string FirstPersonArmsModelPath { get; init; }
+	public string FirstPersonArmsPackageIdent { get; init; }
+	public int FirstPersonSkeleton { get; init; }
+	public bool FirstPersonTwoHanded { get; init; }
+	public string FirstPersonHeldModelPath { get; init; }
+	public string FirstPersonHeldAttachmentBone { get; init; }
+	public Vector3 FirstPersonHeldPositionOffset { get; init; }
+	public Angles FirstPersonHeldRotationOffset { get; init; }
+	public float FirstPersonHeldModelScale { get; init; } = 1.0f;
+	public string ThirdPersonWorldModelPath { get; init; }
+	public string ThirdPersonAttachmentBone { get; init; }
+	public Vector3 ThirdPersonPositionOffset { get; init; }
+	public Angles ThirdPersonRotationOffset { get; init; }
+	public Vector3 ThirdPersonGripOffset { get; init; }
+	public float ThirdPersonModelScale { get; init; } = 1.0f;
+	public LargeLadThirdPersonHoldType ThirdPersonHoldType { get; init; }
+	public LargeLadWeaponGrip ThirdPersonGrip { get; init; }
+}
+
+public static class LargeLadUtilityPresentationCatalog
+{
+	private static readonly LargeLadUtilityPresentationDefinition Dodgeball =
+		new()
+		{
+			Id = LargeLadUtilityId.Dodgeball,
+			FirstPersonArmsModelPath =
+				"models/first_person/v_first_person_arms_human.vmdl",
+			FirstPersonArmsPackageIdent =
+				"facepunch/v_first_person_arms_human",
+			FirstPersonSkeleton = 0,
+			FirstPersonTwoHanded = false,
+			FirstPersonHeldModelPath = "models/dev/sphere.vmdl",
+			FirstPersonHeldAttachmentBone = "hand_R",
+			FirstPersonHeldPositionOffset = new Vector3( 7.0f, 0.0f, 0.0f ),
+			FirstPersonHeldRotationOffset = Angles.Zero,
+			FirstPersonHeldModelScale = 0.18f,
+			ThirdPersonWorldModelPath = "models/dev/sphere.vmdl",
+			ThirdPersonAttachmentBone = "hold_R",
+			// Keep the ball centered at the authored hold attachment. The old
+			// twelve-unit translation visibly floated it beyond the hand.
+			ThirdPersonPositionOffset = Vector3.Zero,
+			ThirdPersonRotationOffset = Angles.Zero,
+			ThirdPersonGripOffset = Vector3.Zero,
+			ThirdPersonModelScale = 0.5f,
+			ThirdPersonHoldType = LargeLadThirdPersonHoldType.HoldItem,
+			ThirdPersonGrip = LargeLadWeaponGrip.RightHandedOneHanded
+		};
+
+	public static bool TryGet(
+		LargeLadUtilityId utility,
+		out LargeLadUtilityPresentationDefinition definition )
+	{
+		if ( utility == LargeLadUtilityId.Dodgeball )
+		{
+			definition = Dodgeball;
+			return true;
+		}
+
+		definition = null;
+		return false;
+	}
+}
+
+/// <summary>
 /// One host-authored, synchronized utility state. It intentionally contains no
 /// ammunition, reserve, reload, or firearm-pickup data.
 /// </summary>

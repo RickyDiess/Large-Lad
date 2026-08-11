@@ -731,6 +731,8 @@ public sealed class LargeLadGameManager : Component
 
 		issues.AddRange(
 			EffectiveRoundBalanceSettings.GetValidationWarnings() );
+		issues.AddRange(
+			LargeLadWeaponCatalog.GetCatalogValidationWarnings() );
 
 		ValidateSpawnGroup(
 			blockingSpawnIssues,

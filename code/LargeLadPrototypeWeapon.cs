@@ -32,19 +32,38 @@ public sealed class LargeLadPrototypeWeapon : Component
 	private readonly LargeLadFirearmShotRequestGate hostShotRequestGate = new();
 	private LargeLadPlayer cachedPlayer;
 	private PlayerController cachedController;
+	private LocalPlayerSetup cachedLocalPlayerSetup;
 	private LargeLadGameManager cachedGameManager;
 
 	[Property, Title( "Firearm Debug" )]
 	public bool EnableFireDebug { get; set; }
-
-	[Property, Group( "Feedback" ), Title( "Headshot Confirmation Sound" )]
-	public SoundEvent HeadshotConfirmationSound { get; set; }
 
 	public bool HasConfirmedHitmarker =>
 		hasConfirmedHit && timeSinceConfirmedHit < ConfirmedHitmarkerDuration;
 
 	public LargeLadShotResult LastShotResult { get; private set; } =
 		LargeLadShotResult.AcceptedMiss;
+
+	/// <summary>
+	/// Monotonic host-authored presentation signal. It records only shots that
+	/// consumed authoritative ammunition; renderers observe it without ever
+	/// asking combat to fire again.
+	/// </summary>
+	[Sync( SyncFlags.FromHost )]
+	public int PresentationShotSequence { get; private set; }
+
+	[Sync( SyncFlags.FromHost )]
+	public LargeLadWeaponId PresentationShotWeapon { get; private set; }
+
+	/// <summary>
+	/// Owner feedback for an authoritative empty-magazine rejection. The local
+	/// presenter consumes the sequence; it cannot mutate ammunition or reloads.
+	/// </summary>
+	[Sync( SyncFlags.FromHost )]
+	public int PresentationEmptySequence { get; private set; }
+
+	[Sync( SyncFlags.FromHost )]
+	public LargeLadWeaponId PresentationEmptyWeapon { get; private set; }
 
 	protected override void OnAwake()
 	{
@@ -58,7 +77,7 @@ public sealed class LargeLadPrototypeWeapon : Component
 
 	protected override void OnUpdate()
 	{
-		if ( IsProxy || !Input.Down( "Attack1" ) )
+		if ( IsProxy )
 			return;
 
 		var player = cachedPlayer;
@@ -67,7 +86,8 @@ public sealed class LargeLadPrototypeWeapon : Component
 		var definition = inventory?.EquippedDefinition;
 
 		if ( player is null || controller is null || inventory is null ||
-			definition is null || player.Role != LargeLadRole.SkinnyKid ||
+			definition is null || !Input.Down( "Attack1" ) ||
+			player.Role != LargeLadRole.SkinnyKid ||
 			!LargeLadWeaponCatalog.IsFirearm( inventory.EquippedWeapon ) ||
 			player.Health?.IsDead == true || player.IsEatBusy ||
 			inventory.IsReloading ||
@@ -81,7 +101,7 @@ public sealed class LargeLadPrototypeWeapon : Component
 		if ( round?.Phase != LargeLadRoundPhase.Playing )
 			return;
 
-		var camera = Scene.Camera;
+		var camera = GetLocalCamera();
 
 		if ( !LargeLadAimResolver.TryResolveLocal(
 			Scene,
@@ -152,6 +172,8 @@ public sealed class LargeLadPrototypeWeapon : Component
 
 			if ( inventory.EquippedMagazine <= 0 )
 			{
+				PresentationEmptyWeapon = inventory.EquippedWeapon;
+				PresentationEmptySequence = ownerShotSequence;
 				inventory.BeginReload();
 			}
 
@@ -177,6 +199,8 @@ public sealed class LargeLadPrototypeWeapon : Component
 		}
 
 		CommitHostCadence( definition, hostNow );
+		PresentationShotWeapon = inventory.EquippedWeapon;
+		PresentationShotSequence = ownerShotSequence;
 
 		if ( aim.IsObstructed )
 		{
@@ -427,13 +451,6 @@ public sealed class LargeLadPrototypeWeapon : Component
 		hasConfirmedHit = true;
 		timeSinceConfirmedHit = 0.0f;
 
-		if ( result == LargeLadShotResult.PlayerHeadshot &&
-			HeadshotConfirmationSound is not null )
-		{
-			Sound.Play(
-				HeadshotConfirmationSound,
-				GameObject.WorldPosition );
-		}
 	}
 
 	private void DebugFire( string message )
@@ -516,6 +533,21 @@ public sealed class LargeLadPrototypeWeapon : Component
 		return cachedGameManager;
 	}
 
+	private CameraComponent GetLocalCamera()
+	{
+		var configuredCamera = cachedLocalPlayerSetup?.PlayerCamera;
+		if ( configuredCamera is not null &&
+			configuredCamera.IsValid &&
+			configuredCamera.Enabled &&
+			configuredCamera.GameObject is not null &&
+			configuredCamera.GameObject.IsValid )
+		{
+			return configuredCamera;
+		}
+
+		return Scene?.Camera;
+	}
+
 	private void ResolveCachedReferences()
 	{
 		if ( cachedPlayer is null ||
@@ -530,6 +562,13 @@ public sealed class LargeLadPrototypeWeapon : Component
 			cachedController.GameObject != GameObject )
 		{
 			cachedController = Components.Get<PlayerController>();
+		}
+
+		if ( cachedLocalPlayerSetup is null ||
+			!cachedLocalPlayerSetup.IsValid ||
+			cachedLocalPlayerSetup.GameObject != GameObject )
+		{
+			cachedLocalPlayerSetup = Components.Get<LocalPlayerSetup>();
 		}
 
 		GetGameManager();

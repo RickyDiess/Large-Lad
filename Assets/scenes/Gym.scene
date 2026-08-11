@@ -49,7 +49,7 @@
             "$source": null,
             "data": {
               "Maps": {
-                "$blob": "b89ccf42-eaae-4ac9-89fb-7ca5da37bec4"
+                "$blob": "8f881287-8e52-8125-9d14-a536d783158c"
               },
               "Resolution": 512,
               "TerrainSize": 20000,
@@ -65,7 +65,8 @@
                   "AddressModeW": "Wrap",
                   "MipLodBias": 0,
                   "MaxAnisotropy": 8,
-                  "BorderColor": "0,0,0,0"
+                  "BorderColor": "0,0,0,0",
+                  "Index": 11
                 }
               },
               "ResourceVersion": 3,
@@ -223,7 +224,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "e6ee83f2-e229-4760-b41a-e77cfbc4f673"
+                      "$blob": "5ed45087-7cc5-835e-ae5d-63a998010a4a"
                     },
                     "Materials": [
                       "materials/trimsheets/wood/wood_trim_02.vmat",
@@ -280,7 +281,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "b1116ba5-84fe-4f6e-be0d-3bcd547c30d1"
+                      "$blob": "134d4892-2783-87b7-8cc8-69af814b03db"
                     },
                     "Materials": [
                       "materials/trimsheets/wood/wood_trim_02.vmat",
@@ -337,68 +338,10 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "f192704f-7934-46db-b9cf-b46960d51c26"
+                      "$blob": "1edafaf2-a3fc-83ab-8ef5-788e50de7ff1"
                     },
                     "Materials": [
                       "materials/wood/floor/wooden_flooring_b2.vmat"
-                    ]
-                  },
-                  "OnComponentDestroy": null,
-                  "OnComponentDisabled": null,
-                  "OnComponentEnabled": null,
-                  "OnComponentFixedUpdate": null,
-                  "OnComponentStart": null,
-                  "OnComponentUpdate": null,
-                  "OnObjectTriggerEnter": null,
-                  "OnObjectTriggerExit": null,
-                  "OnTriggerEnter": null,
-                  "OnTriggerExit": null,
-                  "RenderType": "On",
-                  "RollingResistance": null,
-                  "SmoothingAngle": 40,
-                  "Static": true,
-                  "Surface": null,
-                  "SurfaceVelocity": "0,0,0"
-                }
-              ],
-              "Children": []
-            },
-            {
-              "__guid": "56c69fd8-6a0a-4b26-a41d-a4c5049ddf0f",
-              "__version": 2,
-              "Flags": 0,
-              "Name": "Block",
-              "Position": "-468.431824,940.868713,115.130463",
-              "Rotation": "0,0,0,1",
-              "Scale": "1,1,1",
-              "Tags": "world",
-              "Enabled": true,
-              "NetworkMode": 2,
-              "NetworkFlags": 0,
-              "NetworkOrphaned": 0,
-              "NetworkTransmit": true,
-              "OwnerTransfer": 1,
-              "Components": [
-                {
-                  "__type": "Sandbox.MeshComponent",
-                  "__guid": "ab65d5dc-15d6-4e7c-b577-d622a6a9e166",
-                  "__enabled": true,
-                  "Flags": 0,
-                  "ColliderFlags": 0,
-                  "Collision": "Mesh",
-                  "Color": "1,1,1,1",
-                  "Elasticity": null,
-                  "Friction": null,
-                  "HideInGame": false,
-                  "IsTrigger": false,
-                  "Mesh": {
-                    "Data": {
-                      "$blob": "0621f2f7-dc86-47ba-ae75-9425c050a250"
-                    },
-                    "Materials": [
-                      "materials/generic/wall_brick_paint.vmat",
-                      "materials/dev/gray_grid_4.vmat",
-                      "materials/trimsheets/metal/metal_trim_01.vmat"
                     ]
                   },
                   "OnComponentDestroy": null,
@@ -451,7 +394,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "21e7f0b0-126b-4b43-a015-eba3309de46c"
+                      "$blob": "5e9c290a-d6fd-8019-a80f-7fd3efdf7bdf"
                     },
                     "Materials": [
                       "materials/generic/wall_brick_paint.vmat",
@@ -696,7 +639,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "ab8c4d94-c8bc-49c6-94e2-7fc2a708c957"
+                      "$blob": "67855cc4-5c53-850b-b8bd-398770784f7f"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat"
@@ -752,7 +695,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "4855a5a4-5093-4937-8bd4-434c0019be88"
+                      "$blob": "ffb81081-11d5-8d19-90e7-d48a094f9463"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -809,7 +752,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "3d298744-3577-40a4-85a9-b241d8214bb5"
+                      "$blob": "a3376fc8-e4b5-8b2b-a3a0-194bd6c4bb30"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -866,7 +809,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "dc4c733a-8c68-48a4-a4e8-6f0c128a603b"
+                      "$blob": "8d962fba-26fa-88da-a3d0-e68fec8f61a8"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -923,7 +866,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "6bb8c44b-72cf-4bed-8f92-1bbd47d8259d"
+                      "$blob": "680c845f-0eb5-899b-8348-cf729b7edd3d"
                     },
                     "Materials": [
                       "materials/dev/primary_white.vmat",
@@ -979,7 +922,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "e75375a5-6dbf-4a8a-adcc-171cdc476721"
+                          "$blob": "1dafb878-d88f-83e6-b188-f10e81a1fe21"
                         },
                         "Materials": [
                           "materials/dev/primary_red.vmat"
@@ -1035,7 +978,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "57788041-1fd3-42cd-8b70-3fded2e35088"
+                          "$blob": "c05d003e-edc5-8d27-867b-1dda53d0e954"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1091,7 +1034,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "484d89ba-b762-4179-981e-3fdb41b48eb2"
+                          "$blob": "42092708-7dde-8a67-92e1-ed4f5624c4ab"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1147,7 +1090,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "51a93965-8036-4334-9f93-fb53f79258c3"
+                          "$blob": "727c3481-ab0f-862e-b88e-15227533be69"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1203,7 +1146,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "c9e7cf28-d75f-46c1-91ab-f9d9e8844838"
+                          "$blob": "727c3481-ab0f-862e-b88e-15227533be69"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1259,7 +1202,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "8ea4ddf1-7258-4bf6-943a-09244982f9f2"
+                          "$blob": "4e99586c-f388-893a-9a6c-0c63a2a24613"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1315,7 +1258,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "0f2690d1-590a-4ef7-81f5-72c2d0580b81"
+                          "$blob": "4e99586c-f388-893a-9a6c-0c63a2a24613"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1373,7 +1316,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "e14b250e-7ff6-4c61-a2f2-8d4803d1d6cd"
+                      "$blob": "680c845f-0eb5-899b-8348-cf729b7edd3d"
                     },
                     "Materials": [
                       "materials/dev/primary_white.vmat",
@@ -1429,7 +1372,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "bfd1e5ab-8dbd-4973-8270-3cdcd2dd5bb2"
+                          "$blob": "1dafb878-d88f-83e6-b188-f10e81a1fe21"
                         },
                         "Materials": [
                           "materials/dev/primary_red.vmat"
@@ -1485,7 +1428,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "7048e889-d682-4966-a837-948b4ebe467e"
+                          "$blob": "563b9f9c-a6bf-840a-8f5e-c6e3a90e3eb8"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1541,7 +1484,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "a2a915af-ab31-48f0-9ab5-0b53f828b4e2"
+                          "$blob": "49379906-b62f-8d72-9067-72ee009fe248"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1597,7 +1540,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "729f3476-56f1-4b38-b170-b9ddbe82adb5"
+                          "$blob": "727c3481-ab0f-862e-b88e-15227533be69"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1653,7 +1596,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "8aa864fc-21e9-4ac3-8a8d-d051dca299e4"
+                          "$blob": "727c3481-ab0f-862e-b88e-15227533be69"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1709,7 +1652,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "e307389c-40a5-4561-af60-2d660d9753fd"
+                          "$blob": "4e99586c-f388-893a-9a6c-0c63a2a24613"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1765,7 +1708,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "3c4e261b-b497-4eee-8ae8-1b23d7de26ff"
+                          "$blob": "4e99586c-f388-893a-9a6c-0c63a2a24613"
                         },
                         "Materials": [
                           "materials/dev/primary_black.vmat"
@@ -1823,7 +1766,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "bff1120b-341c-4854-b1af-94427239e1f2"
+                      "$blob": "da1fa004-fd8c-8399-9695-7ef380cbacb2"
                     },
                     "Materials": [
                       "materials/generic/wall_brick_paint.vmat"
@@ -1879,7 +1822,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "ce3ded0c-2209-4975-a8f9-a33420176c70"
+                      "$blob": "9b7d35b6-c600-8609-9fa0-afc83848fe3f"
                     },
                     "Materials": [
                       "materials/trimsheets/wood/wood_trim_02.vmat"
@@ -2739,7 +2682,7 @@
               "__version": 2,
               "Flags": 0,
               "Name": "crate01 (2)",
-              "Position": "-1341.58789,968.878601,159.157959",
+              "Position": "-1341.44019,969.332092,159.157959",
               "Rotation": "0,0,-0.15684709,0.987622917",
               "Scale": "3,3,3",
               "Tags": "",
@@ -2826,6 +2769,285 @@
                 }
               ],
               "Children": []
+            },
+            {
+              "__guid": "6743508a-8343-46d3-b981-2d2eec1a59b0",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "crate01 (2)",
+              "Position": "487.203979,1365.87061,95.662323",
+              "Rotation": "0,0,-0.407118142,0.913375497",
+              "Scale": "3,3,3",
+              "Tags": "",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.Prop",
+                  "__guid": "1a94d1e9-a1a2-462d-933b-3d3ca14127aa",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "BodyGroups": 18446744073709551615,
+                  "Health": 30,
+                  "IsStatic": true,
+                  "MaterialGroup": null,
+                  "Model": "models/citizen_props/crate01.vmdl",
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OnGibsCreated": null,
+                  "OnPropBreak": null,
+                  "OnPropTakeDamage": null,
+                  "StartAsleep": false,
+                  "Tint": "1,1,1,1"
+                },
+                {
+                  "__type": "Sandbox.ModelRenderer",
+                  "__guid": "29ec935a-0581-4701-a2b0-b8af28597d79",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "BodyGroups": 18446744073709551615,
+                  "CreateAttachments": false,
+                  "LodOverride": null,
+                  "MaterialGroup": null,
+                  "MaterialOverride": null,
+                  "Materials": null,
+                  "Model": "models/citizen_props/crate01.vmdl",
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "RenderOptions": {
+                    "GameLayer": true,
+                    "OverlayLayer": false,
+                    "BloomLayer": false,
+                    "AfterUILayer": false
+                  },
+                  "RenderType": "On",
+                  "Tint": "1,1,1,1"
+                },
+                {
+                  "__type": "Sandbox.ModelCollider",
+                  "__guid": "581c38ab-606b-4db4-a137-ee6e183c02fa",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "ColliderFlags": 0,
+                  "Elasticity": null,
+                  "Friction": null,
+                  "IsTrigger": false,
+                  "Model": "models/citizen_props/crate01.vmdl",
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OnObjectTriggerEnter": null,
+                  "OnObjectTriggerExit": null,
+                  "OnTriggerEnter": null,
+                  "OnTriggerExit": null,
+                  "RollingResistance": null,
+                  "Static": true,
+                  "Surface": null,
+                  "SurfaceVelocity": "0,0,0"
+                }
+              ],
+              "Children": []
+            },
+            {
+              "__guid": "13731c84-f1f9-462e-a4a9-b8f5927954e9",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "crate01 (2)",
+              "Position": "710.488953,1401.74817,95.7608032",
+              "Rotation": "0,0,-0.725661874,0.688051403",
+              "Scale": "2.72811103,3.0088737,2.42642021",
+              "Tags": "",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.Prop",
+                  "__guid": "690c3f71-80b7-4496-b885-de89c6e0caf6",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "BodyGroups": 18446744073709551615,
+                  "Health": 30,
+                  "IsStatic": true,
+                  "MaterialGroup": null,
+                  "Model": "models/citizen_props/crate01.vmdl",
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OnGibsCreated": null,
+                  "OnPropBreak": null,
+                  "OnPropTakeDamage": null,
+                  "StartAsleep": false,
+                  "Tint": "1,1,1,1"
+                },
+                {
+                  "__type": "Sandbox.ModelRenderer",
+                  "__guid": "7003d824-fced-487c-9453-5f423c593864",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "BodyGroups": 18446744073709551615,
+                  "CreateAttachments": false,
+                  "LodOverride": null,
+                  "MaterialGroup": null,
+                  "MaterialOverride": null,
+                  "Materials": null,
+                  "Model": "models/citizen_props/crate01.vmdl",
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "RenderOptions": {
+                    "GameLayer": true,
+                    "OverlayLayer": false,
+                    "BloomLayer": false,
+                    "AfterUILayer": false
+                  },
+                  "RenderType": "On",
+                  "Tint": "1,1,1,1"
+                },
+                {
+                  "__type": "Sandbox.ModelCollider",
+                  "__guid": "27403d63-72d2-4be4-ad49-c9c9a9642780",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "ColliderFlags": 0,
+                  "Elasticity": null,
+                  "Friction": null,
+                  "IsTrigger": false,
+                  "Model": "models/citizen_props/crate01.vmdl",
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OnObjectTriggerEnter": null,
+                  "OnObjectTriggerExit": null,
+                  "OnTriggerEnter": null,
+                  "OnTriggerExit": null,
+                  "RollingResistance": null,
+                  "Static": true,
+                  "Surface": null,
+                  "SurfaceVelocity": "0,0,0"
+                }
+              ],
+              "Children": []
+            },
+            {
+              "__guid": "75c040ba-945c-4e5b-83ef-6b0fec975b1a",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "crate01 (2)",
+              "Position": "-1530.22241,-8.28155518,159.15799",
+              "Rotation": "0,0,-0.15684709,0.987622917",
+              "Scale": "3,3,3",
+              "Tags": "",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.Prop",
+                  "__guid": "1ea70a11-36f6-4f70-9e73-3f06a75e3ffb",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "BodyGroups": 18446744073709551615,
+                  "Health": 30,
+                  "IsStatic": true,
+                  "MaterialGroup": null,
+                  "Model": "models/citizen_props/crate01.vmdl",
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OnGibsCreated": null,
+                  "OnPropBreak": null,
+                  "OnPropTakeDamage": null,
+                  "StartAsleep": false,
+                  "Tint": "1,1,1,1"
+                },
+                {
+                  "__type": "Sandbox.ModelRenderer",
+                  "__guid": "5df2edd5-9757-4861-b7a5-49ff4e4fc662",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "BodyGroups": 18446744073709551615,
+                  "CreateAttachments": false,
+                  "LodOverride": null,
+                  "MaterialGroup": null,
+                  "MaterialOverride": null,
+                  "Materials": null,
+                  "Model": "models/citizen_props/crate01.vmdl",
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "RenderOptions": {
+                    "GameLayer": true,
+                    "OverlayLayer": false,
+                    "BloomLayer": false,
+                    "AfterUILayer": false
+                  },
+                  "RenderType": "On",
+                  "Tint": "1,1,1,1"
+                },
+                {
+                  "__type": "Sandbox.ModelCollider",
+                  "__guid": "e7d36780-bc66-4206-8f92-2f1539990f2f",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "ColliderFlags": 0,
+                  "Elasticity": null,
+                  "Friction": null,
+                  "IsTrigger": false,
+                  "Model": "models/citizen_props/crate01.vmdl",
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OnObjectTriggerEnter": null,
+                  "OnObjectTriggerExit": null,
+                  "OnTriggerEnter": null,
+                  "OnTriggerExit": null,
+                  "RollingResistance": null,
+                  "Static": true,
+                  "Surface": null,
+                  "SurfaceVelocity": "0,0,0"
+                }
+              ],
+              "Children": []
             }
           ]
         },
@@ -2849,7 +3071,7 @@
             {
               "__guid": "58921ede-0e29-4b1b-b7a9-b054db64a58e",
               "__version": 2,
-              "Flags": 0,
+              "Flags": 32768,
               "Name": "industrial_light (2)",
               "Position": "-736.711975,-206.593628,543.662292",
               "Rotation": "0,0,0,1",
@@ -2983,13 +3205,13 @@
             {
               "__guid": "9b965ee0-573e-4133-a210-4aa1da289662",
               "__version": 2,
-              "Flags": 0,
+              "Flags": 32768,
               "Name": "industrial_light (3)",
               "Position": "-736.711975,49.4063683,543.662292",
               "Rotation": "0,0,0,1",
               "Scale": "1,1,1",
               "Tags": "",
-              "Enabled": false,
+              "Enabled": true,
               "NetworkMode": 2,
               "NetworkFlags": 0,
               "NetworkOrphaned": 0,
@@ -3017,6 +3239,58 @@
                   "OnPropTakeDamage": null,
                   "StartAsleep": false,
                   "Tint": "1,1,1,1"
+                },
+                {
+                  "__type": "Sandbox.ModelRenderer",
+                  "__guid": "02cd773e-faf1-40fb-b871-b05c3f323e92",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "BodyGroups": 18446744073709551615,
+                  "CreateAttachments": false,
+                  "LodOverride": null,
+                  "MaterialGroup": "on",
+                  "MaterialOverride": null,
+                  "Materials": null,
+                  "Model": "models/sbox_props/industrial_light/industrial_light.vmdl",
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "RenderOptions": {
+                    "GameLayer": true,
+                    "OverlayLayer": false,
+                    "BloomLayer": false,
+                    "AfterUILayer": false
+                  },
+                  "RenderType": "On",
+                  "Tint": "1,1,1,1"
+                },
+                {
+                  "__type": "Sandbox.ModelCollider",
+                  "__guid": "2a48a42b-f1e3-4279-8ed3-8ffd12c86ccf",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "ColliderFlags": 0,
+                  "Elasticity": null,
+                  "Friction": null,
+                  "IsTrigger": false,
+                  "Model": "models/sbox_props/industrial_light/industrial_light.vmdl",
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OnObjectTriggerEnter": null,
+                  "OnObjectTriggerExit": null,
+                  "OnTriggerEnter": null,
+                  "OnTriggerExit": null,
+                  "RollingResistance": null,
+                  "Static": true,
+                  "Surface": null,
+                  "SurfaceVelocity": "0,0,0"
                 }
               ],
               "Children": [
@@ -3065,7 +3339,7 @@
             {
               "__guid": "f4ac3c16-de98-47ba-8c30-1a5ec84ebd07",
               "__version": 2,
-              "Flags": 0,
+              "Flags": 32768,
               "Name": "industrial_light (4)",
               "Position": "-736.711975,305.406372,543.662292",
               "Rotation": "0,0,0,1",
@@ -3199,7 +3473,7 @@
             {
               "__guid": "b82a52a5-772a-4c3d-901d-b156571e27db",
               "__version": 2,
-              "Flags": 0,
+              "Flags": 32768,
               "Name": "industrial_light (2)",
               "Position": "-226.340546,-206.593628,543.662292",
               "Rotation": "0,0,0,1",
@@ -3333,7 +3607,7 @@
             {
               "__guid": "7a84cd5e-67e1-4415-8422-14ac85368ae8",
               "__version": 2,
-              "Flags": 0,
+              "Flags": 32768,
               "Name": "industrial_light (3)",
               "Position": "-226.340546,49.4063683,543.662292",
               "Rotation": "0,0,0,1",
@@ -3467,7 +3741,7 @@
             {
               "__guid": "c5c3f13d-047d-4aaa-a4d4-ef3c9aa16076",
               "__version": 2,
-              "Flags": 0,
+              "Flags": 32768,
               "Name": "industrial_light (4)",
               "Position": "-226.340546,305.406372,543.662292",
               "Rotation": "0,0,0,1",
@@ -28975,9 +29249,9 @@
                       "__version": 2,
                       "Flags": 0,
                       "Name": "Block",
-                      "Position": "-5.55479431,16,49.9978638",
+                      "Position": "2.44520569,-3.5,15.2435303",
                       "Rotation": "0,0,0,1",
-                      "Scale": "1,1,1",
+                      "Scale": "8.96000004,0.479999959,2.39999938",
                       "Tags": "",
                       "Enabled": true,
                       "NetworkMode": 2,
@@ -28992,7 +29266,7 @@
                   {
                     "Id": {
                       "Type": "Component",
-                      "IdValue": "41cd5d4a-32cb-4524-bc13-b670ddb210e7"
+                      "IdValue": "e3f8fdc2-46d0-42ab-8d4b-601a583b0cbe"
                     },
                     "Parent": {
                       "Type": "GameObject",
@@ -29002,38 +29276,31 @@
                     "ContainerProperty": "Components",
                     "IsContainerArray": true,
                     "Data": {
-                      "__type": "Sandbox.MeshComponent",
-                      "__guid": "41cd5d4a-32cb-4524-bc13-b670ddb210e7",
+                      "__type": "Sandbox.ModelRenderer",
+                      "__guid": "e3f8fdc2-46d0-42ab-8d4b-601a583b0cbe",
                       "__enabled": true,
                       "Flags": 0,
-                      "ColliderFlags": 0,
-                      "Collision": "Mesh",
-                      "Color": "1,1,1,1",
-                      "Elasticity": null,
-                      "Friction": null,
-                      "HideInGame": false,
-                      "IsTrigger": false,
-                      "Mesh": {
-                        "Data": {
-                          "$blob": "a1911280-b323-4463-8083-77cee49d8cee"
-                        }
-                      },
+                      "BodyGroups": 18446744073709551615,
+                      "CreateAttachments": false,
+                      "LodOverride": null,
+                      "MaterialGroup": null,
+                      "MaterialOverride": "materials/glass/glass_a.vmat",
+                      "Materials": null,
+                      "Model": "models/dev/box.vmdl",
                       "OnComponentDestroy": null,
                       "OnComponentDisabled": null,
                       "OnComponentEnabled": null,
                       "OnComponentFixedUpdate": null,
                       "OnComponentStart": null,
                       "OnComponentUpdate": null,
-                      "OnObjectTriggerEnter": null,
-                      "OnObjectTriggerExit": null,
-                      "OnTriggerEnter": null,
-                      "OnTriggerExit": null,
+                      "RenderOptions": {
+                        "GameLayer": true,
+                        "OverlayLayer": false,
+                        "BloomLayer": false,
+                        "AfterUILayer": false
+                      },
                       "RenderType": "On",
-                      "RollingResistance": null,
-                      "SmoothingAngle": 40,
-                      "Static": true,
-                      "Surface": null,
-                      "SurfaceVelocity": "0,0,0"
+                      "Tint": "1,1,1,1"
                     }
                   }
                 ],
@@ -29053,7 +29320,7 @@
                       "IdValue": "8a200001-0000-4000-8000-000000000001"
                     },
                     "Property": "Position",
-                    "Value": "-442.257385,929.864441,273.782623"
+                    "Value": "-442.257385,945.364441,308.536957"
                   },
                   {
                     "Target": {
@@ -29061,7 +29328,7 @@
                       "IdValue": "7a30a93d-e248-4917-b120-2b6234d6f03f"
                     },
                     "Property": "Center",
-                    "Value": "-4,16,52"
+                    "Value": "2,0,16"
                   },
                   {
                     "Target": {
@@ -29069,7 +29336,7 @@
                       "IdValue": "7a30a93d-e248-4917-b120-2b6234d6f03f"
                     },
                     "Property": "Scale",
-                    "Value": "392,32,120"
+                    "Value": "452,16,128"
                   },
                   {
                     "Target": {
@@ -29119,9 +29386,9 @@
                       "__version": 2,
                       "Flags": 0,
                       "Name": "Block",
-                      "Position": "-0.685211182,16,50.0012817",
+                      "Position": "-0.685211182,20,50.0012817",
                       "Rotation": "0,0,0,1",
-                      "Scale": "1,1,1",
+                      "Scale": "8.96000004,0.479999989,2.40000033",
                       "Tags": "",
                       "Enabled": true,
                       "NetworkMode": 2,
@@ -29136,7 +29403,7 @@
                   {
                     "Id": {
                       "Type": "Component",
-                      "IdValue": "c343dc9a-7893-4bb5-b40d-f74e6a766a5b"
+                      "IdValue": "814d377a-a880-49e4-9c1d-46d291fa4118"
                     },
                     "Parent": {
                       "Type": "GameObject",
@@ -29146,38 +29413,31 @@
                     "ContainerProperty": "Components",
                     "IsContainerArray": true,
                     "Data": {
-                      "__type": "Sandbox.MeshComponent",
-                      "__guid": "c343dc9a-7893-4bb5-b40d-f74e6a766a5b",
+                      "__type": "Sandbox.ModelRenderer",
+                      "__guid": "814d377a-a880-49e4-9c1d-46d291fa4118",
                       "__enabled": true,
                       "Flags": 0,
-                      "ColliderFlags": 0,
-                      "Collision": "Mesh",
-                      "Color": "1,1,1,1",
-                      "Elasticity": null,
-                      "Friction": null,
-                      "HideInGame": false,
-                      "IsTrigger": false,
-                      "Mesh": {
-                        "Data": {
-                          "$blob": "cf5103ea-3bd5-4f62-bd2d-5e9164ca7a9c"
-                        }
-                      },
+                      "BodyGroups": 18446744073709551615,
+                      "CreateAttachments": false,
+                      "LodOverride": null,
+                      "MaterialGroup": null,
+                      "MaterialOverride": "materials/glass/glass_a.vmat",
+                      "Materials": null,
+                      "Model": "models/dev/box.vmdl",
                       "OnComponentDestroy": null,
                       "OnComponentDisabled": null,
                       "OnComponentEnabled": null,
                       "OnComponentFixedUpdate": null,
                       "OnComponentStart": null,
                       "OnComponentUpdate": null,
-                      "OnObjectTriggerEnter": null,
-                      "OnObjectTriggerExit": null,
-                      "OnTriggerEnter": null,
-                      "OnTriggerExit": null,
+                      "RenderOptions": {
+                        "GameLayer": true,
+                        "OverlayLayer": false,
+                        "BloomLayer": false,
+                        "AfterUILayer": false
+                      },
                       "RenderType": "On",
-                      "RollingResistance": null,
-                      "SmoothingAngle": 40,
-                      "Static": true,
-                      "Surface": null,
-                      "SurfaceVelocity": "0,0,0"
+                      "Tint": "1,1,1,1"
                     }
                   }
                 ],
@@ -29687,6 +29947,30 @@
             },
             "Property": "Position",
             "Value": "0,0,512"
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "6ba98835-269e-4ca8-95a4-06e9faf5db59"
+            },
+            "Property": "HeadStartDuration",
+            "Value": 5
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "6ba98835-269e-4ca8-95a4-06e9faf5db59"
+            },
+            "Property": "MinimumPlayers",
+            "Value": 1
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "6ba98835-269e-4ca8-95a4-06e9faf5db59"
+            },
+            "Property": "SurvivalDuration",
+            "Value": 600
           }
         ],
         "MovedObjects": []
@@ -29928,7 +30212,8 @@
     "GameObjectSystems": {
       "Sandbox.Clutter.ClutterGridSystem": {
         "Storage": {
-          "$blob": "2abd529b-bddb-4ef5-a9a4-d599ead35f95"
+          "$blob": "64db792e-5935-8fbc-8cfa-050cd49fa7fd",
+          "$refs": []
         }
       },
       "Sandbox.SelectionSetsSystem": {
@@ -29945,6 +30230,7 @@
     "ambi.computer_monitor#49612",
     "ambi.computer_mouse#49614",
     "ambi.keyboard#49619",
+    "facepunch.glass_a#293147",
     "facepunch.industrial_light#288905",
     "facepunch.metal_trim_01#274119",
     "facepunch.office_chair#308565",
