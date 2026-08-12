@@ -1414,6 +1414,7 @@ public sealed class LargeLadGameManager : Component
 		}
 
 		player.CancelEatParticipationForLifecycle();
+		player.NativeInventory?.HandleDeath();
 		player.Inventory?.HandleDeath( player.GameObject.WorldPosition );
 		player.SetPendingRespawnRole( plan.ResultingRole );
 		player.MovementLocked = true;

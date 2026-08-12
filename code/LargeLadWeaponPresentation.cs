@@ -212,6 +212,7 @@ public sealed class LargeLadWeaponPresentation : Component
 	private FirstPersonTransient firstPersonTransient;
 	private bool firstPersonTransientUsesSequence;
 	private int presentationRevision;
+	private bool nativePresentationSuppressed;
 
 	protected override void OnAwake()
 	{
@@ -253,6 +254,19 @@ public sealed class LargeLadWeaponPresentation : Component
 	protected override void OnUpdate()
 	{
 		ResolveCachedReferences();
+
+		// The native firearm owns both models and the Citizen hold pose. Tear
+		// down legacy objects once, then stay completely out of its render path.
+		if ( cachedPlayer?.NativeInventory?.HasNativeInputControl == true )
+		{
+			if ( !nativePresentationSuppressed )
+				ResetPresentation( restoreBody: true );
+
+			nativePresentationSuppressed = true;
+			return;
+		}
+
+		nativePresentationSuppressed = false;
 		var state = CaptureState( out var ownedCamera );
 		var currentView =
 			LargeLadWeaponPresentationRules.ResolveView( state );
@@ -320,7 +334,9 @@ public sealed class LargeLadWeaponPresentation : Component
 
 	protected override void OnPreRender()
 	{
-		if ( !hasPreviousState )
+		if ( nativePresentationSuppressed ||
+			cachedPlayer?.NativeInventory?.HasNativeInputControl == true ||
+			!hasPreviousState )
 			return;
 
 		var view = LargeLadWeaponPresentationRules.ResolveView(

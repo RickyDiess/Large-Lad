@@ -40,6 +40,9 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 	public LargeLadInventory Inventory { get; set; }
 
 	[Property, RequireComponent]
+	public LargeLadNativeInventory NativeInventory { get; set; }
+
+	[Property, RequireComponent]
 	public LargeLadMeleeCombat MeleeCombat { get; set; }
 
 	[Property, RequireComponent]
@@ -74,6 +77,7 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 			LargeLadRole.LargeLad or LargeLadRole.Minion =>
 				LargeLadWeaponId.Melee,
 			LargeLadRole.SkinnyKid =>
+				NativeInventory?.ActiveFirearm?.WeaponId ??
 				Inventory?.EquippedWeapon ?? LargeLadWeaponId.None,
 			_ => LargeLadWeaponId.None
 		};
@@ -417,6 +421,7 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 			BroadcastSameRoleRespawnProfile( role );
 		}
 
+		NativeInventory?.PrepareForRole( role );
 		Inventory?.PrepareForRole( role );
 		Health?.ResetForCurrentRole();
 

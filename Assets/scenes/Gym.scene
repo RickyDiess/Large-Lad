@@ -66,7 +66,7 @@
                   "MipLodBias": 0,
                   "MaxAnisotropy": 8,
                   "BorderColor": "0,0,0,0",
-                  "Index": 11
+                  "Index": 10
                 }
               },
               "ResourceVersion": 3,
@@ -30187,6 +30187,92 @@
         "8a400001-0000-4000-8000-000000000003": "d88c35cb-2d7d-47ab-b627-5b4d1ae2bb54",
         "cd746e02-03bb-40f2-af6f-9150faf5ef28": "11588f75-b080-416b-ac53-0d75cc610ba7",
         "8a400001-0000-4000-8000-000000000004": "1fbaab6a-fb79-4dff-9a5a-8f1c89718275"
+      }
+    },
+    {
+      "__guid": "d085b74d-6ebb-4c30-a7da-ea07244c6254",
+      "__version": 2,
+      "__Prefab": "prefabs/gameplay/pickup_pistol.prefab",
+      "__PrefabInstancePatch": {
+        "AddedObjects": [],
+        "RemovedObjects": [],
+        "PropertyOverrides": [
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a400001-0000-4000-8000-000000000001"
+            },
+            "Property": "Name",
+            "Value": "Pistol"
+          },
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a400001-0000-4000-8000-000000000001"
+            },
+            "Property": "Position",
+            "Value": "-336.457947,-772.494141,42.059761"
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "921314e1-08ab-4513-abf5-392249118694"
+            },
+            "Property": "Flags",
+            "Value": 0
+          }
+        ],
+        "MovedObjects": []
+      },
+      "__PrefabIdToInstanceId": {
+        "8a400001-0000-4000-8000-000000000001": "d085b74d-6ebb-4c30-a7da-ea07244c6254",
+        "8a400001-0000-4000-8000-000000000003": "c0fe8f26-195f-49e0-8d27-e6237958725b",
+        "8a400001-0000-4000-8000-000000000004": "7dad3347-0e79-4781-a160-0489ce1c8349",
+        "11c6dbfc-0823-46cd-99d2-c87fcbbab35f": "dde1bc6c-56e8-4672-abe0-4dec5834c9a3",
+        "921314e1-08ab-4513-abf5-392249118694": "3123eed6-032c-4b48-9978-fbaf40498022"
+      }
+    },
+    {
+      "__guid": "a29c40ed-e429-4043-b010-989cdb21fcfa",
+      "__version": 2,
+      "__Prefab": "prefabs/gameplay/pickup_smg.prefab",
+      "__PrefabInstancePatch": {
+        "AddedObjects": [],
+        "RemovedObjects": [],
+        "PropertyOverrides": [
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a400002-0000-4000-8000-000000000001"
+            },
+            "Property": "Name",
+            "Value": "SMG"
+          },
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a400002-0000-4000-8000-000000000001"
+            },
+            "Property": "Position",
+            "Value": "-457.816528,-812.648804,42.2274399"
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "c1db096c-9625-4cf5-86ae-7d13ae01183c"
+            },
+            "Property": "Flags",
+            "Value": 0
+          }
+        ],
+        "MovedObjects": []
+      },
+      "__PrefabIdToInstanceId": {
+        "8a400002-0000-4000-8000-000000000001": "a29c40ed-e429-4043-b010-989cdb21fcfa",
+        "8a400002-0000-4000-8000-000000000003": "b69e4d6a-8c38-4efb-92cf-15eb7da513cf",
+        "8a400002-0000-4000-8000-000000000004": "527401ae-ad95-486d-8053-38c9b387b15b",
+        "8ceaf3e7-a031-4113-9e89-4aa6b75792af": "d94ffdad-b5e8-4be6-9f4e-7ddfa71d3f0d",
+        "c1db096c-9625-4cf5-86ae-7d13ae01183c": "671981ee-4848-407c-a0aa-9ca7c7dd6023"
       }
     }
   ],

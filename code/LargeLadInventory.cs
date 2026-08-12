@@ -122,7 +122,15 @@ public sealed class LargeLadInventory : Component
 		if ( IsProxy )
 			return;
 
-		if ( Components.Get<LargeLadPlayer>()?.IsEatBusy == true )
+		var player = Components.Get<LargeLadPlayer>();
+
+		if ( player?.IsEatBusy == true )
+			return;
+
+		// MIGRATION: while the native Pistol exists, this legacy component is
+		// the temporary shared input router. It guarantees that only the native
+		// active item or the old selection receives weapon input in a frame.
+		if ( TryRouteNativePistolInput( player?.NativeInventory ) )
 			return;
 
 		for ( var index = 0;
@@ -221,6 +229,14 @@ public sealed class LargeLadInventory : Component
 	public bool TryGrantCoreWeapon( LargeLadWeaponId weapon )
 	{
 		var player = Components.Get<LargeLadPlayer>();
+
+		// MIGRATION: all Pistol grants now create the real native inventory item.
+		// Other Core firearms remain on the legacy state list in this pass.
+		if ( weapon == LargeLadWeaponId.Pistol &&
+			player?.NativeInventory is LargeLadNativeInventory nativeInventory )
+		{
+			return nativeInventory.TryGrantNativePistol();
+		}
 
 		if ( !LargeLadInventoryRules.CanCollectCore(
 			isHost: Networking.IsHost,
@@ -768,6 +784,62 @@ public sealed class LargeLadInventory : Component
 			LargeLadInventoryRules.CanUseInventory(
 				player?.Role ?? LargeLadRole.Unassigned,
 				player?.Health?.IsDead != false );
+	}
+
+	private bool TryRouteNativePistolInput(
+		LargeLadNativeInventory nativeInventory )
+	{
+		if ( nativeInventory?.HasNativePistol != true )
+			return false;
+
+		for ( var index = 0;
+			index < DirectSelectionActions.Length;
+			index++ )
+		{
+			if ( !Input.Pressed( DirectSelectionActions[index] ) )
+				continue;
+
+			if ( index == LargeLadNativeWeaponRules.MeleeSlot )
+			{
+				nativeInventory.HolsterNativeWeapon();
+				RequestSelectInventoryIndex( index );
+			}
+			else if ( index == LargeLadNativeWeaponRules.CoreFirearmSlot )
+			{
+				nativeInventory.SelectNativePistol();
+			}
+			else
+			{
+				nativeInventory.HolsterNativeWeapon();
+				RequestSelectInventoryIndex( index );
+			}
+
+			return true;
+		}
+
+		if ( Input.MouseWheel.y != 0.0f ||
+			Input.Pressed( "SlotPrev" ) ||
+			Input.Pressed( "SlotNext" ) )
+		{
+			if ( nativeInventory.HasNativeInputControl )
+			{
+				nativeInventory.HolsterNativeWeapon();
+				RequestSelectInventoryIndex(
+					LargeLadNativeWeaponRules.MeleeSlot );
+			}
+			else
+			{
+				nativeInventory.SelectNativePistol();
+			}
+
+			return true;
+		}
+
+		if ( !nativeInventory.HasNativeInputControl )
+			return false;
+
+		nativeInventory.Pump();
+		return true;
 	}
 
 	private void TickReload()

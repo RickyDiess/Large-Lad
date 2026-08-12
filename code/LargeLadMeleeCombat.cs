@@ -54,7 +54,9 @@ public sealed class LargeLadMeleeCombat : Component
 
 	protected override void OnUpdate()
 	{
-		if ( IsProxy || !Input.Down( "Attack1" ) )
+		if ( IsProxy ||
+			cachedAttacker?.NativeInventory?.HasNativeInputControl == true ||
+			!Input.Down( "Attack1" ) )
 			return;
 
 		var attacker = cachedAttacker;

@@ -259,6 +259,12 @@
           "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
           "component_type": "LargeLadInventory"
         },
+		"NativeInventory": {
+		  "_type": "component",
+		  "component_id": "a4bcd6f2-dcd8-4fe9-a0d9-6fb98a02f6f1",
+		  "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
+		  "component_type": "LargeLadNativeInventory"
+		},
         "IsGroundSlamStaggered": false,
         "MeleeCombat": {
           "_type": "component",
@@ -312,6 +318,29 @@
         "OnComponentUpdate": null,
         "SkinnyKidStartingCoreWeapons": []
       },
+	  {
+		"__type": "LargeLadNativeInventory",
+		"__guid": "a4bcd6f2-dcd8-4fe9-a0d9-6fb98a02f6f1",
+		"__enabled": true,
+		"Flags": 0,
+		"AutoSwitchOnEmpty": false,
+		"AutoSwitchOnPickup": false,
+		"Behaviour": "Buckets",
+		"GiveOnStart": false,
+		"ManualPumping": true,
+		"MaxSlots": 4,
+		"OnComponentDestroy": null,
+		"OnComponentDisabled": null,
+		"OnComponentEnabled": null,
+		"OnComponentFixedUpdate": null,
+		"OnComponentStart": null,
+		"OnComponentUpdate": null,
+		"PickupMode": "None",
+		"PickupRadius": 48,
+		"StartingAmmo": [],
+		"StartingItems": [],
+		"UsesLoadout": false
+	  },
       {
         "__type": "LargeLadPrototypeWeapon",
         "__guid": "7ab7d5da-c1ae-4c15-853e-30de38e3d5a2",

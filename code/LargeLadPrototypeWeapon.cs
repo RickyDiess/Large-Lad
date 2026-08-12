@@ -77,7 +77,10 @@ public sealed class LargeLadPrototypeWeapon : Component
 
 	protected override void OnUpdate()
 	{
-		if ( IsProxy )
+		if ( IsProxy ||
+			cachedPlayer?.NativeInventory?.HasNativeInputControl == true ||
+			(cachedPlayer?.NativeInventory?.HasNativePistol == true &&
+			 cachedPlayer?.Inventory?.EquippedWeapon == LargeLadWeaponId.Pistol) )
 			return;
 
 		var player = cachedPlayer;

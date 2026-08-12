@@ -1,6 +1,7 @@
 using Sandbox;
 
-public sealed class LargeLadHealth : Component, ILargeLadDamageable
+public sealed class LargeLadHealth : Component, ILargeLadDamageable,
+	Component.IDamageable
 {
 	[Property]
 	public bool CreateRagdollOnDeath { get; set; } = true;
@@ -141,6 +142,57 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable
 		{
 			ApplyLifeState( false );
 		}
+	}
+
+	/// <summary>
+	/// Native weapon entry point. Damage remains host-authoritative and is
+	/// translated into the existing Large Lad envelope before health changes.
+	/// </summary>
+	public void OnDamage( in DamageInfo damage )
+	{
+		if ( !Networking.IsHost || damage is null ||
+			!float.IsFinite( damage.Damage ) || damage.Damage <= 0.0f )
+		{
+			return;
+		}
+
+		ResolveCachedReferences();
+		var victim = cachedPlayer;
+		var attacker = damage.Attacker?.Components.Get<LargeLadPlayer>(
+			FindMode.EverythingInSelfAndAncestors );
+		var weapon = damage.Weapon?.Components.Get<LargeLadFirearm>(
+			FindMode.EverythingInSelfAndAncestors );
+
+		if ( victim is null || attacker is null || weapon is null ||
+			weapon.WeaponId != LargeLadWeaponId.Pistol ||
+			GetGameManager()?.Phase != LargeLadRoundPhase.Playing ||
+			!weapon.IsAuthoritativelyHeldBy( attacker ) ||
+			!LargeLadNativeWeaponRules.IsValidPlayerTarget(
+				attacker.Role,
+				victim.Role,
+				!IsDead && CurrentHealth > 0.0f ) )
+		{
+			return;
+		}
+
+		var hitRegion = LargeLadNativeWeaponRules.ClassifyNativeDamage(
+			damage.Tags?.Has(
+				LargeLadFirearmHitRules.HeadHitboxTag ) == true,
+			damage.Hitbox?.Tags?.Has(
+				LargeLadFirearmHitRules.HeadHitboxTag ) == true,
+			damage.Hitbox?.Bone?.Name );
+		var context = new LargeLadDamageContext
+		{
+			Attacker = attacker.GameObject,
+			AttackerRole = attacker.Role,
+			SourceWeapon = weapon.WeaponId,
+			SourceShotSequence = weapon.LastAuthoritativeShotSequence,
+			DamageType = LargeLadDamageType.Firearm,
+			HitRegion = hitRegion,
+			BaseDamage = damage.Damage
+		};
+
+		TryApplyDamage( context, out _ );
 	}
 
 	public bool TakeDamage( float amount )

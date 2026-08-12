@@ -757,6 +757,12 @@ public sealed class LargeLadHud : Component
 		if ( player.Role != LargeLadRole.SkinnyKid || inventory is null )
 			return;
 
+		if ( player.NativeInventory?.ActiveFirearm is LargeLadFirearm nativeFirearm )
+		{
+			DrawNativeFirearmStatus( hud, nativeFirearm, scale );
+			return;
+		}
+
 		if ( !TryGetSelectionPresentation(
 			inventory,
 			inventory.ActiveSelection,
@@ -838,6 +844,61 @@ public sealed class LargeLadHud : Component
 		}
 
 		DrawInventorySlotRail( hud, inventory, panel, scale );
+	}
+
+	private static void DrawNativeFirearmStatus(
+		HudPainter hud,
+		LargeLadFirearm firearm,
+		float scale )
+	{
+		var definition = LargeLadWeaponCatalog.Get( firearm.WeaponId );
+		var accent = definition.PickupColor;
+		var panel = new Rect(
+			Screen.Width - 324.0f * scale,
+			Screen.Height - 96.0f * scale,
+			300.0f * scale,
+			72.0f * scale );
+
+		DrawPanel( hud, panel, accent, scale );
+		DrawHudText(
+			hud,
+			definition.DisplayName.ToUpperInvariant(),
+			18.0f * scale,
+			13.0f * scale,
+			accent,
+			new Rect(
+				panel.Left + 14.0f * scale,
+				panel.Top + 6.0f * scale,
+				152.0f * scale,
+				24.0f * scale ),
+			TextFlag.LeftCenter | TextFlag.SingleLine,
+			BoldFontWeight );
+		DrawHudText(
+			hud,
+			$"{firearm.Clip1} / \u221E",
+			22.0f * scale,
+			16.0f * scale,
+			Color.White,
+			new Rect(
+				panel.Right - 128.0f * scale,
+				panel.Top + 4.0f * scale,
+				114.0f * scale,
+				28.0f * scale ),
+			TextFlag.RightCenter | TextFlag.SingleLine,
+			BoldFontWeight );
+		DrawHudText(
+			hud,
+			firearm.IsReloading ? "CORE / RELOADING" : "CORE",
+			10.0f * scale,
+			8.0f * scale,
+			MutedTextColor,
+			new Rect(
+				panel.Left + 14.0f * scale,
+				panel.Top + 27.0f * scale,
+				panel.Width - 28.0f * scale,
+				13.0f * scale ),
+			TextFlag.LeftCenter | TextFlag.SingleLine,
+			BoldFontWeight );
 	}
 
 	private static void DrawInventorySlotRail(
