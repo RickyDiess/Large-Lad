@@ -27,10 +27,8 @@ public sealed class LargeLadUtilityPresentationDefinition
 	public Angles FirstPersonHeldRotationOffset { get; init; }
 	public float FirstPersonHeldModelScale { get; init; } = 1.0f;
 	public string ThirdPersonWorldModelPath { get; init; }
-	public string ThirdPersonAttachmentBone { get; init; }
-	public Vector3 ThirdPersonPositionOffset { get; init; }
-	public Angles ThirdPersonRotationOffset { get; init; }
-	public Vector3 ThirdPersonGripOffset { get; init; }
+	public Vector3 ThirdPersonModelPosition { get; init; }
+	public Angles ThirdPersonModelRotation { get; init; }
 	public float ThirdPersonModelScale { get; init; } = 1.0f;
 	public LargeLadThirdPersonHoldType ThirdPersonHoldType { get; init; }
 	public LargeLadWeaponGrip ThirdPersonGrip { get; init; }
@@ -54,12 +52,10 @@ public static class LargeLadUtilityPresentationCatalog
 			FirstPersonHeldRotationOffset = Angles.Zero,
 			FirstPersonHeldModelScale = 0.18f,
 			ThirdPersonWorldModelPath = "models/dev/sphere.vmdl",
-			ThirdPersonAttachmentBone = "hold_R",
 			// Keep the ball centered at the authored hold attachment. The old
 			// twelve-unit translation visibly floated it beyond the hand.
-			ThirdPersonPositionOffset = Vector3.Zero,
-			ThirdPersonRotationOffset = Angles.Zero,
-			ThirdPersonGripOffset = Vector3.Zero,
+			ThirdPersonModelPosition = Vector3.Zero,
+			ThirdPersonModelRotation = Angles.Zero,
 			ThirdPersonModelScale = 0.5f,
 			ThirdPersonHoldType = LargeLadThirdPersonHoldType.HoldItem,
 			ThirdPersonGrip = LargeLadWeaponGrip.RightHandedOneHanded

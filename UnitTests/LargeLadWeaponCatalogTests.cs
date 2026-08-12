@@ -204,10 +204,8 @@ public sealed class LargeLadWeaponDefinitionValidationTests
 			FirstPersonSkeleton = 1,
 			ThirdPersonWorldModelPath = "models/test/world.vmdl",
 			ThirdPersonWorldModelPackageIdent = "test/world",
-			ThirdPersonAttachmentBone = "hold_R",
-			ThirdPersonPositionOffset = Vector3.Zero,
-			ThirdPersonRotationOffset = Angles.Zero,
-			ThirdPersonGripOffset = Vector3.Zero,
+			ThirdPersonModelPosition = Vector3.Zero,
+			ThirdPersonModelRotation = Angles.Zero,
 			ThirdPersonModelScale = 1.0f,
 			ThirdPersonHoldType = LargeLadThirdPersonHoldType.Rifle,
 			Grip = LargeLadWeaponGrip.RightHandedTwoHanded,
@@ -318,15 +316,28 @@ public sealed class LargeLadWeaponPresentationDefinitionTests
 			"models/weapons/sbox_smg_mp5/v_mp5.vmdl",
 			smg.FirstPersonModelPath );
 		Assert.AreEqual(
-			"models/citizen_props/crowbar01.vmdl",
+			"models/weapons/sbox_melee_crowbar/w_crowbar.vmdl",
 			melee.ThirdPersonWorldModelPath );
-		Assert.AreEqual( "hold_R", melee.ThirdPersonAttachmentBone );
-		Assert.AreEqual( 0.25f, melee.ThirdPersonModelScale );
 		Assert.AreEqual(
-			new Vector3( 0.0f, 0.0f, -32.0f ),
-			melee.ThirdPersonGripOffset );
-		Assert.AreEqual( Vector3.Zero, pistol.ThirdPersonGripOffset );
-		Assert.AreEqual( Vector3.Zero, smg.ThirdPersonGripOffset );
+			"facepunch/w_crowbar",
+			melee.ThirdPersonWorldModelPackageIdent );
+		Assert.AreEqual( 1.0f, melee.ThirdPersonModelScale );
+		Assert.AreEqual(
+			new Vector3( 0.0f, 0.0f, -8.0f ),
+			melee.ThirdPersonModelPosition );
+		Assert.AreEqual(
+			new Angles( 0.0f, 180.0f, 0.0f ),
+			melee.ThirdPersonModelRotation );
+		Assert.AreEqual(
+			new Vector3( 4.0f, 0.0f, -3.5f ),
+			pistol.ThirdPersonModelPosition );
+		Assert.AreEqual( Angles.Zero, pistol.ThirdPersonModelRotation );
+		Assert.AreEqual( 1.0f, pistol.ThirdPersonModelScale );
+		Assert.AreEqual(
+			new Vector3( 3.0f, 0.0f, -7.0f ),
+			smg.ThirdPersonModelPosition );
+		Assert.AreEqual( Angles.Zero, smg.ThirdPersonModelRotation );
+		Assert.AreEqual( 1.0f, smg.ThirdPersonModelScale );
 		Assert.IsFalse( melee.FirstPersonModelIncludesArms );
 		Assert.IsFalse( pistol.FirstPersonModelIncludesArms );
 		Assert.IsFalse( smg.FirstPersonModelIncludesArms );
@@ -363,7 +374,7 @@ public sealed class LargeLadWeaponPresentationDefinitionTests
 			LargeLadWeaponGrip.RightHandedOneHanded,
 			melee.Grip );
 		Assert.AreEqual(
-			LargeLadThirdPersonHoldType.HoldItem,
+			LargeLadThirdPersonHoldType.Swing,
 			melee.ThirdPersonHoldType );
 		Assert.AreEqual(
 			LargeLadThirdPersonHoldType.Pistol,
@@ -409,9 +420,6 @@ public sealed class LargeLadWeaponPresentationDefinitionTests
 			"models/dev/sphere.vmdl",
 			dodgeball.ThirdPersonWorldModelPath );
 		Assert.AreEqual(
-			"hold_R",
-			dodgeball.ThirdPersonAttachmentBone );
-		Assert.AreEqual(
 			LargeLadThirdPersonHoldType.HoldItem,
 			dodgeball.ThirdPersonHoldType );
 		Assert.AreEqual(
@@ -419,6 +427,6 @@ public sealed class LargeLadWeaponPresentationDefinitionTests
 			dodgeball.ThirdPersonGrip );
 		Assert.AreEqual(
 			Vector3.Zero,
-			dodgeball.ThirdPersonPositionOffset );
+			dodgeball.ThirdPersonModelPosition );
 	}
 }

@@ -14,6 +14,8 @@ using System.Threading.Tasks;
 public sealed class LargeLadWeaponPresentation : Component
 {
 	private const float ViewmodelFullMoveSpeed = 250.0f;
+	private const string ThirdPersonGripBone = "hold_R";
+	private const float ThirdPersonGripDebugAxisLength = 8.0f;
 	private const string BareArmsAnimationGraphPath =
 		"models/first_person/v_first_person_arms_punching.vanmgrph";
 
@@ -52,32 +54,8 @@ public sealed class LargeLadWeaponPresentation : Component
 	[Property, Group( "First Person - Reload Audio" )]
 	public bool ForceSmgCockingReload { get; set; }
 
-	[Property, Group( "Third Person - Grip" )]
-	public Vector3 CrowbarPositionAdjustment { get; set; } =
-		new( 0.0f, -8.0f, 0.0f );
-
-	[Property, Group( "Third Person - Grip" )]
-	public Angles CrowbarRotationAdjustment { get; set; }
-
-	[Property, Group( "Third Person - Grip" )]
-	public Vector3 PistolPositionAdjustment { get; set; } =
-		new( 0.0f, 0.0f, -2.5f );
-
-	[Property, Group( "Third Person - Grip" )]
-	public Angles PistolRotationAdjustment { get; set; }
-
-	[Property, Group( "Third Person - Grip" )]
-	public Vector3 SmgPositionAdjustment { get; set; } =
-		new( 0.0f, 0.0f, -3.0f );
-
-	[Property, Group( "Third Person - Grip" )]
-	public Angles SmgRotationAdjustment { get; set; }
-
-	[Property, Group( "Third Person - Grip" )]
-	public Vector3 DodgeballPositionAdjustment { get; set; }
-
-	[Property, Group( "Third Person - Grip" )]
-	public Angles DodgeballRotationAdjustment { get; set; }
+	[Property, Group( "Third Person - Development" )]
+	public bool ShowThirdPersonGripDebug { get; set; }
 
 	[Property, Group( "Third Person - Fists" )]
 	public CitizenAnimationHelper.HoldTypes FistsHoldType { get; set; } =
@@ -218,6 +196,8 @@ public sealed class LargeLadWeaponPresentation : Component
 	private bool hasRecentThirdPersonDodgeballAttack;
 	private TimeSince timeSinceThirdPersonDodgeballAttack;
 
+	private GameObject thirdPersonGripRoot;
+	private GameObject thirdPersonWeaponModelPivot;
 	private GameObject thirdPersonWeaponObject;
 	private ModelRenderer thirdPersonWeaponRenderer;
 	private string appliedThirdPersonModelPath;
@@ -1132,7 +1112,11 @@ public sealed class LargeLadWeaponPresentation : Component
 			return;
 		}
 
-		if ( thirdPersonWeaponObject is not null &&
+		if ( thirdPersonGripRoot is not null &&
+			thirdPersonGripRoot.IsValid &&
+			thirdPersonWeaponModelPivot is not null &&
+			thirdPersonWeaponModelPivot.IsValid &&
+			thirdPersonWeaponObject is not null &&
 			thirdPersonWeaponObject.IsValid &&
 			appliedThirdPersonModelPath == path )
 		{
@@ -1157,9 +1141,23 @@ public sealed class LargeLadWeaponPresentation : Component
 		// Keep world weapons out of the role-scaled player hierarchy. Parenting
 		// here multiplied the definition scale by Skinny Kid/Large Lad body
 		// scale, so hosts saw microscopic weapons while proxies saw huge ones.
+		thirdPersonGripRoot = new GameObject(
+			true,
+			"Third Person Grip Root (Local Presentation)" )
+		{
+			NetworkMode = NetworkMode.Never
+		};
+		thirdPersonWeaponModelPivot = new GameObject(
+			thirdPersonGripRoot,
+			true,
+			"Third Person Weapon Model Pivot" )
+		{
+			NetworkMode = NetworkMode.Never
+		};
 		thirdPersonWeaponObject = new GameObject(
-			false,
-			"Third Person Held Item (Local Presentation)" )
+			thirdPersonWeaponModelPivot,
+			true,
+			"Third Person Weapon Model" )
 		{
 			NetworkMode = NetworkMode.Never
 		};
@@ -1181,6 +1179,20 @@ public sealed class LargeLadWeaponPresentation : Component
 	{
 		// Direct literal calls are discovered by the compiler and make the world
 		// model packages available to every observer, not just pickup owners.
+		if ( definition.ThirdPersonWorldModelPackageIdent ==
+			"facepunch/w_crowbar" )
+		{
+			var mounted = LargeLadWeaponPresentationAssets.GetModel(
+				"facepunch/w_crowbar" );
+			if ( mounted is not null && !mounted.IsError )
+				return mounted;
+			var pathModel = Model.Load(
+				definition.ThirdPersonWorldModelPath );
+			if ( pathModel is not null && !pathModel.IsError )
+				return pathModel;
+
+			return Cloud.Model( "facepunch/w_crowbar" );
+		}
 		if ( definition.ThirdPersonWorldModelPackageIdent ==
 			"facepunch/w_usp" )
 		{
@@ -1229,41 +1241,21 @@ public sealed class LargeLadWeaponPresentation : Component
 		var modelPath = isDodgeball
 			? utilityDefinition.ThirdPersonWorldModelPath
 			: weaponDefinition.ThirdPersonWorldModelPath;
-		var attachmentBone = isDodgeball
-			? utilityDefinition.ThirdPersonAttachmentBone
-			: weaponDefinition.ThirdPersonAttachmentBone;
-		var positionOffset = isDodgeball
-			? utilityDefinition.ThirdPersonPositionOffset
-			: weaponDefinition.ThirdPersonPositionOffset;
-		var rotationOffset = isDodgeball
-			? utilityDefinition.ThirdPersonRotationOffset
-			: weaponDefinition.ThirdPersonRotationOffset;
-		var positionAdjustment = isDodgeball
-			? DodgeballPositionAdjustment
-			: state.Weapon switch
-			{
-				LargeLadWeaponId.Melee => CrowbarPositionAdjustment,
-				LargeLadWeaponId.Pistol => PistolPositionAdjustment,
-				LargeLadWeaponId.Smg => SmgPositionAdjustment,
-				_ => Vector3.Zero
-			};
-		var rotationAdjustment = isDodgeball
-			? DodgeballRotationAdjustment
-			: state.Weapon switch
-			{
-				LargeLadWeaponId.Melee => CrowbarRotationAdjustment,
-				LargeLadWeaponId.Pistol => PistolRotationAdjustment,
-				LargeLadWeaponId.Smg => SmgRotationAdjustment,
-				_ => Angles.Zero
-			};
-		var gripOffset = isDodgeball
-			? utilityDefinition.ThirdPersonGripOffset
-			: weaponDefinition.ThirdPersonGripOffset;
+		var modelPosition = isDodgeball
+			? utilityDefinition.ThirdPersonModelPosition
+			: weaponDefinition.ThirdPersonModelPosition;
+		var modelRotation = isDodgeball
+			? utilityDefinition.ThirdPersonModelRotation
+			: weaponDefinition.ThirdPersonModelRotation;
 		var modelScale = isDodgeball
 			? utilityDefinition.ThirdPersonModelScale
 			: weaponDefinition.ThirdPersonModelScale;
 
-		if ( thirdPersonWeaponObject is null ||
+		if ( thirdPersonGripRoot is null ||
+			!thirdPersonGripRoot.IsValid ||
+			thirdPersonWeaponModelPivot is null ||
+			!thirdPersonWeaponModelPivot.IsValid ||
+			thirdPersonWeaponObject is null ||
 			!thirdPersonWeaponObject.IsValid ||
 			bodyRenderer is null )
 		{
@@ -1272,25 +1264,24 @@ public sealed class LargeLadWeaponPresentation : Component
 		}
 
 		var bindingKey =
-			$"{presentationRevision}:{thirdPersonWeaponObject.Id}:" +
+			$"{presentationRevision}:{thirdPersonGripRoot.Id}:" +
 			$"{bodyRenderer.GameObject.Id}:" +
-			$"{modelPath}:{attachmentBone}";
+			$"{modelPath}:{ThirdPersonGripBone}";
 		if ( failedThirdPersonAttachmentBindingKey == bindingKey )
 		{
 			SetObjectEnabled( thirdPersonWeaponObject, false );
 			return;
 		}
 
-		if ( string.IsNullOrWhiteSpace( attachmentBone ) ||
-			!TryGetWorldAttachmentTransform(
-				bodyRenderer,
-				attachmentBone,
-				out var holdTransform ) )
+		if ( !TryGetWorldAttachmentTransform(
+			bodyRenderer,
+			ThirdPersonGripBone,
+			out var holdTransform ) )
 		{
 			failedThirdPersonAttachmentBindingKey = bindingKey;
 			WarnMissingModelOnce(
-				"third-person attachment bone",
-				$"{modelPath}:{attachmentBone}" );
+				"third-person grip attachment",
+				$"{modelPath}:{ThirdPersonGripBone}" );
 			SetObjectEnabled( thirdPersonWeaponObject, false );
 			return;
 		}
@@ -1299,25 +1290,24 @@ public sealed class LargeLadWeaponPresentation : Component
 		var scale = System.MathF.Max(
 			0.01f,
 			modelScale );
-		var position = holdTransform.PointToWorld(
-			positionOffset + positionAdjustment );
-		// hold_R is Citizen's authored weapon socket. Pulling its position toward
-		// the raw hand_R wrist bone put the crowbar through the wrist, the pistol on
-		// the thumb, and the SMG above the grip. Keep both position and rotation on
-		// the weapon socket; only the per-item model-space adjustment may move it.
-		var rotation = holdTransform.Rotation *
-			rotationOffset.ToRotation() *
-			rotationAdjustment.ToRotation();
 
-		var gripTransform = new Transform(
-			position,
-			rotation,
-			Vector3.One );
-		thirdPersonWeaponObject.WorldPosition = gripTransform.PointToWorld(
-			-gripOffset * scale );
-		thirdPersonWeaponObject.WorldRotation = rotation;
-		thirdPersonWeaponObject.WorldScale =
+		// This unparented root is the authored body-side socket. Fall back to the
+		// final rendered Citizen hold_R bone only when a model has no attachment.
+		thirdPersonGripRoot.WorldScale = Vector3.One;
+		thirdPersonGripRoot.WorldPosition = holdTransform.Position;
+		thirdPersonGripRoot.WorldRotation = holdTransform.Rotation;
+
+		// Model origin correction belongs below the socket and has one source: the
+		// selected definition. The renderer itself remains at a neutral transform.
+		thirdPersonWeaponModelPivot.LocalPosition = modelPosition;
+		thirdPersonWeaponModelPivot.LocalRotation = modelRotation.ToRotation();
+		thirdPersonWeaponModelPivot.LocalScale =
 			new Vector3( scale, scale, scale );
+		thirdPersonWeaponObject.LocalPosition = Vector3.Zero;
+		thirdPersonWeaponObject.LocalRotation = Rotation.Identity;
+		thirdPersonWeaponObject.LocalScale = Vector3.One;
+
+		DrawThirdPersonGripDebug( holdTransform );
 	}
 
 	private static bool TryGetWorldAttachmentTransform(
@@ -1325,8 +1315,6 @@ public sealed class LargeLadWeaponPresentation : Component
 		string attachmentName,
 		out Transform transform )
 	{
-		// Human/Citizen weapon holds are authored model attachments. They are
-		// animated with the hands but are not guaranteed to be exposed as bones.
 		var attachment = renderer.GetAttachment(
 			attachmentName,
 			worldSpace: true );
@@ -1336,8 +1324,46 @@ public sealed class LargeLadWeaponPresentation : Component
 			return true;
 		}
 
-		// Some custom bodies expose their configured attachment name as a bone.
-		return renderer.TryGetBoneTransform( attachmentName, out transform );
+		return renderer.TryGetBoneTransform(
+			attachmentName,
+			out transform );
+	}
+
+	private void DrawThirdPersonGripDebug( Transform holdTransform )
+	{
+		if ( !ShowThirdPersonGripDebug )
+			return;
+
+		var origin = holdTransform.Position;
+		var axisLength = ThirdPersonGripDebugAxisLength;
+		DebugOverlay.Line(
+			origin,
+			origin + holdTransform.Rotation.Forward * axisLength,
+			new Color( 1.0f, 0.1f, 0.1f ) );
+		DebugOverlay.Line(
+			origin,
+			origin + holdTransform.Rotation.Right * axisLength,
+			new Color( 0.1f, 1.0f, 0.1f ) );
+		DebugOverlay.Line(
+			origin,
+			origin + holdTransform.Rotation.Up * axisLength,
+			new Color( 0.1f, 0.35f, 1.0f ) );
+
+		// Nested wire spheres make coincident origins visible without moving any
+		// transform: hold_R (white), grip root (orange), pivot (yellow), and model
+		// renderer/model origin (cyan).
+		DebugOverlay.Sphere(
+			new Sphere( origin, 1.6f ),
+			Color.White );
+		DebugOverlay.Sphere(
+			new Sphere( thirdPersonGripRoot.WorldPosition, 1.2f ),
+			new Color( 1.0f, 0.4f, 0.05f ) );
+		DebugOverlay.Sphere(
+			new Sphere( thirdPersonWeaponModelPivot.WorldPosition, 0.8f ),
+			new Color( 1.0f, 0.9f, 0.05f ) );
+		DebugOverlay.Sphere(
+			new Sphere( thirdPersonWeaponObject.WorldPosition, 0.4f ),
+			Color.Cyan );
 	}
 
 	private static bool ShouldCreateThirdPersonItem(
@@ -1459,6 +1485,8 @@ public sealed class LargeLadWeaponPresentation : Component
 				CitizenAnimationHelper.HoldTypes.Rifle,
 			LargeLadThirdPersonHoldType.HoldItem =>
 				CitizenAnimationHelper.HoldTypes.HoldItem,
+			LargeLadThirdPersonHoldType.Swing =>
+				CitizenAnimationHelper.HoldTypes.Swing,
 			_ => CitizenAnimationHelper.HoldTypes.None
 		};
 	}
@@ -2223,12 +2251,14 @@ public sealed class LargeLadWeaponPresentation : Component
 
 	private void DestroyThirdPersonWeapon()
 	{
-		if ( thirdPersonWeaponObject is not null &&
-			thirdPersonWeaponObject.IsValid )
+		if ( thirdPersonGripRoot is not null &&
+			thirdPersonGripRoot.IsValid )
 		{
-			thirdPersonWeaponObject.Destroy();
+			thirdPersonGripRoot.Destroy();
 		}
 
+		thirdPersonGripRoot = null;
+		thirdPersonWeaponModelPivot = null;
 		thirdPersonWeaponObject = null;
 		thirdPersonWeaponRenderer = null;
 		appliedThirdPersonModelPath = null;
@@ -2367,6 +2397,7 @@ internal static class LargeLadWeaponPresentationAssets
 			LoadModelAsync( "facepunch/v_crowbar" ),
 			LoadModelAsync( "facepunch/v_usp" ),
 			LoadModelAsync( "facepunch/v_mp5" ),
+			LoadModelAsync( "facepunch/w_crowbar" ),
 			LoadModelAsync( "facepunch/w_usp" ),
 			LoadModelAsync( "facepunch/w_mp5" ),
 			LoadSoundAsync( "vidya/pistol-shoot" ),

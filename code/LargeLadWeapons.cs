@@ -46,7 +46,8 @@ public enum LargeLadThirdPersonHoldType
 	None,
 	Pistol,
 	Rifle,
-	HoldItem
+	HoldItem,
+	Swing
 }
 
 public enum LargeLadPickupPolicy
@@ -289,10 +290,8 @@ public sealed class LargeLadWeaponDefinition
 
 	public string ThirdPersonWorldModelPath { get; init; }
 	public string ThirdPersonWorldModelPackageIdent { get; init; }
-	public string ThirdPersonAttachmentBone { get; init; }
-	public Vector3 ThirdPersonPositionOffset { get; init; }
-	public Angles ThirdPersonRotationOffset { get; init; }
-	public Vector3 ThirdPersonGripOffset { get; init; }
+	public Vector3 ThirdPersonModelPosition { get; init; }
+	public Angles ThirdPersonModelRotation { get; init; }
 	public float ThirdPersonModelScale { get; init; } = 1.0f;
 	public LargeLadThirdPersonHoldType ThirdPersonHoldType { get; init; }
 	public LargeLadWeaponGrip Grip { get; init; }
@@ -376,21 +375,22 @@ public static class LargeLadWeaponCatalog
 		FirstPersonSkeleton = 0,
 		FirstPersonTwoHanded = true,
 		ThirdPersonWorldModelPath =
-			"models/citizen_props/crowbar01.vmdl",
-		ThirdPersonAttachmentBone = "hold_R",
-		ThirdPersonPositionOffset = Vector3.Zero,
-		ThirdPersonRotationOffset = Angles.Zero,
-		// citizen_props/crowbar01 is centered on its shaft and extends along
-		// local Z. Put the hand near the lower handle instead of its midpoint.
-		ThirdPersonGripOffset = new Vector3( 0.0f, 0.0f, -32.0f ),
-		// At one quarter scale the approximately 101-unit source prop is a
-		// conventional two-foot crowbar. The former one-eighth scale was only
-		// about one foot long and looked miniature beside the human model.
-		ThirdPersonModelScale = 0.25f,
+			"models/weapons/sbox_melee_crowbar/w_crowbar.vmdl",
+		ThirdPersonWorldModelPackageIdent = "facepunch/w_crowbar",
+		// The world model's origin sits at the very bottom of the handle. Move it
+		// Move the handle down so hold_R lands several inches up the grip instead of
+		// on the end cap. Swing's socket-space X axis does not track the palm cleanly,
+		// so keep that axis neutral rather than throwing the crowbar out of alignment.
+		ThirdPersonModelPosition = new Vector3( 0.0f, 0.0f, -8.0f ),
+		// Facepunch's world crowbar is rolled around its shaft opposite the
+		// first-person crowbar. Turn it around the shaft while preserving the
+		// Citizen Swing pose's authored direction.
+		ThirdPersonModelRotation = new Angles( 0.0f, 180.0f, 0.0f ),
+		ThirdPersonModelScale = 1.0f,
 		// This is the catalog fallback. The player prefab exposes a serialized
 		// Citizen hold type/handedness/attack variant specifically for crowbar
 		// tuning without changing melee authority or weapon data.
-		ThirdPersonHoldType = LargeLadThirdPersonHoldType.HoldItem,
+		ThirdPersonHoldType = LargeLadThirdPersonHoldType.Swing,
 		Grip = LargeLadWeaponGrip.RightHandedOneHanded,
 		DrawAnimation = "b_deploy",
 		IdleAnimation = "idle",
@@ -430,13 +430,11 @@ public static class LargeLadWeaponCatalog
 		ThirdPersonWorldModelPath =
 			"models/weapons/sbox_pistol_usp/w_usp.vmdl",
 		ThirdPersonWorldModelPackageIdent = "facepunch/w_usp",
-		ThirdPersonAttachmentBone = "hold_R",
-		ThirdPersonPositionOffset = Vector3.Zero,
-		ThirdPersonRotationOffset = Angles.Zero,
-		// Facepunch world weapons are authored with their origin at the hold
-		// transform. Keep model-space grip correction neutral unless an asset has
-		// a measured, weapon-specific correction.
-		ThirdPersonGripOffset = Vector3.Zero,
+		// hold_R sits at the wrist and slightly above the pistol's authored grip.
+		ThirdPersonModelPosition = new Vector3( 4.0f, 0.0f, -3.5f ),
+		ThirdPersonModelRotation = Angles.Zero,
+		// Keep the model at authored scale; the measured socket correction above
+		// only moves the grip into the hand.
 		ThirdPersonModelScale = 1.0f,
 		ThirdPersonHoldType = LargeLadThirdPersonHoldType.Pistol,
 		Grip = LargeLadWeaponGrip.RightHandedOneHanded,
@@ -491,10 +489,10 @@ public static class LargeLadWeaponCatalog
 		ThirdPersonWorldModelPath =
 			"models/weapons/sbox_smg_mp5/w_mp5.vmdl",
 		ThirdPersonWorldModelPackageIdent = "facepunch/w_mp5",
-		ThirdPersonAttachmentBone = "hold_R",
-		ThirdPersonPositionOffset = Vector3.Zero,
-		ThirdPersonRotationOffset = Angles.Zero,
-		ThirdPersonGripOffset = Vector3.Zero,
+		// The rifle hold socket otherwise leaves the MP5 too near the wrist and
+		// both hands below its grips.
+		ThirdPersonModelPosition = new Vector3( 3.0f, 0.0f, -7.0f ),
+		ThirdPersonModelRotation = Angles.Zero,
 		ThirdPersonModelScale = 1.0f,
 		ThirdPersonHoldType = LargeLadThirdPersonHoldType.Rifle,
 		Grip = LargeLadWeaponGrip.RightHandedTwoHanded,
@@ -726,22 +724,14 @@ public static class LargeLadWeaponCatalog
 			warnings,
 			definition.ThirdPersonWorldModelPackageIdent,
 			"Third-person world model package" );
-		RequireText(
-			warnings,
-			definition.ThirdPersonAttachmentBone,
-			"Third-person attachment bone" );
 		RequireFinite(
 			warnings,
-			definition.ThirdPersonPositionOffset,
-			"Third-person position offset" );
+			definition.ThirdPersonModelPosition,
+			"Third-person model position" );
 		RequireFinite(
 			warnings,
-			definition.ThirdPersonRotationOffset,
-			"Third-person rotation offset" );
-		RequireFinite(
-			warnings,
-			definition.ThirdPersonGripOffset,
-			"Third-person grip offset" );
+			definition.ThirdPersonModelRotation,
+			"Third-person model rotation" );
 		RequirePositiveFinite(
 			warnings,
 			definition.ThirdPersonModelScale,
