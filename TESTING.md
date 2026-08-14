@@ -103,32 +103,47 @@ tests cannot provide:
 
 ## Persistent session and map reload checklist
 
-1. Start `game_shell.scene` in Game Mode. Confirm the scene has exactly one
-   persistent bootstrap with one `LargeLadSessionCoordinator`, `MapInstance`,
-   `LargeLadGameManager`, `LargeLadSpawnAllocator`, and `NetworkHelper`. Confirm
-   Gym appears as children loaded beneath the map instance and contains none of
-   those session-global components itself.
-2. Wait for the `Large Lad map 'scenes/gym.scene' is ready` message. Confirm Gym
-   validation and generated Lobby points complete before any round can start.
-3. While the session is running, use `Unload Map` on the coordinator. Confirm
-   the unloaded callback reports that content is gone while the same bootstrap,
-   manager, network helper, coordinator, and connected player objects remain.
-   Confirm the phase is `WaitingForPlayers`, players are movement-locked,
-   carried exclusive/utility items are cleared through map-transition cleanup,
-   generated Lobby points are removed, and no round state advances.
-4. Use `Load Local Development Map`, or call the coordinator's `LoadMap` with
-   `scenes/gym.scene`. Confirm Gym reloads under the same bootstrap, spawn caches
-   rebuild, persistent players respawn as unassigned at the new Lobby positions,
-   readiness returns only after validation, and normal round flow resumes.
-5. Use `Reload Current Map` and confirm one unloaded callback followed by one
-   loaded callback with the same persistence and readiness behavior. Repeat on
-   a host plus remote client; the map instance must load the same content for the
-   joining client without duplicating networked map objects or session owners.
-6. As the package-path smoke test, set the coordinator's `Startup Map` to a valid
-   package ident, call its `LoadMap` with one, or enable `Use Map From Launch`
-   and launch with one. Confirm the synchronized coordinator selection drives
-   the built-in map download/mount/loading path on every peer and no Large Lad
-   package polling or secondary bootstrap appears.
+1. Start the game normally. Confirm `game_shell.scene` supplies exactly one
+   persistent bootstrap with one `LargeLadSessionCoordinator`,
+   `LargeLadGameManager`, `LargeLadSpawnAllocator`, and `NetworkHelper`, plus one
+   direct `Map Content Host` child with the sole `MapInstance`.
+2. Confirm Gym appears only beneath `Map Content Host` and contains none of the
+   session-global components itself.
+3. Observe `Unloaded -> Loading -> Ready`. Confirm generated Lobby positions,
+   blocking validation, and persistent-player Lobby placement finish before
+   `Ready`, and that no round flow advances during `Loading`.
+4. Begin a valid two-or-more-player round, then use `Unload Map`, `Reload Current
+   Map`, or host code calling `LoadMap`. Confirm state leaves `Ready` for
+   `Unloading` before map content disappears and phase/timers stop immediately.
+5. Confirm one `Large Lad map-transition cleanup completed` message for the
+   transition, carried exclusive/utility items are cleared once, players become
+   unassigned and movement-locked, and map-owned spawn data is invalidated.
+6. Confirm unload completion enters `Unloaded`, or proceeds directly to the
+   replacement's `Loading`, without advancing round state between callbacks.
+7. Confirm the same player objects, bootstrap, manager, network helper,
+   coordinator, allocator, and map host survive; only map-host children change.
+8. Reload Gym and confirm spawn candidates rebuild and persistent players reach
+   new Lobby positions before state returns to `Ready`.
+9. Load a content scene that lacks the blocking spawn contract (or otherwise
+   break that contract). Confirm state becomes `Failed`, the blocking errors are
+   logged, and timers, spawns, respawns, conversions, and round transitions stay
+   stopped. Restore Gym and confirm recovery through `Unloading -> Loading ->
+   Ready`.
+10. Run with one player longer than `PlayerReadyDelay`. Confirm the lobby remains
+    waiting and no round-start attempt or rejection is emitted. Add a second
+    player and confirm normal round eligibility resumes.
+11. Verify the game project exposes no pre-launch map selector (`MapSelect` is
+    `Empty`, `MapList` is empty), always starts `game_shell.scene`, and keeps the
+    shell `MapInstance.UseMapFromLaunch` disabled. Content-scene direct Play is
+    an editor mapping preview, not a supported game launch path.
+12. As the production package-path smoke test, call the coordinator's `LoadMap`
+    with a valid package ident. Confirm its synchronized selection drives the
+    built-in download, mount, load, and unload path without a package polling or
+    secondary bootstrap layer.
+13. Repeat valid and invalid transitions with a host plus remote client. Confirm
+    the remote remains connected, observes the host-authored state, keeps the
+    same player/session objects, and never receives duplicate map content or
+    session infrastructure.
 
 ## Role-based player collision multiplayer checklist
 

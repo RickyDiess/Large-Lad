@@ -86,7 +86,7 @@
 		"MapInstance": {
 		  "_type": "component",
 		  "component_id": "edca6724-d1f9-4701-a212-4ae4df243c02",
-		  "go": "4ec5f084-cef2-4cca-9d9d-3d3a4ba40ec5",
+		  "go": "3d25ed8a-2734-4aac-97c7-70bd30e9f109",
 		  "component_type": "MapInstance"
 		},
 		"OnComponentDestroy": null,
@@ -95,24 +95,6 @@
 		"OnComponentFixedUpdate": null,
 		"OnComponentStart": null,
 		"OnComponentUpdate": null
-	  },
-	  {
-		"__type": "Sandbox.MapInstance",
-		"__guid": "edca6724-d1f9-4701-a212-4ae4df243c02",
-		"__enabled": true,
-		"Flags": 0,
-		"EnableCollision": true,
-		"MapName": "",
-		"NoOrigin": false,
-		"OnComponentDestroy": null,
-		"OnComponentDisabled": null,
-		"OnComponentEnabled": null,
-		"OnComponentFixedUpdate": null,
-		"OnComponentStart": null,
-		"OnComponentUpdate": null,
-		"OnMapLoaded": null,
-		"OnMapUnloaded": null,
-		"UseMapFromLaunch": false
 	  },
       {
         "__type": "Sandbox.NetworkHelper",
@@ -133,7 +115,45 @@
         "StartServer": true
       }
     ],
-    "Children": []
+    "Children": [
+      {
+        "__guid": "3d25ed8a-2734-4aac-97c7-70bd30e9f109",
+        "__version": 2,
+        "Flags": 0,
+        "Name": "Map Content Host",
+        "Position": "0,0,0",
+        "Rotation": "0,0,0,1",
+        "Scale": "1,1,1",
+        "Tags": "",
+        "Enabled": true,
+        "NetworkMode": 2,
+        "NetworkFlags": 0,
+        "NetworkOrphaned": 0,
+        "NetworkTransmit": true,
+        "OwnerTransfer": 1,
+        "Components": [
+          {
+            "__type": "Sandbox.MapInstance",
+            "__guid": "edca6724-d1f9-4701-a212-4ae4df243c02",
+            "__enabled": true,
+            "Flags": 0,
+            "EnableCollision": true,
+            "MapName": "",
+            "NoOrigin": false,
+            "OnComponentDestroy": null,
+            "OnComponentDisabled": null,
+            "OnComponentEnabled": null,
+            "OnComponentFixedUpdate": null,
+            "OnComponentStart": null,
+            "OnComponentUpdate": null,
+            "OnMapLoaded": null,
+            "OnMapUnloaded": null,
+            "UseMapFromLaunch": false
+          }
+        ],
+        "Children": []
+      }
+    ]
   },
   "ShowInMenu": true,
   "MenuPath": "Large Lad/Gameplay Bootstrap",

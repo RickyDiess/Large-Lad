@@ -2,10 +2,11 @@
 
 `Assets/scenes/game_shell.scene` is the game-mode startup scene. It contains the
 one persistent `Large Lad Gameplay Bootstrap`; its built-in `MapInstance` loads
-replaceable map content underneath that object. `Assets/scenes/Gym.scene` is the
-current proof map and local-development default. It contains geometry, spawns,
-pickups, passages, barricades, lighting, and other map-owned state, but no game
-manager, network helper, spawn allocator, session coordinator, or map instance.
+replaceable map content beneath the bootstrap's dedicated `Map Content Host`
+child. `Assets/scenes/Gym.scene` is the current proof map and local-development
+default. It contains geometry, spawns, pickups, passages, barricades, lighting,
+and other map-owned state, but no game manager, network helper, spawn allocator,
+session coordinator, or map instance.
 
 Use Play in Game Mode to test the configured shell flow. Playing a content scene
 directly is useful for mapping and visual inspection, but intentionally does not
@@ -18,30 +19,40 @@ session-global owner to a map-content scene.
 The persistent bootstrap owns exactly one `LargeLadSessionCoordinator`, built-in
 `MapInstance`, `NetworkHelper`, `LargeLadSpawnAllocator`, and
 `LargeLadGameManager`. The coordinator owns map selection, loading, unloading,
-the host-synchronized current map name, and the ready/not-ready gate.
+the host-synchronized current map name, and the synchronized `Unloaded`,
+`Loading`, `Ready`, `Unloading`, or `Failed` lifecycle state. `IsMapReady` is
+derived from that state rather than being an independently mutable flag.
 `MapInstance` itself owns asynchronous loading, package mounting, scene-map
 creation, and the loaded/unloaded callbacks; there is no Large Lad polling or
-package-loader layer. The local `.scene` adapter only finishes deleting the
-exact pre-unload `MapInstance` children that the engine's listen-host snapshot
-safety can retain, then closes the same readiness callback contract. Published
-package maps use the native callback/unload path directly.
+package-loader layer. The `MapInstance` lives on the dedicated `Map Content Host`,
+whose children are exclusively map-owned. The local `.scene` adapter therefore
+finishes deleting only the exact pre-unload map-host children that the engine's
+listen-host snapshot safety can retain. Published package maps use the native
+callback/unload path directly.
 
 The game manager remains the owner of round state, transitions, timing, spawn
 contract validation, and player lifecycle. A loaded callback asks it to rebuild
 the map-owned spawn cache and validate the map. Only then can the coordinator
-mark the map ready. An unloaded callback immediately holds persistent players,
-uses the existing inventory map-transition cleanup, returns the round to its
-waiting state, invalidates map-owned spawn data, and disables player creation.
-No round timer or transition advances while a valid map is not ready.
+enter `Ready`. Before an unload or replacement request, the coordinator enters
+`Unloading`, immediately holds persistent players, uses the existing inventory
+map-transition cleanup once, returns the round to its waiting state, and
+invalidates map-owned spawn data. The unloaded callback then enters `Unloaded`
+or begins the replacement's `Loading` state. A loaded map that fails blocking
+validation enters `Failed`. No timer, round transition, gameplay respawn, or
+conversion advances outside `Ready`.
+
+The game project declares `MapSelect` as `Empty`, has no external `MapList`, and
+starts `scenes/game_shell.scene`. The shell's `MapInstance` keeps `Use Map From
+Launch` disabled. Consequently the platform does not replace the startup shell
+with a selected official or community map; map selection must enter through the
+persistent coordinator and its built-in `MapInstance`.
 
 The coordinator's `Startup Map` and `LoadMap` accept a published package ident
 such as `organization.map_name`; that is the production map-selection path and
 uses the engine's automatic download/mount behavior. For local development,
 `Startup Map` and `Local Development Map` are currently
 `scenes/gym.scene`. The coordinator synchronizes its selected name from the host
-and passes either form directly to `MapInstance`. The bootstrap can also opt
-into `Use Map From Launch`; a launch-selected map takes precedence over the
-authored startup value.
+and passes either form directly to `MapInstance`.
 
 ## Starting a map
 
@@ -57,7 +68,9 @@ The game manager's prefab defaults are two minimum players, a 0.5-second
 player-ready delay, a 10-second head start, a 60-second survival timer, a
 5-second intermission, and 5-second Large Lad and other-player respawn delays.
 Session-specific tuning belongs on the shell's one bootstrap instance, not in a
-map. The current shell retains Gym's development overrides.
+map. The current shell retains Gym's development timing overrides, while the
+round minimum remains the supported value of two players. Project/session
+metadata may still allow a one-player lobby, but it cannot begin a round.
 
 ## Team spawns
 

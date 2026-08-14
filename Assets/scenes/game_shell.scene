@@ -30,14 +30,6 @@
               "Type": "Component",
               "IdValue": "6ba98835-269e-4ca8-95a4-06e9faf5db59"
             },
-            "Property": "MinimumPlayers",
-            "Value": 1
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "6ba98835-269e-4ca8-95a4-06e9faf5db59"
-            },
             "Property": "PlayerReadyDelay",
             "Value": 3
           },
@@ -58,7 +50,8 @@
         "71d9cc78-bf50-49ca-95cc-aa5a3f7a4900": "4ae8e92d-0276-4540-abf6-ddb8d3e42f2b",
         "dba8dd07-c638-458a-a652-179d91de1a05": "928de990-0557-41b6-b3df-4501fc3f9cfb",
         "edca6724-d1f9-4701-a212-4ae4df243c02": "cf9ca03a-7531-4cc9-8bcc-e90e6d02ffdb",
-        "13a94fea-a2de-45da-beb8-61e564e6e245": "f9b492c3-7720-4280-ba09-c2a34d026ee7"
+        "13a94fea-a2de-45da-beb8-61e564e6e245": "f9b492c3-7720-4280-ba09-c2a34d026ee7",
+        "3d25ed8a-2734-4aac-97c7-70bd30e9f109": "1de6ff3a-c743-86c2-a284-cfb235c13044"
       }
     }
   ],

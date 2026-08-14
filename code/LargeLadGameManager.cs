@@ -157,6 +157,7 @@ public sealed class LargeLadGameManager : Component
 	/// The complete gameplay interval in which role survivability rules apply.
 	/// </summary>
 	public bool IsRoundActive =>
+		SessionCoordinator?.IsMapReady == true &&
 		Phase is LargeLadRoundPhase.HeadStart or LargeLadRoundPhase.Playing;
 
 	public bool HasLastSkinnyKidAnnouncement =>
@@ -1394,7 +1395,7 @@ public sealed class LargeLadGameManager : Component
 	private void EvaluateWinnerAfterLifecycleChange()
 	{
 		if ( !Networking.IsHost ||
-			Phase is not (LargeLadRoundPhase.HeadStart or LargeLadRoundPhase.Playing) )
+			!IsRoundActive )
 		{
 			return;
 		}
@@ -1419,6 +1420,7 @@ public sealed class LargeLadGameManager : Component
 		// reconstruct the respawn remains synchronized on the player and health.
 		if ( !Networking.IsHost ||
 			!OwnsSceneGameplay() ||
+			!IsRoundActive ||
 			player?.Health is null ||
 			!registeredPlayers.Contains( player ) ||
 			player.Scene != Scene )
@@ -1467,7 +1469,7 @@ public sealed class LargeLadGameManager : Component
 	{
 		if ( !Networking.IsHost ||
 			!OwnsSceneGameplay() ||
-			Phase is not (LargeLadRoundPhase.HeadStart or LargeLadRoundPhase.Playing) ||
+			!IsRoundActive ||
 			player?.Health is null ||
 			!registeredPlayers.Contains( player ) ||
 			player.Scene != Scene )
@@ -1603,12 +1605,12 @@ public sealed class LargeLadGameManager : Component
 	}
 
 	/// <summary>
-	/// Stops the active round transaction after MapInstance confirms the map is
-	/// gone. Players and session infrastructure persist, but inventories are
-	/// detached from departing pickup sources and every player is held until a
-	/// replacement map has validated and supplied Lobby positions.
+	/// Stops the active round transaction before MapInstance begins unloading.
+	/// Players and session infrastructure persist, but inventories are detached
+	/// from departing pickup sources and every player is held until a replacement
+	/// map has validated and supplied Lobby positions.
 	/// </summary>
-	internal void HandleMapUnloaded(
+	internal void HandleMapTransition(
 		LargeLadSessionCoordinator coordinator )
 	{
 		ResolveBootstrapReferences();
@@ -1650,6 +1652,10 @@ public sealed class LargeLadGameManager : Component
 
 		SpawnAllocator?.InvalidateCandidateCache();
 		SpawnAllocator?.RefreshNetworkHelperLobbyPoints();
+
+		Log.Info(
+			$"Large Lad map-transition cleanup completed for " +
+			$"{players.Count} persistent player(s)." );
 	}
 
 	private bool TryPlacePlayersInLoadedMapLobby()

@@ -1,15 +1,24 @@
 using System;
 using Sandbox;
 
+public enum LargeLadMapSessionState
+{
+	Unloaded,
+	Loading,
+	Ready,
+	Unloading,
+	Failed
+}
+
 /// <summary>
 /// Owns the replaceable map inside one persistent Large Lad session scene.
 /// MapInstance remains responsible for package mounting, asynchronous loading,
 /// scene-map creation, and unloading; this component only turns its callbacks
-/// into the scene-scoped readiness contract consumed by round flow.
+/// into the scene-scoped lifecycle contract consumed by round flow.
 /// </summary>
 public sealed class LargeLadSessionCoordinator : Component
 {
-	[Property, RequireComponent]
+	[Property]
 	public MapInstance MapInstance { get; set; }
 
 	[Property, RequireComponent]
@@ -25,12 +34,16 @@ public sealed class LargeLadSessionCoordinator : Component
 	public string CurrentMapName { get; private set; }
 
 	[Sync( SyncFlags.FromHost )]
-	public bool IsMapReady { get; private set; }
+	public LargeLadMapSessionState MapState { get; private set; } =
+		LargeLadMapSessionState.Unloaded;
+
+	public bool IsMapReady => MapState == LargeLadMapSessionState.Ready;
 
 	private Scene registeredScene;
 	private MapInstance subscribedMapInstance;
 	private string pendingReloadMapName;
 	private int unloadNotificationVersion;
+	private bool mapTransitionCleanupStarted;
 
 	protected override void OnEnabled()
 	{
@@ -68,12 +81,7 @@ public sealed class LargeLadSessionCoordinator : Component
 
 		if ( Networking.IsHost && string.IsNullOrWhiteSpace( CurrentMapName ) )
 		{
-			// Respect MapInstance's launch-selected map when enabled; otherwise the
-			// coordinator owns the authored startup selection.
-			var initialMapName = !string.IsNullOrWhiteSpace( MapInstance?.MapName )
-				? MapInstance.MapName
-				: StartupMap;
-			SelectMapName( initialMapName );
+			BeginLoadingMap( StartupMap );
 		}
 		else
 		{
@@ -83,8 +91,13 @@ public sealed class LargeLadSessionCoordinator : Component
 		// OnLoad can complete before this component reaches OnStart. This is a
 		// one-time lifecycle catch-up, not readiness polling; all later changes
 		// come directly from MapInstance callbacks.
-		if ( MapInstance?.IsLoaded == true && !IsMapReady )
+		if ( Networking.IsHost &&
+			MapInstance?.IsLoaded == true &&
+			!IsMapReady )
+		{
+			SetMapState( LargeLadMapSessionState.Loading );
 			HandleMapLoaded();
+		}
 	}
 
 	protected override void OnValidate()
@@ -108,20 +121,29 @@ public sealed class LargeLadSessionCoordinator : Component
 			selectedMapName,
 			StringComparison.OrdinalIgnoreCase ) )
 		{
+			if ( MapState == LargeLadMapSessionState.Failed )
+				ReloadCurrentMap();
+
 			return;
 		}
 
-		if ( MapInstance?.IsLoaded == true || IsMapReady )
+		if ( MapState == LargeLadMapSessionState.Unloading )
+		{
+			pendingReloadMapName = selectedMapName;
+			return;
+		}
+
+		if ( MapInstance?.IsLoaded == true ||
+			MapState != LargeLadMapSessionState.Unloaded )
 		{
 			pendingReloadMapName = selectedMapName;
 			var unloadedMapName = CurrentMapName;
-			SelectMapName( string.Empty );
 			UnloadSelectedMap( unloadedMapName );
 			return;
 		}
 
 		pendingReloadMapName = null;
-		SelectMapName( selectedMapName );
+		BeginLoadingMap( selectedMapName );
 	}
 
 	[Button( "Load Local Development Map" )]
@@ -136,9 +158,15 @@ public sealed class LargeLadSessionCoordinator : Component
 		if ( !CanControlMap() )
 			return;
 
+		if ( MapState == LargeLadMapSessionState.Unloaded &&
+			MapInstance?.IsLoaded != true &&
+			string.IsNullOrWhiteSpace( CurrentMapName ) )
+		{
+			return;
+		}
+
 		var unloadedMapName = CurrentMapName;
 		pendingReloadMapName = null;
-		SelectMapName( string.Empty );
 		UnloadSelectedMap( unloadedMapName );
 	}
 
@@ -156,25 +184,30 @@ public sealed class LargeLadSessionCoordinator : Component
 		// lets MapInstance perform a normal asynchronous replacement load.
 		pendingReloadMapName = CurrentMapName;
 		var unloadedMapName = CurrentMapName;
-		SelectMapName( string.Empty );
 		UnloadSelectedMap( unloadedMapName );
 	}
 
 	private void UnloadSelectedMap( string unloadedMapName )
 	{
+		SetMapState( LargeLadMapSessionState.Unloading );
+		BeginMapTransitionCleanup();
+
 		var unloadVersionBefore = unloadNotificationVersion;
 		var localSceneChildren = unloadedMapName?.EndsWith(
 			".scene",
 			StringComparison.OrdinalIgnoreCase ) == true
-			? GameObject.Children.ToArray()
+			? MapInstance.GameObject.Children.ToArray()
 			: null;
 
+		// State and gameplay are closed before clearing MapName because changing
+		// it can itself begin MapInstance's asynchronous unload.
+		SelectMapName( string.Empty );
 		MapInstance.UnloadMap();
 
 		// Snapshot-networked objects from a direct local .scene can be retained by
-		// MapInstance's client-snapshot safety check on a listen host. They were all
-		// captured as children of this MapInstance before unload, so finish removing
-		// only those local-development objects. Package maps need no adapter.
+		// MapInstance's client-snapshot safety check on a listen host. The dedicated
+		// map host has no persistent children, so this snapshot contains only map
+		// content. Package maps need no adapter.
 		if ( localSceneChildren is not null )
 		{
 			foreach ( var child in localSceneChildren )
@@ -197,8 +230,11 @@ public sealed class LargeLadSessionCoordinator : Component
 
 	internal void ResolveBootstrapReferences()
 	{
-		if ( !IsUsableBootstrapComponent( MapInstance ) )
-			MapInstance = Components.Get<MapInstance>();
+		if ( !IsUsableMapInstance( MapInstance ) )
+		{
+			MapInstance = GameObject.Components.Get<MapInstance>(
+				FindMode.EverythingInSelfAndDescendants );
+		}
 
 		if ( !IsUsableBootstrapComponent( GameManager ) )
 			GameManager = Components.Get<LargeLadGameManager>();
@@ -211,12 +247,23 @@ public sealed class LargeLadSessionCoordinator : Component
 
 		ResolveBootstrapReferences();
 
-		if ( string.IsNullOrWhiteSpace( CurrentMapName ) )
-			SelectMapName( MapInstance?.MapName );
+		if ( MapState != LargeLadMapSessionState.Loading ||
+			string.IsNullOrWhiteSpace( CurrentMapName ) )
+		{
+			Log.Warning(
+				$"Ignored a completed map load while the Large Lad session was " +
+				$"{MapState}." );
+			return;
+		}
 
-		IsMapReady = GameManager?.PrepareLoadedMap( this ) == true;
+		mapTransitionCleanupStarted = false;
+		var isReady = GameManager?.PrepareLoadedMap( this ) == true;
+		SetMapState(
+			isReady
+				? LargeLadMapSessionState.Ready
+				: LargeLadMapSessionState.Failed );
 
-		if ( IsMapReady )
+		if ( isReady )
 		{
 			Log.Info(
 				$"Large Lad map '{MapInstance.MapName}' is ready; the " +
@@ -236,23 +283,69 @@ public sealed class LargeLadSessionCoordinator : Component
 
 		if ( Networking.IsHost )
 		{
-			IsMapReady = false;
-			GameManager?.HandleMapUnloaded( this );
+			SetMapState( LargeLadMapSessionState.Unloading );
+			BeginMapTransitionCleanup();
 		}
 
 		Log.Info(
 			"Large Lad map content unloaded; the persistent session " +
 			"bootstrap remains active and round flow is closed." );
 
-		if ( !Networking.IsHost ||
-			string.IsNullOrWhiteSpace( pendingReloadMapName ) )
+		if ( !Networking.IsHost )
 		{
+			return;
+		}
+
+		if ( string.IsNullOrWhiteSpace( pendingReloadMapName ) )
+		{
+			SetMapState( LargeLadMapSessionState.Unloaded );
 			return;
 		}
 
 		var reloadMapName = pendingReloadMapName;
 		pendingReloadMapName = null;
-		SelectMapName( reloadMapName );
+		BeginLoadingMap( reloadMapName );
+	}
+
+	private void BeginLoadingMap( string mapName )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		var selectedMapName = mapName?.Trim() ?? string.Empty;
+
+		if ( string.IsNullOrWhiteSpace( selectedMapName ) )
+		{
+			SelectMapName( string.Empty );
+			SetMapState( LargeLadMapSessionState.Unloaded );
+			return;
+		}
+
+		// Loading is published before MapName because assigning MapName begins the
+		// built-in asynchronous load operation.
+		SetMapState( LargeLadMapSessionState.Loading );
+		SelectMapName( selectedMapName );
+	}
+
+	private void BeginMapTransitionCleanup()
+	{
+		if ( !Networking.IsHost || mapTransitionCleanupStarted )
+			return;
+
+		mapTransitionCleanupStarted = true;
+		GameManager?.HandleMapTransition( this );
+	}
+
+	private void SetMapState( LargeLadMapSessionState newState )
+	{
+		if ( !Networking.IsHost || MapState == newState )
+			return;
+
+		var oldState = MapState;
+		MapState = newState;
+		Log.Info(
+			$"Large Lad map session state changed from {oldState} to " +
+			$"{newState}." );
 	}
 
 	private void SelectMapName( string mapName )
@@ -354,5 +447,13 @@ public sealed class LargeLadSessionCoordinator : Component
 			component.IsValid &&
 			component.Scene == Scene &&
 			component.GameObject == GameObject;
+	}
+
+	private bool IsUsableMapInstance( MapInstance mapInstance )
+	{
+		return mapInstance is not null &&
+			mapInstance.IsValid &&
+			mapInstance.Scene == Scene &&
+			mapInstance.GameObject.Parent == GameObject;
 	}
 }

@@ -351,12 +351,12 @@ internal static class LargeLadSceneRegistry
 
 			if ( mapInstances.Count != 1 ||
 				manager.SessionCoordinator.MapInstance != mapInstances[0] ||
-				manager.SessionCoordinator.MapInstance.GameObject !=
+				manager.SessionCoordinator.MapInstance.GameObject.Parent !=
 					manager.GameObject )
 			{
 				issues.Add(
-					"LargeLadSessionCoordinator needs an active MapInstance on " +
-					"the same gameplay bootstrap object." );
+					"LargeLadSessionCoordinator needs an active MapInstance on a " +
+					"dedicated direct child of the gameplay bootstrap object." );
 			}
 		}
 
@@ -556,11 +556,12 @@ internal static class LargeLadSceneRegistry
 		}
 
 		if ( coordinator.MapInstance != mapInstances[0] ||
-			coordinator.MapInstance.GameObject != coordinator.GameObject )
+			coordinator.MapInstance.GameObject.Parent != coordinator.GameObject )
 		{
 			issues.Add(
 				"LargeLadSessionCoordinator needs an active MapInstance " +
-				"reference on the same gameplay bootstrap object." );
+				"reference on a dedicated direct child of the gameplay " +
+				"bootstrap object." );
 		}
 
 		return issues;
