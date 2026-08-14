@@ -74,8 +74,9 @@ part of this system.
 
 ## Batch C multiplayer lifecycle regression checklist
 
-Use a host plus one remote client in `Gym.scene` for engine/network lifecycle
-coverage that the pure rule tests cannot provide:
+Use a host plus one remote client through `game_shell.scene` (with Gym loaded by
+its `MapInstance`) for engine/network lifecycle coverage that the pure rule
+tests cannot provide:
 
 1. Duplicate the `Large Lad Gameplay Bootstrap` object. Confirm one blocking
    error names both bootstrap objects, no manager advances its phase, and neither
@@ -99,6 +100,35 @@ coverage that the pure rule tests cannot provide:
    match the role profile in both cases, including for a late joiner. Confirm the
    inventory is prepared once per `RespawnAs` (no duplicate core grants and no
    firearm entries for Large Lad or Minions).
+
+## Persistent session and map reload checklist
+
+1. Start `game_shell.scene` in Game Mode. Confirm the scene has exactly one
+   persistent bootstrap with one `LargeLadSessionCoordinator`, `MapInstance`,
+   `LargeLadGameManager`, `LargeLadSpawnAllocator`, and `NetworkHelper`. Confirm
+   Gym appears as children loaded beneath the map instance and contains none of
+   those session-global components itself.
+2. Wait for the `Large Lad map 'scenes/gym.scene' is ready` message. Confirm Gym
+   validation and generated Lobby points complete before any round can start.
+3. While the session is running, use `Unload Map` on the coordinator. Confirm
+   the unloaded callback reports that content is gone while the same bootstrap,
+   manager, network helper, coordinator, and connected player objects remain.
+   Confirm the phase is `WaitingForPlayers`, players are movement-locked,
+   carried exclusive/utility items are cleared through map-transition cleanup,
+   generated Lobby points are removed, and no round state advances.
+4. Use `Load Local Development Map`, or call the coordinator's `LoadMap` with
+   `scenes/gym.scene`. Confirm Gym reloads under the same bootstrap, spawn caches
+   rebuild, persistent players respawn as unassigned at the new Lobby positions,
+   readiness returns only after validation, and normal round flow resumes.
+5. Use `Reload Current Map` and confirm one unloaded callback followed by one
+   loaded callback with the same persistence and readiness behavior. Repeat on
+   a host plus remote client; the map instance must load the same content for the
+   joining client without duplicating networked map objects or session owners.
+6. As the package-path smoke test, set the coordinator's `Startup Map` to a valid
+   package ident, call its `LoadMap` with one, or enable `Use Map From Launch`
+   and launch with one. Confirm the synchronized coordinator selection drives
+   the built-in map download/mount/loading path on every peer and no Large Lad
+   package polling or secondary bootstrap appears.
 
 ## Role-based player collision multiplayer checklist
 

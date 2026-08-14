@@ -162,40 +162,6 @@
       "Children": []
     },
     {
-      "__guid": "6cf089b6-1220-4af4-91bd-b51b3e37c6b1",
-      "__version": 2,
-      "__Prefab": "prefabs/large_lad_gameplay.prefab",
-      "__PrefabInstancePatch": {
-        "AddedObjects": [],
-        "RemovedObjects": [],
-        "PropertyOverrides": [
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "4ec5f084-cef2-4cca-9d9d-3d3a4ba40ec5"
-            },
-            "Property": "Name",
-            "Value": "Gameplay Bootstrap"
-          },
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "4ec5f084-cef2-4cca-9d9d-3d3a4ba40ec5"
-            },
-            "Property": "Position",
-            "Value": "0,0,512"
-          }
-        ],
-        "MovedObjects": []
-      },
-      "__PrefabIdToInstanceId": {
-        "4ec5f084-cef2-4cca-9d9d-3d3a4ba40ec5": "6cf089b6-1220-4af4-91bd-b51b3e37c6b1",
-        "71d9cc78-bf50-49ca-95cc-aa5a3f7a4900": "d7aef31a-404d-4f17-8917-c780a18eea07",
-        "13a94fea-a2de-45da-beb8-61e564e6e245": "1747379a-18a2-4121-aec0-b8739e555ffb",
-        "6ba98835-269e-4ca8-95a4-06e9faf5db59": "8055cde1-8039-472c-8454-1adce225beec"
-      }
-    },
-    {
       "__guid": "154b2791-7962-4c4a-a531-02488cd73bf4",
       "__version": 2,
       "Flags": 0,

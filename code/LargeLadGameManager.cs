@@ -97,6 +97,9 @@ public sealed class LargeLadGameManager : Component
 	[Property]
 	public LargeLadSpawnAllocator SpawnAllocator { get; set; }
 
+	[Property]
+	public LargeLadSessionCoordinator SessionCoordinator { get; set; }
+
 	[Property, Group( "Debug Logging" ), Title( "Melee" )]
 	public bool EnableMeleeDebugLogging { get; set; } = false;
 
@@ -504,8 +507,12 @@ public sealed class LargeLadGameManager : Component
 		if ( !OwnsSceneGameplay() )
 			return;
 
-		SpawnAllocator?.ConfigureNetworkHelper( NetworkHelper );
-		ValidateMap( logResults: true, validateGeometry: true );
+		// MapInstance owns asynchronous startup; its callback prepares the map.
+		if ( SessionCoordinator?.IsMapReady == true )
+		{
+			SpawnAllocator?.ConfigureNetworkHelper( NetworkHelper );
+			ValidateMap( logResults: true, validateGeometry: true );
+		}
 	}
 
 	protected override void OnValidate()
@@ -584,10 +591,22 @@ public sealed class LargeLadGameManager : Component
 	/// </summary>
 	public IReadOnlyList<string> GetBlockingRoundSpawnIssues()
 	{
+		return GetBlockingRoundSpawnIssues( requireReadyMap: true );
+	}
+
+	private IReadOnlyList<string> GetBlockingRoundSpawnIssues(
+		bool requireReadyMap )
+	{
 		var issues = new List<string>();
 		ResolveBootstrapReferences();
 		issues.AddRange(
 			LargeLadSceneRegistry.GetRuntimeBootstrapIssues( Scene, this ) );
+
+		if ( requireReadyMap && SessionCoordinator?.IsMapReady != true )
+		{
+			issues.Add(
+				"No valid MapInstance map is ready for the persistent session." );
+		}
 
 		foreach ( var issue in validatedBlockingBootstrapIssues )
 		{
@@ -998,6 +1017,11 @@ public sealed class LargeLadGameManager : Component
 	protected override void OnUpdate()
 	{
 		if ( !Networking.IsHost || !OwnsSceneGameplay() )
+			return;
+
+		// Readiness is callback-authored by the session coordinator. While the
+		// map is absent, loading, unloading, or invalid, no round state advances.
+		if ( SessionCoordinator?.IsMapReady != true )
 			return;
 
 		var players = GetActivePlayerSnapshot();
@@ -1543,7 +1567,128 @@ public sealed class LargeLadGameManager : Component
 		if ( !IsUsableBootstrapComponent( SpawnAllocator ) )
 			SpawnAllocator = Components.Get<LargeLadSpawnAllocator>();
 
+		if ( !IsUsableBootstrapComponent( SessionCoordinator ) )
+			SessionCoordinator = Components.Get<LargeLadSessionCoordinator>();
+
 		SpawnAllocator?.ConfigureGameManager( this );
+	}
+
+	/// <summary>
+	/// Rebuilds the map-owned caches after MapInstance's loaded callback. Round
+	/// rules and validation remain manager policy; the coordinator owns the
+	/// resulting ready/not-ready state.
+	/// </summary>
+	internal bool PrepareLoadedMap(
+		LargeLadSessionCoordinator coordinator )
+	{
+		ResolveBootstrapReferences();
+
+		if ( !Networking.IsHost ||
+			!OwnsSceneGameplay() ||
+			coordinator is null ||
+			coordinator != SessionCoordinator )
+		{
+			return false;
+		}
+
+		SpawnAllocator?.InvalidateCandidateCache();
+		SpawnAllocator?.ConfigureNetworkHelper( NetworkHelper );
+		SpawnAllocator?.RebuildCandidatesAndRefreshLobbyPoints();
+		ValidateMap( logResults: true, validateGeometry: true );
+
+		if ( GetBlockingRoundSpawnIssues( requireReadyMap: false ).Count > 0 )
+			return false;
+
+		return TryPlacePlayersInLoadedMapLobby();
+	}
+
+	/// <summary>
+	/// Stops the active round transaction after MapInstance confirms the map is
+	/// gone. Players and session infrastructure persist, but inventories are
+	/// detached from departing pickup sources and every player is held until a
+	/// replacement map has validated and supplied Lobby positions.
+	/// </summary>
+	internal void HandleMapUnloaded(
+		LargeLadSessionCoordinator coordinator )
+	{
+		ResolveBootstrapReferences();
+
+		if ( !Networking.IsHost ||
+			coordinator is null ||
+			coordinator != SessionCoordinator )
+		{
+			return;
+		}
+
+		var players = GetActivePlayerSnapshot();
+
+		foreach ( var player in players )
+		{
+			player.CancelEatParticipationForLifecycle();
+			player.Health?.ClearPassiveRegenerationState();
+			player.NativeInventory?.HandleMapTransition( Scene );
+			player.SetPendingRespawnRole( LargeLadRole.Unassigned );
+			player.MovementLocked = true;
+		}
+
+		PhaseEndTime = 0.0f;
+		ResetSurvivalRoundTiming();
+		ResetLastSkinnyKidState();
+		Winner = LargeLadWinner.None;
+		barricadeDestructionAnnouncement = null;
+		timeSinceBarricadeDestructionAnnouncement = 0.0f;
+		waitingPlayerCount = players.Count;
+		playerReadyTimeRemaining = PlayerReadyDelay;
+		spawnFailureReported = false;
+		lobbyPlacedPlayers.Clear();
+		reportedSpawnAllocationFailures.Clear();
+		validatedBlockingBootstrapIssues.Clear();
+
+		// A map/session boundary is not a gameplay phase transition, so it
+		// deliberately bypasses the ordinary round transition table.
+		Phase = LargeLadRoundPhase.WaitingForPlayers;
+
+		SpawnAllocator?.InvalidateCandidateCache();
+		SpawnAllocator?.RefreshNetworkHelperLobbyPoints();
+	}
+
+	private bool TryPlacePlayersInLoadedMapLobby()
+	{
+		var players = GetActivePlayerSnapshot();
+
+		if ( players.Count == 0 )
+			return true;
+
+		var allocations = AllocateSpawnBatch(
+			LargeLadSpawnGroup.Lobby,
+			players );
+
+		if ( !LargeLadSpawnRules.HasCompleteBatchAllocation(
+			players,
+			allocations ) )
+		{
+			foreach ( var player in players )
+				player.MovementLocked = true;
+
+			Log.Error(
+				"Loaded-map Lobby placement failed before readiness: received " +
+				$"{allocations?.Count ?? 0}/{players.Count} required positions." );
+			return false;
+		}
+
+		lobbyPlacedPlayers.Clear();
+
+		foreach ( var player in players )
+		{
+			player.RespawnAs(
+				LargeLadRole.Unassigned,
+				allocations[player] );
+			lobbyPlacedPlayers.Add( player );
+		}
+
+		waitingPlayerCount = players.Count;
+		playerReadyTimeRemaining = PlayerReadyDelay;
+		return true;
 	}
 
 	private void ValidateSpawnGroup(

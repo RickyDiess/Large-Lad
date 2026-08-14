@@ -1,26 +1,63 @@
 # Large Lad scene-mapping guide
 
-`Assets/scenes/Gym.scene` is the current game-mode startup scene. A valid
-`StartupScene` is required because an empty setting falls back to the missing
-`start.scene`. Use normal editor Play for the scene that is currently open, and
-use Play in Game Mode when testing the configured startup flow. Make future maps
-by duplicating `Assets/scenes/template.scene`. Do not copy gameplay scripts
-between maps and do not add a second gameplay bootstrap.
+`Assets/scenes/game_shell.scene` is the game-mode startup scene. It contains the
+one persistent `Large Lad Gameplay Bootstrap`; its built-in `MapInstance` loads
+replaceable map content underneath that object. `Assets/scenes/Gym.scene` is the
+current proof map and local-development default. It contains geometry, spawns,
+pickups, passages, barricades, lighting, and other map-owned state, but no game
+manager, network helper, spawn allocator, session coordinator, or map instance.
+
+Use Play in Game Mode to test the configured shell flow. Playing a content scene
+directly is useful for mapping and visual inspection, but intentionally does not
+start a Large Lad session. Make future maps by duplicating
+`Assets/scenes/template.scene`. Do not add `large_lad_gameplay.prefab` or any
+session-global owner to a map-content scene.
+
+## Game shell and map-content boundary
+
+The persistent bootstrap owns exactly one `LargeLadSessionCoordinator`, built-in
+`MapInstance`, `NetworkHelper`, `LargeLadSpawnAllocator`, and
+`LargeLadGameManager`. The coordinator owns map selection, loading, unloading,
+the host-synchronized current map name, and the ready/not-ready gate.
+`MapInstance` itself owns asynchronous loading, package mounting, scene-map
+creation, and the loaded/unloaded callbacks; there is no Large Lad polling or
+package-loader layer. The local `.scene` adapter only finishes deleting the
+exact pre-unload `MapInstance` children that the engine's listen-host snapshot
+safety can retain, then closes the same readiness callback contract. Published
+package maps use the native callback/unload path directly.
+
+The game manager remains the owner of round state, transitions, timing, spawn
+contract validation, and player lifecycle. A loaded callback asks it to rebuild
+the map-owned spawn cache and validate the map. Only then can the coordinator
+mark the map ready. An unloaded callback immediately holds persistent players,
+uses the existing inventory map-transition cleanup, returns the round to its
+waiting state, invalidates map-owned spawn data, and disables player creation.
+No round timer or transition advances while a valid map is not ready.
+
+The coordinator's `Startup Map` and `LoadMap` accept a published package ident
+such as `organization.map_name`; that is the production map-selection path and
+uses the engine's automatic download/mount behavior. For local development,
+`Startup Map` and `Local Development Map` are currently
+`scenes/gym.scene`. The coordinator synchronizes its selected name from the host
+and passes either form directly to `MapInstance`. The bootstrap can also opt
+into `Use Map From Launch`; a launch-selected map takes precedence over the
+authored startup value.
 
 ## Starting a map
 
 1. Duplicate `template.scene` and give the copy a map-specific name.
-2. Keep its single `Large Lad Gameplay Bootstrap` prefab instance.
+2. Keep the scene content-only; it must not contain a gameplay bootstrap.
 3. Enter the editor's Mapping mode and build ordinary scene geometry.
 4. Place or duplicate the gameplay prefabs from `Assets/Prefabs/Gameplay`.
-5. Run the scene and resolve every `Map contract:` warning before testing it.
+5. Point the shell bootstrap coordinator's `Startup Map` or
+   `Local Development Map` at the new scene.
+6. Run through `game_shell.scene` and resolve every `Map contract:` warning.
 
-The bootstrap contains `NetworkHelper`, `LargeLadSpawnAllocator`, and one
-`LargeLadGameManager`. The game manager is the single owner of round state,
-transitions, minimum-player rules, timing, bootstrap references, and map
-validation. Its defaults are two minimum players, a 0.5-second player-ready
-delay, a 10-second head start, a 60-second survival timer, a 5-second
-intermission, and 5-second Large Lad and other-player respawn delays.
+The game manager's prefab defaults are two minimum players, a 0.5-second
+player-ready delay, a 10-second head start, a 60-second survival timer, a
+5-second intermission, and 5-second Large Lad and other-player respawn delays.
+Session-specific tuning belongs on the shell's one bootstrap instance, not in a
+map. The current shell retains Gym's development overrides.
 
 ## Team spawns
 
@@ -404,7 +441,10 @@ the Large Lad respawn timer.
 
 ## Preflight checklist
 
-- Exactly one gameplay bootstrap exists.
+- Exactly one gameplay bootstrap exists in `game_shell.scene`; the map-content
+  scene has none.
+- The shell's coordinator and `MapInstance` references target that same
+  bootstrap object, and map readiness is confirmed before round testing.
 - At least one team-spawn component exists for each group.
 - Configured capacities meet 32 Lobby, 31 Skinny Kid, and 32 Hunter.
 - Spawn circles produce clear floor positions and do not cross walls.

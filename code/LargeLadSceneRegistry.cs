@@ -13,6 +13,8 @@ internal static class LargeLadSceneRegistry
 	private sealed class SceneRegistrations
 	{
 		public readonly HashSet<LargeLadGameManager> Managers = new();
+		public readonly HashSet<LargeLadSessionCoordinator> SessionCoordinators =
+			new();
 		public readonly HashSet<LargeLadPlayer> Players = new();
 		public readonly HashSet<ILargeLadRoundResettable> Resettables = new();
 		public readonly Dictionary<NetworkHelper, GameObject>
@@ -43,6 +45,53 @@ internal static class LargeLadSceneRegistry
 		EnsureGameplayOwner( scene, registrations );
 	}
 
+	public static void RegisterSessionCoordinator(
+		Scene scene,
+		LargeLadSessionCoordinator coordinator )
+	{
+		if ( scene is null || !IsActiveInScene( coordinator, scene ) )
+			return;
+
+		var registrations = RegistrationsByScene.GetValue(
+			scene,
+			_ => new SceneRegistrations() );
+		Prune( scene, registrations );
+
+		if ( registrations.SessionCoordinators.Add( coordinator ) )
+			registrations.GameplayOwnershipDirty = true;
+
+		// A prefab's components enable in sequence. The manager registration will
+		// reconcile the complete active object without reporting a transient
+		// missing-manager error for the first component in that sequence.
+		if ( registrations.Managers.Count == 0 )
+			return;
+
+		EnsureGameplayOwner( scene, registrations );
+	}
+
+	public static void UnregisterSessionCoordinator(
+		Scene scene,
+		LargeLadSessionCoordinator coordinator )
+	{
+		if ( scene is null || coordinator is null ||
+			!RegistrationsByScene.TryGetValue( scene, out var registrations ) )
+		{
+			return;
+		}
+
+		if ( registrations.SessionCoordinators.Remove( coordinator ) )
+			registrations.GameplayOwnershipDirty = true;
+
+		if ( Game.IsClosing || !Game.IsPlaying || !scene.IsValid ||
+			IsBootstrapObjectTearingDown( coordinator ) )
+		{
+			ReleaseGameplayOwnerForTeardown( registrations );
+			return;
+		}
+
+		EnsureGameplayOwner( scene, registrations );
+	}
+
 	public static void UnregisterManager(
 		Scene scene,
 		LargeLadGameManager manager )
@@ -59,7 +108,8 @@ internal static class LargeLadSceneRegistry
 		// Play Mode tears components down before the scene itself is destroyed.
 		// Once the game is no longer actively playing, a missing manager is
 		// expected teardown rather than a broken live gameplay bootstrap.
-		if ( Game.IsClosing || !Game.IsPlaying || !scene.IsValid )
+		if ( Game.IsClosing || !Game.IsPlaying || !scene.IsValid ||
+			IsBootstrapObjectTearingDown( manager ) )
 		{
 			ReleaseGameplayOwnerForTeardown( registrations );
 			return;
@@ -218,6 +268,9 @@ internal static class LargeLadSceneRegistry
 		var helpers = GetActiveComponents<NetworkHelper>( scene );
 		var allocators =
 			GetActiveComponents<LargeLadSpawnAllocator>( scene );
+		var coordinators =
+			GetActiveComponents<LargeLadSessionCoordinator>( scene );
+		var mapInstances = GetActiveComponents<MapInstance>( scene );
 		var issues = new List<string>();
 
 		AddUniquenessIssue( issues, nameof( LargeLadGameManager ), managers );
@@ -226,6 +279,11 @@ internal static class LargeLadSceneRegistry
 			issues,
 			nameof( LargeLadSpawnAllocator ),
 			allocators );
+		AddUniquenessIssue(
+			issues,
+			nameof( LargeLadSessionCoordinator ),
+			coordinators );
+		AddUniquenessIssue( issues, nameof( MapInstance ), mapInstances );
 
 		if ( manager is null || managers.Count != 1 || managers[0] != manager )
 		{
@@ -265,6 +323,43 @@ internal static class LargeLadSceneRegistry
 				"bootstrap object." );
 		}
 
+		if ( manager.SessionCoordinator is null )
+		{
+			issues.Add(
+				"LargeLadGameManager needs its bootstrap " +
+				"LargeLadSessionCoordinator reference." );
+		}
+		else if ( coordinators.Count != 1 ||
+			coordinators[0] != manager.SessionCoordinator ||
+			manager.SessionCoordinator.GameObject != manager.GameObject )
+		{
+			issues.Add(
+				"LargeLadGameManager's LargeLadSessionCoordinator reference " +
+				"must target the sole active coordinator on the same gameplay " +
+				"bootstrap object." );
+		}
+		else
+		{
+			manager.SessionCoordinator.ResolveBootstrapReferences();
+
+			if ( manager.SessionCoordinator.GameManager != manager )
+			{
+				issues.Add(
+					"LargeLadSessionCoordinator must reference the sole game " +
+					"manager on its gameplay bootstrap object." );
+			}
+
+			if ( mapInstances.Count != 1 ||
+				manager.SessionCoordinator.MapInstance != mapInstances[0] ||
+				manager.SessionCoordinator.MapInstance.GameObject !=
+					manager.GameObject )
+			{
+				issues.Add(
+					"LargeLadSessionCoordinator needs an active MapInstance on " +
+					"the same gameplay bootstrap object." );
+			}
+		}
+
 		return issues;
 	}
 
@@ -279,6 +374,13 @@ internal static class LargeLadSceneRegistry
 		if ( registrations.Managers.Count != managerCount )
 			registrations.GameplayOwnershipDirty = true;
 
+		var coordinatorCount = registrations.SessionCoordinators.Count;
+		registrations.SessionCoordinators.RemoveWhere(
+			coordinator => !IsActiveInScene( coordinator, scene ) );
+
+		if ( registrations.SessionCoordinators.Count != coordinatorCount )
+			registrations.GameplayOwnershipDirty = true;
+
 		registrations.Players.RemoveWhere(
 			player => !IsActiveInScene( player, scene ) );
 		registrations.Resettables.RemoveWhere(
@@ -291,7 +393,7 @@ internal static class LargeLadSceneRegistry
 	{
 		if ( !registrations.GameplayOwnershipDirty )
 		{
-			if ( registrations.GameplayOwner is null ||
+			if ( registrations.GameplayOwner is not null &&
 				IsActiveInScene( registrations.GameplayOwner, scene ) )
 			{
 				return;
@@ -308,8 +410,31 @@ internal static class LargeLadSceneRegistry
 		SceneRegistrations registrations )
 	{
 		Prune( scene, registrations );
-		var candidate = registrations.Managers.Count == 1
-			? registrations.Managers.First()
+
+		// Component hotload and live inspector changes can produce an
+		// unregister/register gap without changing the scene itself. Rehydrate
+		// this scene's lifecycle cache during the explicit ownership audit so a
+		// still-active authored manager cannot leave a permanent null owner.
+		var activeManagers = GetActiveComponents<LargeLadGameManager>( scene );
+		registrations.Managers.Clear();
+		registrations.Managers.UnionWith( activeManagers );
+
+		// Scene shutdown can invalidate every component on the persistent object
+		// before Game.IsPlaying flips to false. An entirely absent bootstrap has
+		// no live NetworkHelper to suppress and is expected teardown. Any partial
+		// or duplicate bootstrap continues through the fail-closed audit below.
+		if ( activeManagers.Count == 0 &&
+			GetActiveComponents<LargeLadSessionCoordinator>( scene ).Count == 0 &&
+			GetActiveComponents<NetworkHelper>( scene ).Count == 0 &&
+			GetActiveComponents<LargeLadSpawnAllocator>( scene ).Count == 0 &&
+			GetActiveComponents<MapInstance>( scene ).Count == 0 )
+		{
+			ReleaseGameplayOwnerForTeardown( registrations );
+			return;
+		}
+
+		var candidate = activeManagers.Count == 1
+			? activeManagers[0]
 			: null;
 		var bootstrapIssues = GetRuntimeBootstrapIssues(
 			scene,
@@ -362,14 +487,33 @@ internal static class LargeLadSceneRegistry
 		LargeLadGameManager candidate )
 	{
 		var issues = new List<string>();
-		var managers = registrations.Managers
-			.Where( manager => IsActiveInScene( manager, scene ) )
-			.OrderBy( manager => manager.GameObject.Id )
-			.ThenBy( manager => manager.Id )
-			.ToList();
+		var managers = GetActiveComponents<LargeLadGameManager>( scene );
 		AddUniquenessIssue( issues, nameof( LargeLadGameManager ), managers );
+		// Bootstrap reconciliation is the explicit fail-closed uniqueness audit;
+		// enumerating here also makes component enable ordering atomic from the
+		// registry's point of view.
+		var coordinators =
+			GetActiveComponents<LargeLadSessionCoordinator>( scene );
+		var helpers = GetActiveComponents<NetworkHelper>( scene );
+		var allocators =
+			GetActiveComponents<LargeLadSpawnAllocator>( scene );
+		var mapInstances = GetActiveComponents<MapInstance>( scene );
+		AddUniquenessIssue(
+			issues,
+			nameof( LargeLadSessionCoordinator ),
+			coordinators );
+		AddUniquenessIssue( issues, nameof( NetworkHelper ), helpers );
+		AddUniquenessIssue(
+			issues,
+			nameof( LargeLadSpawnAllocator ),
+			allocators );
+		AddUniquenessIssue( issues, nameof( MapInstance ), mapInstances );
 
-		if ( managers.Count != 1 )
+		if ( managers.Count != 1 ||
+			coordinators.Count != 1 ||
+			helpers.Count != 1 ||
+			allocators.Count != 1 ||
+			mapInstances.Count != 1 )
 			return issues;
 
 		if ( candidate != managers[0] )
@@ -381,8 +525,10 @@ internal static class LargeLadSceneRegistry
 		}
 
 		candidate.ResolveBootstrapReferencesForRegistry();
+		var coordinator = coordinators[0];
+		coordinator.ResolveBootstrapReferences();
 
-		if ( !IsActiveInScene( candidate.NetworkHelper, scene ) ||
+		if ( candidate.NetworkHelper != helpers[0] ||
 			candidate.NetworkHelper.GameObject != candidate.GameObject )
 		{
 			issues.Add(
@@ -390,13 +536,31 @@ internal static class LargeLadSceneRegistry
 				"reference on the same gameplay bootstrap object." );
 		}
 
-		if ( !IsActiveInScene( candidate.SpawnAllocator, scene ) ||
+		if ( candidate.SpawnAllocator != allocators[0] ||
 			candidate.SpawnAllocator.GameObject != candidate.GameObject )
 		{
 			issues.Add(
 				"LargeLadGameManager needs an active bootstrap " +
 				"LargeLadSpawnAllocator reference on the same gameplay " +
 				"bootstrap object." );
+		}
+
+		if ( candidate.SessionCoordinator != coordinator ||
+			coordinator.GameManager != candidate ||
+			coordinator.GameObject != candidate.GameObject )
+		{
+			issues.Add(
+				"LargeLadGameManager and LargeLadSessionCoordinator must " +
+				"cross-reference each other on the same gameplay bootstrap " +
+				"object." );
+		}
+
+		if ( coordinator.MapInstance != mapInstances[0] ||
+			coordinator.MapInstance.GameObject != coordinator.GameObject )
+		{
+			issues.Add(
+				"LargeLadSessionCoordinator needs an active MapInstance " +
+				"reference on the same gameplay bootstrap object." );
 		}
 
 		return issues;
@@ -500,6 +664,13 @@ internal static class LargeLadSceneRegistry
 			component.IsValid &&
 			component.Enabled &&
 			component.Scene == scene;
+	}
+
+	private static bool IsBootstrapObjectTearingDown( Component component )
+	{
+		return component?.GameObject is null ||
+			!component.GameObject.IsValid ||
+			!component.GameObject.Enabled;
 	}
 
 	private static bool IsActiveInScene(

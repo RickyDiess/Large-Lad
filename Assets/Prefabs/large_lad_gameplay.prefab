@@ -41,6 +41,12 @@
         "OnComponentUpdate": null,
         "PlayerReadyDelay": 0.5,
         "PlayerRespawnDelay": 5,
+		"SessionCoordinator": {
+		  "_type": "component",
+		  "component_id": "dba8dd07-c638-458a-a652-179d91de1a05",
+		  "go": "4ec5f084-cef2-4cca-9d9d-3d3a4ba40ec5",
+		  "component_type": "LargeLadSessionCoordinator"
+		},
         "SkinnyKidRegenerationDelay": 5,
         "SkinnyKidRegenerationRate": 5,
         "MinionMovementMaximumMultiplier": 1.15,
@@ -64,6 +70,50 @@
         "OnComponentStart": null,
         "OnComponentUpdate": null
       },
+	  {
+		"__type": "LargeLadSessionCoordinator",
+		"__guid": "dba8dd07-c638-458a-a652-179d91de1a05",
+		"__enabled": true,
+		"Flags": 0,
+		"GameManager": {
+		  "_type": "component",
+		  "component_id": "6ba98835-269e-4ca8-95a4-06e9faf5db59",
+		  "go": "4ec5f084-cef2-4cca-9d9d-3d3a4ba40ec5",
+		  "component_type": "LargeLadGameManager"
+		},
+		"LocalDevelopmentMap": "scenes/gym.scene",
+		"StartupMap": "scenes/gym.scene",
+		"MapInstance": {
+		  "_type": "component",
+		  "component_id": "edca6724-d1f9-4701-a212-4ae4df243c02",
+		  "go": "4ec5f084-cef2-4cca-9d9d-3d3a4ba40ec5",
+		  "component_type": "MapInstance"
+		},
+		"OnComponentDestroy": null,
+		"OnComponentDisabled": null,
+		"OnComponentEnabled": null,
+		"OnComponentFixedUpdate": null,
+		"OnComponentStart": null,
+		"OnComponentUpdate": null
+	  },
+	  {
+		"__type": "Sandbox.MapInstance",
+		"__guid": "edca6724-d1f9-4701-a212-4ae4df243c02",
+		"__enabled": true,
+		"Flags": 0,
+		"EnableCollision": true,
+		"MapName": "",
+		"NoOrigin": false,
+		"OnComponentDestroy": null,
+		"OnComponentDisabled": null,
+		"OnComponentEnabled": null,
+		"OnComponentFixedUpdate": null,
+		"OnComponentStart": null,
+		"OnComponentUpdate": null,
+		"OnMapLoaded": null,
+		"OnMapUnloaded": null,
+		"UseMapFromLaunch": false
+	  },
       {
         "__type": "Sandbox.NetworkHelper",
         "__guid": "13a94fea-a2de-45da-beb8-61e564e6e245",
