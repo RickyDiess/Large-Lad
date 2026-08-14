@@ -1,9 +1,9 @@
 {
   "RootObject": {
-    "__guid": "d2b70001-0000-4000-8000-000000000001",
+    "__guid": "d2b70101-0000-4000-8000-000000000001",
     "__version": 2,
     "Flags": 0,
-    "Name": "native_pistol",
+    "Name": "native_smg",
     "Position": "0,0,0",
     "Rotation": "0,0,0,1",
     "Scale": "1,1,1",
@@ -17,15 +17,15 @@
     "Components": [
       {
         "__type": "LargeLadFirearm",
-        "__guid": "d2b70001-0000-4000-8000-000000000002",
+        "__guid": "d2b70101-0000-4000-8000-000000000002",
         "__enabled": true,
         "Flags": 0,
-        "AttackSound": "sound/vidya/weapons/pistol/pistol_shoot.sound",
+        "AttackSound": "sound/vidya/weapons/smg/smg_shoot.sound",
         "AutoReload": true,
         "Ballistics": {
-          "Damage": 100,
+          "Damage": 25,
           "Pellets": 1,
-          "Range": 1200,
+          "Range": 1000,
           "Radius": 0,
           "Force": 3000,
           "SpreadBase": "0,0",
@@ -33,14 +33,14 @@
           "SpreadRecovery": 0.2
         },
         "CanCancelReload": true,
-        "ClipMaxSize": 8,
+        "ClipMaxSize": 30,
         "DeployTime": 0.5,
         "DisplayIcon": null,
-        "DisplayName": "Pistol",
+        "DisplayName": "SMG",
         "DryFireSound": null,
-        "Handedness": "Right",
+        "Handedness": "Both",
         "HoldBone": "hold_R",
-        "HoldType": "pistol",
+        "HoldType": "rifle",
         "IncrementalReloading": false,
         "OnComponentDestroy": null,
         "OnComponentDisabled": null,
@@ -48,32 +48,32 @@
         "OnComponentFixedUpdate": null,
         "OnComponentStart": null,
         "OnComponentUpdate": null,
-		"PickupPolicy": "Core",
+        "PickupPolicy": "Core",
         "PreferredSlot": 1,
         "PrimaryAmmoType": null,
-        "PrimaryAutomatic": false,
-        "PrimaryDelay": 0.35,
-        "ReloadTime": 1.4,
+        "PrimaryAutomatic": true,
+        "PrimaryDelay": 0.09,
+        "ReloadTime": 2,
         "SecondaryAmmoType": null,
         "SecondaryAutomatic": false,
         "SecondaryClipSize": -1,
         "SecondaryDefaultClip": -1,
         "SecondaryDelay": 0.5,
-        "SlotOrder": 0,
+        "SlotOrder": 1,
         "SpreadScale": 1,
         "StartingAmmo": 0,
         "UsableByNpcs": false,
         "UsesAmmo": true,
         "UsesClips": true,
-        "Value": 10,
+        "Value": 20,
         "ViewModelPrefab": {
           "_type": "gameobject",
-          "prefab": "prefabs/gameplay/native_pistol_viewmodel.prefab"
+          "prefab": "prefabs/gameplay/native_smg_viewmodel.prefab"
         },
-        "WeaponId": "Pistol",
+        "WeaponId": "Smg",
         "WorldModelPrefab": {
           "_type": "gameobject",
-          "prefab": "prefabs/gameplay/native_pistol_worldmodel.prefab"
+          "prefab": "prefabs/gameplay/native_smg_worldmodel.prefab"
         }
       }
     ],
@@ -87,13 +87,6 @@
         "Enabled": false,
         "IncludeStaticBodies": true,
         "IncludeKeyframedBodies": true,
-        "EditorAutoUpdate": false,
-        "AgentHeight": 64,
-        "AgentRadius": 16,
-        "AgentStepSize": 18,
-        "AgentMaxSlope": 40,
-        "ExcludedBodies": "",
-        "IncludedBodies": "",
         "DeferGeneration": false,
         "CustomBounds": false
       }

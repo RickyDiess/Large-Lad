@@ -461,7 +461,8 @@ public sealed class LargeLadHud : Component
 			markerScale );
 
 		var center = new Vector2( centerX, centerY );
-		var definition = player.Inventory.EquippedDefinition;
+		var definition = LargeLadWeaponCatalog.Get(
+			player.EquippedWeapon );
 		var validAim = LargeLadAimResolver.TryResolveLocal(
 			player.Scene,
 			player.Scene.Camera,
@@ -759,13 +760,17 @@ public sealed class LargeLadHud : Component
 
 		if ( player.NativeInventory?.ActiveFirearm is LargeLadFirearm nativeFirearm )
 		{
-			DrawNativeFirearmStatus( hud, nativeFirearm, scale );
+			DrawNativeFirearmStatus(
+				hud,
+				player,
+				nativeFirearm,
+				scale );
 			return;
 		}
 
 		if ( !TryGetSelectionPresentation(
-			inventory,
-			inventory.ActiveSelection,
+			player,
+			player.ActiveInventorySelection,
 			out var displayName,
 			out var accent,
 			out var activeState,
@@ -817,15 +822,6 @@ public sealed class LargeLadHud : Component
 		}
 
 		var status = tag;
-		if ( isFirearm && inventory.IsReloading )
-		{
-			var reload =
-				$"RELOADING {FormatSeconds( inventory.ReloadTimeRemaining )}";
-			status = string.IsNullOrWhiteSpace( status )
-				? reload
-				: $"{status} / {reload}";
-		}
-
 		if ( !string.IsNullOrWhiteSpace( status ) )
 		{
 			DrawHudText(
@@ -843,11 +839,12 @@ public sealed class LargeLadHud : Component
 				BoldFontWeight );
 		}
 
-		DrawInventorySlotRail( hud, inventory, panel, scale );
+		DrawInventorySlotRail( hud, player, panel, scale );
 	}
 
 	private static void DrawNativeFirearmStatus(
 		HudPainter hud,
+		LargeLadPlayer player,
 		LargeLadFirearm firearm,
 		float scale )
 	{
@@ -873,9 +870,12 @@ public sealed class LargeLadHud : Component
 				24.0f * scale ),
 			TextFlag.LeftCenter | TextFlag.SingleLine,
 			BoldFontWeight );
+		DrawInventorySlotRail( hud, player, panel, scale );
 		DrawHudText(
 			hud,
-			$"{firearm.Clip1} / \u221E",
+			firearm.IsExclusive
+				? $"{firearm.Clip1} / {firearm.ExclusiveReserve}"
+				: $"{firearm.Clip1} / \u221E",
 			22.0f * scale,
 			16.0f * scale,
 			Color.White,
@@ -888,7 +888,11 @@ public sealed class LargeLadHud : Component
 			BoldFontWeight );
 		DrawHudText(
 			hud,
-			firearm.IsReloading ? "CORE / RELOADING" : "CORE",
+			firearm.IsReloading
+				? firearm.IsExclusive
+					? "EXCLUSIVE / RELOADING"
+					: "CORE / RELOADING"
+				: firearm.IsExclusive ? "EXCLUSIVE" : "CORE",
 			10.0f * scale,
 			8.0f * scale,
 			MutedTextColor,
@@ -903,11 +907,11 @@ public sealed class LargeLadHud : Component
 
 	private static void DrawInventorySlotRail(
 		HudPainter hud,
-		LargeLadInventory inventory,
+		LargeLadPlayer player,
 		Rect panel,
 		float scale )
 	{
-		var selectionCount = inventory.InventorySelectionCount;
+		var selectionCount = player.InventorySelectionCount;
 		if ( selectionCount <= 0 )
 			return;
 
@@ -921,9 +925,9 @@ public sealed class LargeLadHud : Component
 
 		for ( var index = 0; index < selectionCount; index++ )
 		{
-			if ( !inventory.TryGetInventorySelectionAt( index, out var selection ) ||
+			if ( !player.TryGetInventorySelectionAt( index, out var selection ) ||
 				!TryGetSelectionPresentation(
-					inventory,
+					player,
 					selection,
 					out _,
 					out var color,
@@ -934,7 +938,8 @@ public sealed class LargeLadHud : Component
 				continue;
 			}
 
-			var selected = inventory.ActiveSelection == selection;
+			var selected =
+				player.ActiveInventorySelection == selection;
 			var slot = new Rect(
 				railLeft + index * (slotWidth + gap),
 				slotTop,
@@ -971,7 +976,7 @@ public sealed class LargeLadHud : Component
 	}
 
 	private static bool TryGetSelectionPresentation(
-		LargeLadInventory inventory,
+		LargeLadPlayer player,
 		LargeLadInventorySelection selection,
 		out string displayName,
 		out Color color,
@@ -1004,7 +1009,7 @@ public sealed class LargeLadHud : Component
 			return true;
 		}
 
-		if ( !inventory.TryGetFirearmForSelection( selection, out state ) )
+		if ( !player.TryGetFirearmForSelection( selection, out state ) )
 			return false;
 
 		var firearm = LargeLadWeaponCatalog.Get( state.Weapon );
@@ -1120,10 +1125,11 @@ public sealed class LargeLadHud : Component
 		LargeLadPlayer player,
 		float scale )
 	{
-		var inventory = player.Inventory;
+		var message = player.NativeInventory?.HasPickupFeedback == true
+			? player.NativeInventory.PickupFeedback
+			: player.Inventory?.PickupFeedback;
 
-		if ( inventory?.HasPickupFeedback != true ||
-			string.IsNullOrWhiteSpace( inventory.PickupFeedback ) )
+		if ( string.IsNullOrWhiteSpace( message ) )
 		{
 			return;
 		}
@@ -1138,7 +1144,7 @@ public sealed class LargeLadHud : Component
 		DrawPanel( hud, panel, accent, scale );
 		DrawHudText(
 			hud,
-			inventory.PickupFeedback,
+			message,
 			15.0f * scale,
 			12.0f * scale,
 			Color.White,

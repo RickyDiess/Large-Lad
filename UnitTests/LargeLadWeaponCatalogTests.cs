@@ -329,7 +329,7 @@ public sealed class LargeLadWeaponPresentationDefinitionTests
 			new Angles( 0.0f, 180.0f, 0.0f ),
 			melee.ThirdPersonModelRotation );
 		Assert.AreEqual(
-			new Vector3( 4.0f, 0.0f, -3.5f ),
+			Vector3.Zero,
 			pistol.ThirdPersonModelPosition );
 		Assert.AreEqual( Angles.Zero, pistol.ThirdPersonModelRotation );
 		Assert.AreEqual( 1.0f, pistol.ThirdPersonModelScale );

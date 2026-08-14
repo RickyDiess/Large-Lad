@@ -86,6 +86,25 @@ public sealed class LargeLadMeleeCombat : Component
 			Log.Warning( $"{GameObject.Name}: aim-assist facing dot must be -1 to 1." );
 	}
 
+	internal bool CanNativeAttack( LargeLadMeleeWeapon weapon )
+	{
+		ResolveCachedReferences();
+
+		return !IsProxy &&
+			weapon?.IsAuthoritativelyHeldBy( cachedAttacker ) == true &&
+			CanAttack( cachedAttacker, cachedController );
+	}
+
+	internal bool TryRequestNativeAttack( LargeLadMeleeWeapon weapon )
+	{
+		if ( !CanNativeAttack( weapon ) )
+			return false;
+
+		nextOwnerSwingSequence++;
+		RequestMeleeAttack( nextOwnerSwingSequence );
+		return true;
+	}
+
 	[Rpc.Host( NetFlags.OwnerOnly )]
 	private void RequestMeleeAttack( int ownerSwingSequence )
 	{
@@ -108,6 +127,19 @@ public sealed class LargeLadMeleeCombat : Component
 		if ( !attacker.TryGetRoleProfile( attacker.Role, out var profile ) )
 			return;
 
+		var nativeWeapon = attacker.NativeInventory?.ActiveMelee;
+		var usesNativeMelee =
+			nativeWeapon?.IsAuthoritativelyHeldBy( attacker ) == true;
+		var cooldown = usesNativeMelee
+			? nativeWeapon.PrimaryDelay
+			: profile.MeleeCooldown;
+		var range = usesNativeMelee
+			? nativeWeapon.Ballistics.Range
+			: profile.MeleeRange;
+		var damage = usesNativeMelee
+			? nativeWeapon.Ballistics.Damage
+			: profile.MeleeDamage;
+
 		var hostNow = Time.Now;
 
 		if ( hasHostSwingSchedule &&
@@ -116,15 +148,19 @@ public sealed class LargeLadMeleeCombat : Component
 			return;
 		}
 
-		CommitHostCadence( profile.MeleeCooldown, hostNow );
-		attacker.WeaponPresentation?.BroadcastSwing();
+		CommitHostCadence( cooldown, hostNow );
+
+		// Native melee already broadcasts BaseWeaponModel/Citizen attack effects.
+		// Keep the legacy path only for Minions, which have not migrated yet.
+		if ( !usesNativeMelee )
+			attacker.WeaponPresentation?.BroadcastSwing();
 
 		var target = FindMeleeTarget(
 			attacker,
 			controller,
-			profile.MeleeRange,
+			range,
 			profile.MeleeAimAssist );
-		var result = ResolveAttack( attacker, target, profile.MeleeDamage );
+		var result = ResolveAttack( attacker, target, damage );
 		ReceiveMeleeResult( ownerSwingSequence, result );
 	}
 

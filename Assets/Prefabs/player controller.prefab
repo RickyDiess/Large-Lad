@@ -315,8 +315,7 @@
         "OnComponentEnabled": null,
         "OnComponentFixedUpdate": null,
         "OnComponentStart": null,
-        "OnComponentUpdate": null,
-        "SkinnyKidStartingCoreWeapons": []
+		"OnComponentUpdate": null
       },
 	  {
 		"__type": "LargeLadNativeInventory",
@@ -339,6 +338,7 @@
 		"PickupRadius": 48,
 		"StartingAmmo": [],
 		"StartingItems": [],
+		"SkinnyKidStartingCoreWeapons": [],
 		"UsesLoadout": false
 	  },
       {
@@ -941,7 +941,7 @@
             "BodyGroups": 5185,
             "BoneMergeTarget": null,
             "CreateAttachments": false,
-            "CreateBoneObjects": false,
+            "CreateBoneObjects": true,
             "LodOverride": null,
             "MaterialGroup": "default",
             "MaterialOverride": null,

@@ -77,10 +77,67 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 			LargeLadRole.LargeLad or LargeLadRole.Minion =>
 				LargeLadWeaponId.Melee,
 			LargeLadRole.SkinnyKid =>
-				NativeInventory?.ActiveFirearm?.WeaponId ??
-				Inventory?.EquippedWeapon ?? LargeLadWeaponId.None,
+				NativeInventory?.ActiveWeaponId ?? LargeLadWeaponId.None,
 			_ => LargeLadWeaponId.None
 		};
+
+	public LargeLadInventorySelection ActiveInventorySelection =>
+		NativeInventory?.ActiveItem is not null
+			? NativeInventory.ActiveItemSelection
+			: Inventory?.ActiveUtilitySelection ??
+				LargeLadInventorySelection.None;
+
+	public int InventorySelectionCount =>
+		(NativeInventory?.GetOrderedNativeItems().Count ?? 0) +
+		(Inventory?.HasUtility == true ? 1 : 0);
+
+	public bool TryGetInventorySelectionAt(
+		int index,
+		out LargeLadInventorySelection selection )
+	{
+		selection = LargeLadInventorySelection.None;
+		var items = NativeInventory?.GetOrderedNativeItems() ??
+			System.Array.Empty<BaseInventoryItem>();
+
+		if ( index >= 0 && index < items.Count )
+		{
+			selection = items[index] switch
+			{
+				LargeLadMeleeWeapon =>
+					LargeLadInventorySelection.ForRoleMelee(),
+				LargeLadFirearm firearm => firearm.ToInventorySelection(),
+				_ => LargeLadInventorySelection.None
+			};
+
+			return selection.Kind != LargeLadInventorySelectionKind.None;
+		}
+
+		if ( index == items.Count && Inventory?.HasUtility == true )
+		{
+			selection = LargeLadUtilityRules.SelectionFor(
+				Inventory.UtilityState );
+			return true;
+		}
+
+		return false;
+	}
+
+	public bool TryGetFirearmForSelection(
+		LargeLadInventorySelection selection,
+		out LargeLadWeaponState state )
+	{
+		state = default;
+
+		if ( NativeInventory?.TryGetFirearmForSelection(
+			selection,
+			out var firearm ) != true )
+		{
+			return false;
+		}
+
+		state = firearm.ToWeaponState();
+		return true;
+	}
 
 	[Sync( SyncFlags.FromHost ), Change( nameof( OnMovementLockedChanged ) )]
 	public bool MovementLocked { get; set; }
@@ -324,7 +381,7 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 			LargeLadEatParticipation.Victim
 			? System.Math.Clamp( movementMultiplier, 0.0f, 1.0f )
 			: 1.0f;
-		Inventory?.CancelConflictingActionForEat();
+		NativeInventory?.ActiveFirearm?.CancelReload();
 
 		if ( TryGetRoleProfile( Role, out var profile ) && !IsProxy )
 			ApplyLocalMovementSettings( profile );
@@ -421,9 +478,9 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 			BroadcastSameRoleRespawnProfile( role );
 		}
 
-		NativeInventory?.PrepareForRole( role );
-		Inventory?.PrepareForRole( role );
 		Health?.ResetForCurrentRole();
+		Inventory?.PrepareForRole( role );
+		NativeInventory?.PrepareForRole( role );
 
 		hasAuthoritativeTeleport = true;
 		timeSinceAuthoritativeTeleport = 0.0f;
@@ -860,6 +917,7 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 		if ( registeredScene is not null && registeredScene != Scene )
 		{
 			Inventory?.HandleMapTransition( registeredScene );
+			NativeInventory?.HandleMapTransition( registeredScene );
 			LargeLadSceneRegistry.UnregisterPlayer( registeredScene, this );
 		}
 

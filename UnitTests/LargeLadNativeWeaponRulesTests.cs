@@ -15,6 +15,41 @@ public sealed class LargeLadNativeWeaponRulesTests
 	}
 
 	[TestMethod]
+	public void CoreFirearmOrder_IsStableAndLeavesRoomForFutureWeapons()
+	{
+		Assert.AreEqual(
+			0,
+			LargeLadNativeWeaponRules.GetCoreFirearmSlotOrder(
+				LargeLadWeaponId.Pistol ) );
+		Assert.AreEqual(
+			1,
+			LargeLadNativeWeaponRules.GetCoreFirearmSlotOrder(
+				LargeLadWeaponId.Smg ) );
+	}
+
+	[TestMethod]
+	public void CoreFirearmPolicy_AllowsDifferentWeaponsButRejectsDuplicates()
+	{
+		var pistolOnly = new[] { LargeLadWeaponId.Pistol };
+
+		Assert.IsFalse( LargeLadNativeWeaponRules.CanAddCoreFirearm(
+			LargeLadWeaponId.Pistol,
+			pistolOnly ) );
+		Assert.IsTrue( LargeLadNativeWeaponRules.CanAddCoreFirearm(
+			LargeLadWeaponId.Smg,
+			pistolOnly ) );
+	}
+
+	[TestMethod]
+	public void ExclusiveFirearmPolicy_AllowsAtMostOneItem()
+	{
+		Assert.IsTrue(
+			LargeLadNativeWeaponRules.CanAddExclusiveFirearm( 0 ) );
+		Assert.IsFalse(
+			LargeLadNativeWeaponRules.CanAddExclusiveFirearm( 1 ) );
+	}
+
+	[TestMethod]
 	public void FirearmUse_RequiresLivingUnlockedSkinnyKidDuringPlaying()
 	{
 		Assert.IsTrue( LargeLadNativeWeaponRules.CanUseFirearm(

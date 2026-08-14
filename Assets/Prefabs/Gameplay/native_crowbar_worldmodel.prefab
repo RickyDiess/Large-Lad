@@ -1,9 +1,9 @@
 {
   "RootObject": {
-    "__guid": "d2b70003-0000-4000-8000-000000000001",
+    "__guid": "d2b70203-0000-4000-8000-000000000001",
     "__version": 2,
     "Flags": 0,
-    "Name": "native_pistol_worldmodel",
+    "Name": "native_crowbar_worldmodel",
     "Position": "0,0,0",
     "Rotation": "0,0,0,1",
     "Scale": "1,1,1",
@@ -17,18 +17,12 @@
     "Components": [
       {
         "__type": "Sandbox.BaseWeaponModel",
-        "__guid": "d2b70003-0000-4000-8000-000000000003",
+        "__guid": "d2b70203-0000-4000-8000-000000000003",
         "__enabled": true,
         "Flags": 0,
         "DeploySound": null,
-        "EjectBrass": {
-          "_type": "gameobject",
-          "prefab": "prefabs/effects/default_brasseject.prefab"
-        },
-        "MuzzleEffect": {
-          "_type": "gameobject",
-          "prefab": "prefabs/effects/default_muzzleflash.prefab"
-        },
+        "EjectBrass": null,
+        "MuzzleEffect": null,
         "MuzzleGameObject": null,
         "OnComponentDestroy": null,
         "OnComponentDisabled": null,
@@ -38,25 +32,22 @@
         "OnComponentUpdate": null,
         "Renderer": {
           "_type": "component",
-          "component_id": "d2b70003-0000-4000-8000-000000000002",
-          "go": "d2b70003-0000-4000-8000-000000000004",
+          "component_id": "d2b70203-0000-4000-8000-000000000002",
+          "go": "d2b70203-0000-4000-8000-000000000004",
           "component_type": "SkinnedModelRenderer"
         },
         "ShellEjectGameObject": null,
-        "TracerEffect": {
-          "_type": "gameobject",
-          "prefab": "prefabs/effects/default_tracer.prefab"
-        }
+        "TracerEffect": null
       }
     ],
     "Children": [
       {
-        "__guid": "d2b70003-0000-4000-8000-000000000004",
+        "__guid": "d2b70203-0000-4000-8000-000000000004",
         "__version": 2,
         "Flags": 0,
         "Name": "model",
-        "Position": "4,0,-3.5",
-        "Rotation": "0,0,0,1",
+        "Position": "1,0,-8",
+        "Rotation": "0,0,1,0",
         "Scale": "1,1,1",
         "Tags": "weapon",
         "Enabled": true,
@@ -68,19 +59,19 @@
         "Components": [
           {
             "__type": "Sandbox.SkinnedModelRenderer",
-            "__guid": "d2b70003-0000-4000-8000-000000000002",
+            "__guid": "d2b70203-0000-4000-8000-000000000002",
             "__enabled": true,
             "Flags": 0,
             "AnimationGraph": null,
-            "BodyGroups": 23,
+            "BodyGroups": 18446744073709551615,
             "BoneMergeTarget": null,
-            "CreateAttachments": true,
+            "CreateAttachments": false,
             "CreateBoneObjects": false,
             "LodOverride": null,
             "MaterialGroup": null,
             "MaterialOverride": null,
             "Materials": null,
-            "Model": "models/weapons/sbox_pistol_usp/w_usp.vmdl",
+            "Model": "models/weapons/sbox_melee_crowbar/w_crowbar.vmdl",
             "Morphs": {},
             "OnComponentDestroy": null,
             "OnComponentDisabled": null,
@@ -124,13 +115,6 @@
         "Enabled": false,
         "IncludeStaticBodies": true,
         "IncludeKeyframedBodies": true,
-        "EditorAutoUpdate": false,
-        "AgentHeight": 64,
-        "AgentRadius": 16,
-        "AgentStepSize": 18,
-        "AgentMaxSlope": 40,
-        "ExcludedBodies": "",
-        "IncludedBodies": "",
         "DeferGeneration": false,
         "CustomBounds": false
       }
@@ -143,7 +127,7 @@
   "MenuIcon": null,
   "DontBreakAsTemplate": false,
   "__references": [
-    "facepunch.w_usp#278999"
+    "facepunch.w_crowbar#144899"
   ],
   "__version": 2
 }

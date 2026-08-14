@@ -1134,7 +1134,10 @@ public sealed class LargeLadGameManager : Component
 		// Player-held exclusive and utility items are cleared before their
 		// authored pickups reset, so a reset can never create a second copy.
 		foreach ( var player in players )
+		{
 			player.Inventory?.ClearForRoundReset();
+			player.NativeInventory?.ClearForRoundReset();
+		}
 
 		ResetMapState();
 		ResetSurvivalRoundTiming();
@@ -1414,8 +1417,9 @@ public sealed class LargeLadGameManager : Component
 		}
 
 		player.CancelEatParticipationForLifecycle();
-		player.NativeInventory?.HandleDeath();
 		player.Inventory?.HandleDeath( player.GameObject.WorldPosition );
+		player.NativeInventory?.HandleDeath(
+			player.GameObject.WorldPosition );
 		player.SetPendingRespawnRole( plan.ResultingRole );
 		player.MovementLocked = true;
 
@@ -1648,6 +1652,7 @@ public sealed class LargeLadGameManager : Component
 		{
 			player.CancelEatParticipationForLifecycle();
 			player.Inventory?.HandleDisconnect();
+			player.NativeInventory?.HandleDisconnect();
 		}
 
 		activePlayers.Remove( player );

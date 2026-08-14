@@ -255,8 +255,9 @@ public sealed class LargeLadWeaponPresentation : Component
 	{
 		ResolveCachedReferences();
 
-		// The native firearm owns both models and the Citizen hold pose. Tear
-		// down legacy objects once, then stay completely out of its render path.
+		// The active native combat item owns both models and the Citizen hold
+		// pose. Tear down legacy objects once, then stay completely out of its
+		// render path.
 		if ( cachedPlayer?.NativeInventory?.HasNativeInputControl == true )
 		{
 			if ( !nativePresentationSuppressed )
@@ -492,7 +493,7 @@ public sealed class LargeLadWeaponPresentation : Component
 		var player = cachedPlayer;
 		var gameManager = GetGameManager();
 		ownedCamera = GetOwnedCamera();
-		var selection = player?.Inventory?.ActiveSelection ??
+		var selection = player?.ActiveInventorySelection ??
 			LargeLadInventorySelection.None;
 		var role = player?.Role ?? LargeLadRole.Unassigned;
 
@@ -509,7 +510,8 @@ public sealed class LargeLadWeaponPresentation : Component
 			IsLocalOwner = !IsProxy,
 			HasOwnedCamera = ownedCamera is not null,
 			IsThirdPersonCamera = cachedController?.ThirdPerson != false,
-			IsReloading = player?.Inventory?.IsReloading == true
+			IsReloading = player?.NativeInventory?.ActiveFirearm?
+				.IsReloading == true
 		};
 	}
 
@@ -1842,7 +1844,7 @@ public sealed class LargeLadWeaponPresentation : Component
 		TrySetFirstPersonParameter(
 			definition.EmptyAnimation,
 			LargeLadWeaponCatalog.IsFirearm( state.Weapon ) &&
-				(cachedPlayer?.Inventory?.EquippedMagazine <= 0 ||
+				(cachedPlayer?.NativeInventory?.ActiveFirearm?.Clip1 <= 0 ||
 					forceCockingReload) );
 		var isTwoHanded = definition.FirstPersonTwoHanded;
 		if ( LargeLadWeaponPresentationRules.IsDodgeballSelected( state ) &&

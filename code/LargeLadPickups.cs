@@ -107,7 +107,7 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 			return;
 		}
 
-		var inventory = player.Inventory;
+		var inventory = player.NativeInventory;
 
 		if ( inventory is null )
 			return;
@@ -116,7 +116,7 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 		{
 			// Duplicate ownership is rejected by the inventory. The authored
 			// pickup remains visible and available in either outcome.
-			if ( inventory.TryGrantCoreWeapon( Weapon ) )
+			if ( inventory.TryGrantCoreFirearm( Weapon ) )
 			{
 				LogPickupDebug(
 					$"{player.GameObject.Name} collected core {Weapon} from " +
@@ -126,7 +126,7 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 			return;
 		}
 
-		if ( inventory.HasExclusiveWeapon )
+		if ( inventory.HasExclusiveFirearm )
 		{
 			inventory.NotifyExclusiveSlotFull();
 			return;
@@ -146,7 +146,7 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 	}
 
 	internal bool TryDropFromCarrier(
-		LargeLadInventory carrier,
+		LargeLadNativeInventory carrier,
 		LargeLadWeaponState state,
 		Vector3 nearPosition,
 		Vector3 forward,
@@ -208,7 +208,7 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 	}
 
 	internal bool ReturnCarrierToOrigin(
-		LargeLadInventory carrier,
+		LargeLadNativeInventory carrier,
 		LargeLadWeaponState state )
 	{
 		if ( !Networking.IsHost ||
@@ -248,7 +248,7 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 	}
 
 	internal void ReleaseCarrierForRoundReset(
-		LargeLadInventory carrier )
+		LargeLadNativeInventory carrier )
 	{
 		if ( !Networking.IsHost ||
 			exclusiveInstance is null ||
@@ -278,12 +278,12 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 			return;
 		}
 
-		var inventory = player.Inventory;
+		var inventory = player.NativeInventory;
 
 		if ( inventory is null )
 			return;
 
-		if ( inventory.HasExclusiveWeapon )
+		if ( inventory.HasExclusiveFirearm )
 		{
 			inventory.NotifyExclusiveSlotFull();
 			return;
@@ -354,7 +354,7 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 	}
 
 	private void TryCollectExclusiveFromOrigin(
-		LargeLadInventory inventory )
+		LargeLadNativeInventory inventory )
 	{
 		if ( !Available ||
 			PickupPolicy != LargeLadPickupPolicy.Exclusive )
@@ -635,9 +635,9 @@ public sealed class LargeLadDroppedExclusiveWeapon : Component,
 			return;
 		}
 
-		if ( player.Inventory?.HasExclusiveWeapon == true )
+		if ( player.NativeInventory?.HasExclusiveFirearm == true )
 		{
-			player.Inventory.NotifyExclusiveSlotFull();
+			player.NativeInventory.NotifyExclusiveSlotFull();
 			return;
 		}
 

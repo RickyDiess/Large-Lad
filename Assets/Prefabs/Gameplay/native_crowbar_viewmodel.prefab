@@ -1,13 +1,13 @@
 {
   "RootObject": {
-    "__guid": "d2b70003-0000-4000-8000-000000000001",
+    "__guid": "d2b70202-0000-4000-8000-000000000001",
     "__version": 2,
     "Flags": 0,
-    "Name": "native_pistol_worldmodel",
+    "Name": "native_crowbar_viewmodel",
     "Position": "0,0,0",
     "Rotation": "0,0,0,1",
     "Scale": "1,1,1",
-    "Tags": "weapon",
+    "Tags": "viewmodel",
     "Enabled": true,
     "NetworkMode": 0,
     "NetworkFlags": 0,
@@ -16,19 +16,60 @@
     "OwnerTransfer": 0,
     "Components": [
       {
+        "__type": "Sandbox.SkinnedModelRenderer",
+        "__guid": "d2b70202-0000-4000-8000-000000000002",
+        "__enabled": true,
+        "Flags": 0,
+        "AnimationGraph": "models/weapons/sbox_melee_crowbar/v_crowbar.vanmgrph",
+        "BodyGroups": 18446744073709551615,
+        "BoneMergeTarget": null,
+        "CreateAttachments": false,
+        "CreateBoneObjects": false,
+        "LodOverride": null,
+        "MaterialGroup": null,
+        "MaterialOverride": null,
+        "Materials": null,
+        "Model": "models/weapons/sbox_melee_crowbar/v_crowbar.vmdl",
+        "Morphs": {},
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "Parameters": {
+          "bools": {},
+          "ints": {
+            "skeleton": 0
+          },
+          "floats": {},
+          "vectors": {},
+          "rotations": {}
+        },
+        "PlaybackRate": 1,
+        "RenderOptions": {
+          "GameLayer": true,
+          "OverlayLayer": true,
+          "BloomLayer": false,
+          "AfterUILayer": false
+        },
+        "RenderType": "On",
+        "Sequence": {
+          "Name": null,
+          "Looping": true,
+          "Blending": false
+        },
+        "Tint": "1,1,1,1",
+        "UseAnimGraph": true
+      },
+      {
         "__type": "Sandbox.BaseWeaponModel",
-        "__guid": "d2b70003-0000-4000-8000-000000000003",
+        "__guid": "d2b70202-0000-4000-8000-000000000003",
         "__enabled": true,
         "Flags": 0,
         "DeploySound": null,
-        "EjectBrass": {
-          "_type": "gameobject",
-          "prefab": "prefabs/effects/default_brasseject.prefab"
-        },
-        "MuzzleEffect": {
-          "_type": "gameobject",
-          "prefab": "prefabs/effects/default_muzzleflash.prefab"
-        },
+        "EjectBrass": null,
+        "MuzzleEffect": null,
         "MuzzleGameObject": null,
         "OnComponentDestroy": null,
         "OnComponentDisabled": null,
@@ -38,27 +79,24 @@
         "OnComponentUpdate": null,
         "Renderer": {
           "_type": "component",
-          "component_id": "d2b70003-0000-4000-8000-000000000002",
-          "go": "d2b70003-0000-4000-8000-000000000004",
+          "component_id": "d2b70202-0000-4000-8000-000000000002",
+          "go": "d2b70202-0000-4000-8000-000000000001",
           "component_type": "SkinnedModelRenderer"
         },
         "ShellEjectGameObject": null,
-        "TracerEffect": {
-          "_type": "gameobject",
-          "prefab": "prefabs/effects/default_tracer.prefab"
-        }
+        "TracerEffect": null
       }
     ],
     "Children": [
       {
-        "__guid": "d2b70003-0000-4000-8000-000000000004",
+        "__guid": "d2b70202-0000-4000-8000-000000000004",
         "__version": 2,
         "Flags": 0,
-        "Name": "model",
-        "Position": "4,0,-3.5",
+        "Name": "arms",
+        "Position": "0,0,0",
         "Rotation": "0,0,0,1",
         "Scale": "1,1,1",
-        "Tags": "weapon",
+        "Tags": "viewmodel",
         "Enabled": true,
         "NetworkMode": 0,
         "NetworkFlags": 0,
@@ -68,19 +106,24 @@
         "Components": [
           {
             "__type": "Sandbox.SkinnedModelRenderer",
-            "__guid": "d2b70003-0000-4000-8000-000000000002",
+            "__guid": "d2b70202-0000-4000-8000-000000000007",
             "__enabled": true,
             "Flags": 0,
             "AnimationGraph": null,
-            "BodyGroups": 23,
-            "BoneMergeTarget": null,
-            "CreateAttachments": true,
+            "BodyGroups": 1,
+            "BoneMergeTarget": {
+              "_type": "component",
+              "component_id": "d2b70202-0000-4000-8000-000000000002",
+              "go": "d2b70202-0000-4000-8000-000000000001",
+              "component_type": "SkinnedModelRenderer"
+            },
+            "CreateAttachments": false,
             "CreateBoneObjects": false,
             "LodOverride": null,
             "MaterialGroup": null,
             "MaterialOverride": null,
             "Materials": null,
-            "Model": "models/weapons/sbox_pistol_usp/w_usp.vmdl",
+            "Model": "models/first_person/v_first_person_arms_human.vmdl",
             "Morphs": {},
             "OnComponentDestroy": null,
             "OnComponentDisabled": null,
@@ -98,7 +141,7 @@
             "PlaybackRate": 1,
             "RenderOptions": {
               "GameLayer": true,
-              "OverlayLayer": false,
+              "OverlayLayer": true,
               "BloomLayer": false,
               "AfterUILayer": false
             },
@@ -124,13 +167,6 @@
         "Enabled": false,
         "IncludeStaticBodies": true,
         "IncludeKeyframedBodies": true,
-        "EditorAutoUpdate": false,
-        "AgentHeight": 64,
-        "AgentRadius": 16,
-        "AgentStepSize": 18,
-        "AgentMaxSlope": 40,
-        "ExcludedBodies": "",
-        "IncludedBodies": "",
         "DeferGeneration": false,
         "CustomBounds": false
       }
@@ -143,7 +179,8 @@
   "MenuIcon": null,
   "DontBreakAsTemplate": false,
   "__references": [
-    "facepunch.w_usp#278999"
+    "facepunch.v_crowbar#269283",
+    "facepunch.v_first_person_arms_human#205798"
   ],
   "__version": 2
 }

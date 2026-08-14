@@ -164,7 +164,7 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable,
 			FindMode.EverythingInSelfAndAncestors );
 
 		if ( victim is null || attacker is null || weapon is null ||
-			weapon.WeaponId != LargeLadWeaponId.Pistol ||
+			!LargeLadWeaponCatalog.IsFirearm( weapon.WeaponId ) ||
 			GetGameManager()?.Phase != LargeLadRoundPhase.Playing ||
 			!weapon.IsAuthoritativelyHeldBy( attacker ) ||
 			!LargeLadNativeWeaponRules.IsValidPlayerTarget(

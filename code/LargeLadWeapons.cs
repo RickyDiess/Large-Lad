@@ -430,12 +430,6 @@ public static class LargeLadWeaponCatalog
 		ThirdPersonWorldModelPath =
 			"models/weapons/sbox_pistol_usp/w_usp.vmdl",
 		ThirdPersonWorldModelPackageIdent = "facepunch/w_usp",
-		// hold_R sits at the wrist and slightly above the pistol's authored grip.
-		ThirdPersonModelPosition = new Vector3( 4.0f, 0.0f, -3.5f ),
-		ThirdPersonModelRotation = Angles.Zero,
-		// Keep the model at authored scale; the measured socket correction above
-		// only moves the grip into the hand.
-		ThirdPersonModelScale = 1.0f,
 		ThirdPersonHoldType = LargeLadThirdPersonHoldType.Pistol,
 		Grip = LargeLadWeaponGrip.RightHandedOneHanded,
 		DrawAnimation = "b_deploy",

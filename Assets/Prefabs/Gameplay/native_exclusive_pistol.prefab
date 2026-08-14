@@ -1,9 +1,9 @@
 {
   "RootObject": {
-    "__guid": "d2b70001-0000-4000-8000-000000000001",
+    "__guid": "d2b70301-0000-4000-8000-000000000001",
     "__version": 2,
     "Flags": 0,
-    "Name": "native_pistol",
+    "Name": "native_exclusive_pistol",
     "Position": "0,0,0",
     "Rotation": "0,0,0,1",
     "Scale": "1,1,1",
@@ -17,7 +17,7 @@
     "Components": [
       {
         "__type": "LargeLadFirearm",
-        "__guid": "d2b70001-0000-4000-8000-000000000002",
+        "__guid": "d2b70301-0000-4000-8000-000000000002",
         "__enabled": true,
         "Flags": 0,
         "AttackSound": "sound/vidya/weapons/pistol/pistol_shoot.sound",
@@ -48,8 +48,8 @@
         "OnComponentFixedUpdate": null,
         "OnComponentStart": null,
         "OnComponentUpdate": null,
-		"PickupPolicy": "Core",
-        "PreferredSlot": 1,
+        "PickupPolicy": "Exclusive",
+        "PreferredSlot": 2,
         "PrimaryAmmoType": null,
         "PrimaryAutomatic": false,
         "PrimaryDelay": 0.35,
@@ -65,7 +65,7 @@
         "UsableByNpcs": false,
         "UsesAmmo": true,
         "UsesClips": true,
-        "Value": 10,
+        "Value": 30,
         "ViewModelPrefab": {
           "_type": "gameobject",
           "prefab": "prefabs/gameplay/native_pistol_viewmodel.prefab"
@@ -83,20 +83,7 @@
       "TimeScale": 1,
       "WantsSystemScene": true,
       "Metadata": {},
-      "NavMesh": {
-        "Enabled": false,
-        "IncludeStaticBodies": true,
-        "IncludeKeyframedBodies": true,
-        "EditorAutoUpdate": false,
-        "AgentHeight": 64,
-        "AgentRadius": 16,
-        "AgentStepSize": 18,
-        "AgentMaxSlope": 40,
-        "ExcludedBodies": "",
-        "IncludedBodies": "",
-        "DeferGeneration": false,
-        "CustomBounds": false
-      }
+      "NavMesh": { "Enabled": false, "DeferGeneration": false, "CustomBounds": false }
     },
     "__variables": []
   },
