@@ -103,9 +103,9 @@ public sealed class LargeLadWeaponDefinitionValidationTests
 		Assert.IsTrue(
 			warnings.Any( warning => warning.Contains( "Damage" ) ) );
 		Assert.IsTrue(
-			warnings.Any( warning => warning.Contains( "First-person model" ) ) );
+			warnings.Any( warning => warning.Contains( "Pickup world model" ) ) );
 		Assert.IsTrue(
-			warnings.Any( warning => warning.Contains( "Fire sound" ) ) );
+			warnings.Any( warning => warning.Contains( "Native reload sound" ) ) );
 		Assert.IsTrue(
 			warnings.Any( warning => warning.Contains( "Muzzle attachment" ) ) );
 	}
@@ -191,38 +191,9 @@ public sealed class LargeLadWeaponDefinitionValidationTests
 			ReloadDuration = 1.0f,
 			Crosshair = LargeLadCrosshairStyle.FourSegment,
 			PickupColor = Color.White,
-			FirstPersonModelPath = "models/test/view.vmdl",
-			FirstPersonModelPackageIdent = "test/view",
-			FirstPersonArmsModelPath = "models/test/arms.vmdl",
-			FirstPersonArmsPackageIdent = "test/arms",
-			FirstPersonModelIncludesArms = false,
-			FirstPersonPositionOffset = Vector3.Zero,
-			FirstPersonRotationOffset = Angles.Zero,
-			FirstPersonModelScale = 1.0f,
-			FirstPersonUsesAnimGraph = true,
-			FirstPersonAnimationGraphPath = "models/test/view.vanmgrph",
-			FirstPersonSkeleton = 1,
 			ThirdPersonWorldModelPath = "models/test/world.vmdl",
-			ThirdPersonWorldModelPackageIdent = "test/world",
-			ThirdPersonModelPosition = Vector3.Zero,
-			ThirdPersonModelRotation = Angles.Zero,
-			ThirdPersonModelScale = 1.0f,
-			ThirdPersonHoldType = LargeLadThirdPersonHoldType.Rifle,
-			Grip = LargeLadWeaponGrip.RightHandedTwoHanded,
-			DrawAnimation = "draw",
-			IdleAnimation = "idle",
-			FireAnimation = "fire",
-			ReloadAnimation = "reload",
-			DryFireAnimation = "dry",
-			EmptyAnimation = "empty",
-			FireSoundPath = "sounds/test/fire.sound",
-			ReloadSoundPath = "sounds/test/reload.sound",
-			EmptySoundPath = "sounds/test/empty.sound",
-			DrawSoundPath = "sounds/test/draw.sound",
+			ReloadSoundPackageIdent = "test/reload",
 			MuzzleAttachment = "muzzle",
-			MuzzleEffectPrefabPath = "prefabs/test/muzzle.prefab",
-			ImpactEffectPrefabPath = "prefabs/test/impact.prefab",
-			ImpactEffectScale = 1.0f,
 			PelletCount = pelletCount,
 			PelletSpreadDegrees = pelletSpreadDegrees
 		};
@@ -297,117 +268,14 @@ public sealed class LargeLadExistingFirearmCompatibilityTests
 }
 
 [TestClass]
-public sealed class LargeLadWeaponPresentationDefinitionTests
+public sealed class LargeLadRemainingPresentationDefinitionTests
 {
-	[TestMethod]
-	public void PurposeBuiltArmsAndSkinnyKidMeleeModels_AreCatalogDriven()
-	{
-		var melee = LargeLadWeaponCatalog.Get( LargeLadWeaponId.Melee );
-		var pistol = LargeLadWeaponCatalog.Get( LargeLadWeaponId.Pistol );
-		var smg = LargeLadWeaponCatalog.Get( LargeLadWeaponId.Smg );
-
-		Assert.AreEqual(
-			"models/weapons/sbox_melee_crowbar/v_crowbar.vmdl",
-			melee.FirstPersonModelPath );
-		Assert.AreEqual(
-			"models/weapons/sbox_pistol_usp/v_usp.vmdl",
-			pistol.FirstPersonModelPath );
-		Assert.AreEqual(
-			"models/weapons/sbox_smg_mp5/v_mp5.vmdl",
-			smg.FirstPersonModelPath );
-		Assert.AreEqual(
-			"models/weapons/sbox_melee_crowbar/w_crowbar.vmdl",
-			melee.ThirdPersonWorldModelPath );
-		Assert.AreEqual(
-			"facepunch/w_crowbar",
-			melee.ThirdPersonWorldModelPackageIdent );
-		Assert.AreEqual( 1.0f, melee.ThirdPersonModelScale );
-		Assert.AreEqual(
-			new Vector3( 0.0f, 0.0f, -8.0f ),
-			melee.ThirdPersonModelPosition );
-		Assert.AreEqual(
-			new Angles( 0.0f, 180.0f, 0.0f ),
-			melee.ThirdPersonModelRotation );
-		Assert.AreEqual(
-			Vector3.Zero,
-			pistol.ThirdPersonModelPosition );
-		Assert.AreEqual( Angles.Zero, pistol.ThirdPersonModelRotation );
-		Assert.AreEqual( 1.0f, pistol.ThirdPersonModelScale );
-		Assert.AreEqual(
-			new Vector3( 3.0f, 0.0f, -7.0f ),
-			smg.ThirdPersonModelPosition );
-		Assert.AreEqual( Angles.Zero, smg.ThirdPersonModelRotation );
-		Assert.AreEqual( 1.0f, smg.ThirdPersonModelScale );
-		Assert.IsFalse( melee.FirstPersonModelIncludesArms );
-		Assert.IsFalse( pistol.FirstPersonModelIncludesArms );
-		Assert.IsFalse( smg.FirstPersonModelIncludesArms );
-		Assert.AreEqual(
-			melee.FirstPersonArmsModelPath,
-			smg.FirstPersonArmsModelPath );
-		Assert.IsFalse(
-			string.IsNullOrWhiteSpace( smg.FirstPersonArmsModelPath ) );
-		Assert.AreEqual(
-			"models/first_person/v_first_person_arms_human.vmdl",
-			melee.FirstPersonArmsModelPath );
-		Assert.AreEqual(
-			"facepunch/v_crowbar",
-			melee.FirstPersonModelPackageIdent );
-		Assert.IsTrue( melee.FirstPersonUsesAnimGraph );
-		Assert.AreEqual(
-			"models/weapons/sbox_melee_crowbar/v_crowbar.vanmgrph",
-			melee.FirstPersonAnimationGraphPath );
-		Assert.AreEqual(
-			"facepunch/v_first_person_arms_human",
-			melee.FirstPersonArmsPackageIdent );
-		Assert.AreEqual(
-			melee.FirstPersonArmsPackageIdent,
-			smg.FirstPersonArmsPackageIdent );
-		Assert.AreEqual( "facepunch/v_usp", pistol.FirstPersonModelPackageIdent );
-		Assert.AreEqual( "facepunch/v_mp5", smg.FirstPersonModelPackageIdent );
-		Assert.AreEqual( 0, melee.FirstPersonSkeleton );
-		Assert.AreEqual( 0, pistol.FirstPersonSkeleton );
-		Assert.AreEqual( 0, smg.FirstPersonSkeleton );
-		Assert.IsTrue( melee.FirstPersonTwoHanded );
-		Assert.IsFalse( pistol.FirstPersonTwoHanded );
-		Assert.IsTrue( smg.FirstPersonTwoHanded );
-		Assert.AreEqual(
-			LargeLadWeaponGrip.RightHandedOneHanded,
-			melee.Grip );
-		Assert.AreEqual(
-			LargeLadThirdPersonHoldType.Swing,
-			melee.ThirdPersonHoldType );
-		Assert.AreEqual(
-			LargeLadThirdPersonHoldType.Pistol,
-			pistol.ThirdPersonHoldType );
-		Assert.AreEqual(
-			LargeLadThirdPersonHoldType.Rifle,
-			smg.ThirdPersonHoldType );
-		Assert.IsTrue( pistol.FirstPersonUsesAnimGraph );
-		Assert.IsTrue( smg.FirstPersonUsesAnimGraph );
-		Assert.AreEqual( "vidya/pistol-shoot", pistol.FireSoundPackageIdent );
-		Assert.AreEqual( "vidya/smg-shoot", smg.FireSoundPackageIdent );
-		Assert.AreEqual(
-			"prefabs/effects/default_muzzleflash.prefab",
-			pistol.MuzzleEffectPrefabPath );
-		Assert.AreEqual(
-			pistol.MuzzleEffectPrefabPath,
-			smg.MuzzleEffectPrefabPath );
-		Assert.AreEqual( 0.25f, pistol.MuzzleEffectScale );
-		Assert.AreEqual( 0.25f, smg.MuzzleEffectScale );
-	}
-
 	[TestMethod]
 	public void DodgeballPresentation_RemainsASeparateHumanArmsUtility()
 	{
 		Assert.IsTrue( LargeLadUtilityPresentationCatalog.TryGet(
 			LargeLadUtilityId.Dodgeball,
 			out var dodgeball ) );
-		Assert.AreEqual(
-			"models/first_person/v_first_person_arms_human.vmdl",
-			dodgeball.FirstPersonArmsModelPath );
-		Assert.AreEqual(
-			"facepunch/v_first_person_arms_human",
-			dodgeball.FirstPersonArmsPackageIdent );
 		Assert.AreEqual( 0, dodgeball.FirstPersonSkeleton );
 		Assert.IsFalse( dodgeball.FirstPersonTwoHanded );
 		Assert.AreEqual(
@@ -419,12 +287,6 @@ public sealed class LargeLadWeaponPresentationDefinitionTests
 		Assert.AreEqual(
 			"models/dev/sphere.vmdl",
 			dodgeball.ThirdPersonWorldModelPath );
-		Assert.AreEqual(
-			LargeLadThirdPersonHoldType.HoldItem,
-			dodgeball.ThirdPersonHoldType );
-		Assert.AreEqual(
-			LargeLadWeaponGrip.RightHandedOneHanded,
-			dodgeball.ThirdPersonGrip );
 		Assert.AreEqual(
 			Vector3.Zero,
 			dodgeball.ThirdPersonModelPosition );

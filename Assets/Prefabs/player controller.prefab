@@ -253,12 +253,6 @@
           "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
           "component_type": "LargeLadHealth"
         },
-        "Inventory": {
-          "_type": "component",
-          "component_id": "c566b4c2-90b1-4bc8-87bb-94bf78e65549",
-          "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
-          "component_type": "LargeLadInventory"
-        },
 		"NativeInventory": {
 		  "_type": "component",
 		  "component_id": "a4bcd6f2-dcd8-4fe9-a0d9-6fb98a02f6f1",
@@ -272,25 +266,19 @@
           "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
           "component_type": "LargeLadMeleeCombat"
         },
-        "WeaponPresentation": {
-          "_type": "component",
-          "component_id": "4bb3c5ae-d748-4b8e-ada2-77094db073e8",
-          "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
-          "component_type": "LargeLadWeaponPresentation"
-        },
+		"AbilityPresentation": {
+		  "_type": "component",
+		  "component_id": "4bb3c5ae-d748-4b8e-ada2-77094db073e8",
+		  "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
+		  "component_type": "LargeLadRoleAbilityPresentation"
+		},
         "OnComponentDestroy": null,
         "OnComponentDisabled": null,
         "OnComponentEnabled": null,
         "OnComponentFixedUpdate": null,
         "OnComponentStart": null,
-        "OnComponentUpdate": null,
-        "PrototypeWeapon": {
-          "_type": "component",
-          "component_id": "7ab7d5da-c1ae-4c15-853e-30de38e3d5a2",
-          "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
-          "component_type": "LargeLadPrototypeWeapon"
-        },
-        "RoleProfiles": "gameplay/default_role_profiles.llroles"
+		"OnComponentUpdate": null,
+		"RoleProfiles": "gameplay/default_role_profiles.llroles"
       },
       {
         "__type": "LargeLadHealth",
@@ -304,18 +292,6 @@
         "OnComponentFixedUpdate": null,
         "OnComponentStart": null,
         "OnComponentUpdate": null
-      },
-      {
-        "__type": "LargeLadInventory",
-        "__guid": "c566b4c2-90b1-4bc8-87bb-94bf78e65549",
-        "__enabled": true,
-        "Flags": 0,
-        "OnComponentDestroy": null,
-        "OnComponentDisabled": null,
-        "OnComponentEnabled": null,
-        "OnComponentFixedUpdate": null,
-        "OnComponentStart": null,
-		"OnComponentUpdate": null
       },
 	  {
 		"__type": "LargeLadNativeInventory",
@@ -341,19 +317,6 @@
 		"SkinnyKidStartingCoreWeapons": [],
 		"UsesLoadout": false
 	  },
-      {
-        "__type": "LargeLadPrototypeWeapon",
-        "__guid": "7ab7d5da-c1ae-4c15-853e-30de38e3d5a2",
-        "__enabled": true,
-        "Flags": 0,
-		"EnableFireDebug": false,
-        "OnComponentDestroy": null,
-        "OnComponentDisabled": null,
-        "OnComponentEnabled": null,
-        "OnComponentFixedUpdate": null,
-        "OnComponentStart": null,
-        "OnComponentUpdate": null
-      },
 	  {
 		"__type": "Sandbox.ModelHitboxes",
 		"__guid": "4d645739-c1d7-4ebd-bd5e-c0542b74eef0",
@@ -391,15 +354,10 @@
         "SwingTraceRadius": 18
       },
       {
-        "__type": "LargeLadWeaponPresentation",
+		"__type": "LargeLadRoleAbilityPresentation",
         "__guid": "4bb3c5ae-d748-4b8e-ada2-77094db073e8",
         "__enabled": true,
         "Flags": 0,
-		"CrowbarAttackVariant": 0,
-		"CrowbarHandedness": "Right",
-		"CrowbarHandPose": 0,
-		"CrowbarHoldPose": 0,
-		"CrowbarHoldType": "Swing",
 		"DodgeballArmsScale": 0.72,
 		"DodgeballAttackPoseDuration": 0.65,
 		"DodgeballAttackVariant": 1,
@@ -417,28 +375,13 @@
 		"FistsModelScale": 0.78,
 		"FistsPositionOffset": "8,0,-10",
 		"FistsThirdPersonAttackVariant": 0,
-		"ForcePistolCockingReload": false,
-		"ForceSmgCockingReload": false,
-        "OnComponentDestroy": null,
+		"OnComponentDestroy": null,
         "OnComponentDisabled": null,
         "OnComponentEnabled": null,
         "OnComponentFixedUpdate": null,
         "OnComponentStart": null,
-		"OnComponentUpdate": null,
-		"PistolReloadSoundOverride": null,
-		"PistolAttackVariant": 0,
-		"PistolHandedness": "Right",
-		"PistolHandPose": 0,
-		"PistolHoldPose": 0,
-		"PistolHoldType": "Pistol",
-		"SmgAttackVariant": 0,
-		"SmgHandedness": "Both",
-		"SmgHandPose": 0,
-		"SmgHoldPose": 0,
-		"SmgHoldType": "Rifle",
-		"SmgReloadSoundOverride": null,
-		"SprintFirePoseDuration": 0.22
-      },
+		"OnComponentUpdate": null
+	  },
       {
         "__type": "LargeLadEatAttack",
         "__guid": "c60c2cbd-2bee-4b82-a6ce-f9ce97f124f4",

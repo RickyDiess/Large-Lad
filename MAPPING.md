@@ -355,12 +355,14 @@ replace it. Round reset destroys any runtime drop, restores the authored pickup,
 and alone restores a full magazine plus the catalog-defined `StartingReserve`.
 
 Skinny Kid starting loadouts are configured as a list of core weapon
-definitions on `LargeLadInventory`; they are not numeric slots. The HUD, direct
-slots, and scroll order are role melee, stable weapon-catalog core order, the
-carried exclusive firearm, and then the separately synchronized utility.
+definitions on `LargeLadNativeInventory`; they are not numeric slots. The HUD,
+direct slots, and scroll order are role melee, stable weapon-catalog core order,
+the carried exclusive firearm, and then the native slot-3 utility item.
 
 Author the utility with the `Large Lad/Pickups/Dodgeball` prefab. Each placement
-is exactly one stable physical ball and each Skinny Kid has one utility slot.
+is exactly one stable physical ball and each Skinny Kid has one native utility
+slot. A thin `LargeLadDodgeballItem` in that slot owns carried state and
+selection; the authored pickup remains the only physical ball.
 The prefab already supplies the visible model, solid ball collider, separate
 pickup trigger, Rigidbody with enhanced continuous collision detection, the
 `large_lad_dodgeball` vent-blocking tag, Network Mode `Object`, interpolation,

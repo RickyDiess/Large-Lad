@@ -387,7 +387,7 @@ public sealed class LargeLadHud : Component
 	{
 		if ( player.Health is null ||
 			player.Health.IsDead ||
-			player.Inventory is null ||
+			player.NativeInventory is null ||
 			player.EquippedWeapon == LargeLadWeaponId.None )
 		{
 			return;
@@ -547,13 +547,13 @@ public sealed class LargeLadHud : Component
 			return;
 		}
 
-		var weapon = player.PrototypeWeapon;
+		var weapon = player.NativeInventory?.ActiveFirearm;
 
 		if ( weapon?.HasConfirmedHitmarker != true )
 			return;
 
 		var center = new Vector2( Screen.Width * 0.5f, Screen.Height * 0.5f );
-		if ( weapon.LastShotResult == LargeLadShotResult.PlayerHeadshot )
+		if ( weapon.LastHitResult == LargeLadFirearmHitResult.PlayerHeadshot )
 		{
 			var headshotColor = new Color( 1.0f, 0.22f, 0.12f );
 			DrawDiagonalMarker(
@@ -579,7 +579,7 @@ public sealed class LargeLadHud : Component
 			return;
 		}
 
-		var color = weapon.LastShotResult == LargeLadShotResult.BarricadeHit
+		var color = weapon.LastHitResult == LargeLadFirearmHitResult.BarricadeHit
 			? new Color( 1.0f, 0.72f, 0.12f )
 			: Color.White;
 
@@ -744,7 +744,7 @@ public sealed class LargeLadHud : Component
 		LargeLadPlayer player,
 		float scale )
 	{
-		var inventory = player.Inventory;
+		var inventory = player.NativeInventory;
 
 		if ( player.Health?.IsDead != false )
 			return;
@@ -1125,9 +1125,7 @@ public sealed class LargeLadHud : Component
 		LargeLadPlayer player,
 		float scale )
 	{
-		var message = player.NativeInventory?.HasPickupFeedback == true
-			? player.NativeInventory.PickupFeedback
-			: player.Inventory?.PickupFeedback;
+		var message = player.NativeInventory?.PickupFeedback;
 
 		if ( string.IsNullOrWhiteSpace( message ) )
 		{

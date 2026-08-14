@@ -1135,7 +1135,6 @@ public sealed class LargeLadGameManager : Component
 		// authored pickups reset, so a reset can never create a second copy.
 		foreach ( var player in players )
 		{
-			player.Inventory?.ClearForRoundReset();
 			player.NativeInventory?.ClearForRoundReset();
 		}
 
@@ -1417,7 +1416,6 @@ public sealed class LargeLadGameManager : Component
 		}
 
 		player.CancelEatParticipationForLifecycle();
-		player.Inventory?.HandleDeath( player.GameObject.WorldPosition );
 		player.NativeInventory?.HandleDeath(
 			player.GameObject.WorldPosition );
 		player.SetPendingRespawnRole( plan.ResultingRole );
@@ -1651,7 +1649,6 @@ public sealed class LargeLadGameManager : Component
 		if ( Networking.IsHost )
 		{
 			player.CancelEatParticipationForLifecycle();
-			player.Inventory?.HandleDisconnect();
 			player.NativeInventory?.HandleDisconnect();
 		}
 

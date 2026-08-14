@@ -34,19 +34,13 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 	public LargeLadHealth Health { get; set; }
 
 	[Property, RequireComponent]
-	public LargeLadPrototypeWeapon PrototypeWeapon { get; set; }
-
-	[Property, RequireComponent]
-	public LargeLadInventory Inventory { get; set; }
-
-	[Property, RequireComponent]
 	public LargeLadNativeInventory NativeInventory { get; set; }
 
 	[Property, RequireComponent]
 	public LargeLadMeleeCombat MeleeCombat { get; set; }
 
 	[Property, RequireComponent]
-	public LargeLadWeaponPresentation WeaponPresentation { get; set; }
+	public LargeLadRoleAbilityPresentation AbilityPresentation { get; set; }
 
 	[Property, RequireComponent]
 	public LargeLadEatAttack EatAttack { get; set; }
@@ -82,14 +76,11 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 		};
 
 	public LargeLadInventorySelection ActiveInventorySelection =>
-		NativeInventory?.ActiveItem is not null
-			? NativeInventory.ActiveItemSelection
-			: Inventory?.ActiveUtilitySelection ??
-				LargeLadInventorySelection.None;
+		NativeInventory?.ActiveItemSelection ??
+			LargeLadInventorySelection.None;
 
 	public int InventorySelectionCount =>
-		(NativeInventory?.GetOrderedNativeItems().Count ?? 0) +
-		(Inventory?.HasUtility == true ? 1 : 0);
+		NativeInventory?.GetOrderedNativeItems().Count ?? 0;
 
 	public bool TryGetInventorySelectionAt(
 		int index,
@@ -106,17 +97,12 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 				LargeLadMeleeWeapon =>
 					LargeLadInventorySelection.ForRoleMelee(),
 				LargeLadFirearm firearm => firearm.ToInventorySelection(),
+				LargeLadDodgeballItem utility =>
+					utility.ToInventorySelection(),
 				_ => LargeLadInventorySelection.None
 			};
 
 			return selection.Kind != LargeLadInventorySelectionKind.None;
-		}
-
-		if ( index == items.Count && Inventory?.HasUtility == true )
-		{
-			selection = LargeLadUtilityRules.SelectionFor(
-				Inventory.UtilityState );
-			return true;
 		}
 
 		return false;
@@ -479,7 +465,6 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 		}
 
 		Health?.ResetForCurrentRole();
-		Inventory?.PrepareForRole( role );
 		NativeInventory?.PrepareForRole( role );
 
 		hasAuthoritativeTeleport = true;
@@ -916,7 +901,6 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 	{
 		if ( registeredScene is not null && registeredScene != Scene )
 		{
-			Inventory?.HandleMapTransition( registeredScene );
 			NativeInventory?.HandleMapTransition( registeredScene );
 			LargeLadSceneRegistry.UnregisterPlayer( registeredScene, this );
 		}

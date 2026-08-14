@@ -217,10 +217,16 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		"prefabs/gameplay/native_exclusive_pistol.prefab";
 	public const string NativeExclusiveSmgPrefabPath =
 		"prefabs/gameplay/native_exclusive_smg.prefab";
+	public const string NativeDodgeballItemPrefabPath =
+		"prefabs/gameplay/native_dodgeball_item.prefab";
 
 	private bool ownerWantsNativeControl;
+	private bool ownerWantsNativeCombatPresentation;
 	private TimeSince timeSinceNativeSelectionRequest;
 	private LargeLadWeaponPickup exclusiveSource;
+	private LargeLadDodgeballPickup utilitySource;
+	private int nextOwnerUtilityThrowRequestSequence;
+	private int lastHostUtilityThrowRequestSequence;
 	private string pickupFeedback;
 	private bool hasPickupFeedback;
 	private TimeSince timeSincePickupFeedback;
@@ -232,6 +238,8 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 	public LargeLadFirearm ActiveFirearm => ActiveItem as LargeLadFirearm;
 	public LargeLadMeleeWeapon ActiveMelee =>
 		ActiveItem as LargeLadMeleeWeapon;
+	public LargeLadDodgeballItem ActiveUtility =>
+		ActiveItem as LargeLadDodgeballItem;
 	public LargeLadWeaponId ActiveWeaponId =>
 		ActiveFirearm?.WeaponId ??
 		(ActiveMelee is not null
@@ -241,9 +249,13 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		ActiveFirearm?.ToInventorySelection() ??
 		(ActiveMelee is not null
 			? LargeLadInventorySelection.ForRoleMelee()
-			: LargeLadInventorySelection.None);
+			: ActiveUtility?.ToInventorySelection() ??
+				LargeLadInventorySelection.None);
 	public bool HasActiveNativeWeapon =>
 		ActiveItem is LargeLadFirearm or LargeLadMeleeWeapon;
+	public bool HasActiveNativeItem =>
+		ActiveItem is LargeLadFirearm or LargeLadMeleeWeapon or
+			LargeLadDodgeballItem;
 	public bool HasSkinnyKidMelee =>
 		GetSlotItems( LargeLadNativeWeaponRules.MeleeSlot )
 			.OfType<LargeLadMeleeWeapon>()
@@ -254,6 +266,17 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		GetSlotItems( LargeLadNativeWeaponRules.ExclusiveFirearmSlot )
 			.OfType<LargeLadFirearm>()
 			.Any();
+	public LargeLadDodgeballItem UtilityItem =>
+		GetSlotItems( LargeLadNativeWeaponRules.UtilitySlot )
+			.OfType<LargeLadDodgeballItem>()
+			.FirstOrDefault();
+	public LargeLadUtilityState UtilityState =>
+		UtilityItem?.ToUtilityState() ?? default;
+	public bool HasUtility =>
+		LargeLadUtilityRules.IsValidState( UtilityState );
+	public bool IsUtilityEquipped => ActiveUtility is not null;
+	public LargeLadUtilityId EquippedUtility =>
+		ActiveUtility?.UtilityId ?? LargeLadUtilityId.None;
 	public int NativeItemCount => Items.Count();
 	public bool HasPickupFeedback =>
 		hasPickupFeedback &&
@@ -266,7 +289,16 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 	/// prevents one input frame from also reaching the legacy melee/fire paths.
 	/// </summary>
 	public bool HasNativeInputControl =>
-		HasActiveNativeWeapon || (!IsProxy && ownerWantsNativeControl);
+		HasActiveNativeItem || (!IsProxy && ownerWantsNativeControl);
+
+	/// <summary>
+	/// Combat items use BaseCombatWeapon presentation. The native dodgeball item
+	/// deliberately does not: it keeps the existing utility arms and held-model
+	/// presentation while native inventory owns its selection.
+	/// </summary>
+	public bool HasNativeCombatPresentationControl =>
+		HasActiveNativeWeapon ||
+		(!IsProxy && ownerWantsNativeCombatPresentation);
 
 	protected override void OnAwake()
 	{
@@ -291,13 +323,14 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		if ( player?.IsEatBusy == true )
 			return;
 
-		if ( TryRouteInventoryInput( player?.Inventory ) )
+		if ( TryRouteInventoryInput() )
 			return;
 
 		if ( ownerWantsNativeControl &&
-			ActiveItem is null && timeSinceNativeSelectionRequest > 0.5f )
+			timeSinceNativeSelectionRequest > 0.5f )
 		{
 			ownerWantsNativeControl = false;
+			ownerWantsNativeCombatPresentation = false;
 		}
 
 		if ( HasNativeInputControl )
@@ -344,6 +377,13 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		{
 			return slot == LargeLadNativeWeaponRules.MeleeSlot &&
 				!HasSkinnyKidMelee &&
+				base.OnAdding( item, slot );
+		}
+
+		if ( item is LargeLadDodgeballItem )
+		{
+			return slot == LargeLadNativeWeaponRules.UtilitySlot &&
+				UtilityItem is null &&
 				base.OnAdding( item, slot );
 		}
 
@@ -415,13 +455,13 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 
 	/// <summary>
 	/// Player-facing flattening of the native buckets: melee, every Core
-	/// firearm by SlotOrder, then the exclusive firearm.
+	/// firearm by SlotOrder, the exclusive firearm, then utility.
 	/// </summary>
 	public IReadOnlyList<BaseInventoryItem> GetOrderedNativeItems()
 	{
 		return Items
 			.Where( item => item.Slot >= LargeLadNativeWeaponRules.MeleeSlot &&
-				item.Slot <= LargeLadNativeWeaponRules.ExclusiveFirearmSlot )
+				item.Slot <= LargeLadNativeWeaponRules.UtilitySlot )
 			.OrderBy( item => item.Slot )
 			.ThenBy( item => item.SlotOrder )
 			.ToArray();
@@ -533,6 +573,54 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		return true;
 	}
 
+	internal bool CanAcceptUtility(
+		LargeLadDodgeballPickup source,
+		LargeLadUtilityState state,
+		bool pickupAvailable )
+	{
+		var player = Components.Get<LargeLadPlayer>();
+
+		return Networking.IsHost &&
+			player?.IsEatBusy != true &&
+			source is not null &&
+			source.IsValid &&
+			LargeLadUtilityRules.CanAccept(
+				player?.Role ?? LargeLadRole.Unassigned,
+				player?.Health?.IsDead != false,
+				HasUtility,
+				pickupAvailable,
+				state );
+	}
+
+	internal bool TryGrantUtility(
+		LargeLadDodgeballPickup source,
+		LargeLadUtilityState state )
+	{
+		if ( !CanAcceptUtility(
+			source,
+			state,
+			pickupAvailable: true ) )
+		{
+			return false;
+		}
+
+		var item = Pickup(
+			NativeDodgeballItemPrefabPath,
+			LargeLadNativeWeaponRules.UtilitySlot ) as
+			LargeLadDodgeballItem;
+
+		if ( item is null )
+			return false;
+
+		item.InitializeState( state );
+		utilitySource = source;
+
+		if ( ActiveItem is null or LargeLadMeleeWeapon )
+			SelectUtility();
+
+		return true;
+	}
+
 	public bool TryGrantNativePistol()
 	{
 		return TryGrantCoreFirearm( LargeLadWeaponId.Pistol );
@@ -547,8 +635,7 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		if ( melee is null )
 			return false;
 
-		ownerWantsNativeControl = true;
-		timeSinceNativeSelectionRequest = 0.0f;
+		BeginOwnerSelectionHandoff( combatPresentation: true );
 		Switch( melee );
 		return true;
 	}
@@ -561,8 +648,7 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		if ( firearm is null )
 			return false;
 
-		ownerWantsNativeControl = true;
-		timeSinceNativeSelectionRequest = 0.0f;
+		BeginOwnerSelectionHandoff( combatPresentation: true );
 		Switch( firearm );
 		return true;
 	}
@@ -588,8 +674,7 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		if ( firearm is null )
 			return false;
 
-		ownerWantsNativeControl = true;
-		timeSinceNativeSelectionRequest = 0.0f;
+		BeginOwnerSelectionHandoff( combatPresentation: true );
 		Switch( firearm );
 		return true;
 	}
@@ -601,6 +686,9 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 
 		if ( item is LargeLadMeleeWeapon )
 			return SelectMelee();
+
+		if ( item is LargeLadDodgeballItem )
+			return SelectUtility();
 
 		if ( item is not LargeLadFirearm firearm )
 			return false;
@@ -615,15 +703,28 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		return SelectCoreFirearm( LargeLadWeaponId.Pistol );
 	}
 
+	public bool SelectUtility()
+	{
+		var utility = UtilityItem;
+		var player = Components.Get<LargeLadPlayer>();
+
+		if ( utility is null ||
+			player?.IsEatBusy == true ||
+			!LargeLadUtilityRules.CanUseUtility(
+				player?.Role ?? LargeLadRole.Unassigned,
+				player?.Health?.IsDead != false ) )
+		{
+			return false;
+		}
+
+		BeginOwnerSelectionHandoff( combatPresentation: false );
+		Switch( utility );
+		return true;
+	}
+
 	public void HolsterNativeWeapon()
 	{
 		SelectMelee();
-	}
-
-	public void HolsterForUtility()
-	{
-		ownerWantsNativeControl = false;
-		Switch( null, allowHolster: true );
 	}
 
 	public bool RemoveExclusiveFirearm()
@@ -643,12 +744,16 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		if ( !Networking.IsHost )
 			return;
 
+		ReleaseUtilityForLifecycle(
+			GameObject.WorldPosition,
+			preferForward: false );
 		ReleaseExclusiveForLifecycle(
 			GameObject.WorldPosition,
 			preferForward: false );
 		ClearNativeItems();
 		exclusiveSource = null;
-		ownerWantsNativeControl = false;
+		utilitySource = null;
+		ResetOwnerSelectionHandoff();
 
 		if ( role != LargeLadRole.SkinnyKid )
 			return;
@@ -672,12 +777,16 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		if ( !Networking.IsHost )
 			return;
 
+		ReleaseUtilityForLifecycle(
+			dropPosition,
+			preferForward: false );
 		ReleaseExclusiveForLifecycle(
 			dropPosition,
 			preferForward: false );
 		ClearNativeItems();
 		exclusiveSource = null;
-		ownerWantsNativeControl = false;
+		utilitySource = null;
+		ResetOwnerSelectionHandoff();
 	}
 
 	internal void HandleDisconnect()
@@ -685,12 +794,16 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		if ( !Networking.IsHost )
 			return;
 
+		ReleaseUtilityForLifecycle(
+			GameObject.WorldPosition,
+			preferForward: false );
 		ReleaseExclusiveForLifecycle(
 			GameObject.WorldPosition,
 			preferForward: false );
 		ClearNativeItems();
 		exclusiveSource = null;
-		ownerWantsNativeControl = false;
+		utilitySource = null;
+		ResetOwnerSelectionHandoff();
 	}
 
 	internal void ClearForRoundReset()
@@ -698,10 +811,12 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		if ( !Networking.IsHost )
 			return;
 
+		ResolveUtilitySource()?.ReleaseCarrierForRoundReset( this );
 		ResolveExclusiveSource()?.ReleaseCarrierForRoundReset( this );
 		ClearNativeItems();
 		exclusiveSource = null;
-		ownerWantsNativeControl = false;
+		utilitySource = null;
+		ResetOwnerSelectionHandoff();
 	}
 
 	internal void HandleMapTransition( Scene departingScene )
@@ -716,9 +831,17 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 				GetExclusiveState() );
 		}
 
+		if ( HasUtility )
+		{
+			ResolveUtilitySource( departingScene )?.ReturnCarrierToOrigin(
+				this,
+				UtilityState );
+		}
+
 		ClearNativeItems();
 		exclusiveSource = null;
-		ownerWantsNativeControl = false;
+		utilitySource = null;
+		ResetOwnerSelectionHandoff();
 	}
 
 	internal void NotifyExclusiveSlotFull()
@@ -728,6 +851,30 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 			ReceivePickupFeedback(
 				"You can only carry one exclusive weapon." );
 		}
+	}
+
+	internal void NotifyUtilitySlotFull()
+	{
+		if ( Networking.IsHost )
+		{
+			ReceivePickupFeedback(
+				"You can only carry one utility item." );
+		}
+	}
+
+	internal void HandleUtilitySourceDestroyed(
+		LargeLadDodgeballPickup source )
+	{
+		if ( !Networking.IsHost ||
+			source is null ||
+			!HasUtility ||
+			source.UtilityInstanceId != UtilityState.InstanceId )
+		{
+			return;
+		}
+
+		RemoveUtilityItem();
+		SelectMelee();
 	}
 
 	[Rpc.Host( NetFlags.OwnerOnly )]
@@ -780,6 +927,124 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		return true;
 	}
 
+	internal void RequestThrowSelectedUtilityFromOwner(
+		LargeLadDodgeballItem item )
+	{
+		if ( item is null || item != ActiveUtility )
+			return;
+
+		Components.Get<LargeLadPlayer>()?
+			.AbilityPresentation?
+			.TriggerPredictedUtilityUse();
+		nextOwnerUtilityThrowRequestSequence++;
+		RequestThrowSelectedUtility(
+			nextOwnerUtilityThrowRequestSequence );
+	}
+
+	[Rpc.Host( NetFlags.OwnerOnly )]
+	private void RequestDropSelectedUtility()
+	{
+		if ( TryDropSelectedUtility() )
+			return;
+
+		ReceivePickupFeedback(
+			"No safe place to drop the dodgeball." );
+	}
+
+	internal bool TryDropSelectedUtility()
+	{
+		var player = Components.Get<LargeLadPlayer>();
+		var state = UtilityState;
+
+		if ( !Networking.IsHost ||
+			player?.IsEatBusy == true ||
+			!LargeLadUtilityRules.CanDrop(
+				isHost: true,
+				ownerRequest: true,
+				player?.Role ?? LargeLadRole.Unassigned,
+				player?.Health?.IsDead != false,
+				state,
+				ActiveItemSelection ) ||
+			ResolveUtilitySource() is not
+				LargeLadDodgeballPickup source )
+		{
+			return false;
+		}
+
+		var controller = Components.Get<PlayerController>();
+		var forward = controller?.EyeTransform.Rotation.Forward ??
+			GameObject.WorldRotation.Forward;
+
+		if ( !source.TryDropFromCarrier(
+			this,
+			state,
+			GameObject.WorldPosition,
+			forward ) )
+		{
+			return false;
+		}
+
+		RemoveUtilityItem();
+		SelectMelee();
+		return true;
+	}
+
+	[Rpc.Host( NetFlags.OwnerOnly )]
+	private void RequestThrowSelectedUtility( int ownerRequestSequence )
+	{
+		if ( !Networking.IsHost ||
+			ownerRequestSequence <= lastHostUtilityThrowRequestSequence )
+		{
+			return;
+		}
+
+		lastHostUtilityThrowRequestSequence = ownerRequestSequence;
+		TryThrowSelectedUtility();
+	}
+
+	internal bool TryThrowSelectedUtility()
+	{
+		var player = Components.Get<LargeLadPlayer>();
+		var state = UtilityState;
+
+		if ( !Networking.IsHost ||
+			player?.IsEatBusy == true ||
+			!LargeLadUtilityRules.CanDrop(
+				isHost: true,
+				ownerRequest: true,
+				player?.Role ?? LargeLadRole.Unassigned,
+				player?.Health?.IsDead != false,
+				state,
+				ActiveItemSelection ) ||
+			ResolveUtilitySource() is not
+				LargeLadDodgeballPickup source )
+		{
+			return false;
+		}
+
+		var controller = Components.Get<PlayerController>();
+		if ( controller is null )
+			return false;
+
+		var eye = controller.EyeTransform;
+		var inheritedVelocity = controller.Body?.Velocity ?? Vector3.Zero;
+
+		if ( !source.TryThrowFromCarrier(
+			this,
+			state,
+			eye.Position,
+			eye.Rotation.Forward,
+			inheritedVelocity ) )
+		{
+			return false;
+		}
+
+		player.AbilityPresentation?.BroadcastUtilityUse();
+		RemoveUtilityItem();
+		SelectMelee();
+		return true;
+	}
+
 	[Rpc.Owner( NetFlags.HostOnly )]
 	private void ReceivePickupFeedback( string message )
 	{
@@ -788,7 +1053,7 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		timeSincePickupFeedback = 0.0f;
 	}
 
-	private bool TryRouteInventoryInput( LargeLadInventory utilityInventory )
+	private bool TryRouteInventoryInput()
 	{
 		for ( var index = 0;
 			index < DirectSelectionActions.Length;
@@ -797,7 +1062,7 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 			if ( !Input.Pressed( DirectSelectionActions[index] ) )
 				continue;
 
-			TrySelectLogicalInventoryIndex( index, utilityInventory );
+			TrySelectLogicalInventoryIndex( index );
 			return true;
 		}
 
@@ -808,19 +1073,13 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 			var items = GetOrderedNativeItems();
 			var direction = Input.MouseWheel.y > 0.0f ||
 				Input.Pressed( "SlotPrev" ) ? -1 : 1;
-			var utilitySelected =
-				utilityInventory?.IsUtilityEquipped == true;
-			var current = utilitySelected
-				? items.Count
-				: items.ToList().IndexOf( ActiveItem );
-			var selectionCount = items.Count +
-				(utilityInventory?.HasUtility == true ? 1 : 0);
+			var current = items.ToList().IndexOf( ActiveItem );
 			var target = LargeLadInventoryRules.GetCycledIndex(
 				current,
-				selectionCount,
+				items.Count,
 				direction );
 
-			TrySelectLogicalInventoryIndex( target, utilityInventory );
+			TrySelectLogicalInventoryIndex( target );
 
 			return true;
 		}
@@ -829,8 +1088,8 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		{
 			if ( ActiveFirearm?.IsExclusive == true )
 				RequestDropSelectedExclusive();
-			else if ( utilityInventory?.IsUtilityEquipped == true )
-				utilityInventory.RequestDropSelectedUtilityFromOwner();
+			else if ( ActiveUtility is not null )
+				RequestDropSelectedUtility();
 
 			return true;
 		}
@@ -838,23 +1097,96 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		return false;
 	}
 
-	private bool TrySelectLogicalInventoryIndex(
-		int index,
-		LargeLadInventory utilityInventory )
+	private bool TrySelectLogicalInventoryIndex( int index )
 	{
 		var items = GetOrderedNativeItems();
 
-		if ( index >= 0 && index < items.Count )
-			return SelectNativeItem( items[index] );
+		return index >= 0 && index < items.Count &&
+			SelectNativeItem( items[index] );
+	}
 
-		if ( index == items.Count &&
-			utilityInventory?.HasUtility == true )
+	private void ReleaseUtilityForLifecycle(
+		Vector3 dropPosition,
+		bool preferForward )
+	{
+		if ( !HasUtility )
+			return;
+
+		var state = UtilityState;
+		var source = ResolveUtilitySource();
+
+		if ( source is null || !source.IsValid )
 		{
-			utilityInventory.RequestSelectUtilityFromOwner();
-			return true;
+			RemoveUtilityItem();
+			return;
 		}
 
-		return false;
+		var controller = Components.Get<PlayerController>();
+		var forward = preferForward
+			? controller?.EyeTransform.Rotation.Forward ??
+				GameObject.WorldRotation.Forward
+			: GameObject.WorldRotation.Forward;
+
+		if ( !source.TryDropFromCarrier(
+			this,
+			state,
+			dropPosition,
+			forward ) )
+		{
+			source.ReturnCarrierToOrigin( this, state );
+		}
+
+		RemoveUtilityItem();
+	}
+
+	private LargeLadDodgeballPickup ResolveUtilitySource(
+		Scene sourceScene = null )
+	{
+		if ( !HasUtility )
+			return null;
+
+		var state = UtilityState;
+		if ( utilitySource is not null &&
+			utilitySource.IsValid &&
+			utilitySource.UtilityInstanceId == state.InstanceId )
+		{
+			return utilitySource;
+		}
+
+		foreach ( var pickup in
+			(sourceScene ?? Scene)?
+				.GetAllComponents<LargeLadDodgeballPickup>() ??
+			System.Array.Empty<LargeLadDodgeballPickup>() )
+		{
+			if ( pickup.UtilityInstanceId != state.InstanceId )
+				continue;
+
+			utilitySource = pickup;
+			return pickup;
+		}
+
+		return null;
+	}
+
+	private void RemoveUtilityItem()
+	{
+		if ( UtilityItem is LargeLadDodgeballItem item )
+			Remove( item );
+
+		utilitySource = null;
+	}
+
+	private void BeginOwnerSelectionHandoff( bool combatPresentation )
+	{
+		ownerWantsNativeControl = true;
+		ownerWantsNativeCombatPresentation = combatPresentation;
+		timeSinceNativeSelectionRequest = 0.0f;
+	}
+
+	private void ResetOwnerSelectionHandoff()
+	{
+		ownerWantsNativeControl = false;
+		ownerWantsNativeCombatPresentation = false;
 	}
 
 	private void ReleaseExclusiveForLifecycle(
@@ -973,6 +1305,76 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 
 		foreach ( var item in Items.ToArray() )
 			Remove( item );
+	}
+}
+
+/// <summary>
+/// Native slot-3 ownership and selection token for an authored dodgeball.
+/// The physical pickup remains the single world instance and continues to
+/// resolve throws, impacts, damage, and rigid-body simulation on the host.
+/// </summary>
+public sealed class LargeLadDodgeballItem : BaseInventoryItem
+{
+	[Sync( SyncFlags.FromHost )]
+	public int UtilityInstanceId { get; private set; }
+
+	public LargeLadUtilityId UtilityId =>
+		UtilityInstanceId > 0
+			? LargeLadUtilityId.Dodgeball
+			: LargeLadUtilityId.None;
+
+	public LargeLadUtilityState ToUtilityState()
+	{
+		return UtilityInstanceId > 0
+			? LargeLadUtilityState.CreateDodgeball( UtilityInstanceId )
+			: default;
+	}
+
+	public LargeLadInventorySelection ToInventorySelection()
+	{
+		return LargeLadUtilityRules.SelectionFor( ToUtilityState() );
+	}
+
+	internal void InitializeState( LargeLadUtilityState state )
+	{
+		if ( !Networking.IsHost ||
+			!LargeLadUtilityRules.IsValidState( state ) ||
+			state.Utility != LargeLadUtilityId.Dodgeball )
+		{
+			return;
+		}
+
+		UtilityInstanceId = state.InstanceId;
+	}
+
+	protected override bool OnCanPickup( BaseInventoryComponent inventory )
+	{
+		return false;
+	}
+
+	protected override bool OnAdding( BaseInventoryComponent inventory )
+	{
+		return inventory is LargeLadNativeInventory;
+	}
+
+	protected override bool OnCanSwitchTo()
+	{
+		var player = Inventory?.Components.Get<LargeLadPlayer>();
+
+		return LargeLadUtilityRules.IsValidState( ToUtilityState() ) &&
+			player?.IsEatBusy != true &&
+			LargeLadUtilityRules.CanUseUtility(
+				player?.Role ?? LargeLadRole.Unassigned,
+				player?.Health?.IsDead != false );
+	}
+
+	protected override void OnControl()
+	{
+		if ( !IsActive || !Input.Pressed( "Attack1" ) )
+			return;
+
+		(Inventory as LargeLadNativeInventory)?
+			.RequestThrowSelectedUtilityFromOwner( this );
 	}
 }
 
@@ -1161,16 +1563,28 @@ public sealed class LargeLadMeleeWeapon : BaseCombatWeapon
 /// Thin Large Lad policy layer over the native firearm. BaseCombatWeapon owns
 /// input, fire gating, ammo, reload, aim, claims, models, and presentation.
 /// </summary>
+public enum LargeLadFirearmHitResult
+{
+	Miss,
+	PlayerHit,
+	PlayerHeadshot,
+	BarricadeHit
+}
+
 public sealed class LargeLadFirearm : BaseCombatWeapon
 {
+	private const float ConfirmedHitmarkerDuration = 0.14f;
 	private const float ReloadSoundVolume = 0.3f;
 
 	// BaseCombatWeapon numbers the first native shot claim as sequence zero.
 	private int lastHostClaimSequence = -1;
+	private int lastOwnerHitResultSequence = -1;
 	private bool hasHostClaimSchedule;
+	private bool hasConfirmedHit;
 	private float nextHostClaimTime;
 	private bool reloadSoundLatched;
 	private bool hasPlayedReloadSound;
+	private TimeSince timeSinceConfirmedHit;
 	private TimeSince timeSinceReloadSound;
 
 	[Property]
@@ -1187,6 +1601,11 @@ public sealed class LargeLadFirearm : BaseCombatWeapon
 	public int ExclusiveReserve { get; private set; }
 
 	public int LastAuthoritativeShotSequence { get; private set; }
+	public LargeLadFirearmHitResult LastHitResult { get; private set; } =
+		LargeLadFirearmHitResult.Miss;
+	public bool HasConfirmedHitmarker =>
+		hasConfirmedHit &&
+		timeSinceConfirmedHit < ConfirmedHitmarkerDuration;
 
 	public bool IsExclusive =>
 		PickupPolicy == LargeLadPickupPolicy.Exclusive;
@@ -1449,7 +1868,7 @@ public sealed class LargeLadFirearm : BaseCombatWeapon
 		if ( string.IsNullOrWhiteSpace( packageIdent ) )
 			return;
 
-		var sound = LargeLadWeaponPresentationAssets.GetSound( packageIdent );
+		var sound = LargeLadPresentationAssets.GetSound( packageIdent );
 		if ( sound is null && packageIdent == "drakefruit/pistol_reload" )
 			sound = Cloud.SoundEvent( "drakefruit/pistol_reload" );
 		else if ( sound is null && packageIdent == "drakefruit/rifle_reload" )
@@ -1510,10 +1929,28 @@ public sealed class LargeLadFirearm : BaseCombatWeapon
 		if ( owner is null || attacker is null )
 			return false;
 
+		var shotResult = LargeLadFirearmHitResult.Miss;
+
 		foreach ( var pellet in pellets )
 		{
-			if ( !ValidatePellet( attacker, owner, pellet, ballistics.Range ) )
+			if ( !ValidatePellet(
+				attacker,
+				owner,
+				pellet,
+				ballistics.Range,
+				out var pelletResult ) )
+			{
 				return false;
+			}
+
+			if ( pelletResult == LargeLadFirearmHitResult.PlayerHeadshot ||
+				(pelletResult == LargeLadFirearmHitResult.PlayerHit &&
+					shotResult != LargeLadFirearmHitResult.PlayerHeadshot) ||
+				(pelletResult == LargeLadFirearmHitResult.BarricadeHit &&
+					shotResult == LargeLadFirearmHitResult.Miss) )
+			{
+				shotResult = pelletResult;
+			}
 		}
 
 		LastAuthoritativeShotSequence = claim.Sequence;
@@ -1521,7 +1958,34 @@ public sealed class LargeLadFirearm : BaseCombatWeapon
 		nextHostClaimTime = System.MathF.Max(
 			Time.Now,
 			nextHostClaimTime ) + PrimaryDelay;
-		return base.OnValidateShotClaim( claim );
+
+		if ( !base.OnValidateShotClaim( claim ) )
+			return false;
+
+		ReceiveHitResult( claim.Sequence, shotResult );
+		return true;
+	}
+
+	[Rpc.Owner( NetFlags.HostOnly )]
+	private void ReceiveHitResult(
+		int shotSequence,
+		LargeLadFirearmHitResult result )
+	{
+		if ( shotSequence <= lastOwnerHitResultSequence )
+			return;
+
+		lastOwnerHitResultSequence = shotSequence;
+		LastHitResult = result;
+
+		if ( result is not (LargeLadFirearmHitResult.PlayerHit or
+			LargeLadFirearmHitResult.PlayerHeadshot or
+			LargeLadFirearmHitResult.BarricadeHit) )
+		{
+			return;
+		}
+
+		hasConfirmedHit = true;
+		timeSinceConfirmedHit = 0.0f;
 	}
 
 	internal bool IsAuthoritativelyHeldBy( LargeLadPlayer attacker )
@@ -1538,8 +2002,11 @@ public sealed class LargeLadFirearm : BaseCombatWeapon
 		LargeLadPlayer attacker,
 		PlayerController owner,
 		PelletClaim pellet,
-		float range )
+		float range,
+		out LargeLadFirearmHitResult result )
 	{
+		result = LargeLadFirearmHitResult.Miss;
+
 		if ( pellet.HitObject is null || !pellet.HitObject.IsValid ||
 			!LargeLadNativeWeaponRules.IsPlausiblePellet(
 				owner.EyePosition,
@@ -1588,8 +2055,11 @@ public sealed class LargeLadFirearm : BaseCombatWeapon
 		// Claimed DamageInfo has no Hitbox. Hitgroups are client-reported tags,
 		// so a head claim is accepted only when the host's bounded re-trace also
 		// resolves the selected target's hitbox as a head.
-		if ( victim is not null &&
-			pellet.Tags?.Has( LargeLadFirearmHitRules.HeadHitboxTag ) == true )
+		var claimedHeadshot = victim is not null &&
+			pellet.Tags?.Has(
+				LargeLadFirearmHitRules.HeadHitboxTag ) == true;
+
+		if ( claimedHeadshot )
 		{
 			var hostRegion = ResolveHostHitRegion(
 				victim,
@@ -1599,6 +2069,17 @@ public sealed class LargeLadFirearm : BaseCombatWeapon
 
 			if ( hostRegion != LargeLadHitRegion.Head )
 				return false;
+		}
+
+		if ( victim is not null )
+		{
+			result = claimedHeadshot
+				? LargeLadFirearmHitResult.PlayerHeadshot
+				: LargeLadFirearmHitResult.PlayerHit;
+		}
+		else if ( LargeLadBarricade.FindFor( pellet.HitObject ) is not null )
+		{
+			result = LargeLadFirearmHitResult.BarricadeHit;
 		}
 
 		return true;

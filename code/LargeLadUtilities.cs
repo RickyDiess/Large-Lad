@@ -17,8 +17,6 @@ public enum LargeLadUtilityId
 public sealed class LargeLadUtilityPresentationDefinition
 {
 	public LargeLadUtilityId Id { get; init; }
-	public string FirstPersonArmsModelPath { get; init; }
-	public string FirstPersonArmsPackageIdent { get; init; }
 	public int FirstPersonSkeleton { get; init; }
 	public bool FirstPersonTwoHanded { get; init; }
 	public string FirstPersonHeldModelPath { get; init; }
@@ -30,8 +28,6 @@ public sealed class LargeLadUtilityPresentationDefinition
 	public Vector3 ThirdPersonModelPosition { get; init; }
 	public Angles ThirdPersonModelRotation { get; init; }
 	public float ThirdPersonModelScale { get; init; } = 1.0f;
-	public LargeLadThirdPersonHoldType ThirdPersonHoldType { get; init; }
-	public LargeLadWeaponGrip ThirdPersonGrip { get; init; }
 }
 
 public static class LargeLadUtilityPresentationCatalog
@@ -40,10 +36,6 @@ public static class LargeLadUtilityPresentationCatalog
 		new()
 		{
 			Id = LargeLadUtilityId.Dodgeball,
-			FirstPersonArmsModelPath =
-				"models/first_person/v_first_person_arms_human.vmdl",
-			FirstPersonArmsPackageIdent =
-				"facepunch/v_first_person_arms_human",
 			FirstPersonSkeleton = 0,
 			FirstPersonTwoHanded = false,
 			FirstPersonHeldModelPath = "models/dev/sphere.vmdl",
@@ -56,9 +48,7 @@ public static class LargeLadUtilityPresentationCatalog
 			// twelve-unit translation visibly floated it beyond the hand.
 			ThirdPersonModelPosition = Vector3.Zero,
 			ThirdPersonModelRotation = Angles.Zero,
-			ThirdPersonModelScale = 0.5f,
-			ThirdPersonHoldType = LargeLadThirdPersonHoldType.HoldItem,
-			ThirdPersonGrip = LargeLadWeaponGrip.RightHandedOneHanded
+			ThirdPersonModelScale = 0.5f
 		};
 
 	public static bool TryGet(

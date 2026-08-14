@@ -235,7 +235,7 @@ public sealed class LargeLadDodgeballPickup :
 	{
 		if ( Networking.IsHost &&
 			utilityInstance?.Location == LargeLadUtilityLocation.Carried &&
-			utilityInstance.Carrier is LargeLadInventory carrier )
+			utilityInstance.Carrier is LargeLadNativeInventory carrier )
 		{
 			carrier.HandleUtilitySourceDestroyed( this );
 		}
@@ -345,7 +345,7 @@ public sealed class LargeLadDodgeballPickup :
 			return;
 		}
 
-		var inventory = player.Inventory;
+		var inventory = player.NativeInventory;
 
 		if ( inventory is null )
 			return;
@@ -366,7 +366,7 @@ public sealed class LargeLadDodgeballPickup :
 	}
 
 	internal bool TryThrowFromCarrier(
-		LargeLadInventory carrier,
+		LargeLadNativeInventory carrier,
 		LargeLadUtilityState state,
 		Vector3 eyePosition,
 		Vector3 direction,
@@ -438,7 +438,7 @@ public sealed class LargeLadDodgeballPickup :
 	}
 
 	internal bool TryDropFromCarrier(
-		LargeLadInventory carrier,
+		LargeLadNativeInventory carrier,
 		LargeLadUtilityState state,
 		Vector3 nearPosition,
 		Vector3 forward )
@@ -484,7 +484,7 @@ public sealed class LargeLadDodgeballPickup :
 	}
 
 	internal bool ReturnCarrierToOrigin(
-		LargeLadInventory carrier,
+		LargeLadNativeInventory carrier,
 		LargeLadUtilityState state )
 	{
 		if ( !Networking.IsHost )
@@ -513,7 +513,7 @@ public sealed class LargeLadDodgeballPickup :
 	}
 
 	internal void ReleaseCarrierForRoundReset(
-		LargeLadInventory carrier )
+		LargeLadNativeInventory carrier )
 	{
 		if ( !Networking.IsHost ||
 			utilityInstance is null ||
@@ -542,7 +542,7 @@ public sealed class LargeLadDodgeballPickup :
 		DebugLog( $"Reset dodgeball pickup '{GameObject.Name}'." );
 	}
 
-	private void TryCollect( LargeLadInventory inventory )
+	private void TryCollect( LargeLadNativeInventory inventory )
 	{
 		EnsureUtilityInstance();
 		var pendingState = utilityInstance?.State ?? default;
@@ -790,7 +790,8 @@ public sealed class LargeLadDodgeballPickup :
 		GameObject.Network.SetOwnerTransfer( OwnerTransfer.Fixed );
 	}
 
-	private void TransferOwnershipToCarrier( LargeLadInventory carrier )
+	private void TransferOwnershipToCarrier(
+		LargeLadNativeInventory carrier )
 	{
 		if ( !GameObject.Network.Active )
 			return;

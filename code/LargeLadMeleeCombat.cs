@@ -72,7 +72,7 @@ public sealed class LargeLadMeleeCombat : Component
 			return;
 
 		timeSinceLocalSwing = 0.0f;
-		attacker.WeaponPresentation?.TriggerPredictedSwing();
+		attacker.AbilityPresentation?.TriggerPredictedSwing();
 		nextOwnerSwingSequence++;
 		RequestMeleeAttack( nextOwnerSwingSequence );
 	}
@@ -153,7 +153,7 @@ public sealed class LargeLadMeleeCombat : Component
 		// Native melee already broadcasts BaseWeaponModel/Citizen attack effects.
 		// Keep the legacy path only for Minions, which have not migrated yet.
 		if ( !usesNativeMelee )
-			attacker.WeaponPresentation?.BroadcastSwing();
+			attacker.AbilityPresentation?.BroadcastSwing();
 
 		var target = FindMeleeTarget(
 			attacker,

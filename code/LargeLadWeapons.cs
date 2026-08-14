@@ -29,27 +29,6 @@ public enum LargeLadFirearmArchetype
 	Shotgun
 }
 
-public enum LargeLadWeaponGrip
-{
-	None,
-	RightHandedOneHanded,
-	RightHandedTwoHanded
-}
-
-/// <summary>
-/// Presentation pose used by the Citizen third-person animgraph. Keep this
-/// separate from grip handedness: not every Citizen hold type supports the
-/// handedness parameter.
-/// </summary>
-public enum LargeLadThirdPersonHoldType
-{
-	None,
-	Pistol,
-	Rifle,
-	HoldItem,
-	Swing
-}
-
 public enum LargeLadPickupPolicy
 {
 	Core,
@@ -256,10 +235,10 @@ public struct LargeLadWeaponState : System.IEquatable<LargeLadWeaponState>
 }
 
 /// <summary>
-/// Immutable firearm behavior and presentation shared by inventories, firing,
-/// pickups, HUD, and presentation components. Pickup ownership policy
-/// deliberately lives on each map-authored weapon pickup so different
-/// instances of the same weapon can use different policies.
+/// Immutable firearm behavior and shared pickup metadata. Native weapon
+/// prefabs own held-model, animation, sound, muzzle, and Citizen presentation.
+/// Pickup ownership policy deliberately lives on each map-authored pickup so
+/// different instances of the same weapon can use different policies.
 /// </summary>
 public sealed class LargeLadWeaponDefinition
 {
@@ -275,48 +254,10 @@ public sealed class LargeLadWeaponDefinition
 	public LargeLadCrosshairStyle Crosshair { get; init; }
 	public Color PickupColor { get; init; }
 
-	public string FirstPersonModelPath { get; init; }
-	public string FirstPersonModelPackageIdent { get; init; }
-	public string FirstPersonArmsModelPath { get; init; }
-	public string FirstPersonArmsPackageIdent { get; init; }
-	public bool FirstPersonModelIncludesArms { get; init; } = true;
-	public Vector3 FirstPersonPositionOffset { get; init; }
-	public Angles FirstPersonRotationOffset { get; init; }
-	public float FirstPersonModelScale { get; init; } = 1.0f;
-	public bool FirstPersonUsesAnimGraph { get; init; }
-	public string FirstPersonAnimationGraphPath { get; init; }
-	public int FirstPersonSkeleton { get; init; }
-	public bool FirstPersonTwoHanded { get; init; }
-
+	/// <summary>Model used by map pickups and dropped exclusive firearms.</summary>
 	public string ThirdPersonWorldModelPath { get; init; }
-	public string ThirdPersonWorldModelPackageIdent { get; init; }
-	public Vector3 ThirdPersonModelPosition { get; init; }
-	public Angles ThirdPersonModelRotation { get; init; }
-	public float ThirdPersonModelScale { get; init; } = 1.0f;
-	public LargeLadThirdPersonHoldType ThirdPersonHoldType { get; init; }
-	public LargeLadWeaponGrip Grip { get; init; }
-
-	public string DrawAnimation { get; init; }
-	public string IdleAnimation { get; init; }
-	public string FireAnimation { get; init; }
-	public string ReloadAnimation { get; init; }
-	public string DryFireAnimation { get; init; }
-	public string EmptyAnimation { get; init; }
-
-	public string FireSoundPath { get; init; }
-	public string FireSoundPackageIdent { get; init; }
-	public string ReloadSoundPath { get; init; }
 	public string ReloadSoundPackageIdent { get; init; }
-	public string EmptySoundPath { get; init; }
-	public string EmptySoundPackageIdent { get; init; }
-	public string DrawSoundPath { get; init; }
-	public string DrawSoundPackageIdent { get; init; }
-
 	public string MuzzleAttachment { get; init; }
-	public string MuzzleEffectPrefabPath { get; init; }
-	public float MuzzleEffectScale { get; init; } = 1.0f;
-	public string ImpactEffectPrefabPath { get; init; }
-	public float ImpactEffectScale { get; init; } = 1.0f;
 
 	/// <summary>
 	/// Authoritative shot-count/spread data. Presentation code may visualize the
@@ -356,46 +297,8 @@ public static class LargeLadWeaponCatalog
 		Range = 100.0f,
 		Crosshair = LargeLadCrosshairStyle.Dot,
 		PickupColor = Color.Red,
-		FirstPersonModelPath =
-			"models/weapons/sbox_melee_crowbar/v_crowbar.vmdl",
-		FirstPersonModelPackageIdent = "facepunch/v_crowbar",
-		FirstPersonArmsModelPath =
-			"models/first_person/v_first_person_arms_human.vmdl",
-		FirstPersonArmsPackageIdent =
-			"facepunch/v_first_person_arms_human",
-		FirstPersonModelIncludesArms = false,
-		FirstPersonPositionOffset = Vector3.Zero,
-		FirstPersonRotationOffset = Angles.Zero,
-		FirstPersonModelScale = 1.0f,
-		FirstPersonUsesAnimGraph = true,
-		FirstPersonAnimationGraphPath =
-			"models/weapons/sbox_melee_crowbar/v_crowbar.vanmgrph",
-		// Bare fists use the graph assigned to the dedicated human arms. Facepunch
-		// weapon graphs use skeleton=0 for this rig.
-		FirstPersonSkeleton = 0,
-		FirstPersonTwoHanded = true,
 		ThirdPersonWorldModelPath =
-			"models/weapons/sbox_melee_crowbar/w_crowbar.vmdl",
-		ThirdPersonWorldModelPackageIdent = "facepunch/w_crowbar",
-		// The world model's origin sits at the very bottom of the handle. Move it
-		// Move the handle down so hold_R lands several inches up the grip instead of
-		// on the end cap. Swing's socket-space X axis does not track the palm cleanly,
-		// so keep that axis neutral rather than throwing the crowbar out of alignment.
-		ThirdPersonModelPosition = new Vector3( 0.0f, 0.0f, -8.0f ),
-		// Facepunch's world crowbar is rolled around its shaft opposite the
-		// first-person crowbar. Turn it around the shaft while preserving the
-		// Citizen Swing pose's authored direction.
-		ThirdPersonModelRotation = new Angles( 0.0f, 180.0f, 0.0f ),
-		ThirdPersonModelScale = 1.0f,
-		// This is the catalog fallback. The player prefab exposes a serialized
-		// Citizen hold type/handedness/attack variant specifically for crowbar
-		// tuning without changing melee authority or weapon data.
-		ThirdPersonHoldType = LargeLadThirdPersonHoldType.Swing,
-		Grip = LargeLadWeaponGrip.RightHandedOneHanded,
-		DrawAnimation = "b_deploy",
-		IdleAnimation = "idle",
-		FireAnimation = "b_attack",
-		DryFireAnimation = "b_attack_dry"
+			"models/weapons/sbox_melee_crowbar/w_crowbar.vmdl"
 	};
 
 	private static readonly LargeLadWeaponDefinition Pistol = new()
@@ -411,42 +314,10 @@ public static class LargeLadWeaponCatalog
 		ReloadDuration = 1.4f,
 		Crosshair = LargeLadCrosshairStyle.FourSegment,
 		PickupColor = new Color( 0.25f, 0.85f, 1.0f ),
-		FirstPersonModelPath =
-			"models/weapons/sbox_pistol_usp/v_usp.vmdl",
-		FirstPersonModelPackageIdent = "facepunch/v_usp",
-		FirstPersonArmsModelPath =
-			"models/first_person/v_first_person_arms_human.vmdl",
-		FirstPersonArmsPackageIdent =
-			"facepunch/v_first_person_arms_human",
-		FirstPersonModelIncludesArms = false,
-		FirstPersonPositionOffset = Vector3.Zero,
-		FirstPersonRotationOffset = Angles.Zero,
-		FirstPersonModelScale = 1.0f,
-		FirstPersonUsesAnimGraph = true,
-		FirstPersonAnimationGraphPath =
-			"models/weapons/sbox_pistol_usp/v_usp.vanmgrph",
-		FirstPersonSkeleton = 0,
-		FirstPersonTwoHanded = false,
 		ThirdPersonWorldModelPath =
 			"models/weapons/sbox_pistol_usp/w_usp.vmdl",
-		ThirdPersonWorldModelPackageIdent = "facepunch/w_usp",
-		ThirdPersonHoldType = LargeLadThirdPersonHoldType.Pistol,
-		Grip = LargeLadWeaponGrip.RightHandedOneHanded,
-		DrawAnimation = "b_deploy",
-		IdleAnimation = "idle",
-		FireAnimation = "b_attack",
-		ReloadAnimation = "b_reload",
-		DryFireAnimation = "b_attack_dry",
-		EmptyAnimation = "b_empty",
-		FireSoundPackageIdent = "vidya/pistol-shoot",
 		ReloadSoundPackageIdent = "drakefruit/pistol_reload",
-		EmptySoundPackageIdent = "hzgame/hzuiclickbuttontinyrattle",
 		MuzzleAttachment = "muzzle",
-		MuzzleEffectPrefabPath =
-			"prefabs/effects/default_muzzleflash.prefab",
-		MuzzleEffectScale = 0.25f,
-		ImpactEffectPrefabPath = "prefabs/surface/default-bullet.prefab",
-		ImpactEffectScale = 1.0f,
 		PelletCount = 1,
 		PelletSpreadDegrees = 0.0f
 	};
@@ -464,47 +335,10 @@ public static class LargeLadWeaponCatalog
 		ReloadDuration = 2.0f,
 		Crosshair = LargeLadCrosshairStyle.FourSegment,
 		PickupColor = new Color( 1.0f, 0.78f, 0.18f ),
-		FirstPersonModelPath =
-			"models/weapons/sbox_smg_mp5/v_mp5.vmdl",
-		FirstPersonModelPackageIdent = "facepunch/v_mp5",
-		FirstPersonArmsModelPath =
-			"models/first_person/v_first_person_arms_human.vmdl",
-		FirstPersonArmsPackageIdent =
-			"facepunch/v_first_person_arms_human",
-		FirstPersonModelIncludesArms = false,
-		FirstPersonPositionOffset = Vector3.Zero,
-		FirstPersonRotationOffset = Angles.Zero,
-		FirstPersonModelScale = 1.0f,
-		FirstPersonUsesAnimGraph = true,
-		FirstPersonAnimationGraphPath =
-			"models/weapons/sbox_smg_mp5/v_mp5.vanmgrph",
-		FirstPersonSkeleton = 0,
-		FirstPersonTwoHanded = true,
 		ThirdPersonWorldModelPath =
 			"models/weapons/sbox_smg_mp5/w_mp5.vmdl",
-		ThirdPersonWorldModelPackageIdent = "facepunch/w_mp5",
-		// The rifle hold socket otherwise leaves the MP5 too near the wrist and
-		// both hands below its grips.
-		ThirdPersonModelPosition = new Vector3( 3.0f, 0.0f, -7.0f ),
-		ThirdPersonModelRotation = Angles.Zero,
-		ThirdPersonModelScale = 1.0f,
-		ThirdPersonHoldType = LargeLadThirdPersonHoldType.Rifle,
-		Grip = LargeLadWeaponGrip.RightHandedTwoHanded,
-		DrawAnimation = "b_deploy",
-		IdleAnimation = "idle",
-		FireAnimation = "b_attack",
-		ReloadAnimation = "b_reload",
-		DryFireAnimation = "b_attack_dry",
-		EmptyAnimation = "b_empty",
-		FireSoundPackageIdent = "vidya/smg-shoot",
 		ReloadSoundPackageIdent = "drakefruit/rifle_reload",
-		EmptySoundPackageIdent = "hzgame/hzuiclickbuttontinyrattle",
 		MuzzleAttachment = "muzzle",
-		MuzzleEffectPrefabPath =
-			"prefabs/effects/default_muzzleflash.prefab",
-		MuzzleEffectScale = 0.25f,
-		ImpactEffectPrefabPath = "prefabs/surface/default-bullet.prefab",
-		ImpactEffectScale = 1.0f,
 		PelletCount = 1,
 		PelletSpreadDegrees = 0.0f
 	};
@@ -674,119 +508,13 @@ public static class LargeLadWeaponCatalog
 
 		RequireText(
 			warnings,
-			definition.FirstPersonModelPath,
-			"First-person model path" );
-		RequireText(
-			warnings,
-			definition.FirstPersonModelPackageIdent,
-			"First-person model package" );
-		if ( !definition.FirstPersonModelIncludesArms )
-		{
-			RequireText(
-				warnings,
-				definition.FirstPersonArmsModelPath,
-				"First-person arms model path" );
-			RequireText(
-				warnings,
-				definition.FirstPersonArmsPackageIdent,
-				"First-person arms package" );
-		}
-		if ( !definition.FirstPersonUsesAnimGraph )
-			warnings.Add( "First-person firearm must use its animation graph." );
-		RequireText(
-			warnings,
-			definition.FirstPersonAnimationGraphPath,
-			"First-person animation graph path" );
-		RequireFinite(
-			warnings,
-			definition.FirstPersonPositionOffset,
-			"First-person position offset" );
-		RequireFinite(
-			warnings,
-			definition.FirstPersonRotationOffset,
-			"First-person rotation offset" );
-		RequirePositiveFinite(
-			warnings,
-			definition.FirstPersonModelScale,
-			"First-person model scale" );
-
-		RequireText(
-			warnings,
 			definition.ThirdPersonWorldModelPath,
-			"Third-person world model path" );
+			"Pickup world model path" );
 		RequireText(
 			warnings,
-			definition.ThirdPersonWorldModelPackageIdent,
-			"Third-person world model package" );
-		RequireFinite(
-			warnings,
-			definition.ThirdPersonModelPosition,
-			"Third-person model position" );
-		RequireFinite(
-			warnings,
-			definition.ThirdPersonModelRotation,
-			"Third-person model rotation" );
-		RequirePositiveFinite(
-			warnings,
-			definition.ThirdPersonModelScale,
-			"Third-person model scale" );
-
-		if ( !System.Enum.IsDefined(
-			typeof( LargeLadThirdPersonHoldType ),
-			definition.ThirdPersonHoldType ) ||
-			definition.ThirdPersonHoldType ==
-				LargeLadThirdPersonHoldType.None )
-		{
-			warnings.Add(
-				"Third-person hold type must describe the Citizen pose." );
-		}
-
-		if ( !System.Enum.IsDefined(
-			typeof( LargeLadWeaponGrip ),
-			definition.Grip ) ||
-			definition.Grip == LargeLadWeaponGrip.None )
-		{
-			warnings.Add( "Grip must describe how the firearm is held." );
-		}
-
-		RequireText( warnings, definition.DrawAnimation, "Draw animation" );
-		RequireText( warnings, definition.IdleAnimation, "Idle animation" );
-		RequireText( warnings, definition.FireAnimation, "Fire animation" );
-		RequireText( warnings, definition.ReloadAnimation, "Reload animation" );
-		RequireText( warnings, definition.DryFireAnimation, "Dry-fire animation" );
-		RequireText( warnings, definition.EmptyAnimation, "Empty animation" );
-		RequireSoundReference(
-			warnings,
-			definition.FireSoundPath,
-			definition.FireSoundPackageIdent,
-			"Fire sound" );
-		RequireSoundReference(
-			warnings,
-			definition.ReloadSoundPath,
 			definition.ReloadSoundPackageIdent,
-			"Reload sound" );
-		RequireSoundReference(
-			warnings,
-			definition.EmptySoundPath,
-			definition.EmptySoundPackageIdent,
-			"Empty sound" );
+			"Native reload sound package" );
 		RequireText( warnings, definition.MuzzleAttachment, "Muzzle attachment" );
-		RequireText(
-			warnings,
-			definition.MuzzleEffectPrefabPath,
-			"Muzzle effect prefab path" );
-		RequirePositiveFinite(
-			warnings,
-			definition.MuzzleEffectScale,
-			"Muzzle effect scale" );
-		RequireText(
-			warnings,
-			definition.ImpactEffectPrefabPath,
-			"Impact effect prefab path" );
-		RequirePositiveFinite(
-			warnings,
-			definition.ImpactEffectScale,
-			"Impact effect scale" );
 
 		if ( definition.Archetype == LargeLadFirearmArchetype.Shotgun )
 		{
@@ -822,19 +550,6 @@ public static class LargeLadWeaponCatalog
 			warnings.Add( $"{name} is required." );
 	}
 
-	private static void RequireSoundReference(
-		List<string> warnings,
-		string path,
-		string packageIdent,
-		string label )
-	{
-		if ( string.IsNullOrWhiteSpace( path ) &&
-			string.IsNullOrWhiteSpace( packageIdent ) )
-		{
-			warnings.Add( $"{label} needs an asset path or package." );
-		}
-	}
-
 	private static void RequirePositiveFinite(
 		ICollection<string> warnings,
 		float value,
@@ -844,29 +559,4 @@ public static class LargeLadWeaponCatalog
 			warnings.Add( $"{name} must be finite and greater than zero." );
 	}
 
-	private static void RequireFinite(
-		ICollection<string> warnings,
-		Vector3 value,
-		string name )
-	{
-		if ( !float.IsFinite( value.x ) ||
-			!float.IsFinite( value.y ) ||
-			!float.IsFinite( value.z ) )
-		{
-			warnings.Add( $"{name} must contain only finite values." );
-		}
-	}
-
-	private static void RequireFinite(
-		ICollection<string> warnings,
-		Angles value,
-		string name )
-	{
-		if ( !float.IsFinite( value.pitch ) ||
-			!float.IsFinite( value.yaw ) ||
-			!float.IsFinite( value.roll ) )
-		{
-			warnings.Add( $"{name} must contain only finite values." );
-		}
-	}
 }
