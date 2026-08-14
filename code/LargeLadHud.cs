@@ -387,18 +387,32 @@ public sealed class LargeLadHud : Component
 	{
 		if ( player.Health is null ||
 			player.Health.IsDead ||
-			player.NativeInventory is null ||
-			player.EquippedWeapon == LargeLadWeaponId.None )
+			player.NativeInventory is null )
 		{
 			return;
 		}
+
+		var activeWeapon = player.Role switch
+		{
+			LargeLadRole.LargeLad or LargeLadRole.Minion =>
+				LargeLadWeaponId.Melee,
+			LargeLadRole.SkinnyKid when
+				player.NativeInventory.ActiveFirearm is LargeLadFirearm activeFirearm =>
+				activeFirearm.WeaponId,
+			LargeLadRole.SkinnyKid when
+				player.NativeInventory.ActiveMelee is not null =>
+				LargeLadWeaponId.Melee,
+			_ => LargeLadWeaponId.None
+		};
+
+		if ( activeWeapon == LargeLadWeaponId.None )
+			return;
 
 		var centerX = Screen.Width * 0.5f;
 		var centerY = Screen.Height * 0.5f;
 		var markerScale = GetCrosshairScale( scale );
 
-		var crosshair = LargeLadWeaponCatalog.Get(
-			player.EquippedWeapon ).Crosshair;
+		var crosshair = LargeLadWeaponCatalog.Get( activeWeapon ).Crosshair;
 
 		if ( crosshair == LargeLadCrosshairStyle.Dot )
 		{
@@ -460,15 +474,17 @@ public sealed class LargeLadHud : Component
 			Color.White,
 			markerScale );
 
+		var firearm = player.NativeInventory.ActiveFirearm;
+		if ( firearm is null )
+			return;
+
 		var center = new Vector2( centerX, centerY );
-		var definition = LargeLadWeaponCatalog.Get(
-			player.EquippedWeapon );
 		var validAim = LargeLadAimResolver.TryResolveLocal(
 			player.Scene,
 			player.Scene.Camera,
 			controller,
 			player.GameObject,
-			definition.Range,
+			firearm.Ballistics.Range,
 			out var aim );
 		var intentColor = !validAim
 			? new Color( 1.0f, 0.2f, 0.14f )
@@ -520,7 +536,11 @@ public sealed class LargeLadHud : Component
 	{
 		var markerScale = GetCrosshairScale( scale );
 
-		if ( player.EquippedWeapon == LargeLadWeaponId.Melee )
+		var hasMeleeEquipped =
+			player.Role is LargeLadRole.LargeLad or LargeLadRole.Minion ||
+			player.NativeInventory?.ActiveMelee is not null;
+
+		if ( hasMeleeEquipped )
 		{
 			var melee = player.MeleeCombat;
 
@@ -758,7 +778,7 @@ public sealed class LargeLadHud : Component
 		if ( player.Role != LargeLadRole.SkinnyKid || inventory is null )
 			return;
 
-		if ( player.NativeInventory?.ActiveFirearm is LargeLadFirearm nativeFirearm )
+		if ( inventory.ActiveFirearm is LargeLadFirearm nativeFirearm )
 		{
 			DrawNativeFirearmStatus(
 				hud,
@@ -768,13 +788,10 @@ public sealed class LargeLadHud : Component
 			return;
 		}
 
-		if ( !TryGetSelectionPresentation(
-			player,
-			player.ActiveInventorySelection,
+		if ( !TryGetItemPresentation(
+			inventory.ActiveItem,
 			out var displayName,
 			out var accent,
-			out var activeState,
-			out var isFirearm,
 			out var tag ) )
 		{
 			return;
@@ -796,30 +813,10 @@ public sealed class LargeLadHud : Component
 			new Rect(
 				panel.Left + 14.0f * scale,
 				panel.Top + 6.0f * scale,
-				isFirearm ? 152.0f * scale : panel.Width - 28.0f * scale,
+				panel.Width - 28.0f * scale,
 				24.0f * scale ),
 			TextFlag.LeftCenter | TextFlag.SingleLine,
 			BoldFontWeight );
-
-		if ( isFirearm )
-		{
-			var ammo = activeState.HasInfiniteReserve
-				? $"{activeState.Magazine} / \u221E"
-				: $"{activeState.Magazine} / {activeState.Reserve}";
-			DrawHudText(
-				hud,
-				ammo,
-				22.0f * scale,
-				16.0f * scale,
-				Color.White,
-				new Rect(
-					panel.Right - 128.0f * scale,
-					panel.Top + 4.0f * scale,
-					114.0f * scale,
-					28.0f * scale ),
-				TextFlag.RightCenter | TextFlag.SingleLine,
-				BoldFontWeight );
-		}
 
 		var status = tag;
 		if ( !string.IsNullOrWhiteSpace( status ) )
@@ -849,7 +846,7 @@ public sealed class LargeLadHud : Component
 		float scale )
 	{
 		var definition = LargeLadWeaponCatalog.Get( firearm.WeaponId );
-		var accent = definition.PickupColor;
+		var accent = definition.AccentColor;
 		var panel = new Rect(
 			Screen.Width - 324.0f * scale,
 			Screen.Height - 96.0f * scale,
@@ -911,7 +908,10 @@ public sealed class LargeLadHud : Component
 		Rect panel,
 		float scale )
 	{
-		var selectionCount = player.InventorySelectionCount;
+		var inventory = player.NativeInventory;
+		var items = inventory?.GetOrderedNativeItems() ??
+			System.Array.Empty<BaseInventoryItem>();
+		var selectionCount = items.Count;
 		if ( selectionCount <= 0 )
 			return;
 
@@ -925,21 +925,17 @@ public sealed class LargeLadHud : Component
 
 		for ( var index = 0; index < selectionCount; index++ )
 		{
-			if ( !player.TryGetInventorySelectionAt( index, out var selection ) ||
-				!TryGetSelectionPresentation(
-					player,
-					selection,
+			var item = items[index];
+			if ( !TryGetItemPresentation(
+					item,
 					out _,
 					out var color,
-					out _,
-					out _,
 					out _ ) )
 			{
 				continue;
 			}
 
-			var selected =
-				player.ActiveInventorySelection == selection;
+			var selected = inventory.ActiveItem == item;
 			var slot = new Rect(
 				railLeft + index * (slotWidth + gap),
 				slotTop,
@@ -975,50 +971,44 @@ public sealed class LargeLadHud : Component
 		}
 	}
 
-	private static bool TryGetSelectionPresentation(
-		LargeLadPlayer player,
-		LargeLadInventorySelection selection,
+	private static bool TryGetItemPresentation(
+		BaseInventoryItem item,
 		out string displayName,
 		out Color color,
-		out LargeLadWeaponState state,
-		out bool isFirearm,
 		out string tag )
 	{
 		displayName = string.Empty;
 		color = MutedTextColor;
-		state = default;
-		isFirearm = false;
 		tag = string.Empty;
 
-		if ( selection.Kind == LargeLadInventorySelectionKind.RoleAbility )
+		if ( item is LargeLadMeleeWeapon )
 		{
 			var definition =
 				LargeLadWeaponCatalog.Get( LargeLadWeaponId.Melee );
 			displayName = definition.DisplayName;
-			color = definition.PickupColor;
-			tag = "ROLE";
+			color = definition.AccentColor;
+			tag = "MELEE";
 			return true;
 		}
 
-		if ( selection.Kind == LargeLadInventorySelectionKind.Utility )
+		if ( item is LargeLadDodgeballItem utility )
 		{
 			displayName =
-				LargeLadUtilityRules.GetDisplayName( selection.Utility );
-			color = LargeLadUtilityRules.GetColor( selection.Utility );
+				LargeLadUtilityRules.GetDisplayName( utility.UtilityId );
+			color = LargeLadUtilityRules.GetColor( utility.UtilityId );
 			tag = "UTILITY";
 			return true;
 		}
 
-		if ( !player.TryGetFirearmForSelection( selection, out state ) )
+		if ( item is not LargeLadFirearm nativeFirearm )
 			return false;
 
-		var firearm = LargeLadWeaponCatalog.Get( state.Weapon );
+		var firearm = LargeLadWeaponCatalog.Get( nativeFirearm.WeaponId );
 		displayName = firearm.DisplayName;
-		color = state.IsExclusive
+		color = nativeFirearm.IsExclusive
 			? new Color( 1.0f, 0.58f, 0.16f )
-			: firearm.PickupColor;
-		isFirearm = true;
-		tag = state.IsExclusive ? "EXCLUSIVE" : string.Empty;
+			: firearm.AccentColor;
+		tag = nativeFirearm.IsExclusive ? "EXCLUSIVE" : string.Empty;
 		return true;
 	}
 

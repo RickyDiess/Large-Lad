@@ -4,28 +4,16 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 public sealed class LargeLadRoleAbilityPresentationRulesTests
 {
 	[TestMethod]
-	public void NativeSkinnyKidCombatSelections_DoNotUseRolePresentation()
+	public void SkinnyKidWithoutActiveUtility_HasNoCustomPresentation()
 	{
-		foreach ( var selection in new[]
-		{
-			LargeLadInventorySelection.ForRoleMelee(),
-			LargeLadInventorySelection.ForCoreFirearm(
-				LargeLadWeaponId.Pistol ),
-			LargeLadInventorySelection.ForCoreFirearm(
-				LargeLadWeaponId.Smg )
-		} )
-		{
-			var state = ActiveState(
-				LargeLadRole.SkinnyKid,
-				selection );
+		var state = ActiveState( LargeLadRole.SkinnyKid );
 
-			Assert.AreEqual(
-				LargeLadRoleAbilityPresentationKind.None,
-				LargeLadRoleAbilityPresentationRules.ResolveKind( state ) );
-			Assert.AreEqual(
-				LargeLadRoleAbilityPresentationView.Hidden,
-				LargeLadRoleAbilityPresentationRules.ResolveView( state ) );
-		}
+		Assert.AreEqual(
+			LargeLadRoleAbilityPresentationKind.None,
+			LargeLadRoleAbilityPresentationRules.ResolveKind( state ) );
+		Assert.AreEqual(
+			LargeLadRoleAbilityPresentationView.Hidden,
+			LargeLadRoleAbilityPresentationRules.ResolveView( state ) );
 	}
 
 	[TestMethod]
@@ -37,9 +25,7 @@ public sealed class LargeLadRoleAbilityPresentationRulesTests
 			LargeLadRole.Minion
 		} )
 		{
-			var state = ActiveState(
-				role,
-				LargeLadInventorySelection.None );
+			var state = ActiveState( role );
 
 			Assert.AreEqual(
 				LargeLadRoleAbilityPresentationKind.RoleMelee,
@@ -51,13 +37,12 @@ public sealed class LargeLadRoleAbilityPresentationRulesTests
 	}
 
 	[TestMethod]
-	public void DodgeballSelection_KeepsUtilityPresentationUntilNativeModelsExist()
+	public void ActiveDodgeball_KeepsUtilityPresentation()
 	{
 		var state = ActiveState(
 			LargeLadRole.SkinnyKid,
-			LargeLadInventorySelection.ForUtility(
-				LargeLadUtilityId.Dodgeball,
-				instanceId: 12 ) );
+			LargeLadUtilityId.Dodgeball,
+			utilityInstanceId: 12 );
 
 		Assert.AreEqual(
 			LargeLadRoleAbilityPresentationKind.Dodgeball,
@@ -70,9 +55,7 @@ public sealed class LargeLadRoleAbilityPresentationRulesTests
 	[TestMethod]
 	public void CameraAndOwnership_SelectFirstOrThirdPersonPresentation()
 	{
-		var firstPerson = ActiveState(
-			LargeLadRole.Minion,
-			LargeLadInventorySelection.None );
+		var firstPerson = ActiveState( LargeLadRole.Minion );
 		var thirdPersonCamera = Copy(
 			firstPerson,
 			isThirdPersonCamera: true );
@@ -95,9 +78,7 @@ public sealed class LargeLadRoleAbilityPresentationRulesTests
 	[TestMethod]
 	public void InvalidLifecycleStates_HideCustomPresentation()
 	{
-		var active = ActiveState(
-			LargeLadRole.Minion,
-			LargeLadInventorySelection.None );
+		var active = ActiveState( LargeLadRole.Minion );
 
 		Assert.AreEqual(
 			LargeLadRoleAbilityPresentationView.Hidden,
@@ -113,13 +94,15 @@ public sealed class LargeLadRoleAbilityPresentationRulesTests
 
 	private static LargeLadRoleAbilityPresentationState ActiveState(
 		LargeLadRole role,
-		LargeLadInventorySelection selection )
+		LargeLadUtilityId utility = LargeLadUtilityId.None,
+		int utilityInstanceId = 0 )
 	{
 		return new LargeLadRoleAbilityPresentationState
 		{
 			Role = role,
 			RoundPhase = LargeLadRoundPhase.Playing,
-			Selection = selection,
+			Utility = utility,
+			UtilityInstanceId = utilityInstanceId,
 			IsDead = false,
 			IsLocalOwner = true,
 			HasOwnedCamera = true,
@@ -138,7 +121,8 @@ public sealed class LargeLadRoleAbilityPresentationRulesTests
 		{
 			Role = state.Role,
 			RoundPhase = roundPhase ?? state.RoundPhase,
-			Selection = state.Selection,
+			Utility = state.Utility,
+			UtilityInstanceId = state.UtilityInstanceId,
 			IsDead = isDead ?? state.IsDead,
 			IsLocalOwner = isLocalOwner ?? state.IsLocalOwner,
 			HasOwnedCamera = state.HasOwnedCamera,

@@ -3,8 +3,8 @@ using Sandbox;
 /// <summary>
 /// One authored firearm pickup. Core placements are permanent unlock points
 /// available independently to every Skinny Kid. Exclusive placements own one
-/// persistent physical instance for the match and remain hidden while that
-/// instance is carried or represented by a dropped runtime object.
+/// persistent native firearm for the match and remain unavailable while that
+/// same item is carried or dropped elsewhere.
 /// </summary>
 public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 	Component.ITriggerListener
@@ -31,8 +31,7 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 
 	private Transform authoredTransform;
 	private bool hasAuthoredTransform;
-	private LargeLadExclusiveInstance exclusiveInstance;
-	private LargeLadDroppedExclusiveWeapon droppedInstance;
+	private LargeLadFirearm exclusiveInstance;
 
 	protected override void OnAwake()
 	{
@@ -42,7 +41,6 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 	protected override void OnStart()
 	{
 		ResolveAuthoredParts();
-		ApplyCatalogWorldModel();
 		authoredTransform = GameObject.WorldTransform;
 		hasAuthoredTransform = true;
 
@@ -58,7 +56,6 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 	protected override void OnValidate()
 	{
 		ResolveAuthoredParts();
-		ApplyCatalogWorldModel();
 
 		if ( !LargeLadWeaponCatalog.IsFirearm( Weapon ) )
 		{
@@ -147,26 +144,21 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 
 	internal bool TryDropFromCarrier(
 		LargeLadNativeInventory carrier,
-		LargeLadWeaponState state,
+		LargeLadFirearm firearm,
 		Vector3 nearPosition,
-		Vector3 forward,
-		out LargeLadDroppedExclusiveWeapon dropped )
+		Vector3 forward )
 	{
-		dropped = null;
-
 		if ( !Networking.IsHost ||
 			PickupPolicy != LargeLadPickupPolicy.Exclusive ||
 			carrier is null ||
 			!carrier.IsValid ||
-			!LargeLadInventoryRules.IsValidExclusiveState( state ) )
+			firearm?.Inventory != carrier ||
+			!MatchesExclusiveInstance( firearm ) )
 		{
 			return false;
 		}
 
-		EnsureExclusiveInstance();
-
-		if ( exclusiveInstance is null ||
-			!LargeLadDropPlacement.TryFind(
+		if ( !LargeLadDropPlacement.TryFind(
 				Scene,
 				carrier.GameObject,
 				nearPosition,
@@ -176,160 +168,74 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 			return false;
 		}
 
-		var runtime = CreateDroppedRuntime( state, worldPosition );
-
-		if ( runtime is null ||
-			!exclusiveInstance.TryDrop( carrier, state ) )
-		{
-			runtime?.GameObject?.Destroy();
-			return false;
-		}
-
-		droppedInstance = runtime;
-		SetAvailable( false );
-
-		try
-		{
-			runtime.GameObject.NetworkSpawn();
-		}
-		catch ( System.Exception exception )
-		{
-			droppedInstance = null;
-			exclusiveInstance.TryCollectDropped( carrier, out _ );
-			runtime.GameObject.Destroy();
-			Log.Error(
-				$"{GameObject.Name}: failed to network-spawn dropped " +
-				$"exclusive weapon: {exception.Message}" );
-			return false;
-		}
-
-		dropped = runtime;
-		return true;
+		return DropFromCarrierAt(
+			carrier,
+			firearm,
+			new Transform( worldPosition, Rotation.Identity ) );
 	}
 
 	internal bool ReturnCarrierToOrigin(
 		LargeLadNativeInventory carrier,
-		LargeLadWeaponState state )
+		LargeLadFirearm firearm )
 	{
 		if ( !Networking.IsHost ||
-			PickupPolicy != LargeLadPickupPolicy.Exclusive )
+			PickupPolicy != LargeLadPickupPolicy.Exclusive ||
+			carrier is null ||
+			!carrier.IsValid ||
+			firearm?.Inventory != carrier ||
+			!MatchesExclusiveInstance( firearm ) )
 		{
 			return false;
 		}
 
-		EnsureExclusiveInstance();
-
-		if ( exclusiveInstance is null )
-		{
-			return false;
-		}
-
-		var returned = exclusiveInstance.ReturnCarrierToOrigin(
-			carrier,
-			state );
-
-		if ( !returned )
-			returned = exclusiveInstance.ForceReturnToOrigin( state );
-
-		if ( !returned )
+		if ( !DropFromCarrierAt( carrier, firearm, authoredTransform ) )
 			return false;
 
-		if ( droppedInstance is not null &&
-			droppedInstance.IsValid )
-		{
-			var runtime = droppedInstance;
-			droppedInstance = null;
-			runtime.GameObject.Destroy();
-		}
-
-		RestoreAuthoredTransform();
-		SetAvailable( true );
+		PlaceExclusiveAtOrigin( firearm, restoreStartingAmmunition: false );
 		return true;
 	}
 
 	internal void ReleaseCarrierForRoundReset(
 		LargeLadNativeInventory carrier )
 	{
-		if ( !Networking.IsHost ||
-			exclusiveInstance is null ||
-			exclusiveInstance.Location != LargeLadExclusiveLocation.Carried ||
-			!ReferenceEquals( exclusiveInstance.Carrier, carrier ) )
+		var firearm = ResolveExclusiveInstance();
+
+		if ( !Networking.IsHost || firearm?.Inventory != carrier )
 		{
 			return;
 		}
 
-		exclusiveInstance.ReturnCarrierToOrigin(
-			carrier,
-			exclusiveInstance.State );
+		ReturnCarrierToOrigin( carrier, firearm );
 	}
 
-	internal void TryCollectDropped(
-		LargeLadPlayer player,
-		LargeLadDroppedExclusiveWeapon dropped )
+	internal void NotifyExclusivePickedUp(
+		LargeLadFirearm firearm,
+		LargeLadNativeInventory inventory )
 	{
 		if ( !Networking.IsHost ||
 			PickupPolicy != LargeLadPickupPolicy.Exclusive ||
-			player?.Role != LargeLadRole.SkinnyKid ||
-			player.Health?.IsDead != false ||
-			dropped is null ||
-			!dropped.IsValid ||
-			dropped != droppedInstance )
+			inventory is null ||
+			!inventory.IsValid ||
+			firearm?.Inventory != inventory ||
+			!MatchesExclusiveInstance( firearm ) )
 		{
 			return;
 		}
 
-		var inventory = player.NativeInventory;
-
-		if ( inventory is null )
-			return;
-
-		if ( inventory.HasExclusiveFirearm )
-		{
-			inventory.NotifyExclusiveSlotFull();
-			return;
-		}
-
-		EnsureExclusiveInstance();
-		var pendingState = exclusiveInstance?.State ?? default;
-
-		if ( exclusiveInstance is null ||
-			!inventory.CanAcceptExclusive(
-				this,
-				pendingState,
-				pickupAvailable: true ) ||
-			!exclusiveInstance.TryCollectDropped(
-				inventory,
-				out var state ) )
-		{
-			return;
-		}
-
-		if ( !inventory.TryGrantExclusiveWeapon( this, state ) )
-		{
-			exclusiveInstance.RestoreDroppedAfterRejectedTransfer();
-			return;
-		}
-
-		droppedInstance = null;
-		dropped.GameObject.Destroy();
+		exclusiveInstance = firearm;
+		SetAvailable( false );
 		LogPickupDebug(
-			$"{player.GameObject.Name} collected dropped exclusive {Weapon} " +
+			$"{inventory.GameObject.Name} collected native exclusive {Weapon} " +
 			$"from '{GameObject.Name}'." );
 	}
 
-	internal void HandleDroppedDestroyed(
-		LargeLadDroppedExclusiveWeapon dropped )
+	internal void HandleExclusiveInstanceDestroyed( LargeLadFirearm firearm )
 	{
-		if ( !Networking.IsHost || dropped != droppedInstance )
+		if ( !Networking.IsHost || firearm != exclusiveInstance )
 			return;
 
-		droppedInstance = null;
-
-		if ( exclusiveInstance?.ReturnDroppedToOrigin() == true )
-		{
-			RestoreAuthoredTransform();
-			SetAvailable( true );
-		}
+		exclusiveInstance = null;
+		SetAvailable( false );
 	}
 
 	public override void ResetForRound()
@@ -337,18 +243,17 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 		if ( !Networking.IsHost )
 			return;
 
-		if ( droppedInstance is not null &&
-			droppedInstance.IsValid )
-		{
-			var runtime = droppedInstance;
-			droppedInstance = null;
-			runtime.GameObject.Destroy();
-		}
-
 		EnsureExclusiveInstance();
-		exclusiveInstance?.ResetForRound();
-		RestoreAuthoredTransform();
-		SetAvailable( true );
+
+		var firearm = ResolveExclusiveInstance();
+		if ( firearm?.Inventory is LargeLadNativeInventory carrier )
+			ReturnCarrierToOrigin( carrier, firearm );
+
+		if ( firearm is not null && firearm.Inventory is null )
+			PlaceExclusiveAtOrigin( firearm, restoreStartingAmmunition: true );
+		else
+			SetAvailable( false );
+
 		LogRoundResetDebug(
 			$"Reset pickup '{GameObject.Name}' ({PickupPolicy} {Weapon})." );
 	}
@@ -363,32 +268,15 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 		}
 
 		EnsureExclusiveInstance();
-		var pendingState = exclusiveInstance?.State ?? default;
+		var firearm = ResolveExclusiveInstance();
 
-		if ( exclusiveInstance is null ||
-			!inventory.CanAcceptExclusive(
-				this,
-				pendingState,
-				pickupAvailable: Available ) ||
-			!exclusiveInstance.TryCollectFromOrigin(
-				inventory,
-				out var state ) )
-		{
+		if ( firearm is null || firearm.Inventory is not null )
 			return;
-		}
 
-		if ( !inventory.TryGrantExclusiveWeapon( this, state ) )
-		{
-			exclusiveInstance.ReturnCarrierToOrigin(
-				inventory,
-				state );
-			return;
-		}
+		inventory.PickupWorldItem( firearm );
 
-		SetAvailable( false );
-		LogPickupDebug(
-			$"{inventory.GameObject.Name} collected exclusive {Weapon} from " +
-			$"'{GameObject.Name}'." );
+		if ( firearm.Inventory == inventory )
+			NotifyExclusivePickedUp( firearm, inventory );
 	}
 
 	private void LogPickupDebug( string message )
@@ -409,69 +297,128 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 		}
 	}
 
-	private LargeLadDroppedExclusiveWeapon CreateDroppedRuntime(
-		LargeLadWeaponState state,
-		Vector3 worldPosition )
+	private bool DropFromCarrierAt(
+		LargeLadNativeInventory carrier,
+		LargeLadFirearm firearm,
+		Transform worldTransform )
 	{
-		var definition = LargeLadWeaponCatalog.Get( state.Weapon );
-		var worldModel = string.IsNullOrWhiteSpace(
-			definition.ThirdPersonWorldModelPath )
-			? null
-			: Model.Load( definition.ThirdPersonWorldModelPath );
+		firearm.PrepareExclusiveWorldDrop( worldTransform );
+		carrier.Drop( firearm );
 
-		if ( worldModel is null )
+		if ( firearm.Inventory is not null )
 		{
-			Log.Warning(
-				$"{GameObject.Name}: cannot create dropped '{state.Weapon}' " +
-				$"because its third-person world model " +
-				$"'{definition.ThirdPersonWorldModelPath}' could not be loaded." );
-			return null;
+			firearm.CancelExclusiveWorldDrop();
+			return false;
 		}
 
-		var droppedObject = Scene.CreateObject();
-		droppedObject.Name =
-			$"Dropped Exclusive {definition.DisplayName} " +
-			$"#{state.ExclusiveInstanceId}";
-		droppedObject.NetworkMode = NetworkMode.Object;
-		droppedObject.WorldPosition = worldPosition;
-		droppedObject.WorldRotation = Rotation.Identity;
-		droppedObject.Tags.Add( "pickup" );
-
-		var renderer =
-			droppedObject.Components.Create<ModelRenderer>();
-		renderer.Model = worldModel;
-		renderer.Tint = definition.PickupColor;
-
-		var collider =
-			droppedObject.Components.Create<BoxCollider>();
-		collider.Center = Vector3.Up * 9.0f;
-		collider.Scale = new Vector3( 44.0f, 44.0f, 18.0f );
-		collider.IsTrigger = true;
-		collider.Static = true;
-
-		var dropped =
-			droppedObject.Components
-				.Create<LargeLadDroppedExclusiveWeapon>();
-		dropped.Initialize( this, state, collider, renderer );
-		return dropped;
+		exclusiveInstance = firearm;
+		SetAvailable( false );
+		return true;
 	}
 
 	private void EnsureExclusiveInstance()
 	{
-		if ( PickupPolicy != LargeLadPickupPolicy.Exclusive ||
-			exclusiveInstance is not null )
+		if ( PickupPolicy != LargeLadPickupPolicy.Exclusive )
+			return;
+
+		ExclusiveInstanceId = ExclusiveInstanceId > 0
+			? ExclusiveInstanceId
+			: CreateStableInstanceId();
+
+		if ( ResolveExclusiveInstance() is not null )
+			return;
+
+		if ( !LargeLadWeaponCatalog.TryGetFirearm(
+			Weapon,
+			out var definition ) ||
+			string.IsNullOrWhiteSpace( definition.NativePrefabPath ) )
 		{
+			Log.Warning(
+				$"{GameObject.Name}: no native prefab route exists for " +
+				$"'{Weapon}'." );
 			return;
 		}
 
-		var definition = LargeLadWeaponCatalog.Get( Weapon );
-		var instanceId = CreateStableInstanceId();
-		ExclusiveInstanceId = instanceId;
-		exclusiveInstance = new LargeLadExclusiveInstance(
-			instanceId,
-			Weapon,
-			definition.MagazineSize,
-			definition.StartingReserve );
+		var spawnTransform = hasAuthoredTransform
+			? authoredTransform
+			: GameObject.WorldTransform;
+		var instanceObject = GameObject.Clone(
+			definition.NativePrefabPath,
+			new CloneConfig
+			{
+				Transform = spawnTransform,
+				StartEnabled = true
+			} );
+		var firearm = instanceObject?.Components.Get<LargeLadFirearm>();
+
+		if ( firearm is null ||
+			!firearm.InitializeExclusiveState( ExclusiveInstanceId ) )
+		{
+			instanceObject?.Destroy();
+			Log.Warning(
+				$"{GameObject.Name}: failed to create its native Exclusive " +
+				$"'{Weapon}' instance." );
+			return;
+		}
+
+		instanceObject.Name =
+			$"Exclusive {definition.DisplayName} #{ExclusiveInstanceId}";
+		exclusiveInstance = firearm;
+		firearm.PlaceExclusiveWorldItem( spawnTransform );
+
+		try
+		{
+			instanceObject.NetworkSpawn();
+		}
+		catch ( System.Exception exception )
+		{
+			exclusiveInstance = null;
+			instanceObject.Destroy();
+			SetAvailable( false );
+			Log.Error(
+				$"{GameObject.Name}: failed to network-spawn native " +
+				$"Exclusive weapon: {exception.Message}" );
+			return;
+		}
+
+		SetAvailable( true );
+	}
+
+	private LargeLadFirearm ResolveExclusiveInstance()
+	{
+		if ( MatchesExclusiveInstance( exclusiveInstance ) )
+			return exclusiveInstance;
+
+		exclusiveInstance = Scene?
+			.GetAllComponents<LargeLadFirearm>()
+			.FirstOrDefault( MatchesExclusiveInstance );
+		return exclusiveInstance;
+	}
+
+	private bool MatchesExclusiveInstance( LargeLadFirearm firearm )
+	{
+		return firearm is not null &&
+			firearm.IsValid &&
+			firearm.IsExclusive &&
+			firearm.WeaponId == Weapon &&
+			firearm.ExclusiveInstanceId > 0 &&
+			firearm.ExclusiveInstanceId == ExclusiveInstanceId;
+	}
+
+	private void PlaceExclusiveAtOrigin(
+		LargeLadFirearm firearm,
+		bool restoreStartingAmmunition )
+	{
+		if ( firearm is null || !firearm.IsValid || firearm.Inventory is not null )
+			return;
+
+		if ( restoreStartingAmmunition )
+			firearm.ResetExclusiveAmmunition();
+
+		RestoreAuthoredTransform();
+		firearm.PlaceExclusiveWorldItem( authoredTransform );
+		exclusiveInstance = firearm;
+		SetAvailable( true );
 	}
 
 	private int CreateStableInstanceId()
@@ -487,31 +434,6 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 		PickupCollider ??= Components.Get<Collider>();
 		PickupRenderer ??= Components.Get<Renderer>(
 			FindMode.EverythingInSelfAndDescendants );
-	}
-
-	private void ApplyCatalogWorldModel()
-	{
-		if ( PickupRenderer is not ModelRenderer modelRenderer ||
-			!LargeLadWeaponCatalog.TryGetFirearm(
-				Weapon,
-				out var definition ) ||
-			string.IsNullOrWhiteSpace(
-				definition.ThirdPersonWorldModelPath ) )
-		{
-			return;
-		}
-
-		var model = Model.Load( definition.ThirdPersonWorldModelPath );
-		if ( model is null )
-		{
-			Log.Warning(
-				$"{GameObject.Name}: weapon definition '{Weapon}' has an " +
-				$"unloadable third-person world model " +
-				$"'{definition.ThirdPersonWorldModelPath}'." );
-			return;
-		}
-
-		modelRenderer.Model = model;
 	}
 
 	private void RestoreAuthoredTransform()
@@ -536,7 +458,10 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 
 	private void ApplyAvailableState()
 	{
-		var shown = PickupPolicy == LargeLadPickupPolicy.Core || Available;
+		// The authored object remains the stable origin/reset marker for an
+		// Exclusive. Its one native firearm supplies the world presentation and
+		// pickup trigger, including while it is resting at this origin.
+		var shown = PickupPolicy == LargeLadPickupPolicy.Core;
 
 		if ( PickupRenderer is not null )
 			PickupRenderer.Enabled = shown;
@@ -547,7 +472,7 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 
 	protected override void DrawGizmos()
 	{
-		var color = LargeLadWeaponCatalog.Get( Weapon ).PickupColor;
+		var color = LargeLadWeaponCatalog.Get( Weapon ).AccentColor;
 		var alpha = PickupPolicy == LargeLadPickupPolicy.Exclusive
 			? 0.7f
 			: 0.45f;
@@ -556,124 +481,6 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 			new BBox(
 				new Vector3( -12.0f ),
 				new Vector3( 12.0f ) ) );
-	}
-}
-
-/// <summary>
-/// Runtime world representation of an authored exclusive instance. It never
-/// owns/reset ammunition; its source pickup remains the durable host authority.
-/// </summary>
-public sealed class LargeLadDroppedExclusiveWeapon : Component,
-	Component.ITriggerListener
-{
-	[Property]
-	public Collider PickupCollider { get; private set; }
-
-	[Property]
-	public Renderer PickupRenderer { get; private set; }
-
-	[Sync( SyncFlags.FromHost )]
-	public LargeLadWeaponId Weapon { get; private set; }
-
-	[Sync( SyncFlags.FromHost )]
-	public int ExclusiveInstanceId { get; private set; }
-
-	[Sync( SyncFlags.FromHost )]
-	public int Magazine { get; private set; }
-
-	[Sync( SyncFlags.FromHost )]
-	public int Reserve { get; private set; }
-
-	private LargeLadWeaponPickup source;
-
-	internal void Initialize(
-		LargeLadWeaponPickup source,
-		LargeLadWeaponState state,
-		Collider collider,
-		Renderer renderer )
-	{
-		this.source = source;
-		Weapon = state.Weapon;
-		ExclusiveInstanceId = state.ExclusiveInstanceId;
-		Magazine = state.Magazine;
-		Reserve = state.Reserve;
-		PickupCollider = collider;
-		PickupRenderer = renderer;
-
-		if ( PickupCollider is not null )
-			PickupCollider.IsTrigger = true;
-	}
-
-	protected override void OnStart()
-	{
-		PickupCollider ??= Components.Get<Collider>();
-		PickupRenderer ??= Components.Get<Renderer>();
-
-		if ( PickupCollider is not null )
-			PickupCollider.IsTrigger = true;
-	}
-
-	protected override void OnDestroy()
-	{
-		if ( Networking.IsHost )
-			ResolveSource()?.HandleDroppedDestroyed( this );
-
-		base.OnDestroy();
-	}
-
-	public void OnTriggerEnter( Collider other )
-	{
-		if ( !Networking.IsHost )
-			return;
-
-		var player = other?.GameObject?.Components.Get<LargeLadPlayer>(
-			FindMode.EverythingInSelfAndAncestors );
-
-		if ( player?.Role != LargeLadRole.SkinnyKid ||
-			player.Health?.IsDead != false )
-		{
-			return;
-		}
-
-		if ( player.NativeInventory?.HasExclusiveFirearm == true )
-		{
-			player.NativeInventory.NotifyExclusiveSlotFull();
-			return;
-		}
-
-		ResolveSource()?.TryCollectDropped( player, this );
-	}
-
-	public void OnTriggerExit( Collider other )
-	{
-	}
-
-	private LargeLadWeaponPickup ResolveSource()
-	{
-		if ( source is not null &&
-			source.IsValid &&
-			source.ExclusiveInstanceId == ExclusiveInstanceId )
-		{
-			return source;
-		}
-
-		if ( !Networking.IsHost )
-			return null;
-
-		foreach ( var pickup in
-			Scene.GetAllComponents<LargeLadWeaponPickup>() )
-		{
-			if ( pickup.PickupPolicy ==
-					LargeLadPickupPolicy.Exclusive &&
-				pickup.ExclusiveInstanceId ==
-					ExclusiveInstanceId )
-			{
-				source = pickup;
-				return source;
-			}
-		}
-
-		return null;
 	}
 }
 

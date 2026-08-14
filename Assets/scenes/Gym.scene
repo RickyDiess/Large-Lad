@@ -66,7 +66,7 @@
                   "MipLodBias": 0,
                   "MaxAnisotropy": 8,
                   "BorderColor": "0,0,0,0",
-                  "Index": 10
+                  "Index": 9
                 }
               },
               "ResourceVersion": 3,
@@ -30211,7 +30211,7 @@
               "IdValue": "8a400001-0000-4000-8000-000000000001"
             },
             "Property": "Position",
-            "Value": "-336.457947,-772.494141,32"
+            "Value": "-336.457947,-772.494141,45.9519958"
           },
           {
             "Target": {

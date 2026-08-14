@@ -150,8 +150,8 @@ public sealed class LargeLadMeleeCombat : Component
 
 		CommitHostCadence( cooldown, hostNow );
 
-		// Native melee already broadcasts BaseWeaponModel/Citizen attack effects.
-		// Keep the legacy path only for Minions, which have not migrated yet.
+		// Native Skinny Kid melee already broadcasts BaseWeaponModel/Citizen
+		// attack effects. Minions still use the role-ability presentation.
 		if ( !usesNativeMelee )
 			attacker.AbilityPresentation?.BroadcastSwing();
 
@@ -532,10 +532,14 @@ public sealed class LargeLadMeleeCombat : Component
 		LargeLadPlayer attacker,
 		PlayerController controller )
 	{
+		var hasMeleeEquipped = attacker?.Role == LargeLadRole.Minion ||
+			(attacker?.Role == LargeLadRole.SkinnyKid &&
+			attacker.NativeInventory?.ActiveMelee is not null);
+
 		if ( attacker is null || controller is null ||
 			attacker.Role is not (LargeLadRole.SkinnyKid or
 				LargeLadRole.Minion) ||
-			attacker.EquippedWeapon != LargeLadWeaponId.Melee ||
+			!hasMeleeEquipped ||
 			attacker.Health?.IsDead != false ||
 			attacker.Health.CurrentHealth <= 0.0f ||
 			attacker.MovementLocked ||

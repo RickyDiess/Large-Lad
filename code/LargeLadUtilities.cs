@@ -44,8 +44,7 @@ public static class LargeLadUtilityPresentationCatalog
 			FirstPersonHeldRotationOffset = Angles.Zero,
 			FirstPersonHeldModelScale = 0.18f,
 			ThirdPersonWorldModelPath = "models/dev/sphere.vmdl",
-			// Keep the ball centered at the authored hold attachment. The old
-			// twelve-unit translation visibly floated it beyond the hand.
+			// Keep the ball centered at the authored hold attachment.
 			ThirdPersonModelPosition = Vector3.Zero,
 			ThirdPersonModelRotation = Angles.Zero,
 			ThirdPersonModelScale = 0.5f
@@ -169,7 +168,7 @@ public static class LargeLadUtilityRules
 		LargeLadRole role,
 		bool isDead,
 		LargeLadUtilityState state,
-		LargeLadInventorySelection activeSelection )
+		LargeLadUtilityState activeState )
 	{
 		return CanSelect(
 				isHost,
@@ -177,17 +176,7 @@ public static class LargeLadUtilityRules
 				role,
 				isDead,
 				state ) &&
-			activeSelection == SelectionFor( state );
-	}
-
-	public static LargeLadInventorySelection SelectionFor(
-		LargeLadUtilityState state )
-	{
-		return IsValidState( state )
-			? LargeLadInventorySelection.ForUtility(
-				state.Utility,
-				state.InstanceId )
-			: LargeLadInventorySelection.None;
+			state == activeState;
 	}
 
 	public static string GetDisplayName( LargeLadUtilityId utility )

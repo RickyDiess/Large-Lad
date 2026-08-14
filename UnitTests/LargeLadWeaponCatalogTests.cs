@@ -5,7 +5,7 @@ using System.Linq;
 public sealed class LargeLadWeaponCatalogLookupTests
 {
 	[TestMethod]
-	public void Lookup_ResolvesEveryExistingAuthoredFirearm()
+	public void Lookup_ResolvesEveryAuthoredFirearm()
 	{
 		Assert.IsTrue(
 			LargeLadWeaponCatalog.TryGetFirearm(
@@ -24,12 +24,10 @@ public sealed class LargeLadWeaponCatalogLookupTests
 		Assert.AreSame(
 			smg,
 			LargeLadWeaponCatalog.Get( LargeLadWeaponId.Smg ) );
-		Assert.AreEqual( 0, LargeLadWeaponCatalog.GetCatalogOrder( pistol.Id ) );
-		Assert.AreEqual( 1, LargeLadWeaponCatalog.GetCatalogOrder( smg.Id ) );
 	}
 
 	[TestMethod]
-	public void Lookup_InvalidIdUsesExplicitTryFailureAndSafeLegacyFallback()
+	public void Lookup_InvalidIdUsesExplicitTryFailureAndSafeFallback()
 	{
 		var invalid = (LargeLadWeaponId)999;
 
@@ -39,11 +37,10 @@ public sealed class LargeLadWeaponCatalogLookupTests
 		Assert.AreEqual(
 			LargeLadWeaponId.None,
 			LargeLadWeaponCatalog.Get( invalid ).Id );
-		Assert.AreEqual( -1, LargeLadWeaponCatalog.GetCatalogOrder( invalid ) );
 	}
 
 	[TestMethod]
-	public void ExistingSerializedWeaponNamesStillParseToCatalogDefinitions()
+	public void ExistingSerializedNamesKeepStableMetadataAndNativeRoutes()
 	{
 		Assert.IsTrue(
 			System.Enum.TryParse<LargeLadWeaponId>(
@@ -53,18 +50,33 @@ public sealed class LargeLadWeaponCatalogLookupTests
 			System.Enum.TryParse<LargeLadWeaponId>(
 				"Smg",
 				out var smgId ) );
-		Assert.AreEqual( "Pistol", LargeLadWeaponCatalog.Get( pistolId ).DisplayName );
-		Assert.AreEqual( "SMG", LargeLadWeaponCatalog.Get( smgId ).DisplayName );
+
+		var pistol = LargeLadWeaponCatalog.Get( pistolId );
+		var smg = LargeLadWeaponCatalog.Get( smgId );
+		Assert.AreEqual( "Pistol", pistol.DisplayName );
+		Assert.AreEqual( "SMG", smg.DisplayName );
+		Assert.AreEqual(
+			"prefabs/gameplay/native_pistol.prefab",
+			pistol.NativePrefabPath );
+		Assert.AreEqual(
+			"prefabs/gameplay/native_smg.prefab",
+			smg.NativePrefabPath );
 	}
 }
 
 [TestClass]
-public sealed class LargeLadWeaponDefinitionValidationTests
+public sealed class LargeLadWeaponDefinitionMetadataTests
 {
 	[TestMethod]
-	public void CataloguedFirearms_AreComplete()
+	public void CataloguedFirearms_HaveCompleteMetadata()
 	{
-		Assert.AreEqual( 2, LargeLadWeaponCatalog.FirearmDefinitions.Count );
+		var firearmIdCount = System.Enum
+			.GetValues<LargeLadWeaponId>()
+			.Count( id =>
+				id is not (LargeLadWeaponId.None or LargeLadWeaponId.Melee) );
+		Assert.AreEqual(
+			firearmIdCount,
+			LargeLadWeaponCatalog.FirearmDefinitions.Count );
 		Assert.AreEqual(
 			0,
 			LargeLadWeaponCatalog.GetCatalogValidationWarnings().Count,
@@ -79,21 +91,16 @@ public sealed class LargeLadWeaponDefinitionValidationTests
 				0,
 				definition.GetValidationWarnings().Count,
 				$"{definition.Id}: " +
-				string.Join( "; ", definition.GetValidationWarnings() ) );
-			Assert.AreEqual(
-				definition.ThirdPersonWorldModelPath,
-				definition.WorldModelPath,
-				"The compatibility world-model accessor must resolve the canonical field." );
+					string.Join( "; ", definition.GetValidationWarnings() ) );
 		}
 	}
 
 	[TestMethod]
-	public void IncompleteDefinition_ProducesUsefulFieldWarnings()
+	public void IncompleteDefinition_ReportsOnlyMissingMetadata()
 	{
 		var definition = new LargeLadWeaponDefinition
 		{
-			Id = LargeLadWeaponId.Pistol,
-			Archetype = LargeLadFirearmArchetype.SemiAutomatic
+			Id = LargeLadWeaponId.Pistol
 		};
 
 		var warnings = definition.GetValidationWarnings();
@@ -101,13 +108,10 @@ public sealed class LargeLadWeaponDefinitionValidationTests
 		Assert.IsTrue(
 			warnings.Any( warning => warning.Contains( "Display name" ) ) );
 		Assert.IsTrue(
-			warnings.Any( warning => warning.Contains( "Damage" ) ) );
+			warnings.Any( warning => warning.Contains( "Crosshair" ) ) );
 		Assert.IsTrue(
-			warnings.Any( warning => warning.Contains( "Pickup world model" ) ) );
-		Assert.IsTrue(
-			warnings.Any( warning => warning.Contains( "Native reload sound" ) ) );
-		Assert.IsTrue(
-			warnings.Any( warning => warning.Contains( "Muzzle attachment" ) ) );
+			warnings.Any( warning => warning.Contains( "Native prefab" ) ) );
+		Assert.AreEqual( 3, warnings.Count );
 	}
 
 	[TestMethod]
@@ -116,8 +120,9 @@ public sealed class LargeLadWeaponDefinitionValidationTests
 		var definition = new LargeLadWeaponDefinition
 		{
 			Id = (LargeLadWeaponId)999,
-			Archetype = LargeLadFirearmArchetype.Automatic,
-			PelletCount = 1
+			DisplayName = "Invalid",
+			Crosshair = LargeLadCrosshairStyle.FourSegment,
+			NativePrefabPath = "prefabs/gameplay/invalid.prefab"
 		};
 
 		Assert.IsTrue(
@@ -126,144 +131,32 @@ public sealed class LargeLadWeaponDefinitionValidationTests
 	}
 
 	[TestMethod]
-	public void PickupOwnershipPolicy_IsNotPartOfGlobalDefinition()
+	public void Definition_ContainsOnlyLargeLadMetadataAndPrefabRouting()
+	{
+		var propertyNames = typeof( LargeLadWeaponDefinition )
+			.GetProperties()
+			.Select( property => property.Name )
+			.ToArray();
+
+		CollectionAssert.AreEquivalent(
+			new[]
+			{
+				"Id",
+				"DisplayName",
+				"Crosshair",
+				"AccentColor",
+				"NativePrefabPath"
+			},
+			propertyNames );
+	}
+
+	[TestMethod]
+	public void PickupOwnershipPolicy_IsPerMapperAuthoredInstance()
 	{
 		Assert.IsNull(
 			typeof( LargeLadWeaponDefinition ).GetProperty( "PickupPolicy" ) );
 		Assert.IsNotNull(
 			typeof( LargeLadWeaponPickup ).GetProperty( "PickupPolicy" ) );
-	}
-
-	[TestMethod]
-	public void ShotgunArchetype_RequiresMultipleSpreadPellets()
-	{
-		var invalid = CreateCompleteDefinition(
-			LargeLadFirearmArchetype.Shotgun,
-			pelletCount: 1,
-			pelletSpreadDegrees: 0.0f );
-		var warnings = invalid.GetValidationWarnings();
-
-		Assert.IsTrue(
-			warnings.Any( warning => warning.Contains( "at least two pellets" ) ) );
-		Assert.IsTrue(
-			warnings.Any( warning => warning.Contains( "pellet spread" ) ) );
-
-		var valid = CreateCompleteDefinition(
-			LargeLadFirearmArchetype.Shotgun,
-			pelletCount: 8,
-			pelletSpreadDegrees: 4.5f );
-		Assert.AreEqual(
-			0,
-			valid.GetValidationWarnings().Count,
-			string.Join( "; ", valid.GetValidationWarnings() ) );
-	}
-
-	[TestMethod]
-	public void NonShotgunArchetype_RejectsShotgunOnlyValues()
-	{
-		var definition = CreateCompleteDefinition(
-			LargeLadFirearmArchetype.Automatic,
-			pelletCount: 6,
-			pelletSpreadDegrees: 3.0f );
-		var warnings = definition.GetValidationWarnings();
-
-		Assert.IsTrue(
-			warnings.Any( warning => warning.Contains( "exactly one pellet" ) ) );
-		Assert.IsTrue(
-			warnings.Any( warning => warning.Contains( "cannot define pellet spread" ) ) );
-	}
-
-	private static LargeLadWeaponDefinition CreateCompleteDefinition(
-		LargeLadFirearmArchetype archetype,
-		int pelletCount,
-		float pelletSpreadDegrees )
-	{
-		return new LargeLadWeaponDefinition
-		{
-			Id = LargeLadWeaponId.Pistol,
-			DisplayName = "Validation Weapon",
-			Archetype = archetype,
-			Damage = 10.0f,
-			FireInterval = 0.2f,
-			Range = 800.0f,
-			MagazineSize = 6,
-			StartingReserve = 12,
-			ReloadDuration = 1.0f,
-			Crosshair = LargeLadCrosshairStyle.FourSegment,
-			PickupColor = Color.White,
-			ThirdPersonWorldModelPath = "models/test/world.vmdl",
-			ReloadSoundPackageIdent = "test/reload",
-			MuzzleAttachment = "muzzle",
-			PelletCount = pelletCount,
-			PelletSpreadDegrees = pelletSpreadDegrees
-		};
-	}
-}
-
-[TestClass]
-public sealed class LargeLadExistingFirearmCompatibilityTests
-{
-	[TestMethod]
-	public void Pistol_PreservesBehaviorInventoryAndAmmunitionValues()
-	{
-		var definition = LargeLadWeaponCatalog.Get( LargeLadWeaponId.Pistol );
-
-		Assert.AreEqual( LargeLadFirearmArchetype.SemiAutomatic, definition.Archetype );
-		Assert.AreEqual( 100.0f, definition.Damage );
-		Assert.AreEqual( 0.35f, definition.FireInterval );
-		Assert.AreEqual( 1200.0f, definition.Range );
-		Assert.AreEqual( 8, definition.MagazineSize );
-		Assert.AreEqual( 32, definition.StartingReserve );
-		Assert.AreEqual( 1.4f, definition.ReloadDuration );
-
-		var core = LargeLadWeaponState.CreateCore( LargeLadWeaponId.Pistol );
-		Assert.AreEqual( 8, core.Magazine );
-		Assert.AreEqual( 0, core.Reserve );
-		Assert.AreEqual(
-			LargeLadAmmunitionMode.InfiniteReserve,
-			core.AmmunitionMode );
-	}
-
-	[TestMethod]
-	public void Smg_PreservesBehaviorInventoryAndAmmunitionValues()
-	{
-		var definition = LargeLadWeaponCatalog.Get( LargeLadWeaponId.Smg );
-
-		Assert.AreEqual( LargeLadFirearmArchetype.Automatic, definition.Archetype );
-		Assert.AreEqual( 25.0f, definition.Damage );
-		Assert.AreEqual( 0.09f, definition.FireInterval );
-		Assert.AreEqual( 1000.0f, definition.Range );
-		Assert.AreEqual( 30, definition.MagazineSize );
-		Assert.AreEqual( 90, definition.StartingReserve );
-		Assert.AreEqual( 2.0f, definition.ReloadDuration );
-
-		var core = LargeLadWeaponState.CreateCore( LargeLadWeaponId.Smg );
-		Assert.AreEqual( 30, core.Magazine );
-		Assert.AreEqual( 0, core.Reserve );
-		Assert.AreEqual(
-			LargeLadAmmunitionMode.InfiniteReserve,
-			core.AmmunitionMode );
-	}
-
-	[TestMethod]
-	public void ExistingFirearms_KeepFiniteExclusiveStartingAmmunition()
-	{
-		foreach ( var definition in
-			LargeLadWeaponCatalog.FirearmDefinitions )
-		{
-			var state = LargeLadWeaponState.CreateExclusive(
-				definition.Id,
-				instanceId: 17,
-				definition.MagazineSize,
-				definition.StartingReserve );
-
-			Assert.AreEqual( definition.MagazineSize, state.Magazine );
-			Assert.AreEqual( definition.StartingReserve, state.Reserve );
-			Assert.AreEqual(
-				LargeLadAmmunitionMode.FiniteReserve,
-				state.AmmunitionMode );
-			Assert.AreEqual( 17, state.ExclusiveInstanceId );
-		}
 	}
 }
 

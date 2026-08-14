@@ -65,66 +65,6 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 	public LargeLadRole PendingRespawnRole { get; private set; } =
 		LargeLadRole.Unassigned;
 
-	public LargeLadWeaponId EquippedWeapon =>
-		Role switch
-		{
-			LargeLadRole.LargeLad or LargeLadRole.Minion =>
-				LargeLadWeaponId.Melee,
-			LargeLadRole.SkinnyKid =>
-				NativeInventory?.ActiveWeaponId ?? LargeLadWeaponId.None,
-			_ => LargeLadWeaponId.None
-		};
-
-	public LargeLadInventorySelection ActiveInventorySelection =>
-		NativeInventory?.ActiveItemSelection ??
-			LargeLadInventorySelection.None;
-
-	public int InventorySelectionCount =>
-		NativeInventory?.GetOrderedNativeItems().Count ?? 0;
-
-	public bool TryGetInventorySelectionAt(
-		int index,
-		out LargeLadInventorySelection selection )
-	{
-		selection = LargeLadInventorySelection.None;
-		var items = NativeInventory?.GetOrderedNativeItems() ??
-			System.Array.Empty<BaseInventoryItem>();
-
-		if ( index >= 0 && index < items.Count )
-		{
-			selection = items[index] switch
-			{
-				LargeLadMeleeWeapon =>
-					LargeLadInventorySelection.ForRoleMelee(),
-				LargeLadFirearm firearm => firearm.ToInventorySelection(),
-				LargeLadDodgeballItem utility =>
-					utility.ToInventorySelection(),
-				_ => LargeLadInventorySelection.None
-			};
-
-			return selection.Kind != LargeLadInventorySelectionKind.None;
-		}
-
-		return false;
-	}
-
-	public bool TryGetFirearmForSelection(
-		LargeLadInventorySelection selection,
-		out LargeLadWeaponState state )
-	{
-		state = default;
-
-		if ( NativeInventory?.TryGetFirearmForSelection(
-			selection,
-			out var firearm ) != true )
-		{
-			return false;
-		}
-
-		state = firearm.ToWeaponState();
-		return true;
-	}
-
 	[Sync( SyncFlags.FromHost ), Change( nameof( OnMovementLockedChanged ) )]
 	public bool MovementLocked { get; set; }
 

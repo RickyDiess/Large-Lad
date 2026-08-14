@@ -1,6 +1,7 @@
 using Sandbox;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 /// <summary>
 /// Deterministic Large Lad policy around the native inventory and shot-claim
@@ -14,8 +15,6 @@ public static class LargeLadNativeWeaponRules
 	public const int ExclusiveFirearmSlot = 2;
 	public const int UtilitySlot = 3;
 	public const int SlotCount = 4;
-	public const int PistolSlotOrder = 0;
-	public const int SmgSlotOrder = 1;
 
 	public const float ClaimCadenceTolerance = 0.05f;
 	public const float ClaimOriginTolerance =
@@ -24,22 +23,11 @@ public static class LargeLadNativeWeaponRules
 	public const float ClaimValueTolerance = 0.01f;
 	public const float MinimumClaimDirectionAlignment = 0.98f;
 
-	public static int GetCoreFirearmSlotOrder( LargeLadWeaponId weapon )
-	{
-		return weapon switch
-		{
-			LargeLadWeaponId.Pistol => PistolSlotOrder,
-			LargeLadWeaponId.Smg => SmgSlotOrder,
-			_ => -1
-		};
-	}
-
 	public static bool CanAddCoreFirearm(
 		LargeLadWeaponId weapon,
 		IEnumerable<LargeLadWeaponId> ownedCoreFirearms )
 	{
 		return LargeLadWeaponCatalog.IsFirearm( weapon ) &&
-			GetCoreFirearmSlotOrder( weapon ) >= 0 &&
 			!(ownedCoreFirearms ?? Enumerable.Empty<LargeLadWeaponId>())
 				.Contains( weapon );
 	}
@@ -47,6 +35,21 @@ public static class LargeLadNativeWeaponRules
 	public static bool CanAddExclusiveFirearm( int ownedExclusiveCount )
 	{
 		return ownedExclusiveCount == 0;
+	}
+
+	public static int GetCycledIndex(
+		int currentIndex,
+		int selectionCount,
+		int direction )
+	{
+		if ( selectionCount <= 0 || direction == 0 )
+			return -1;
+
+		if ( currentIndex < 0 || currentIndex >= selectionCount )
+			return direction > 0 ? 0 : selectionCount - 1;
+
+		var candidate = (currentIndex + direction) % selectionCount;
+		return candidate < 0 ? candidate + selectionCount : candidate;
 	}
 
 	public static bool CanOwnSkinnyKidItem(
@@ -57,6 +60,18 @@ public static class LargeLadNativeWeaponRules
 		return role == LargeLadRole.SkinnyKid &&
 			isLiving &&
 			!isEatBusy;
+	}
+
+	public static bool CanDropExclusiveFirearm(
+		LargeLadRole role,
+		bool isLiving,
+		bool isEatBusy,
+		bool isExclusive,
+		bool isActive )
+	{
+		return CanOwnSkinnyKidItem( role, isLiving, isEatBusy ) &&
+			isExclusive &&
+			isActive;
 	}
 
 	public static bool CanUseFirearm(
@@ -204,19 +219,11 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 	// per-frame correction.
 	public const string NativeCrowbarPrefabPath =
 		"prefabs/gameplay/native_crowbar.prefab";
-	public const string NativePistolPrefabPath =
-		"prefabs/gameplay/native_pistol.prefab";
 	// The Facepunch MP5 world model's authored root sits below and behind its
 	// physical pistol grip. native_smg_worldmodel applies the verified 3,0,-7
 	// renderer-child correction so BaseCombatWeapon's native hold_R attachment
 	// lands at the top of the grip. The installed generic w_smg alternative has
 	// no muzzle attachment, so it cannot preserve BaseWeaponModel presentation.
-	public const string NativeSmgPrefabPath =
-		"prefabs/gameplay/native_smg.prefab";
-	public const string NativeExclusivePistolPrefabPath =
-		"prefabs/gameplay/native_exclusive_pistol.prefab";
-	public const string NativeExclusiveSmgPrefabPath =
-		"prefabs/gameplay/native_exclusive_smg.prefab";
 	public const string NativeDodgeballItemPrefabPath =
 		"prefabs/gameplay/native_dodgeball_item.prefab";
 
@@ -240,17 +247,6 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		ActiveItem as LargeLadMeleeWeapon;
 	public LargeLadDodgeballItem ActiveUtility =>
 		ActiveItem as LargeLadDodgeballItem;
-	public LargeLadWeaponId ActiveWeaponId =>
-		ActiveFirearm?.WeaponId ??
-		(ActiveMelee is not null
-			? LargeLadWeaponId.Melee
-			: LargeLadWeaponId.None);
-	public LargeLadInventorySelection ActiveItemSelection =>
-		ActiveFirearm?.ToInventorySelection() ??
-		(ActiveMelee is not null
-			? LargeLadInventorySelection.ForRoleMelee()
-			: ActiveUtility?.ToInventorySelection() ??
-				LargeLadInventorySelection.None);
 	public bool HasActiveNativeWeapon =>
 		ActiveItem is LargeLadFirearm or LargeLadMeleeWeapon;
 	public bool HasActiveNativeItem =>
@@ -286,7 +282,7 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 
 	/// <summary>
 	/// Includes the short owner-side handoff before ActiveItem replicates. This
-	/// prevents one input frame from also reaching the legacy melee/fire paths.
+	/// prevents one input frame from also reaching role melee input.
 	/// </summary>
 	public bool HasNativeInputControl =>
 		HasActiveNativeItem || (!IsProxy && ownerWantsNativeControl);
@@ -352,8 +348,7 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		foreach ( var weapon in
 			SkinnyKidStartingCoreWeapons ?? new List<LargeLadWeaponId>() )
 		{
-			if ( !LargeLadWeaponCatalog.IsFirearm( weapon ) ||
-				LargeLadNativeWeaponRules.GetCoreFirearmSlotOrder( weapon ) < 0 )
+			if ( !LargeLadWeaponCatalog.IsFirearm( weapon ) )
 			{
 				Log.Warning(
 					$"{GameObject.Name}: Skinny Kid starting loadout contains " +
@@ -393,9 +388,6 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		if ( firearm.PickupPolicy == LargeLadPickupPolicy.Core )
 		{
 			return slot == LargeLadNativeWeaponRules.CoreFirearmSlot &&
-				firearm.SlotOrder ==
-					LargeLadNativeWeaponRules.GetCoreFirearmSlotOrder(
-						firearm.WeaponId ) &&
 				LargeLadNativeWeaponRules.CanAddCoreFirearm(
 					firearm.WeaponId,
 					GetCoreFirearms().Select( weapon => weapon.WeaponId ) ) &&
@@ -429,30 +421,6 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		return GetExclusiveFirearms().FirstOrDefault();
 	}
 
-	public LargeLadWeaponState GetExclusiveState()
-	{
-		var firearm = GetExclusiveFirearm();
-
-		return firearm is null
-			? default
-			: LargeLadWeaponState.CreateExclusive(
-				firearm.WeaponId,
-				firearm.ExclusiveInstanceId,
-				firearm.Clip1,
-				firearm.ExclusiveReserve );
-	}
-
-	public bool TryGetFirearmForSelection(
-		LargeLadInventorySelection selection,
-		out LargeLadFirearm firearm )
-	{
-		firearm = GetOrderedNativeItems()
-			.OfType<LargeLadFirearm>()
-			.FirstOrDefault( candidate =>
-				candidate.ToInventorySelection() == selection );
-		return firearm is not null;
-	}
-
 	/// <summary>
 	/// Player-facing flattening of the native buckets: melee, every Core
 	/// firearm by SlotOrder, the exclusive firearm, then utility.
@@ -475,15 +443,14 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 			return false;
 		}
 
-		var prefabPath = GetNativeFirearmPrefabPath(
+		if ( !LargeLadWeaponCatalog.TryGetFirearm(
 			weapon,
-			LargeLadPickupPolicy.Core );
-
-		if ( string.IsNullOrWhiteSpace( prefabPath ) )
+			out var definition ) ||
+			string.IsNullOrWhiteSpace( definition.NativePrefabPath ) )
 			return false;
 
 		var item = Pickup(
-			prefabPath,
+			definition.NativePrefabPath,
 			LargeLadNativeWeaponRules.CoreFirearmSlot ) as LargeLadFirearm;
 
 		if ( item is null )
@@ -492,84 +459,6 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		if ( ActiveItem is null )
 			Switch( item );
 
-		return true;
-	}
-
-	public bool TryGrantExclusiveFirearm(
-		LargeLadWeaponId weapon,
-		int exclusiveInstanceId = 0,
-		int magazine = -1,
-		int reserve = 0 )
-	{
-		if ( !Networking.IsHost || !CanOwnNativeItems() ||
-			HasExclusiveFirearm )
-		{
-			return false;
-		}
-
-		var prefabPath = GetNativeFirearmPrefabPath(
-			weapon,
-			LargeLadPickupPolicy.Exclusive );
-
-		if ( string.IsNullOrWhiteSpace( prefabPath ) )
-			return false;
-
-		var item = Pickup(
-			prefabPath,
-			LargeLadNativeWeaponRules.ExclusiveFirearmSlot ) as
-			LargeLadFirearm;
-
-		if ( item is null )
-			return false;
-
-		item.InitializeExclusiveState(
-			exclusiveInstanceId,
-			magazine,
-			reserve );
-
-		if ( ActiveItem is null )
-			Switch( item );
-
-		return true;
-	}
-
-	internal bool CanAcceptExclusive(
-		LargeLadWeaponPickup source,
-		LargeLadWeaponState state,
-		bool pickupAvailable )
-	{
-		var player = Components.Get<LargeLadPlayer>();
-
-		return Networking.IsHost &&
-			player?.IsEatBusy != true &&
-			source is not null &&
-			source.IsValid &&
-			LargeLadInventoryRules.CanAcceptExclusive(
-				player?.Role ?? LargeLadRole.Unassigned,
-				player?.Health?.IsDead != false,
-				HasExclusiveFirearm,
-				pickupAvailable,
-				state );
-	}
-
-	internal bool TryGrantExclusiveWeapon(
-		LargeLadWeaponPickup source,
-		LargeLadWeaponState state )
-	{
-		if ( !CanAcceptExclusive(
-			source,
-			state,
-			pickupAvailable: true ) ||
-			!TryGrantExclusiveFirearm(
-				state.Weapon,
-				state.ExclusiveInstanceId,
-				state.Magazine,
-				state.Reserve ) )
-		{
-			return false;
-		}
-
-		exclusiveSource = source;
 		return true;
 	}
 
@@ -828,7 +717,7 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		{
 			ResolveExclusiveSource( departingScene )?.ReturnCarrierToOrigin(
 				this,
-				GetExclusiveState() );
+				GetExclusiveFirearm() );
 		}
 
 		if ( HasUtility )
@@ -890,17 +779,15 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 	internal bool TryDropSelectedExclusive()
 	{
 		var player = Components.Get<LargeLadPlayer>();
-		var state = GetExclusiveState();
+		var firearm = GetExclusiveFirearm();
 
 		if ( !Networking.IsHost ||
-			player?.IsEatBusy == true ||
-			!LargeLadInventoryRules.CanDropExclusive(
-				isHost: true,
-				ownerRequest: true,
+			!LargeLadNativeWeaponRules.CanDropExclusiveFirearm(
 				player?.Role ?? LargeLadRole.Unassigned,
-				player?.Health?.IsDead != false,
-				state,
-				ActiveItemSelection ) ||
+				player?.Health?.IsDead == false,
+				player?.IsEatBusy == true,
+				firearm?.IsExclusive == true,
+				ActiveFirearm == firearm ) ||
 			ResolveExclusiveSource() is not
 				LargeLadWeaponPickup source )
 		{
@@ -913,15 +800,13 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 
 		if ( !source.TryDropFromCarrier(
 			this,
-			state,
+			firearm,
 			GameObject.WorldPosition,
-			forward,
-			out _ ) )
+			forward ) )
 		{
 			return false;
 		}
 
-		RemoveExclusiveFirearm();
 		exclusiveSource = null;
 		SelectMelee();
 		return true;
@@ -964,7 +849,7 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 				player?.Role ?? LargeLadRole.Unassigned,
 				player?.Health?.IsDead != false,
 				state,
-				ActiveItemSelection ) ||
+				ActiveUtility?.ToUtilityState() ?? default ) ||
 			ResolveUtilitySource() is not
 				LargeLadDodgeballPickup source )
 		{
@@ -1015,7 +900,7 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 				player?.Role ?? LargeLadRole.Unassigned,
 				player?.Health?.IsDead != false,
 				state,
-				ActiveItemSelection ) ||
+				ActiveUtility?.ToUtilityState() ?? default ) ||
 			ResolveUtilitySource() is not
 				LargeLadDodgeballPickup source )
 		{
@@ -1074,7 +959,7 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 			var direction = Input.MouseWheel.y > 0.0f ||
 				Input.Pressed( "SlotPrev" ) ? -1 : 1;
 			var current = items.ToList().IndexOf( ActiveItem );
-			var target = LargeLadInventoryRules.GetCycledIndex(
+			var target = LargeLadNativeWeaponRules.GetCycledIndex(
 				current,
 				items.Count,
 				direction );
@@ -1193,10 +1078,9 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		Vector3 dropPosition,
 		bool preferForward )
 	{
-		if ( !HasExclusiveFirearm )
+		if ( GetExclusiveFirearm() is not LargeLadFirearm firearm )
 			return;
 
-		var state = GetExclusiveState();
 		var source = ResolveExclusiveSource();
 
 		if ( source is null || !source.IsValid )
@@ -1214,28 +1098,27 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 
 		if ( !source.TryDropFromCarrier(
 			this,
-			state,
+			firearm,
 			dropPosition,
-			forward,
-			out _ ) )
+			forward ) )
 		{
-			source.ReturnCarrierToOrigin( this, state );
+			source.ReturnCarrierToOrigin( this, firearm );
 		}
 
-		RemoveExclusiveFirearm();
 		exclusiveSource = null;
 	}
 
 	private LargeLadWeaponPickup ResolveExclusiveSource(
 		Scene sourceScene = null )
 	{
-		if ( !HasExclusiveFirearm )
+		var firearm = GetExclusiveFirearm();
+		if ( firearm is null )
 			return null;
 
-		var state = GetExclusiveState();
 		if ( exclusiveSource is not null &&
 			exclusiveSource.IsValid &&
-			exclusiveSource.ExclusiveInstanceId == state.ExclusiveInstanceId )
+			exclusiveSource.ExclusiveInstanceId ==
+				firearm.ExclusiveInstanceId )
 		{
 			return exclusiveSource;
 		}
@@ -1246,8 +1129,8 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 			System.Array.Empty<LargeLadWeaponPickup>() )
 		{
 			if ( pickup.PickupPolicy != LargeLadPickupPolicy.Exclusive ||
-				pickup.Weapon != state.Weapon ||
-				pickup.ExclusiveInstanceId != state.ExclusiveInstanceId )
+				pickup.Weapon != firearm.WeaponId ||
+				pickup.ExclusiveInstanceId != firearm.ExclusiveInstanceId )
 			{
 				continue;
 			}
@@ -1281,24 +1164,6 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 			.OfType<LargeLadFirearm>();
 	}
 
-	private static string GetNativeFirearmPrefabPath(
-		LargeLadWeaponId weapon,
-		LargeLadPickupPolicy pickupPolicy )
-	{
-		return (weapon, pickupPolicy) switch
-		{
-			(LargeLadWeaponId.Pistol, LargeLadPickupPolicy.Core) =>
-				NativePistolPrefabPath,
-			(LargeLadWeaponId.Smg, LargeLadPickupPolicy.Core) =>
-				NativeSmgPrefabPath,
-			(LargeLadWeaponId.Pistol, LargeLadPickupPolicy.Exclusive) =>
-				NativeExclusivePistolPrefabPath,
-			(LargeLadWeaponId.Smg, LargeLadPickupPolicy.Exclusive) =>
-				NativeExclusiveSmgPrefabPath,
-			_ => null
-		};
-	}
-
 	private void ClearNativeItems()
 	{
 		ForceHolster();
@@ -1309,7 +1174,7 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 }
 
 /// <summary>
-/// Native slot-3 ownership and selection token for an authored dodgeball.
+/// Native slot-3 ownership item for an authored dodgeball.
 /// The physical pickup remains the single world instance and continues to
 /// resolve throws, impacts, damage, and rigid-body simulation on the host.
 /// </summary>
@@ -1328,11 +1193,6 @@ public sealed class LargeLadDodgeballItem : BaseInventoryItem
 		return UtilityInstanceId > 0
 			? LargeLadUtilityState.CreateDodgeball( UtilityInstanceId )
 			: default;
-	}
-
-	public LargeLadInventorySelection ToInventorySelection()
-	{
-		return LargeLadUtilityRules.SelectionFor( ToUtilityState() );
 	}
 
 	internal void InitializeState( LargeLadUtilityState state )
@@ -1571,7 +1431,8 @@ public enum LargeLadFirearmHitResult
 	BarricadeHit
 }
 
-public sealed class LargeLadFirearm : BaseCombatWeapon
+public sealed class LargeLadFirearm : BaseCombatWeapon,
+	Component.ITriggerListener
 {
 	private const float ConfirmedHitmarkerDuration = 0.14f;
 	private const float ReloadSoundVolume = 0.3f;
@@ -1586,13 +1447,27 @@ public sealed class LargeLadFirearm : BaseCombatWeapon
 	private bool hasPlayedReloadSound;
 	private TimeSince timeSinceConfirmedHit;
 	private TimeSince timeSinceReloadSound;
+	private SoundEvent reloadSound;
+	private BoxCollider exclusiveWorldCollider;
+	private Transform preparedExclusiveWorldTransform;
+	private bool hasPreparedExclusiveWorldDrop;
 
 	[Property]
 	public LargeLadWeaponId WeaponId { get; set; } = LargeLadWeaponId.Pistol;
 
 	[Property]
+	[Sync( SyncFlags.FromHost )]
 	public LargeLadPickupPolicy PickupPolicy { get; set; } =
 		LargeLadPickupPolicy.Core;
+
+	[Property, Group( "Exclusive Ammunition" )]
+	public int ExclusiveStartingReserve { get; set; }
+
+	[Property, Group( "Native Presentation" )]
+	public string MuzzleAttachment { get; set; } = "muzzle";
+
+	[Property, Group( "Native Presentation" )]
+	public string ReloadSoundPackageIdent { get; set; }
 
 	[Sync( SyncFlags.FromHost )]
 	public int ExclusiveInstanceId { get; private set; }
@@ -1610,44 +1485,79 @@ public sealed class LargeLadFirearm : BaseCombatWeapon
 	public bool IsExclusive =>
 		PickupPolicy == LargeLadPickupPolicy.Exclusive;
 
-	public LargeLadInventorySelection ToInventorySelection()
+	protected override async Task OnLoad()
 	{
-		return IsExclusive
-			? LargeLadInventorySelection.ForExclusiveFirearm(
-				WeaponId,
-				ExclusiveInstanceId )
-			: LargeLadInventorySelection.ForCoreFirearm( WeaponId );
-	}
-
-	public LargeLadWeaponState ToWeaponState()
-	{
-		if ( IsExclusive )
+		if ( Application.IsDedicatedServer ||
+			string.IsNullOrWhiteSpace( ReloadSoundPackageIdent ) )
 		{
-			return LargeLadWeaponState.CreateExclusive(
-				WeaponId,
-				ExclusiveInstanceId,
-				Clip1,
-				ExclusiveReserve );
+			return;
 		}
 
-		var state = LargeLadWeaponState.CreateCore( WeaponId );
-		state.Magazine = Clip1;
-		return state;
+		try
+		{
+			reloadSound = await Cloud.Load<SoundEvent>(
+				ReloadSoundPackageIdent );
+		}
+		catch ( System.Exception exception )
+		{
+			Log.Warning(
+				$"Unable to mount native reload sound package " +
+				$"'{ReloadSoundPackageIdent}': {exception.Message}" );
+		}
 	}
 
-	internal void InitializeExclusiveState(
-		int exclusiveInstanceId,
-		int magazine,
-		int reserve )
+	internal bool InitializeExclusiveState(
+		int exclusiveInstanceId )
+	{
+		if ( !Networking.IsHost )
+			return false;
+
+		PickupPolicy = LargeLadPickupPolicy.Exclusive;
+		PreferredSlot = LargeLadNativeWeaponRules.ExclusiveFirearmSlot;
+		SlotOrder = 0;
+		ExclusiveInstanceId = System.Math.Max( 0, exclusiveInstanceId );
+		Clip1 = System.Math.Max( 0, ClipMaxSize );
+		ExclusiveReserve = System.Math.Max( 0, ExclusiveStartingReserve );
+
+		return ExclusiveInstanceId > 0 && EnsureExclusiveWorldPresentation();
+	}
+
+	internal void ResetExclusiveAmmunition()
 	{
 		if ( !Networking.IsHost || !IsExclusive )
 			return;
 
-		ExclusiveInstanceId = System.Math.Max( 0, exclusiveInstanceId );
-		ExclusiveReserve = System.Math.Max( 0, reserve );
+		Clip1 = System.Math.Max( 0, ClipMaxSize );
+		ExclusiveReserve = System.Math.Max( 0, ExclusiveStartingReserve );
+	}
 
-		if ( magazine >= 0 )
-			Clip1 = System.Math.Min( ClipMaxSize, magazine );
+	internal void PrepareExclusiveWorldDrop( Transform worldTransform )
+	{
+		if ( !Networking.IsHost || !IsExclusive )
+			return;
+
+		preparedExclusiveWorldTransform = worldTransform;
+		hasPreparedExclusiveWorldDrop = true;
+	}
+
+	internal void CancelExclusiveWorldDrop()
+	{
+		hasPreparedExclusiveWorldDrop = false;
+	}
+
+	internal void PlaceExclusiveWorldItem( Transform worldTransform )
+	{
+		if ( !Networking.IsHost || !IsExclusive || Inventory is not null )
+			return;
+
+		EnsureExclusiveWorldPresentation();
+		SetExclusiveWorldPresentationEnabled( false );
+		GameObject.WorldTransform = worldTransform;
+
+		if ( GameObject.Network.Active )
+			GameObject.Network.ClearInterpolation();
+
+		SetExclusiveWorldPresentationEnabled( true );
 	}
 
 	protected override int GetReserveAmmo( BaseAmmoResource ammoType )
@@ -1674,6 +1584,7 @@ public sealed class LargeLadFirearm : BaseCombatWeapon
 	protected override bool OnCanPickup( BaseInventoryComponent inventory )
 	{
 		return inventory is LargeLadNativeInventory &&
+			(!IsExclusive || ExclusiveInstanceId > 0) &&
 			CanBeOwnedBy( inventory ) &&
 			base.OnCanPickup( inventory );
 	}
@@ -1682,6 +1593,97 @@ public sealed class LargeLadFirearm : BaseCombatWeapon
 	{
 		return inventory is LargeLadNativeInventory &&
 			CanBeOwnedBy( inventory );
+	}
+
+	protected override void OnAdded( BaseInventoryComponent inventory )
+	{
+		base.OnAdded( inventory );
+		lastHostClaimSequence = -1;
+		hasHostClaimSchedule = false;
+		nextHostClaimTime = 0.0f;
+
+		if ( !IsExclusive )
+			return;
+
+		hasPreparedExclusiveWorldDrop = false;
+		SetExclusiveWorldPresentationEnabled( false );
+		ResolveExclusiveSource()?.NotifyExclusivePickedUp(
+			this,
+			inventory as LargeLadNativeInventory );
+	}
+
+	protected override void OnRemoved( BaseInventoryComponent inventory )
+	{
+		base.OnRemoved( inventory );
+
+		if ( IsExclusive && Inventory is null )
+			SetExclusiveWorldPresentationEnabled( true );
+	}
+
+	protected override bool OnDrop()
+	{
+		if ( IsExclusive && !hasPreparedExclusiveWorldDrop )
+			return false;
+
+		var worldTransform = preparedExclusiveWorldTransform;
+
+		if ( !base.OnDrop() )
+			return false;
+
+		if ( IsExclusive )
+		{
+			hasPreparedExclusiveWorldDrop = false;
+			PlaceExclusiveWorldItem( worldTransform );
+		}
+
+		return true;
+	}
+
+	protected override void OnDestroy()
+	{
+		if ( Networking.IsHost && IsExclusive )
+			ResolveExclusiveSource()?.HandleExclusiveInstanceDestroyed( this );
+
+		base.OnDestroy();
+	}
+
+	public void OnTriggerEnter( Collider other )
+	{
+		if ( !Networking.IsHost || !IsExclusive || Inventory is not null )
+			return;
+
+		var player = other?.GameObject?.Components.Get<LargeLadPlayer>(
+			FindMode.EverythingInSelfAndAncestors );
+
+		if ( player?.Role != LargeLadRole.SkinnyKid ||
+			player.Health?.IsDead != false )
+		{
+			return;
+		}
+
+		var inventory = player.NativeInventory;
+
+		if ( inventory is null )
+			return;
+
+		if ( inventory.HasExclusiveFirearm )
+		{
+			inventory.NotifyExclusiveSlotFull();
+			return;
+		}
+
+		var source = ResolveExclusiveSource();
+		if ( source is null )
+			return;
+
+		inventory.PickupWorldItem( this );
+
+		if ( Inventory == inventory )
+			source.NotifyExclusivePickedUp( this, inventory );
+	}
+
+	public void OnTriggerExit( Collider other )
+	{
 	}
 
 	protected override bool OnCanSwitchTo()
@@ -1699,6 +1701,13 @@ public sealed class LargeLadFirearm : BaseCombatWeapon
 	protected override void OnUpdate()
 	{
 		base.OnUpdate();
+
+		if ( IsExclusive )
+		{
+			ResolveExclusiveWorldPresentation();
+			SetExclusiveWorldPresentationEnabled( Inventory is null );
+		}
+
 		BindNativeModelAttachments( ViewModel );
 		BindNativeModelAttachments( WorldModel );
 
@@ -1841,15 +1850,14 @@ public sealed class LargeLadFirearm : BaseCombatWeapon
 			return;
 		}
 
-		var definition = LargeLadWeaponCatalog.Get( WeaponId );
-		if ( string.IsNullOrWhiteSpace( definition.MuzzleAttachment ) )
+		if ( string.IsNullOrWhiteSpace( MuzzleAttachment ) )
 			return;
 
 		// Model attachments are empty transform GameObjects. Enabling their
 		// hierarchy does not create renderers or bone debug geometry.
 		renderer.CreateAttachments = true;
 		var muzzle = renderer.GetAttachmentObject(
-			definition.MuzzleAttachment );
+			MuzzleAttachment );
 
 		if ( muzzle is not null && muzzle.IsValid &&
 			weaponModel.MuzzleGameObject != muzzle )
@@ -1863,24 +1871,14 @@ public sealed class LargeLadFirearm : BaseCombatWeapon
 		if ( Application.IsDedicatedServer )
 			return;
 
-		var definition = LargeLadWeaponCatalog.Get( WeaponId );
-		var packageIdent = definition.ReloadSoundPackageIdent;
-		if ( string.IsNullOrWhiteSpace( packageIdent ) )
-			return;
-
-		var sound = LargeLadPresentationAssets.GetSound( packageIdent );
-		if ( sound is null && packageIdent == "drakefruit/pistol_reload" )
-			sound = Cloud.SoundEvent( "drakefruit/pistol_reload" );
-		else if ( sound is null && packageIdent == "drakefruit/rifle_reload" )
-			sound = Cloud.SoundEvent( "drakefruit/rifle_reload" );
-		if ( sound is null )
+		if ( reloadSound is null )
 			return;
 
 		var source = WeaponModel?.GameObject;
 		if ( source is null || !source.IsValid )
 			source = GameObject;
 
-		var handle = source.PlaySound( sound, Vector3.Zero );
+		var handle = source.PlaySound( reloadSound, Vector3.Zero );
 		if ( handle is null )
 			return;
 
@@ -2150,6 +2148,83 @@ public sealed class LargeLadFirearm : BaseCombatWeapon
 			player.IsGroundSlamStaggered,
 			IsHeld,
 			inventory.ActiveItem == this && IsActive );
+	}
+
+	private bool EnsureExclusiveWorldPresentation()
+	{
+		if ( !IsExclusive )
+			return false;
+
+		ResolveExclusiveWorldPresentation();
+
+		if ( WorldModel is not null && WorldModel.IsValid &&
+			exclusiveWorldCollider is not null &&
+			exclusiveWorldCollider.IsValid )
+		{
+			return true;
+		}
+
+		if ( !Networking.IsHost )
+			return false;
+
+		if ( WorldModel is null || !WorldModel.IsValid )
+			CreateWorldModel();
+
+		if ( WorldModel is null || !WorldModel.IsValid )
+		{
+			Log.Warning(
+				$"{GameObject.Name}: cannot create its native world pickup " +
+				"because its WorldModelPrefab could not be created." );
+			return false;
+		}
+
+		exclusiveWorldCollider ??=
+			Components.Create<BoxCollider>();
+		exclusiveWorldCollider.Center = Vector3.Up * 9.0f;
+		exclusiveWorldCollider.Scale =
+			new Vector3( 44.0f, 44.0f, 18.0f );
+		exclusiveWorldCollider.IsTrigger = true;
+		exclusiveWorldCollider.Static = true;
+		GameObject.Tags.Add( "pickup" );
+		return true;
+	}
+
+	private void ResolveExclusiveWorldPresentation()
+	{
+		exclusiveWorldCollider =
+			exclusiveWorldCollider is not null &&
+			exclusiveWorldCollider.IsValid
+				? exclusiveWorldCollider
+				: Components.Get<BoxCollider>();
+	}
+
+	private void SetExclusiveWorldPresentationEnabled( bool enabled )
+	{
+		ResolveExclusiveWorldPresentation();
+		SetPresentationEnabled( WorldModel, enabled );
+
+		if ( exclusiveWorldCollider is not null )
+			exclusiveWorldCollider.Enabled = enabled;
+	}
+
+	private LargeLadWeaponPickup ResolveExclusiveSource()
+	{
+		if ( !IsExclusive || ExclusiveInstanceId <= 0 )
+			return null;
+
+		foreach ( var pickup in
+			Scene?.GetAllComponents<LargeLadWeaponPickup>() ??
+				System.Array.Empty<LargeLadWeaponPickup>() )
+		{
+			if ( pickup.PickupPolicy == LargeLadPickupPolicy.Exclusive &&
+				pickup.Weapon == WeaponId &&
+				pickup.ExclusiveInstanceId == ExclusiveInstanceId )
+			{
+				return pickup;
+			}
+		}
+
+		return null;
 	}
 
 	private static bool CanBeOwnedBy( BaseInventoryComponent inventory )

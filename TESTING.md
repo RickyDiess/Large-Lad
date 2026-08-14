@@ -341,13 +341,13 @@ same weapon definition to verify they remain independent physical instances.
    repick it after dropping their own exclusive. Confirm magazine and reserve
    remain exact through every transition and the exclusive is the final firearm.
 5. Kill a Skinny Kid carrying an exclusive. Confirm the weapon drops near the
-   death location (or safely returns to origin when blocked), core inventory is
-   cleared, and the respawned Minion has built-in melee only.
+   death location (or safely returns to origin when blocked), native Core items
+   are cleared, and the respawned Minion has built-in melee only.
 6. Disconnect a client while carrying an exclusive. Confirm the instance is
    dropped or returned to its authored pickup and can be collected again.
-7. End the round with exclusives carried and dropped. Confirm every runtime drop
-   disappears, every authored exclusive returns, and its configured magazine and
-   reserve are full exactly once.
+7. End the round with exclusives carried and dropped. Confirm every persistent
+   native firearm returns to its authored origin without duplication and its
+   configured magazine and reserve are restored exactly once.
 8. Collect the dodgeball and confirm it appears after the exclusive in direct
    slot and mouse-wheel order. Confirm the utility HUD row has no ammunition,
    selecting it cannot fire or reload a firearm, Primary Attack throws it, and

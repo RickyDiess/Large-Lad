@@ -15,19 +15,6 @@ public sealed class LargeLadNativeWeaponRulesTests
 	}
 
 	[TestMethod]
-	public void CoreFirearmOrder_IsStableAndLeavesRoomForFutureWeapons()
-	{
-		Assert.AreEqual(
-			0,
-			LargeLadNativeWeaponRules.GetCoreFirearmSlotOrder(
-				LargeLadWeaponId.Pistol ) );
-		Assert.AreEqual(
-			1,
-			LargeLadNativeWeaponRules.GetCoreFirearmSlotOrder(
-				LargeLadWeaponId.Smg ) );
-	}
-
-	[TestMethod]
 	public void CoreFirearmPolicy_AllowsDifferentWeaponsButRejectsDuplicates()
 	{
 		var pistolOnly = new[] { LargeLadWeaponId.Pistol };
@@ -47,6 +34,55 @@ public sealed class LargeLadNativeWeaponRulesTests
 			LargeLadNativeWeaponRules.CanAddExclusiveFirearm( 0 ) );
 		Assert.IsFalse(
 			LargeLadNativeWeaponRules.CanAddExclusiveFirearm( 1 ) );
+	}
+
+	[TestMethod]
+	public void NativeInventoryCycling_WrapsAcrossAllBuckets()
+	{
+		Assert.AreEqual(
+			0,
+			LargeLadNativeWeaponRules.GetCycledIndex(
+				currentIndex: 4,
+				selectionCount: 5,
+				direction: 1 ) );
+		Assert.AreEqual(
+			4,
+			LargeLadNativeWeaponRules.GetCycledIndex(
+				currentIndex: 0,
+				selectionCount: 5,
+				direction: -1 ) );
+		Assert.AreEqual(
+			0,
+			LargeLadNativeWeaponRules.GetCycledIndex(
+				currentIndex: -1,
+				selectionCount: 5,
+				direction: 1 ) );
+	}
+
+	[TestMethod]
+	public void ExclusiveDrop_RequiresActiveLivingSkinnyKidItem()
+	{
+		Assert.IsTrue(
+			LargeLadNativeWeaponRules.CanDropExclusiveFirearm(
+				LargeLadRole.SkinnyKid,
+				isLiving: true,
+				isEatBusy: false,
+				isExclusive: true,
+				isActive: true ) );
+		Assert.IsFalse(
+			LargeLadNativeWeaponRules.CanDropExclusiveFirearm(
+				LargeLadRole.SkinnyKid,
+				isLiving: true,
+				isEatBusy: false,
+				isExclusive: true,
+				isActive: false ) );
+		Assert.IsFalse(
+			LargeLadNativeWeaponRules.CanDropExclusiveFirearm(
+				LargeLadRole.Minion,
+				isLiving: true,
+				isEatBusy: false,
+				isExclusive: true,
+				isActive: true ) );
 	}
 
 	[TestMethod]

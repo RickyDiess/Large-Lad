@@ -16,262 +16,31 @@ public enum LargeLadCrosshairStyle
 	FourSegment
 }
 
-/// <summary>
-/// The small set of authoritative firearm firing behaviors. This is data, not
-/// a scriptable action graph: the firearm driver owns the implementation for
-/// each explicit behavior.
-/// </summary>
-public enum LargeLadFirearmArchetype
-{
-	None,
-	SemiAutomatic,
-	Automatic,
-	Shotgun
-}
-
 public enum LargeLadPickupPolicy
 {
 	Core,
 	Exclusive
 }
 
-public enum LargeLadAmmunitionMode
-{
-	InfiniteReserve,
-	FiniteReserve
-}
-
-public enum LargeLadInventorySelectionKind
-{
-	None,
-	RoleAbility,
-	CoreFirearm,
-	ExclusiveFirearm,
-	Utility
-}
-
 /// <summary>
-/// The selected entry in the Skinny Kid's deliberately small ordered
-/// inventory. Role melee, firearms, and the one utility slot keep distinct
-/// identities so utility selection never needs a fake weapon definition.
-/// </summary>
-public struct LargeLadInventorySelection :
-	System.IEquatable<LargeLadInventorySelection>
-{
-	public LargeLadInventorySelectionKind Kind { get; set; }
-	public LargeLadWeaponId Weapon { get; set; }
-	public int ExclusiveInstanceId { get; set; }
-	public LargeLadUtilityId Utility { get; set; }
-	public int UtilityInstanceId { get; set; }
-
-	public static LargeLadInventorySelection None => default;
-
-	public static LargeLadInventorySelection ForCoreFirearm(
-		LargeLadWeaponId weapon )
-	{
-		return new LargeLadInventorySelection
-		{
-			Kind = LargeLadInventorySelectionKind.CoreFirearm,
-			Weapon = weapon
-		};
-	}
-
-	public static LargeLadInventorySelection ForRoleMelee()
-	{
-		return new LargeLadInventorySelection
-		{
-			Kind = LargeLadInventorySelectionKind.RoleAbility,
-			Weapon = LargeLadWeaponId.Melee
-		};
-	}
-
-	public static LargeLadInventorySelection ForExclusiveFirearm(
-		LargeLadWeaponId weapon,
-		int instanceId )
-	{
-		return new LargeLadInventorySelection
-		{
-			Kind = LargeLadInventorySelectionKind.ExclusiveFirearm,
-			Weapon = weapon,
-			ExclusiveInstanceId = instanceId
-		};
-	}
-
-	public static LargeLadInventorySelection ForUtility(
-		LargeLadUtilityId utility,
-		int instanceId )
-	{
-		return new LargeLadInventorySelection
-		{
-			Kind = LargeLadInventorySelectionKind.Utility,
-			Utility = utility,
-			UtilityInstanceId = instanceId
-		};
-	}
-
-	public bool Equals( LargeLadInventorySelection other )
-	{
-		return Kind == other.Kind &&
-			Weapon == other.Weapon &&
-			ExclusiveInstanceId == other.ExclusiveInstanceId &&
-			Utility == other.Utility &&
-			UtilityInstanceId == other.UtilityInstanceId;
-	}
-
-	public override bool Equals( object obj )
-	{
-		return obj is LargeLadInventorySelection other && Equals( other );
-	}
-
-	public override int GetHashCode()
-	{
-		return System.HashCode.Combine(
-			Kind,
-			Weapon,
-			ExclusiveInstanceId,
-			Utility,
-			UtilityInstanceId );
-	}
-
-	public static bool operator ==(
-		LargeLadInventorySelection left,
-		LargeLadInventorySelection right )
-	{
-		return left.Equals( right );
-	}
-
-	public static bool operator !=(
-		LargeLadInventorySelection left,
-		LargeLadInventorySelection right )
-	{
-		return !left.Equals( right );
-	}
-}
-
-/// <summary>
-/// One host-authored, synchronized firearm state. Core entries use explicit
-/// infinite reserve and instance id zero. Exclusive entries use finite reserve
-/// and retain their authored pickup's stable per-match instance id.
-/// </summary>
-public struct LargeLadWeaponState : System.IEquatable<LargeLadWeaponState>
-{
-	public LargeLadWeaponId Weapon { get; set; }
-	public int Magazine { get; set; }
-	public int Reserve { get; set; }
-	public LargeLadAmmunitionMode AmmunitionMode { get; set; }
-	public int ExclusiveInstanceId { get; set; }
-
-	public bool IsOwned => LargeLadWeaponCatalog.IsFirearm( Weapon );
-	public bool HasInfiniteReserve =>
-		AmmunitionMode == LargeLadAmmunitionMode.InfiniteReserve;
-	public bool IsExclusive => ExclusiveInstanceId > 0;
-
-	public static LargeLadWeaponState CreateCore( LargeLadWeaponId weapon )
-	{
-		var definition = LargeLadWeaponCatalog.Get( weapon );
-		return new LargeLadWeaponState
-		{
-			Weapon = weapon,
-			Magazine = definition.MagazineSize,
-			Reserve = 0,
-			AmmunitionMode = LargeLadAmmunitionMode.InfiniteReserve,
-			ExclusiveInstanceId = 0
-		};
-	}
-
-	public static LargeLadWeaponState CreateExclusive(
-		LargeLadWeaponId weapon,
-		int instanceId,
-		int magazine,
-		int reserve )
-	{
-		return new LargeLadWeaponState
-		{
-			Weapon = weapon,
-			Magazine = System.Math.Max( 0, magazine ),
-			Reserve = System.Math.Max( 0, reserve ),
-			AmmunitionMode = LargeLadAmmunitionMode.FiniteReserve,
-			ExclusiveInstanceId = System.Math.Max( 0, instanceId )
-		};
-	}
-
-	public bool Equals( LargeLadWeaponState other )
-	{
-		return Weapon == other.Weapon &&
-			Magazine == other.Magazine &&
-			Reserve == other.Reserve &&
-			AmmunitionMode == other.AmmunitionMode &&
-			ExclusiveInstanceId == other.ExclusiveInstanceId;
-	}
-
-	public override bool Equals( object obj )
-	{
-		return obj is LargeLadWeaponState other && Equals( other );
-	}
-
-	public override int GetHashCode()
-	{
-		return System.HashCode.Combine(
-			Weapon,
-			Magazine,
-			Reserve,
-			AmmunitionMode,
-			ExclusiveInstanceId );
-	}
-
-	public static bool operator ==(
-		LargeLadWeaponState left,
-		LargeLadWeaponState right )
-	{
-		return left.Equals( right );
-	}
-
-	public static bool operator !=(
-		LargeLadWeaponState left,
-		LargeLadWeaponState right )
-	{
-		return !left.Equals( right );
-	}
-}
-
-/// <summary>
-/// Immutable firearm behavior and shared pickup metadata. Native weapon
-/// prefabs own held-model, animation, sound, muzzle, and Citizen presentation.
-/// Pickup ownership policy deliberately lives on each map-authored pickup so
-/// different instances of the same weapon can use different policies.
+/// Stable Large Lad identity and UI metadata for a native weapon. The native
+/// BaseCombatWeapon prefab owns mechanics, sounds, models, effects, animations,
+/// and inventory slot configuration. Pickup ownership policy deliberately
+/// lives on each map-authored pickup so instances can use different policies.
 /// </summary>
 public sealed class LargeLadWeaponDefinition
 {
 	public LargeLadWeaponId Id { get; init; }
 	public string DisplayName { get; init; }
-	public LargeLadFirearmArchetype Archetype { get; init; }
-	public float Damage { get; init; }
-	public float FireInterval { get; init; }
-	public float Range { get; init; }
-	public int MagazineSize { get; init; }
-	public int StartingReserve { get; init; }
-	public float ReloadDuration { get; init; }
 	public LargeLadCrosshairStyle Crosshair { get; init; }
-	public Color PickupColor { get; init; }
-
-	/// <summary>Model used by map pickups and dropped exclusive firearms.</summary>
-	public string ThirdPersonWorldModelPath { get; init; }
-	public string ReloadSoundPackageIdent { get; init; }
-	public string MuzzleAttachment { get; init; }
+	public Color AccentColor { get; init; }
 
 	/// <summary>
-	/// Authoritative shot-count/spread data. Presentation code may visualize the
-	/// result, but must never use these values to decide what was hit.
+	/// Routing metadata used to instantiate the one authoritative native prefab.
+	/// Core and Exclusive instances both clone this prefab.
 	/// </summary>
-	public int PelletCount { get; init; } = 1;
-	public float PelletSpreadDegrees { get; init; }
+	public string NativePrefabPath { get; init; }
 
-	/// <summary>
-	/// Compatibility name retained for existing pickup/drop consumers. New code
-	/// should use ThirdPersonWorldModelPath.
-	/// </summary>
-	public string WorldModelPath => ThirdPersonWorldModelPath;
-	public bool UsesAmmo => MagazineSize > 0;
 	public IReadOnlyList<string> GetValidationWarnings()
 	{
 		return LargeLadWeaponCatalog.GetValidationWarnings( this );
@@ -285,62 +54,33 @@ public static class LargeLadWeaponCatalog
 		Id = LargeLadWeaponId.None,
 		DisplayName = "Unarmed",
 		Crosshair = LargeLadCrosshairStyle.None,
-		PickupColor = Color.Gray
+		AccentColor = Color.Gray
 	};
 
 	private static readonly LargeLadWeaponDefinition Melee = new()
 	{
 		Id = LargeLadWeaponId.Melee,
 		DisplayName = "Melee",
-		Damage = 25.0f,
-		FireInterval = 0.65f,
-		Range = 100.0f,
 		Crosshair = LargeLadCrosshairStyle.Dot,
-		PickupColor = Color.Red,
-		ThirdPersonWorldModelPath =
-			"models/weapons/sbox_melee_crowbar/w_crowbar.vmdl"
+		AccentColor = Color.Red
 	};
 
 	private static readonly LargeLadWeaponDefinition Pistol = new()
 	{
 		Id = LargeLadWeaponId.Pistol,
 		DisplayName = "Pistol",
-		Archetype = LargeLadFirearmArchetype.SemiAutomatic,
-		Damage = 100.0f,
-		FireInterval = 0.35f,
-		Range = 1200.0f,
-		MagazineSize = 8,
-		StartingReserve = 32,
-		ReloadDuration = 1.4f,
 		Crosshair = LargeLadCrosshairStyle.FourSegment,
-		PickupColor = new Color( 0.25f, 0.85f, 1.0f ),
-		ThirdPersonWorldModelPath =
-			"models/weapons/sbox_pistol_usp/w_usp.vmdl",
-		ReloadSoundPackageIdent = "drakefruit/pistol_reload",
-		MuzzleAttachment = "muzzle",
-		PelletCount = 1,
-		PelletSpreadDegrees = 0.0f
+		AccentColor = new Color( 0.25f, 0.85f, 1.0f ),
+		NativePrefabPath = "prefabs/gameplay/native_pistol.prefab"
 	};
 
 	private static readonly LargeLadWeaponDefinition Smg = new()
 	{
 		Id = LargeLadWeaponId.Smg,
 		DisplayName = "SMG",
-		Archetype = LargeLadFirearmArchetype.Automatic,
-		Damage = 25.0f,
-		FireInterval = 0.09f,
-		Range = 1000.0f,
-		MagazineSize = 30,
-		StartingReserve = 90,
-		ReloadDuration = 2.0f,
 		Crosshair = LargeLadCrosshairStyle.FourSegment,
-		PickupColor = new Color( 1.0f, 0.78f, 0.18f ),
-		ThirdPersonWorldModelPath =
-			"models/weapons/sbox_smg_mp5/w_mp5.vmdl",
-		ReloadSoundPackageIdent = "drakefruit/rifle_reload",
-		MuzzleAttachment = "muzzle",
-		PelletCount = 1,
-		PelletSpreadDegrees = 0.0f
+		AccentColor = new Color( 1.0f, 0.78f, 0.18f ),
+		NativePrefabPath = "prefabs/gameplay/native_smg.prefab"
 	};
 
 	private static readonly LargeLadWeaponDefinition[] Firearms =
@@ -406,17 +146,6 @@ public static class LargeLadWeaponCatalog
 		return TryGetFirearm( id, out _ );
 	}
 
-	public static int GetCatalogOrder( LargeLadWeaponId id )
-	{
-		for ( var index = 0; index < Firearms.Length; index++ )
-		{
-			if ( Firearms[index].Id == id )
-				return index;
-		}
-
-		return -1;
-	}
-
 	public static IReadOnlyList<string> GetCatalogValidationWarnings()
 	{
 		var warnings = new List<string>();
@@ -473,32 +202,6 @@ public static class LargeLadWeaponCatalog
 		RequireText( warnings, definition.DisplayName, "Display name" );
 
 		if ( !System.Enum.IsDefined(
-			typeof( LargeLadFirearmArchetype ),
-			definition.Archetype ) ||
-			definition.Archetype == LargeLadFirearmArchetype.None )
-		{
-			warnings.Add( "Archetype must be a supported firearm behavior." );
-		}
-
-		RequirePositiveFinite( warnings, definition.Damage, "Damage" );
-		RequirePositiveFinite(
-			warnings,
-			definition.FireInterval,
-			"Fire interval" );
-		RequirePositiveFinite( warnings, definition.Range, "Range" );
-
-		if ( definition.MagazineSize <= 0 )
-			warnings.Add( "Magazine size must be greater than zero." );
-
-		if ( definition.StartingReserve < 0 )
-			warnings.Add( "Starting reserve cannot be negative." );
-
-		RequirePositiveFinite(
-			warnings,
-			definition.ReloadDuration,
-			"Reload duration" );
-
-		if ( !System.Enum.IsDefined(
 			typeof( LargeLadCrosshairStyle ),
 			definition.Crosshair ) ||
 			definition.Crosshair == LargeLadCrosshairStyle.None )
@@ -506,37 +209,7 @@ public static class LargeLadWeaponCatalog
 			warnings.Add( "Crosshair must be a supported visible style." );
 		}
 
-		RequireText(
-			warnings,
-			definition.ThirdPersonWorldModelPath,
-			"Pickup world model path" );
-		RequireText(
-			warnings,
-			definition.ReloadSoundPackageIdent,
-			"Native reload sound package" );
-		RequireText( warnings, definition.MuzzleAttachment, "Muzzle attachment" );
-
-		if ( definition.Archetype == LargeLadFirearmArchetype.Shotgun )
-		{
-			if ( definition.PelletCount < 2 )
-				warnings.Add( "Shotgun archetypes need at least two pellets." );
-
-			RequirePositiveFinite(
-				warnings,
-				definition.PelletSpreadDegrees,
-				"Shotgun pellet spread" );
-		}
-		else
-		{
-			if ( definition.PelletCount != 1 )
-				warnings.Add( "Non-shotgun archetypes must fire exactly one pellet." );
-
-			if ( !float.IsFinite( definition.PelletSpreadDegrees ) ||
-				definition.PelletSpreadDegrees != 0.0f )
-			{
-				warnings.Add( "Non-shotgun archetypes cannot define pellet spread." );
-			}
-		}
+		RequireText( warnings, definition.NativePrefabPath, "Native prefab path" );
 
 		return warnings;
 	}
@@ -548,15 +221,6 @@ public static class LargeLadWeaponCatalog
 	{
 		if ( string.IsNullOrWhiteSpace( value ) )
 			warnings.Add( $"{name} is required." );
-	}
-
-	private static void RequirePositiveFinite(
-		ICollection<string> warnings,
-		float value,
-		string name )
-	{
-		if ( !float.IsFinite( value ) || value <= 0.0f )
-			warnings.Add( $"{name} must be finite and greater than zero." );
 	}
 
 }

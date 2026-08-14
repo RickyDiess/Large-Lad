@@ -20,7 +20,8 @@ public readonly struct LargeLadRoleAbilityPresentationState
 {
 	public LargeLadRole Role { get; init; }
 	public LargeLadRoundPhase RoundPhase { get; init; }
-	public LargeLadInventorySelection Selection { get; init; }
+	public LargeLadUtilityId Utility { get; init; }
+	public int UtilityInstanceId { get; init; }
 	public bool IsDead { get; init; }
 	public bool IsLocalOwner { get; init; }
 	public bool HasOwnedCamera { get; init; }
@@ -36,9 +37,8 @@ public static class LargeLadRoleAbilityPresentationRules
 			return LargeLadRoleAbilityPresentationKind.RoleMelee;
 
 		if ( state.Role == LargeLadRole.SkinnyKid &&
-			state.Selection.Kind == LargeLadInventorySelectionKind.Utility &&
-			state.Selection.Utility == LargeLadUtilityId.Dodgeball &&
-			state.Selection.UtilityInstanceId > 0 )
+			state.Utility == LargeLadUtilityId.Dodgeball &&
+			state.UtilityInstanceId > 0 )
 		{
 			return LargeLadRoleAbilityPresentationKind.Dodgeball;
 		}

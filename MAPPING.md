@@ -192,8 +192,8 @@ placement, use `Break Prefab` before adding an editable brush beneath it.
 
 The component automatically uses a same-object `MeshComponent` or collider as
 the authoritative blocker. There is no renderer assignment: same-object mesh
-and renderer components are detected internally for the legacy simple
-workflow, while a generic compound prefab can keep its controller root
+and renderer components are detected internally for the simple workflow, while
+a generic compound prefab can keep its controller root
 headless. Destruction announcements are off by default. A mapper may opt in on
 a `SkinnyProgression` barricade with Announce Destruction, then provide the
 required short Display Name. Final destruction broadcasts only
@@ -238,9 +238,9 @@ barricade.
 The gameplay prefab folder contains pistol, SMG, and kill-volume presets. Loose
 ammunition pickups are not part of the map contract.
 
-Only Skinny Kids have firearm inventory and the single dodgeball utility slot.
-Primary attacks remain role abilities rather than firearm entries. Large Lad
-and Minions cannot collect or select the dodgeball.
+Only Skinny Kids own native inventory items: the crowbar, firearms, and the
+single dodgeball utility slot. Large Lad and Minion attacks remain role
+abilities, and neither role can collect or select the dodgeball.
 
 The Large Lad's only primary attack is committed Eat. The host searches for a
 valid living Skinny Kid first; that victim takes priority even when an eligible
@@ -268,11 +268,11 @@ primary attack auto-swings at the authoritative role-profile cooldown:
 Both ordinary melee roles use an 18-unit swing-trace radius. Fallback aim
 assist requires a minimum facing dot of 0.55.
 
-Skinny Kids select ordinary melee before the catalog-ordered core firearms,
-then any carried exclusive firearm, then the separately categorized dodgeball.
-The exclusive therefore remains the final firearm. Minions always have ordinary
-melee selected because they have no firearm or utility inventory. The Large Lad
-also has neither inventory, and primary input is routed exclusively to Eat
+Skinny Kids select the native crowbar before core firearms ordered by their
+native prefab `SlotOrder`, then any carried exclusive firearm, then the native
+dodgeball item. The exclusive therefore remains the final firearm. Minions use
+ordinary role melee because they have no native item inventory. The Large Lad
+also has no item inventory, and primary input is routed exclusively to Eat
 rather than the ordinary melee system.
 
 ## Large Lad Ground Slam
@@ -340,24 +340,26 @@ Core weapons cannot be dropped and are cleared on conversion or round reset.
 
 For a limited physical weapon, set that placement's
 `Pickup Policy (Per Instance)` to `Exclusive` and keep its root at Network Mode
-`Object`. Every authored placement creates its own instance, including multiple
-placements with the same weapon definition. An exclusive placement supplies
-one full magazine plus the finite reserve defined by that weapon catalog
-entry's `StartingReserve` for the round. Reserve ammunition is not configured
-independently per pickup placement, and there are no ammo refills.
+`Object`. Every authored placement creates one persistent native firearm from
+the catalog's `NativePrefabPath`, including multiple placements of the same
+weapon id. Its native prefab supplies `ClipMaxSize` and
+`ExclusiveStartingReserve`; reserve is not configured independently per map
+placement, and there are no ammo refills.
 
-While an exclusive is carried or dropped, its authored pickup stays hidden and
-reserved. Press the drop input (G by default) while it is
-selected to place a runtime pickup near the player. Magazine and reserve values
-survive switching, dropping, repicking, transfer, death, and disconnect. A
-Skinny Kid who already carries one receives local HUD feedback and cannot
-replace it. Round reset destroys any runtime drop, restores the authored pickup,
-and alone restores a full magazine plus the catalog-defined `StartingReserve`.
+The authored Exclusive pickup is only an invisible origin/reset marker. Its one
+native firearm supplies the visible world model and pickup trigger at the
+origin, while dropped, and while transferring between carriers. Press the drop
+input (G by default) while selected to drop that same native item near the
+player. Magazine and reserve remain on it through switching, dropping,
+repicking, transfer, death, and disconnect. A Skinny Kid who already carries one
+receives local HUD feedback and cannot replace it. Round reset returns that same
+item to its authored origin and alone restores the prefab's full magazine and
+`ExclusiveStartingReserve`.
 
-Skinny Kid starting loadouts are configured as a list of core weapon
-definitions on `LargeLadNativeInventory`; they are not numeric slots. The HUD,
-direct slots, and scroll order are role melee, stable weapon-catalog core order,
-the carried exclusive firearm, and then the native slot-3 utility item.
+Skinny Kid starting loadouts are configured as a list of core weapon ids on
+`LargeLadNativeInventory`; they are not numeric slots. The HUD, direct slots,
+and scroll order are native crowbar, native-prefab `SlotOrder` within the Core
+bucket, the carried exclusive firearm, and then the native slot-3 utility item.
 
 Author the utility with the `Large Lad/Pickups/Dodgeball` prefab. Each placement
 is exactly one stable physical ball and each Skinny Kid has one native utility

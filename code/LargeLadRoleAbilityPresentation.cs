@@ -177,7 +177,8 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 		var identityChanged = !hasCurrentState ||
 			currentKind != kind ||
 			currentView != view ||
-			currentState.Selection != state.Selection;
+			currentState.Utility != state.Utility ||
+			currentState.UtilityInstanceId != state.UtilityInstanceId;
 
 		if ( identityChanged || cameraChanged )
 		{
@@ -312,6 +313,7 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 		out CameraComponent ownedCamera )
 	{
 		var player = cachedPlayer;
+		var utility = player?.NativeInventory?.ActiveUtility;
 		ownedCamera = GetOwnedCamera();
 
 		return new LargeLadRoleAbilityPresentationState
@@ -319,8 +321,8 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 			Role = player?.Role ?? LargeLadRole.Unassigned,
 			RoundPhase = GetGameManager()?.Phase ??
 				LargeLadRoundPhase.WaitingForPlayers,
-			Selection = player?.ActiveInventorySelection ??
-				LargeLadInventorySelection.None,
+			Utility = utility?.UtilityId ?? LargeLadUtilityId.None,
+			UtilityInstanceId = utility?.UtilityInstanceId ?? 0,
 			IsDead = player?.Health?.IsDead != false,
 			IsLocalOwner = !IsProxy,
 			HasOwnedCamera = ownedCamera is not null,
@@ -535,7 +537,7 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 	{
 		if ( kind != LargeLadRoleAbilityPresentationKind.Dodgeball ||
 			!LargeLadUtilityPresentationCatalog.TryGet(
-				state.Selection.Utility,
+				state.Utility,
 				out var definition ) ||
 			firstPersonRoot is null ||
 			!firstPersonRoot.IsValid )
@@ -587,7 +589,7 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 	{
 		if ( kind != LargeLadRoleAbilityPresentationKind.Dodgeball ||
 			!LargeLadUtilityPresentationCatalog.TryGet(
-				state.Selection.Utility,
+				state.Utility,
 				out var definition ) ||
 			firstPersonArmsRenderer is null ||
 			firstPersonDodgeballObject is null ||
@@ -633,7 +635,7 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 		LargeLadRoleAbilityPresentationState state )
 	{
 		if ( !LargeLadUtilityPresentationCatalog.TryGet(
-			state.Selection.Utility,
+			state.Utility,
 			out var definition ) )
 		{
 			DestroyThirdPersonDodgeball();
@@ -705,7 +707,7 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 	{
 		var bodyRenderer = cachedPlayer?.BodyRenderer;
 		if ( !LargeLadUtilityPresentationCatalog.TryGet(
-				state.Selection.Utility,
+				state.Utility,
 				out var definition ) ||
 			thirdPersonDodgeballGripRoot is null ||
 			!thirdPersonDodgeballGripRoot.IsValid ||
@@ -914,7 +916,7 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 
 		if ( kind == LargeLadRoleAbilityPresentationKind.Dodgeball &&
 			LargeLadUtilityPresentationCatalog.TryGet(
-				state.Selection.Utility,
+				state.Utility,
 				out var utilityDefinition ) )
 		{
 			twoHanded = utilityDefinition.FirstPersonTwoHanded;
