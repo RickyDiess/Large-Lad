@@ -39,7 +39,8 @@ public readonly struct LargeLadDodgeballPresentation
 /// </summary>
 public sealed class LargeLadDodgeballPickup :
 	LargeLadRoundResettableComponent,
-	Component.ICollisionListener
+	Component.ICollisionListener,
+	Component.INetworkSpawn
 {
 	[Property, Group( "Setup" )]
 	public Renderer PickupRenderer { get; set; }
@@ -131,14 +132,27 @@ public sealed class LargeLadDodgeballPickup :
 	private float flightExpireTime;
 	private int nextPresentationSequence;
 	private int lastLocalPresentationSequence;
+	private bool clientAuthoredCopySuppressed;
 
 	internal LargeLadUtilityLocation Location =>
 		utilityInstance?.Location ?? LargeLadUtilityLocation.OriginAvailable;
+
+	internal void SuppressClientAuthoredCopy()
+	{
+		if ( Networking.IsHost )
+			return;
+
+		clientAuthoredCopySuppressed = true;
+		ResolveAuthoredParts();
+		StopPhysicsMotion();
+		ApplyAvailableState();
+	}
 
 	protected override void OnAwake()
 	{
 		ResolveAuthoredParts();
 		ConfigurePhysics();
+		ConfigureLocalSimulationAuthority();
 	}
 
 	protected override void OnStart()
@@ -154,6 +168,18 @@ public sealed class LargeLadDodgeballPickup :
 			ConfigureNetworkAuthority();
 		}
 
+		ApplyAvailableState();
+	}
+
+	void Component.INetworkSpawn.OnNetworkSpawn( Connection owner )
+	{
+		ResolveAuthoredParts();
+
+		if ( Networking.IsHost )
+			ConfigureNetworkAuthority();
+
+		// Stop proxy physics as part of network-spawn setup so the client presents
+		// the host transform without simulating the same loose ball locally.
 		ApplyAvailableState();
 	}
 
@@ -790,6 +816,35 @@ public sealed class LargeLadDodgeballPickup :
 		GameObject.Network.SetOwnerTransfer( OwnerTransfer.Fixed );
 	}
 
+	private void ConfigureLocalSimulationAuthority()
+	{
+		if ( !GameObject.Network.Active || !GameObject.Network.IsProxy )
+			return;
+
+		// A proxy only presents the host's transform. Its colliders and body motion
+		// must not simulate another copy of the host-authoritative loose ball.
+		if ( BallCollider is not null )
+			BallCollider.Enabled = false;
+
+		if ( PickupCollider is not null )
+			PickupCollider.Enabled = false;
+
+		var body = BallRigidbody?.PhysicsBody;
+
+		if ( body is not null )
+		{
+			body.ClearForces();
+			body.ClearTorque();
+			body.Velocity = Vector3.Zero;
+			body.AngularVelocity = Vector3.Zero;
+			body.MotionEnabled = false;
+			body.Sleeping = true;
+		}
+
+		if ( BallRigidbody is not null )
+			BallRigidbody.Enabled = false;
+	}
+
 	private void TransferOwnershipToCarrier(
 		LargeLadNativeInventory carrier )
 	{
@@ -906,17 +961,23 @@ public sealed class LargeLadDodgeballPickup :
 
 	private void ApplyAvailableState()
 	{
+		var presentLocally = Available && !clientAuthoredCopySuppressed;
+		var simulateLocally = presentLocally &&
+			( !GameObject.Network.Active || !GameObject.Network.IsProxy );
+
 		if ( PickupRenderer is not null )
-			PickupRenderer.Enabled = Available;
+			PickupRenderer.Enabled = presentLocally;
 
 		if ( BallCollider is not null )
-			BallCollider.Enabled = Available;
+			BallCollider.Enabled = simulateLocally;
 
 		if ( BallRigidbody is not null )
-			BallRigidbody.Enabled = Available;
+			BallRigidbody.Enabled = simulateLocally;
 
 		if ( PickupCollider is not null )
-			PickupCollider.Enabled = Available && PickupEnabled;
+			PickupCollider.Enabled = simulateLocally && PickupEnabled;
+
+		ConfigureLocalSimulationAuthority();
 	}
 
 	private void BroadcastPresentation(

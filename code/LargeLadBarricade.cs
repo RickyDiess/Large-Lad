@@ -209,6 +209,15 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 		if ( !hasCapturedAuthoredState )
 			return;
 
+		// Synced state is enough to wake remote presentation callbacks, but the
+		// host also owns the mapper-authored objects those callbacks manipulate.
+		// A later network/procedural component update can therefore leave a child
+		// disabled after the host's reset while these cached values still say the
+		// intact state was applied. Audit the actual authored presentation before
+		// accepting the cache so the host heals on the following update.
+		if ( IsFullyIntact() && !IsAuthoredPresentationRestored() )
+			RestoreIntactPresentation();
+
 		if ( appliedStageCount == ActiveStageCount &&
 			appliedDestroyedState == IsDestroyed &&
 			appliedPassageOpenState == IsPassageOpen )
@@ -368,10 +377,7 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 			isResettingForRound = false;
 		}
 
-		RestoreAuthoredState();
-		brokenChildRoots.Clear();
-		FreezeAuthoredChildren();
-		appliedStageCount = 0;
+		RestoreIntactPresentation();
 		RefreshPresentation();
 
 		if ( LargeLadGameManager.FindForScene( Scene )?
@@ -424,12 +430,7 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 			return;
 
 		if ( oldValue && !newValue && hasCapturedAuthoredState )
-		{
-			RestoreAuthoredState();
-			brokenChildRoots.Clear();
-			FreezeAuthoredChildren();
-			appliedStageCount = 0;
-		}
+			RestoreIntactPresentation();
 
 		if ( hasCapturedAuthoredState )
 			RefreshPresentation();
@@ -828,6 +829,48 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 
 			state.Target.Enabled = state.Enabled;
 		}
+	}
+
+	private bool IsFullyIntact()
+	{
+		return !IsDestroyed &&
+			ActiveStageCount == 0 &&
+			!IsPassageOpen;
+	}
+
+	private bool IsAuthoredPresentationRestored()
+	{
+		foreach ( var state in authoredObjectStates.Values )
+		{
+			if ( state.Target is not null &&
+				state.Target.IsValid &&
+				state.Target.Enabled != state.Enabled )
+			{
+				return false;
+			}
+		}
+
+		foreach ( var state in authoredComponentStates.Values )
+		{
+			if ( state.Target is not null &&
+				state.Target.IsValid &&
+				state.Target.Enabled != state.Enabled )
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	private void RestoreIntactPresentation()
+	{
+		RestoreAuthoredState();
+		brokenChildRoots.Clear();
+		FreezeAuthoredChildren();
+		appliedStageCount = 0;
+		appliedDestroyedState = null;
+		appliedPassageOpenState = null;
 	}
 
 	private bool GetAuthoredEnabled( Component target )

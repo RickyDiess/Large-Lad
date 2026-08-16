@@ -752,11 +752,34 @@ public sealed class LargeLadGroundSlamReactiveProp :
 	private static bool HasInHierarchy<T>( GameObject target )
 		where T : Component
 	{
-		return target is not null &&
-			(target.Components.Get<T>(
-				FindMode.EverythingInSelfAndAncestors ) is not null ||
-				target.Components.Get<T>(
-					FindMode.EverythingInSelfAndDescendants ) is not null);
+		if ( target is null )
+			return false;
+
+		if ( target.Components.Get<T>(
+			FindMode.EverythingInSelfAndDescendants ) is not null )
+		{
+			return true;
+		}
+
+		// MapInstance presents its loaded scene beneath the persistent shell in
+		// the runtime hierarchy. FindMode's ancestor traversal crosses that mount
+		// boundary, which would classify every map object as part of the shell's
+		// GameManager. Only authored ancestors below the MapInstance are relevant
+		// to the reactive object's gameplay contract.
+		var containingScene = target.Scene;
+
+		for ( var current = target;
+			current is not null && current != containingScene;
+			current = current.Parent )
+		{
+			if ( current.Components.Get<T>() is not null )
+				return true;
+
+			if ( current.Components.Get<MapInstance>() is not null )
+				break;
+		}
+
+		return false;
 	}
 
 	private void OnBrokenChanged( bool oldValue, bool newValue )

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Sandbox;
 
 public enum LargeLadMapSessionState
@@ -242,10 +243,13 @@ public sealed class LargeLadSessionCoordinator : Component
 
 	private void HandleMapLoaded()
 	{
-		if ( !Networking.IsHost )
-			return;
-
 		ResolveBootstrapReferences();
+
+		if ( !Networking.IsHost )
+		{
+			SuppressClientAuthoredNetworkCopies();
+			return;
+		}
 
 		if ( MapState != LargeLadMapSessionState.Loading ||
 			string.IsNullOrWhiteSpace( CurrentMapName ) )
@@ -257,6 +261,7 @@ public sealed class LargeLadSessionCoordinator : Component
 		}
 
 		mapTransitionCleanupStarted = false;
+		PromoteNestedMapNetworkObjects();
 		var isReady = GameManager?.PrepareLoadedMap( this ) == true;
 		SetMapState(
 			isReady
@@ -275,6 +280,151 @@ public sealed class LargeLadSessionCoordinator : Component
 				$"Large Lad map '{MapInstance?.MapName}' loaded but did not " +
 				"satisfy the blocking map contract. Round flow remains closed." );
 		}
+	}
+
+	private void SuppressClientAuthoredNetworkCopies()
+	{
+		if ( Networking.IsHost || MapInstance is null )
+			return;
+
+		var mapHost = MapInstance.GameObject;
+		var authoredNetworkCopies = GetNestedMapNetworkRoots( mapHost );
+
+		foreach ( var sourceObject in authoredNetworkCopies )
+		{
+			sourceObject.Components
+				.Get<LargeLadDodgeballPickup>( FindMode.EverythingInSelf )?
+				.SuppressClientAuthoredCopy();
+			sourceObject.Enabled = false;
+		}
+
+		Log.Info(
+			$"Suppressed {authoredNetworkCopies.Length} client-authored " +
+			"network/physics copies beneath the loaded map." );
+	}
+
+	private void PromoteNestedMapNetworkObjects()
+	{
+		if ( !Networking.IsHost || MapInstance is null )
+			return;
+
+		var mapHost = MapInstance.GameObject;
+
+		// Nested scene-map network roots depend on Snapshot parents that are not
+		// stable in the persistent shell's late-join graph. Dynamic physics props
+		// have the same problem when MapInstance promotes them automatically.
+		// Promote only those roots beneath the known map host. Static/local map
+		// content and already-direct network roots stay untouched, and keeping the
+		// authored objects preserves their network identities for late joiners.
+		var authoredNetworkRoots = GetNestedMapNetworkRoots( mapHost );
+
+		foreach ( var sourceObject in authoredNetworkRoots )
+			PromoteNestedMapNetworkObject( sourceObject, mapHost );
+	}
+
+	private static void PromoteNestedMapNetworkObject(
+		GameObject sourceObject,
+		GameObject mapHost )
+	{
+		var sourceParent = sourceObject.Parent;
+		var sourceWorldTransform = sourceObject.WorldTransform;
+		var sourceNetworkMode = sourceObject.NetworkMode;
+
+		try
+		{
+			// Reparent in place so authored identities, exact transforms, and any
+			// live physics bodies survive the promotion. Cloning ModelPhysics also
+			// rebuilds articulated bodies around the scene origin.
+			sourceObject.SetParent( mapHost, keepWorldPosition: true );
+			sourceObject.WorldTransform = sourceWorldTransform;
+			sourceObject.NetworkMode = NetworkMode.Object;
+
+			if ( sourceObject.Network.Active &&
+				sourceObject.Network.RootGameObject == sourceObject )
+			{
+				sourceObject.Network.Refresh();
+			}
+			else if ( !sourceObject.NetworkSpawn() )
+			{
+				throw new InvalidOperationException(
+					"NetworkSpawn returned false." );
+			}
+		}
+		catch ( Exception exception )
+		{
+			sourceObject.SetParent( sourceParent, keepWorldPosition: true );
+			sourceObject.WorldTransform = sourceWorldTransform;
+			sourceObject.NetworkMode = sourceNetworkMode;
+			Log.Error(
+				$"{sourceObject.Name}: failed to promote its persistent-map " +
+				$"network object: {exception.Message}" );
+		}
+	}
+
+	private static GameObject[] GetNestedMapNetworkRoots( GameObject mapHost )
+	{
+		if ( mapHost is null )
+			return [];
+
+		return mapHost.GetAllObjects( true )
+			.Where( candidate =>
+				candidate != mapHost &&
+				candidate.Parent != mapHost &&
+				IsMapNetworkRoot( candidate ) &&
+				!HasMapNetworkRootAncestor( candidate, mapHost ) )
+			.ToArray();
+	}
+
+	private static bool HasMapNetworkRootAncestor(
+		GameObject gameObject,
+		GameObject mapHost )
+	{
+		for ( var current = gameObject.Parent;
+			current is not null && current != mapHost;
+			current = current.Parent )
+		{
+			if ( IsMapNetworkRoot( current ) )
+				return true;
+		}
+
+		return false;
+	}
+
+	private static bool IsMapNetworkRoot( GameObject gameObject )
+	{
+		if ( gameObject.NetworkMode == NetworkMode.Object )
+			return true;
+
+		return IsDynamicPhysicsProp( gameObject );
+	}
+
+	private static bool IsDynamicPhysicsProp( GameObject gameObject )
+	{
+		if ( gameObject.Components.Get<Prop>(
+			FindMode.EverythingInSelf ) is null )
+		{
+			return false;
+		}
+
+		return gameObject.Components.Get<ModelPhysics>(
+				FindMode.EverythingInSelf ) is not null ||
+			gameObject.Components.Get<Rigidbody>(
+				FindMode.EverythingInSelf ) is not null;
+	}
+
+	private static bool IsDescendantOf(
+		GameObject gameObject,
+		GameObject expectedAncestor )
+	{
+		for ( var current = gameObject.Parent;
+			current is not null;
+			current = current.Parent )
+		{
+			if ( current == expectedAncestor )
+				return true;
+		}
+
+		return false;
 	}
 
 	private void HandleMapUnloaded()

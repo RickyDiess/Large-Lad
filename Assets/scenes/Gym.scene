@@ -66,7 +66,7 @@
                   "MipLodBias": 0,
                   "MaxAnisotropy": 8,
                   "BorderColor": "0,0,0,0",
-                  "Index": 11
+                  "Index": 10
                 }
               },
               "ResourceVersion": 3,
@@ -197,7 +197,7 @@
             {
               "__guid": "37f967dc-07be-4b1d-bc92-b887e1099da2",
               "__version": 2,
-              "Flags": 0,
+              "Flags": 32768,
               "Name": "Block",
               "Position": "-1108.43176,-3.13116026,-12.8695297",
               "Rotation": "0,0,1,-4.37113883E-08",
@@ -254,7 +254,7 @@
             {
               "__guid": "04d818d6-2bda-4346-a8d8-461ce59bc9a5",
               "__version": 2,
-              "Flags": 0,
+              "Flags": 32768,
               "Name": "Block",
               "Position": "171.568115,-3.13133717,-12.8695297",
               "Rotation": "0,0,0,1",
@@ -311,7 +311,7 @@
             {
               "__guid": "e6882c7f-7435-45c0-802c-62129eb89cf7",
               "__version": 2,
-              "Flags": 0,
+              "Flags": 32768,
               "Name": "Block",
               "Position": "-468.431824,-3.13129044,-92.8695374",
               "Rotation": "0,0,0,1",
@@ -367,7 +367,7 @@
             {
               "__guid": "ef956291-5574-4131-be0c-9baf66326251",
               "__version": 2,
-              "Flags": 0,
+              "Flags": 32768,
               "Name": "Block",
               "Position": "-468.431824,-947.131287,115.130463",
               "Rotation": "0,0,0,1",
@@ -426,7 +426,7 @@
             {
               "__guid": "f5e13140-a138-4f30-8111-52590ebf200f",
               "__version": 2,
-              "Flags": 0,
+              "Flags": 32768,
               "Name": "crate01",
               "Position": "-1683.47681,-1372.2605,194.963348",
               "Rotation": "0,0,0.130526304,0.991444886",
@@ -519,7 +519,7 @@
             {
               "__guid": "f6baf04a-c9c8-48aa-89a9-8d814b0b729a",
               "__version": 2,
-              "Flags": 0,
+              "Flags": 32768,
               "Name": "crate01 (1)",
               "Position": "-1295.98047,832.733154,194.953064",
               "Rotation": "0,0,0.130526304,0.991444886",
@@ -612,7 +612,7 @@
             {
               "__guid": "f73bf204-73dc-41ef-8571-c5c9458eefcb",
               "__version": 2,
-              "Flags": 0,
+              "Flags": 32768,
               "Name": "Block",
               "Position": "682.682678,1091.26367,419.130463",
               "Rotation": "0,0,0,1",
@@ -668,7 +668,7 @@
             {
               "__guid": "4b39e29f-d4e0-48d0-a30b-f557b690682e",
               "__version": 2,
-              "Flags": 0,
+              "Flags": 32768,
               "Name": "Block",
               "Position": "-1252.43188,-3.13129044,115.130463",
               "Rotation": "0,0,0,1",
@@ -725,7 +725,7 @@
             {
               "__guid": "a14e6c94-402c-4e50-b1f5-3bb8fa0052e8",
               "__version": 2,
-              "Flags": 0,
+              "Flags": 32768,
               "Name": "Block",
               "Position": "315.568176,-3.13129044,115.130463",
               "Rotation": "0,0,0,1",
@@ -782,7 +782,7 @@
             {
               "__guid": "7472e407-5434-47b5-9491-e58c4d17a8ec",
               "__version": 2,
-              "Flags": 0,
+              "Flags": 32768,
               "Name": "Block",
               "Position": "-484.431824,1372.86865,219.130463",
               "Rotation": "0,0,-0.707106769,0.707106769",
@@ -839,7 +839,7 @@
             {
               "__guid": "45f2ab41-e17e-4f99-a059-d38ded47cfae",
               "__version": 2,
-              "Flags": 0,
+              "Flags": 32768,
               "Name": "Basketball Hoop",
               "Position": "-472.431824,-579.131287,163.130463",
               "Rotation": "0,0,0,1",
@@ -886,7 +886,7 @@
                   "RenderType": "On",
                   "RollingResistance": null,
                   "SmoothingAngle": 40,
-                  "Static": false,
+                  "Static": true,
                   "Surface": null,
                   "SurfaceVelocity": "0,0,0"
                 }
@@ -895,7 +895,7 @@
                 {
                   "__guid": "fae5692f-a94d-46e5-8476-64933abd8cca",
                   "__version": 2,
-                  "Flags": 0,
+                  "Flags": 32768,
                   "Name": "Block (1)",
                   "Position": "0,28,-34",
                   "Rotation": "0,0,0,1",
@@ -941,7 +941,7 @@
                       "RenderType": "On",
                       "RollingResistance": null,
                       "SmoothingAngle": 40,
-                      "Static": false,
+                      "Static": true,
                       "Surface": null,
                       "SurfaceVelocity": "0,0,0"
                     }
@@ -951,7 +951,7 @@
                 {
                   "__guid": "951f2228-a2bb-4268-8c2e-e6ef2b14f2ea",
                   "__version": 2,
-                  "Flags": 0,
+                  "Flags": 32768,
                   "Name": "Block (1)",
                   "Position": "-40,-8,64",
                   "Rotation": "0,0,0,1",
@@ -997,7 +997,7 @@
                       "RenderType": "On",
                       "RollingResistance": null,
                       "SmoothingAngle": 40,
-                      "Static": false,
+                      "Static": true,
                       "Surface": null,
                       "SurfaceVelocity": "0,0,0"
                     }
@@ -1007,7 +1007,7 @@
                 {
                   "__guid": "f908f9de-8f8d-4363-b3a8-9097a2090bec",
                   "__version": 2,
-                  "Flags": 0,
+                  "Flags": 32768,
                   "Name": "Block (2)",
                   "Position": "44,-92,94",
                   "Rotation": "0,0,0,1",
@@ -1053,7 +1053,7 @@
                       "RenderType": "On",
                       "RollingResistance": null,
                       "SmoothingAngle": 40,
-                      "Static": false,
+                      "Static": true,
                       "Surface": null,
                       "SurfaceVelocity": "0,0,0"
                     }
@@ -1063,7 +1063,7 @@
                 {
                   "__guid": "6c2bc53c-95c1-48f3-83dc-2c7282d3af0a",
                   "__version": 2,
-                  "Flags": 0,
+                  "Flags": 32768,
                   "Name": "Block",
                   "Position": "2,-8,34",
                   "Rotation": "0,0,0,1",
@@ -1109,7 +1109,7 @@
                       "RenderType": "On",
                       "RollingResistance": null,
                       "SmoothingAngle": 40,
-                      "Static": false,
+                      "Static": true,
                       "Surface": null,
                       "SurfaceVelocity": "0,0,0"
                     }
@@ -1119,7 +1119,7 @@
                 {
                   "__guid": "0252354e-fbc7-4df4-afaf-d22f0076454d",
                   "__version": 2,
-                  "Flags": 0,
+                  "Flags": 32768,
                   "Name": "Block (4)",
                   "Position": "2,-92,34",
                   "Rotation": "0,0,0,1",
@@ -1165,7 +1165,7 @@
                       "RenderType": "On",
                       "RollingResistance": null,
                       "SmoothingAngle": 40,
-                      "Static": false,
+                      "Static": true,
                       "Surface": null,
                       "SurfaceVelocity": "0,0,0"
                     }
@@ -1175,7 +1175,7 @@
                 {
                   "__guid": "c50fefcd-66c0-4eff-b3fb-fc45b5582b71",
                   "__version": 2,
-                  "Flags": 0,
+                  "Flags": 32768,
                   "Name": "Block",
                   "Position": "44,-50,34",
                   "Rotation": "0,0,0,1",
@@ -1221,7 +1221,7 @@
                       "RenderType": "On",
                       "RollingResistance": null,
                       "SmoothingAngle": 40,
-                      "Static": false,
+                      "Static": true,
                       "Surface": null,
                       "SurfaceVelocity": "0,0,0"
                     }
@@ -1231,7 +1231,7 @@
                 {
                   "__guid": "4b520ee7-f456-4771-998a-7f681aa6ded9",
                   "__version": 2,
-                  "Flags": 0,
+                  "Flags": 32768,
                   "Name": "Block (5)",
                   "Position": "-40,-50,34",
                   "Rotation": "0,0,0,1",
@@ -1277,7 +1277,7 @@
                       "RenderType": "On",
                       "RollingResistance": null,
                       "SmoothingAngle": 40,
-                      "Static": false,
+                      "Static": true,
                       "Surface": null,
                       "SurfaceVelocity": "0,0,0"
                     }
@@ -1289,7 +1289,7 @@
             {
               "__guid": "dbe2accc-7cc6-4fbb-a05c-73307ca46e9a",
               "__version": 2,
-              "Flags": 0,
+              "Flags": 32768,
               "Name": "Basketball Hoop (1)",
               "Position": "-472.431763,572.868713,163.130463",
               "Rotation": "0,0,-1,-4.37113883E-08",
@@ -1336,7 +1336,7 @@
                   "RenderType": "On",
                   "RollingResistance": null,
                   "SmoothingAngle": 40,
-                  "Static": false,
+                  "Static": true,
                   "Surface": null,
                   "SurfaceVelocity": "0,0,0"
                 }
@@ -1345,7 +1345,7 @@
                 {
                   "__guid": "6ce7bdc5-bd88-4a82-a676-7371ba083451",
                   "__version": 2,
-                  "Flags": 0,
+                  "Flags": 32768,
                   "Name": "Block (1)",
                   "Position": "0,28,-34",
                   "Rotation": "0,0,0,1",
@@ -1391,7 +1391,7 @@
                       "RenderType": "On",
                       "RollingResistance": null,
                       "SmoothingAngle": 40,
-                      "Static": false,
+                      "Static": true,
                       "Surface": null,
                       "SurfaceVelocity": "0,0,0"
                     }
@@ -1401,7 +1401,7 @@
                 {
                   "__guid": "d95ef4eb-c6f1-4fa8-9ce5-a7c86962114e",
                   "__version": 2,
-                  "Flags": 0,
+                  "Flags": 32768,
                   "Name": "Block (1)",
                   "Position": "-40,-8,64",
                   "Rotation": "0,0,0,1",
@@ -1447,7 +1447,7 @@
                       "RenderType": "On",
                       "RollingResistance": null,
                       "SmoothingAngle": 40,
-                      "Static": false,
+                      "Static": true,
                       "Surface": null,
                       "SurfaceVelocity": "0,0,0"
                     }
@@ -1457,7 +1457,7 @@
                 {
                   "__guid": "66778aa5-9558-4172-8ded-78c931fe1a27",
                   "__version": 2,
-                  "Flags": 0,
+                  "Flags": 32768,
                   "Name": "Block (2)",
                   "Position": "44,-92,94",
                   "Rotation": "0,0,0,1",
@@ -1503,7 +1503,7 @@
                       "RenderType": "On",
                       "RollingResistance": null,
                       "SmoothingAngle": 40,
-                      "Static": false,
+                      "Static": true,
                       "Surface": null,
                       "SurfaceVelocity": "0,0,0"
                     }
@@ -1513,7 +1513,7 @@
                 {
                   "__guid": "407d1001-7a6f-40ec-bd2c-2d1acaa7085a",
                   "__version": 2,
-                  "Flags": 0,
+                  "Flags": 32768,
                   "Name": "Block",
                   "Position": "2,-8,34",
                   "Rotation": "0,0,0,1",
@@ -1559,7 +1559,7 @@
                       "RenderType": "On",
                       "RollingResistance": null,
                       "SmoothingAngle": 40,
-                      "Static": false,
+                      "Static": true,
                       "Surface": null,
                       "SurfaceVelocity": "0,0,0"
                     }
@@ -1569,7 +1569,7 @@
                 {
                   "__guid": "45213da9-55d7-405b-9833-3bf0245376cc",
                   "__version": 2,
-                  "Flags": 0,
+                  "Flags": 32768,
                   "Name": "Block (4)",
                   "Position": "2,-92,34",
                   "Rotation": "0,0,0,1",
@@ -1615,7 +1615,7 @@
                       "RenderType": "On",
                       "RollingResistance": null,
                       "SmoothingAngle": 40,
-                      "Static": false,
+                      "Static": true,
                       "Surface": null,
                       "SurfaceVelocity": "0,0,0"
                     }
@@ -1625,7 +1625,7 @@
                 {
                   "__guid": "5c635009-f3da-41a3-8549-c21d9b6dca90",
                   "__version": 2,
-                  "Flags": 0,
+                  "Flags": 32768,
                   "Name": "Block",
                   "Position": "44,-50,34",
                   "Rotation": "0,0,0,1",
@@ -1671,7 +1671,7 @@
                       "RenderType": "On",
                       "RollingResistance": null,
                       "SmoothingAngle": 40,
-                      "Static": false,
+                      "Static": true,
                       "Surface": null,
                       "SurfaceVelocity": "0,0,0"
                     }
@@ -1681,7 +1681,7 @@
                 {
                   "__guid": "cf315825-5b60-430d-92f9-146fce3a3f9a",
                   "__version": 2,
-                  "Flags": 0,
+                  "Flags": 32768,
                   "Name": "Block (5)",
                   "Position": "-40,-50,34",
                   "Rotation": "0,0,0,1",
@@ -1727,7 +1727,7 @@
                       "RenderType": "On",
                       "RollingResistance": null,
                       "SmoothingAngle": 40,
-                      "Static": false,
+                      "Static": true,
                       "Surface": null,
                       "SurfaceVelocity": "0,0,0"
                     }
@@ -1739,7 +1739,7 @@
             {
               "__guid": "e3d315dc-df89-48fa-b23f-2c2a55f58e0f",
               "__version": 2,
-              "Flags": 0,
+              "Flags": 32768,
               "Name": "Block",
               "Position": "-468.431824,-947.131287,563.130493",
               "Rotation": "0,0,0,1",
@@ -1795,7 +1795,7 @@
             {
               "__guid": "e4e143e9-0e55-453d-843d-fdb5309572ea",
               "__version": 2,
-              "Flags": 0,
+              "Flags": 32768,
               "Name": "Block",
               "Position": "-468.431824,908.868713,-76.8695374",
               "Rotation": "0,0,0,1",
@@ -2494,7 +2494,7 @@
             {
               "__guid": "67312585-5d61-4762-ade1-0b44fed9a2f7",
               "__version": 2,
-              "Flags": 32768,
+              "Flags": 0,
               "Name": "crate01",
               "Position": "736.515442,-1329.88599,-64.107666",
               "Rotation": "0,0,0.130526304,0.991444886",
@@ -2513,7 +2513,7 @@
                   "__enabled": true,
                   "Flags": 0,
                   "BodyGroups": 18446744073709551615,
-                  "Health": 30,
+                  "Health": 0,
                   "IsStatic": true,
                   "MaterialGroup": null,
                   "Model": "models/citizen_props/crate01.vmdl",
@@ -2531,7 +2531,7 @@
                 },
                 {
                   "__type": "Sandbox.ModelRenderer",
-                  "__guid": "ff31d8f8-5fe2-4618-acd1-b766e4dde110",
+                  "__guid": "04c03e30-4fd7-4458-82d9-af374f92a3da",
                   "__enabled": true,
                   "Flags": 0,
                   "BodyGroups": 18446744073709551615,
@@ -2558,7 +2558,7 @@
                 },
                 {
                   "__type": "Sandbox.ModelCollider",
-                  "__guid": "abcbfec9-24cc-43c3-8805-065e2893356e",
+                  "__guid": "ffa7499a-429c-4144-8b49-cf7a35496d05",
                   "__enabled": true,
                   "Flags": 0,
                   "ColliderFlags": 0,
@@ -2594,7 +2594,7 @@
               "Scale": "3,3,3",
               "Tags": "",
               "Enabled": true,
-              "NetworkMode": 2,
+              "NetworkMode": 1,
               "NetworkFlags": 0,
               "NetworkOrphaned": 0,
               "NetworkTransmit": true,
@@ -2607,7 +2607,7 @@
                   "Flags": 0,
                   "BodyGroups": 18446744073709551615,
                   "Health": 30,
-                  "IsStatic": true,
+                  "IsStatic": false,
                   "MaterialGroup": null,
                   "Model": "models/citizen_props/crate01.vmdl",
                   "OnComponentDestroy": null,
@@ -2619,12 +2619,33 @@
                   "OnGibsCreated": null,
                   "OnPropBreak": null,
                   "OnPropTakeDamage": null,
-                  "StartAsleep": false,
+                  "StartAsleep": true,
                   "Tint": "1,1,1,1"
                 },
                 {
+                  "__type": "LargeLadGroundSlamReactiveProp",
+                  "__guid": "3c2480e6-0749-44eb-b305-5e355a4ab8dd",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "Behavior": "Move",
+                  "EnableDebugLogging": false,
+                  "EnableOutOfBoundsCleanup": false,
+                  "HorizontalImpulse": 125000,
+                  "MaximumDistanceFromStart": 4096,
+                  "MinimumWorldZ": -4096,
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "ReactiveRoot": null,
+                  "StartFrozen": true,
+                  "UpwardImpulse": 150000
+                },
+                {
                   "__type": "Sandbox.ModelRenderer",
-                  "__guid": "da7bb8f6-263a-4a0f-a7c5-68ebcbb0b4bf",
+                  "__guid": "35b3f6c5-4f92-48c9-8bf5-811c8636cce8",
                   "__enabled": true,
                   "Flags": 0,
                   "BodyGroups": 18446744073709551615,
@@ -2651,7 +2672,7 @@
                 },
                 {
                   "__type": "Sandbox.ModelCollider",
-                  "__guid": "8015fc75-5d02-4860-b783-3c43ba85ebd7",
+                  "__guid": "61572740-cda5-46a9-8fe7-8d50a993c567",
                   "__enabled": true,
                   "Flags": 0,
                   "ColliderFlags": 0,
@@ -2673,6 +2694,41 @@
                   "Static": true,
                   "Surface": null,
                   "SurfaceVelocity": "0,0,0"
+                },
+                {
+                  "__type": "Sandbox.Rigidbody",
+                  "__guid": "97869470-6b98-47f7-b0af-52d979ef5e22",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "AngularDamping": 0,
+                  "EnableImpactDamage": true,
+                  "EnhancedCcd": false,
+                  "Gravity": true,
+                  "GravityScale": 1,
+                  "ImpactDamage": 10,
+                  "LinearDamping": 0,
+                  "Locking": {
+                    "X": false,
+                    "Y": false,
+                    "Z": false,
+                    "Pitch": false,
+                    "Yaw": false,
+                    "Roll": false
+                  },
+                  "MassCenterOverride": "0,0,0",
+                  "MassOverride": 0,
+                  "MinImpactDamageSpeed": 750,
+                  "MotionEnabled": true,
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OverrideMassCenter": false,
+                  "RigidbodyFlags": 0,
+                  "SleepThreshold": 2,
+                  "StartAsleep": false
                 }
               ],
               "Children": []
@@ -2687,7 +2743,7 @@
               "Scale": "3,3,3",
               "Tags": "",
               "Enabled": true,
-              "NetworkMode": 2,
+              "NetworkMode": 1,
               "NetworkFlags": 0,
               "NetworkOrphaned": 0,
               "NetworkTransmit": true,
@@ -2700,7 +2756,7 @@
                   "Flags": 0,
                   "BodyGroups": 18446744073709551615,
                   "Health": 30,
-                  "IsStatic": true,
+                  "IsStatic": false,
                   "MaterialGroup": null,
                   "Model": "models/citizen_props/crate01.vmdl",
                   "OnComponentDestroy": null,
@@ -2712,12 +2768,33 @@
                   "OnGibsCreated": null,
                   "OnPropBreak": null,
                   "OnPropTakeDamage": null,
-                  "StartAsleep": false,
+                  "StartAsleep": true,
                   "Tint": "1,1,1,1"
                 },
                 {
+                  "__type": "LargeLadGroundSlamReactiveProp",
+                  "__guid": "e9e0c06f-17cd-483b-b473-291d13f3bbe6",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "Behavior": "Move",
+                  "EnableDebugLogging": false,
+                  "EnableOutOfBoundsCleanup": false,
+                  "HorizontalImpulse": 125000,
+                  "MaximumDistanceFromStart": 4096,
+                  "MinimumWorldZ": -4096,
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "ReactiveRoot": null,
+                  "StartFrozen": true,
+                  "UpwardImpulse": 150000
+                },
+                {
                   "__type": "Sandbox.ModelRenderer",
-                  "__guid": "e1eee53b-6fde-4f85-b5ca-e60c8ff722f4",
+                  "__guid": "dc0b959a-905f-4c18-b25b-242e50922f64",
                   "__enabled": true,
                   "Flags": 0,
                   "BodyGroups": 18446744073709551615,
@@ -2744,7 +2821,7 @@
                 },
                 {
                   "__type": "Sandbox.ModelCollider",
-                  "__guid": "7559b221-dc15-4762-9a75-afedfca6a3d0",
+                  "__guid": "e303c055-1025-4219-9c0b-8f7f92ed347b",
                   "__enabled": true,
                   "Flags": 0,
                   "ColliderFlags": 0,
@@ -2763,9 +2840,44 @@
                   "OnTriggerEnter": null,
                   "OnTriggerExit": null,
                   "RollingResistance": null,
-                  "Static": true,
+                  "Static": false,
                   "Surface": null,
                   "SurfaceVelocity": "0,0,0"
+                },
+                {
+                  "__type": "Sandbox.Rigidbody",
+                  "__guid": "41712e1e-b09b-4c1f-a434-5be36bd6a43f",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "AngularDamping": 0,
+                  "EnableImpactDamage": true,
+                  "EnhancedCcd": false,
+                  "Gravity": true,
+                  "GravityScale": 1,
+                  "ImpactDamage": 10,
+                  "LinearDamping": 0,
+                  "Locking": {
+                    "X": false,
+                    "Y": false,
+                    "Z": false,
+                    "Pitch": false,
+                    "Yaw": false,
+                    "Roll": false
+                  },
+                  "MassCenterOverride": "0,0,0",
+                  "MassOverride": 0,
+                  "MinImpactDamageSpeed": 750,
+                  "MotionEnabled": true,
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OverrideMassCenter": false,
+                  "RigidbodyFlags": 0,
+                  "SleepThreshold": 2,
+                  "StartAsleep": false
                 }
               ],
               "Children": []
@@ -2780,7 +2892,7 @@
               "Scale": "3,3,3",
               "Tags": "",
               "Enabled": true,
-              "NetworkMode": 2,
+              "NetworkMode": 1,
               "NetworkFlags": 0,
               "NetworkOrphaned": 0,
               "NetworkTransmit": true,
@@ -2793,7 +2905,7 @@
                   "Flags": 0,
                   "BodyGroups": 18446744073709551615,
                   "Health": 30,
-                  "IsStatic": true,
+                  "IsStatic": false,
                   "MaterialGroup": null,
                   "Model": "models/citizen_props/crate01.vmdl",
                   "OnComponentDestroy": null,
@@ -2805,12 +2917,33 @@
                   "OnGibsCreated": null,
                   "OnPropBreak": null,
                   "OnPropTakeDamage": null,
-                  "StartAsleep": false,
+                  "StartAsleep": true,
                   "Tint": "1,1,1,1"
                 },
                 {
+                  "__type": "LargeLadGroundSlamReactiveProp",
+                  "__guid": "eab9ba28-7e71-4d94-b8bc-c7bc233f80e6",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "Behavior": "Move",
+                  "EnableDebugLogging": false,
+                  "EnableOutOfBoundsCleanup": false,
+                  "HorizontalImpulse": 125000,
+                  "MaximumDistanceFromStart": 4096,
+                  "MinimumWorldZ": -4096,
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "ReactiveRoot": null,
+                  "StartFrozen": true,
+                  "UpwardImpulse": 150000
+                },
+                {
                   "__type": "Sandbox.ModelRenderer",
-                  "__guid": "29ec935a-0581-4701-a2b0-b8af28597d79",
+                  "__guid": "7381f656-6ca0-46f0-92a1-baab2d9c90df",
                   "__enabled": true,
                   "Flags": 0,
                   "BodyGroups": 18446744073709551615,
@@ -2837,7 +2970,7 @@
                 },
                 {
                   "__type": "Sandbox.ModelCollider",
-                  "__guid": "581c38ab-606b-4db4-a137-ee6e183c02fa",
+                  "__guid": "e9720709-0505-499e-b7f1-46e3db013ebe",
                   "__enabled": true,
                   "Flags": 0,
                   "ColliderFlags": 0,
@@ -2856,9 +2989,44 @@
                   "OnTriggerEnter": null,
                   "OnTriggerExit": null,
                   "RollingResistance": null,
-                  "Static": true,
+                  "Static": false,
                   "Surface": null,
                   "SurfaceVelocity": "0,0,0"
+                },
+                {
+                  "__type": "Sandbox.Rigidbody",
+                  "__guid": "bbc42874-961e-4c06-8a56-e4578e9afb03",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "AngularDamping": 0,
+                  "EnableImpactDamage": true,
+                  "EnhancedCcd": false,
+                  "Gravity": true,
+                  "GravityScale": 1,
+                  "ImpactDamage": 10,
+                  "LinearDamping": 0,
+                  "Locking": {
+                    "X": false,
+                    "Y": false,
+                    "Z": false,
+                    "Pitch": false,
+                    "Yaw": false,
+                    "Roll": false
+                  },
+                  "MassCenterOverride": "0,0,0",
+                  "MassOverride": 0,
+                  "MinImpactDamageSpeed": 750,
+                  "MotionEnabled": true,
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OverrideMassCenter": false,
+                  "RigidbodyFlags": 0,
+                  "SleepThreshold": 2,
+                  "StartAsleep": false
                 }
               ],
               "Children": []
@@ -2873,7 +3041,7 @@
               "Scale": "2.72811103,3.0088737,2.42642021",
               "Tags": "",
               "Enabled": true,
-              "NetworkMode": 2,
+              "NetworkMode": 1,
               "NetworkFlags": 0,
               "NetworkOrphaned": 0,
               "NetworkTransmit": true,
@@ -2886,7 +3054,7 @@
                   "Flags": 0,
                   "BodyGroups": 18446744073709551615,
                   "Health": 30,
-                  "IsStatic": true,
+                  "IsStatic": false,
                   "MaterialGroup": null,
                   "Model": "models/citizen_props/crate01.vmdl",
                   "OnComponentDestroy": null,
@@ -2898,12 +3066,33 @@
                   "OnGibsCreated": null,
                   "OnPropBreak": null,
                   "OnPropTakeDamage": null,
-                  "StartAsleep": false,
+                  "StartAsleep": true,
                   "Tint": "1,1,1,1"
                 },
                 {
+                  "__type": "LargeLadGroundSlamReactiveProp",
+                  "__guid": "ab364dc0-2d72-493d-87db-7121b2a5cbbd",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "Behavior": "Move",
+                  "EnableDebugLogging": false,
+                  "EnableOutOfBoundsCleanup": false,
+                  "HorizontalImpulse": 125000,
+                  "MaximumDistanceFromStart": 4096,
+                  "MinimumWorldZ": -4096,
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "ReactiveRoot": null,
+                  "StartFrozen": true,
+                  "UpwardImpulse": 150000
+                },
+                {
                   "__type": "Sandbox.ModelRenderer",
-                  "__guid": "7003d824-fced-487c-9453-5f423c593864",
+                  "__guid": "28c4f175-b735-47ef-9ae5-43c54bce568a",
                   "__enabled": true,
                   "Flags": 0,
                   "BodyGroups": 18446744073709551615,
@@ -2930,7 +3119,7 @@
                 },
                 {
                   "__type": "Sandbox.ModelCollider",
-                  "__guid": "27403d63-72d2-4be4-ad49-c9c9a9642780",
+                  "__guid": "51676742-a6bf-4ced-a6a8-f8c11f048b22",
                   "__enabled": true,
                   "Flags": 0,
                   "ColliderFlags": 0,
@@ -2949,9 +3138,44 @@
                   "OnTriggerEnter": null,
                   "OnTriggerExit": null,
                   "RollingResistance": null,
-                  "Static": true,
+                  "Static": false,
                   "Surface": null,
                   "SurfaceVelocity": "0,0,0"
+                },
+                {
+                  "__type": "Sandbox.Rigidbody",
+                  "__guid": "82f6b91b-e94c-45ff-8d63-44537bc446b0",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "AngularDamping": 0,
+                  "EnableImpactDamage": true,
+                  "EnhancedCcd": false,
+                  "Gravity": true,
+                  "GravityScale": 1,
+                  "ImpactDamage": 10,
+                  "LinearDamping": 0,
+                  "Locking": {
+                    "X": false,
+                    "Y": false,
+                    "Z": false,
+                    "Pitch": false,
+                    "Yaw": false,
+                    "Roll": false
+                  },
+                  "MassCenterOverride": "0,0,0",
+                  "MassOverride": 0,
+                  "MinImpactDamageSpeed": 750,
+                  "MotionEnabled": true,
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OverrideMassCenter": false,
+                  "RigidbodyFlags": 0,
+                  "SleepThreshold": 2,
+                  "StartAsleep": false
                 }
               ],
               "Children": []
@@ -2966,7 +3190,7 @@
               "Scale": "3,3,3",
               "Tags": "",
               "Enabled": true,
-              "NetworkMode": 2,
+              "NetworkMode": 1,
               "NetworkFlags": 0,
               "NetworkOrphaned": 0,
               "NetworkTransmit": true,
@@ -2979,7 +3203,7 @@
                   "Flags": 0,
                   "BodyGroups": 18446744073709551615,
                   "Health": 30,
-                  "IsStatic": true,
+                  "IsStatic": false,
                   "MaterialGroup": null,
                   "Model": "models/citizen_props/crate01.vmdl",
                   "OnComponentDestroy": null,
@@ -2991,12 +3215,33 @@
                   "OnGibsCreated": null,
                   "OnPropBreak": null,
                   "OnPropTakeDamage": null,
-                  "StartAsleep": false,
+                  "StartAsleep": true,
                   "Tint": "1,1,1,1"
                 },
                 {
+                  "__type": "LargeLadGroundSlamReactiveProp",
+                  "__guid": "669b03d2-9ce6-4ed5-b9de-af1e8ea08d15",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "Behavior": "Move",
+                  "EnableDebugLogging": false,
+                  "EnableOutOfBoundsCleanup": false,
+                  "HorizontalImpulse": 125000,
+                  "MaximumDistanceFromStart": 4096,
+                  "MinimumWorldZ": -4096,
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "ReactiveRoot": null,
+                  "StartFrozen": true,
+                  "UpwardImpulse": 150000
+                },
+                {
                   "__type": "Sandbox.ModelRenderer",
-                  "__guid": "5df2edd5-9757-4861-b7a5-49ff4e4fc662",
+                  "__guid": "d410b1cc-7994-457c-9aec-187d6fba3c76",
                   "__enabled": true,
                   "Flags": 0,
                   "BodyGroups": 18446744073709551615,
@@ -3023,7 +3268,7 @@
                 },
                 {
                   "__type": "Sandbox.ModelCollider",
-                  "__guid": "e7d36780-bc66-4206-8f92-2f1539990f2f",
+                  "__guid": "4b8e1c92-5b69-4c43-bce5-2b79cc8c2efa",
                   "__enabled": true,
                   "Flags": 0,
                   "ColliderFlags": 0,
@@ -3042,9 +3287,44 @@
                   "OnTriggerEnter": null,
                   "OnTriggerExit": null,
                   "RollingResistance": null,
-                  "Static": true,
+                  "Static": false,
                   "Surface": null,
                   "SurfaceVelocity": "0,0,0"
+                },
+                {
+                  "__type": "Sandbox.Rigidbody",
+                  "__guid": "b380fe4d-1565-4d47-a91b-9d0fcba8ef5d",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "AngularDamping": 0,
+                  "EnableImpactDamage": true,
+                  "EnhancedCcd": false,
+                  "Gravity": true,
+                  "GravityScale": 1,
+                  "ImpactDamage": 10,
+                  "LinearDamping": 0,
+                  "Locking": {
+                    "X": false,
+                    "Y": false,
+                    "Z": false,
+                    "Pitch": false,
+                    "Yaw": false,
+                    "Roll": false
+                  },
+                  "MassCenterOverride": "0,0,0",
+                  "MassOverride": 0,
+                  "MinImpactDamageSpeed": 750,
+                  "MotionEnabled": true,
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OverrideMassCenter": false,
+                  "RigidbodyFlags": 0,
+                  "SleepThreshold": 2,
+                  "StartAsleep": false
                 }
               ],
               "Children": []
@@ -29343,14 +29623,6 @@
                       "Type": "Component",
                       "IdValue": "8a200001-0000-4000-8000-000000000004"
                     },
-                    "Property": "AnnounceDestruction",
-                    "Value": true
-                  },
-                  {
-                    "Target": {
-                      "Type": "Component",
-                      "IdValue": "8a200001-0000-4000-8000-000000000004"
-                    },
                     "Property": "DisplayName",
                     "Value": "Bottom window"
                   }
@@ -29465,7 +29737,7 @@
                       "IdValue": "7a30a93d-e248-4917-b120-2b6234d6f03f"
                     },
                     "Property": "Center",
-                    "Value": "0,16,68"
+                    "Value": "0,16,52"
                   },
                   {
                     "Target": {
@@ -29473,7 +29745,7 @@
                       "IdValue": "7a30a93d-e248-4917-b120-2b6234d6f03f"
                     },
                     "Property": "Scale",
-                    "Value": "448,32,152"
+                    "Value": "448,32,120"
                   },
                   {
                     "Target": {
@@ -30216,6 +30488,238 @@
         "8ceaf3e7-a031-4113-9e89-4aa6b75792af": "d94ffdad-b5e8-4be6-9f4e-7ddfa71d3f0d",
         "c1db096c-9625-4cf5-86ae-7d13ae01183c": "671981ee-4848-407c-a0aa-9ca7c7dd6023"
       }
+    },
+    {
+      "__guid": "e92120e5-bfe5-45f3-a82e-fb0a5d8480c4",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Block",
+      "Position": "-4,620,476",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "world",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.MeshComponent",
+          "__guid": "6c48b55c-c7f6-4f0f-afa9-c78b902d32a6",
+          "__enabled": true,
+          "Flags": 0,
+          "ColliderFlags": 0,
+          "Collision": "Mesh",
+          "Color": "1,1,1,1",
+          "Elasticity": null,
+          "Friction": null,
+          "HideInGame": true,
+          "IsTrigger": false,
+          "Mesh": {
+            "Data": {
+              "$blob": "d85de24e-2023-8e26-936e-cef4f7c781cf"
+            },
+            "Materials": [
+              "materials/tools/toolstrigger.vmat"
+            ]
+          },
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "RenderType": "Off",
+          "RollingResistance": null,
+          "SmoothingAngle": 40,
+          "Static": true,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
+        }
+      ],
+      "Children": []
+    },
+    {
+      "__guid": "abca0bdf-abc5-46cc-99d9-c62dbb78b512",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Block (1)",
+      "Position": "-3.99999952,-620,476",
+      "Rotation": "0,0,-1,-4.37113883E-08",
+      "Scale": "1,1,1",
+      "Tags": "world",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.MeshComponent",
+          "__guid": "f59bb7cb-25c2-422a-a7b2-d7cef753b43f",
+          "__enabled": true,
+          "Flags": 0,
+          "ColliderFlags": 0,
+          "Collision": "Mesh",
+          "Color": "1,1,1,1",
+          "Elasticity": null,
+          "Friction": null,
+          "HideInGame": true,
+          "IsTrigger": false,
+          "Mesh": {
+            "Data": {
+              "$blob": "d85de24e-2023-8e26-936e-cef4f7c781cf"
+            },
+            "Materials": [
+              "materials/tools/toolstrigger.vmat"
+            ]
+          },
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "RenderType": "Off",
+          "RollingResistance": null,
+          "SmoothingAngle": 40,
+          "Static": true,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
+        }
+      ],
+      "Children": []
+    },
+    {
+      "__guid": "cdc35217-cf41-415f-8b12-c31c85e721d9",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "office_chair",
+      "Position": "138.973251,-1006.57678,513.340088",
+      "Rotation": "0,0,0.793353319,0.60876143",
+      "Scale": "1,1,1",
+      "Tags": "",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.Prop",
+          "__guid": "0ba0ee2c-79b2-4fa3-b778-c7f980c9a2a5",
+          "__enabled": true,
+          "Flags": 0,
+          "BodyGroups": 18446744073709551615,
+          "Health": 400,
+          "IsStatic": false,
+          "MaterialGroup": null,
+          "Model": "models/sbox_props/office_chair/office_chair.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnGibsCreated": null,
+          "OnPropBreak": null,
+          "OnPropTakeDamage": null,
+          "StartAsleep": false,
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.SkinnedModelRenderer",
+          "__guid": "ff938867-4d62-4af9-9c13-4fd4528ea41f",
+          "__enabled": true,
+          "Flags": 0,
+          "AnimationGraph": null,
+          "BodyGroups": 18446744073709551615,
+          "BoneMergeTarget": null,
+          "CreateAttachments": false,
+          "CreateBoneObjects": false,
+          "LodOverride": null,
+          "MaterialGroup": null,
+          "MaterialOverride": null,
+          "Materials": null,
+          "Model": "models/sbox_props/office_chair/office_chair.vmdl",
+          "Morphs": {},
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "Parameters": {
+            "bools": {},
+            "ints": {},
+            "floats": {},
+            "vectors": {},
+            "rotations": {}
+          },
+          "PlaybackRate": 1,
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Sequence": {
+            "Name": null,
+            "Looping": true,
+            "Blending": false
+          },
+          "Tint": "1,1,1,1",
+          "UseAnimGraph": true
+        },
+        {
+          "__type": "Sandbox.ModelPhysics",
+          "__guid": "86538e39-9905-477d-be01-f33eabe6ed9a",
+          "__enabled": true,
+          "Flags": 0,
+          "Bodies": [],
+          "IgnoreRoot": false,
+          "Joints": [],
+          "Locking": {
+            "X": false,
+            "Y": false,
+            "Z": false,
+            "Pitch": false,
+            "Yaw": false,
+            "Roll": false
+          },
+          "Model": "models/sbox_props/office_chair/office_chair.vmdl",
+          "MotionEnabled": true,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "PhysicsWereCreated": false,
+          "Renderer": {
+            "_type": "component",
+            "component_id": "ff938867-4d62-4af9-9c13-4fd4528ea41f",
+            "go": "cdc35217-cf41-415f-8b12-c31c85e721d9",
+            "component_type": "SkinnedModelRenderer"
+          },
+          "RigidbodyFlags": 0,
+          "StartAsleep": false
+        }
+      ],
+      "Children": []
     }
   ],
   "SceneProperties": {

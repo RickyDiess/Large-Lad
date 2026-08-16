@@ -7,7 +7,9 @@
   "IncludeSourceFiles": false,
   "Resources": "/Prefabs/Gameplay/pickup_dodgeball.prefab\n",
   "PackageReferences": [
-    "facepunch.v_first_person_arms_human"
+    "facepunch.v_first_person_arms_human",
+    "vidya.pistol-shoot",
+    "vidya.smg-shoot"
   ],
   "EditorReferences": null,
   "Mounts": null,
