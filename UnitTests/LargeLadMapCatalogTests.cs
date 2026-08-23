@@ -75,6 +75,21 @@ public sealed class LargeLadMapCatalogTests
 	}
 
 	[TestMethod]
+	public void MapSceneCannotBeUsedAsItsOwnThumbnail()
+	{
+		var manifest = CreateValidLocalManifest();
+		manifest.PresentationAsset = LocalMapIdentifier;
+
+		Assert.IsFalse( TryResolveCommunity(
+			manifest,
+			out _,
+			out var issues ) );
+		Assert.IsTrue( issues.Any( issue =>
+			issue.Contains( "Select a texture or image" ) &&
+			issue.Contains( "recursive content dependency" ) ) );
+	}
+
+	[TestMethod]
 	public void OfficialStatus_ComesOnlyFromFirstPartyCatalogMembership()
 	{
 		var manifest = CreateValidLocalManifest();
@@ -341,7 +356,7 @@ public sealed class LargeLadMapCatalogTests
 			ContractVersion = LargeLadMapContract.CurrentVersion,
 			DisplayName = "Valid Map",
 			MapperCredit = "Test Mapper",
-			PresentationAsset = "scenes/valid_map.scene",
+			PresentationAsset = "textures/valid_map_thumbnail.vtex",
 			RecommendedMinimumPlayers = 2,
 			RecommendedMaximumPlayers = 32,
 			BalanceOverrides = new LargeLadMapBalanceOverrides()

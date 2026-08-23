@@ -2,7 +2,7 @@
   "__guid": "4fe6d994-91c5-4eb6-a3e3-44fce0364203",
   "GameObjects": [
     {
-      "__guid": "71bc29b5-0bb3-4df6-915d-1c44e2469ee8",
+      "__guid": "240c2e08-8573-435e-8c7e-90c8929482f1",
       "__version": 2,
       "Flags": 0,
       "Name": "Large Lad Map Profile",
@@ -19,10 +19,10 @@
       "Components": [
         {
           "__type": "LargeLadMapProfile",
-          "__guid": "c525630b-fb1b-480a-a8b3-1d843fa5c9f8",
+          "__guid": "f7c5c4b6-7e52-45cb-9346-aa8e67e29fb6",
           "__enabled": true,
           "Flags": 0,
-          "Manifest": "gameplay/maps/gym.llmap",
+          "Manifest": "gameplay/maps/gym_manifest.llmap",
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -426,13 +426,14 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "866f2784-cb76-8238-af15-f02b2a072512"
+                      "$blob": "7e5a60ca-cf77-8acd-8ef7-1ac708b9637e"
                     },
                     "Materials": [
                       "materials/generic/wall_brick_paint.vmat",
                       "materials/dev/gray_grid_4.vmat",
                       "materials/stone/tile/stone_brick_tile.vmat",
-                      "materials/trimsheets/metal/metal_trim_01.vmat"
+                      "materials/trimsheets/metal/metal_trim_01.vmat",
+                      "materials/wood/floor/wooden_flooring_b2.vmat"
                     ]
                   },
                   "OnComponentDestroy": null,

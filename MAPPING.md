@@ -64,8 +64,8 @@ Every playable Large Lad content scene must contain exactly one enabled
 The profile keeps the manifest referenced by the scene so normal map publishing
 includes it, and it lets the persistent shell inspect the exact loaded map
 rather than a cache of previously mounted resources. `Gym.scene` and
-`Gameplay/Maps/gym.llmap` are the working local example. The mapping template
-already contains an unassigned profile.
+`Gameplay/Maps/gym_manifest.llmap` are the working local example. The mapping
+template already contains an unassigned profile.
 
 Set these manifest fields:
 
@@ -80,10 +80,13 @@ Set these manifest fields:
   Local `.scene`/`.vmap` identity instead comes from the shell's active
   `MapInstance` selection, avoiding a scene-to-manifest-to-scene asset cycle.
 - `Local/Fallback Display Name`, `Mapper/Author Credit`, and
-  `Local/Fallback Presentation Asset`: supply complete local-development
-  presentation. For a published map, its package title and thumbnail are used
-  first; mapper credit remains available because a publishing organization is
-  not always the individual mapper.
+  `Local/Fallback Thumbnail`: supply complete local-development presentation.
+  The thumbnail picker accepts only textures and image files. Never assign the
+  map scene, another map, a manifest, or a prefab: the scene already references
+  its manifest, so pointing the manifest back at scene content creates a
+  recursive dependency. For a published map, its package title and thumbnail
+  are used first; mapper credit remains available because a publishing
+  organization is not always the individual mapper.
 - Optional `Backstory` and `Gameplay Tip`.
 - An ordered recommended player range from 2 through 32. This is presentation
   and validation metadata only; it never changes Large Lad's global supported
@@ -144,6 +147,12 @@ loader.
 
 1. Duplicate `template.scene` and give the copy a map-specific name.
 2. Keep the scene content-only; it must not contain a gameplay bootstrap.
+   In particular, never place `prefabs/large_lad_gameplay.prefab`, a
+   `MapInstance`, `LargeLadGameManager`, `LargeLadSessionCoordinator`,
+   `LargeLadSpawnAllocator`, or `NetworkHelper` in the content scene. The shell
+   supplies exactly one of each. Runtime disables an embedded bootstrap before
+   it can recursively load the map and blocks the map with one corrective
+   error.
 3. Create a map manifest and assign it to the template's map profile.
 4. Enter the editor's Mapping mode and build ordinary scene geometry.
 5. Place or duplicate the gameplay prefabs from `Assets/Prefabs/Gameplay`.

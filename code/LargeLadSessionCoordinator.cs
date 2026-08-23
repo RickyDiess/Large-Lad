@@ -13,6 +13,94 @@ public enum LargeLadMapSessionState
 }
 
 /// <summary>
+/// Fail-safe for a persistent gameplay bootstrap accidentally authored into a
+/// content map. The outer MapInstance must remain the only loader.
+/// </summary>
+internal static class LargeLadBootstrapPlacement
+{
+	public static bool DisableIfEmbeddedMapContent( Component component )
+	{
+		if ( !IsEmbeddedMapContent( component ) )
+			return false;
+
+		var gameObject = component.GameObject;
+		if ( gameObject.Enabled )
+		{
+			Log.Warning(
+				$"Disabled gameplay bootstrap '{gameObject.Name}' because it is " +
+				"authored inside loaded map content. Remove " +
+				"prefabs/large_lad_gameplay.prefab from the map and keep only one " +
+				"LargeLadMapProfile." );
+			gameObject.Enabled = false;
+		}
+
+		return true;
+	}
+
+	public static bool IsEmbeddedMapContent( Component component )
+	{
+		if ( !Game.IsPlaying || component?.GameObject is null ||
+			!component.GameObject.IsValid )
+		{
+			return false;
+		}
+
+		for ( var ancestor = component.GameObject.Parent;
+			ancestor is not null;
+			ancestor = ancestor.Parent )
+		{
+			if ( ancestor.Components.Get<MapInstance>(
+				FindMode.EverythingInSelf ) is not null )
+			{
+				return true;
+			}
+		}
+
+		var ownCoordinator = component.GameObject.Components
+			.Get<LargeLadSessionCoordinator>( FindMode.EverythingInSelf );
+		var ownMapHost = ownCoordinator?.MapInstance?.GameObject;
+		var hasMapProfileOutsideOwnLoader = component.Scene
+			.GetAllComponents<LargeLadMapProfile>()
+			.Any( profile =>
+				profile is not null &&
+				profile.IsValid &&
+				!IsDescendantOrSelf( profile.GameObject, ownMapHost ) );
+
+		if ( hasMapProfileOutsideOwnLoader )
+			return true;
+
+		return component.Scene
+			.GetAllComponents<LargeLadSessionCoordinator>()
+			.Any( other =>
+				other is not null &&
+				other.IsValid &&
+				other.Enabled &&
+				other.GameObject.Enabled &&
+				other.GameObject != component.GameObject &&
+				other.MapState != LargeLadMapSessionState.Unloaded &&
+				!string.IsNullOrWhiteSpace( other.CurrentMapName ) );
+	}
+
+	private static bool IsDescendantOrSelf(
+		GameObject candidate,
+		GameObject expectedAncestor )
+	{
+		if ( candidate is null || expectedAncestor is null )
+			return false;
+
+		for ( var current = candidate;
+			current is not null;
+			current = current.Parent )
+		{
+			if ( current == expectedAncestor )
+				return true;
+		}
+
+		return false;
+	}
+}
+
+/// <summary>
 /// Owns the replaceable map inside one persistent Large Lad session scene.
 /// MapInstance remains responsible for package mounting, asynchronous loading,
 /// scene-map creation, and unloading; this component only turns its callbacks
@@ -68,6 +156,10 @@ public sealed class LargeLadSessionCoordinator : Component
 	protected override void OnEnabled()
 	{
 		base.OnEnabled();
+
+		if ( LargeLadBootstrapPlacement.DisableIfEmbeddedMapContent( this ) )
+			return;
+
 		ResolveBootstrapReferences();
 		AttachMapCallbacks();
 		AttachToSceneRegistry();
@@ -90,6 +182,9 @@ public sealed class LargeLadSessionCoordinator : Component
 
 	protected override void OnAwake()
 	{
+		if ( LargeLadBootstrapPlacement.DisableIfEmbeddedMapContent( this ) )
+			return;
+
 		ResolveBootstrapReferences();
 		AttachMapCallbacks();
 		AttachToSceneRegistry();
@@ -97,6 +192,9 @@ public sealed class LargeLadSessionCoordinator : Component
 
 	protected override void OnStart()
 	{
+		if ( LargeLadBootstrapPlacement.IsEmbeddedMapContent( this ) )
+			return;
+
 		ResolveBootstrapReferences();
 		AttachMapCallbacks();
 
@@ -281,6 +379,15 @@ public sealed class LargeLadSessionCoordinator : Component
 
 		var preparationVersion = ++loadedMapPreparationVersion;
 		var preparedMapIdentifier = CurrentMapName?.Trim() ?? string.Empty;
+		var embeddedBootstrapIssues = GetEmbeddedBootstrapValidationIssues(
+			preparedMapIdentifier );
+
+		if ( embeddedBootstrapIssues.Count > 0 )
+		{
+			FailLoadedMapResolution( embeddedBootstrapIssues );
+			return;
+		}
+
 		var profiles = MapInstance?.GameObject?.Components
 			.GetAll<LargeLadMapProfile>(
 				FindMode.EverythingInSelfAndDescendants )
@@ -583,6 +690,70 @@ public sealed class LargeLadSessionCoordinator : Component
 
 			SetMapState( LargeLadMapSessionState.Failed );
 		}
+	}
+
+	private IReadOnlyList<string> GetEmbeddedBootstrapValidationIssues(
+		string mapIdentifier )
+	{
+		if ( Scene is null )
+			return Array.Empty<string>();
+
+		var unexpected = new List<Component>();
+		AddUnexpectedComponents(
+			unexpected,
+			Scene.GetAllComponents<LargeLadGameManager>(),
+			GameManager );
+		AddUnexpectedComponents(
+			unexpected,
+			Scene.GetAllComponents<LargeLadSessionCoordinator>(),
+			this );
+		AddUnexpectedComponents(
+			unexpected,
+			Scene.GetAllComponents<LargeLadSpawnAllocator>(),
+			GameManager?.SpawnAllocator );
+		AddUnexpectedComponents(
+			unexpected,
+			Scene.GetAllComponents<NetworkHelper>(),
+			GameManager?.NetworkHelper );
+		AddUnexpectedComponents(
+			unexpected,
+			Scene.GetAllComponents<MapInstance>(),
+			MapInstance );
+
+		if ( unexpected.Count == 0 )
+			return Array.Empty<string>();
+
+		var examples = string.Join(
+			", ",
+			unexpected
+				.Select( component =>
+					$"{component.GetType().Name} on " +
+					$"'{component.GameObject.Name}'" )
+				.Distinct()
+				.Take( 8 ) );
+
+		return new[]
+		{
+			$"Map '{mapIdentifier}' contains persistent gameplay-bootstrap " +
+			$"components ({examples}). Remove " +
+			"prefabs/large_lad_gameplay.prefab and any map-local MapInstance, " +
+			"manager, coordinator, allocator, or NetworkHelper. A content map " +
+			"needs exactly one LargeLadMapProfile; game_shell owns the only " +
+			"gameplay bootstrap and loader."
+		};
+	}
+
+	private static void AddUnexpectedComponents<T>(
+		List<Component> destination,
+		IEnumerable<T> candidates,
+		T expected )
+		where T : Component
+	{
+		destination.AddRange(
+			candidates.Where( candidate =>
+				candidate is not null &&
+				candidate.IsValid &&
+				candidate != expected ) );
 	}
 
 	private void InvalidateLoadedMapResolution()

@@ -495,6 +495,10 @@ public sealed class LargeLadGameManager : Component
 	protected override void OnEnabled()
 	{
 		base.OnEnabled();
+
+		if ( LargeLadBootstrapPlacement.DisableIfEmbeddedMapContent( this ) )
+			return;
+
 		AttachToSceneRegistry();
 	}
 
@@ -512,12 +516,18 @@ public sealed class LargeLadGameManager : Component
 
 	protected override void OnAwake()
 	{
+		if ( LargeLadBootstrapPlacement.DisableIfEmbeddedMapContent( this ) )
+			return;
+
 		AttachToSceneRegistry();
 		ResolveBootstrapReferences();
 	}
 
 	protected override void OnStart()
 	{
+		if ( LargeLadBootstrapPlacement.IsEmbeddedMapContent( this ) )
+			return;
+
 		hasStarted = true;
 		ResolveBootstrapReferences();
 

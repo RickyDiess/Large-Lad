@@ -2,7 +2,7 @@
   "Entries": [
     {
       "MapInstanceIdentifier": "scenes/gym.scene",
-      "Manifest": "gameplay/maps/gym.llmap"
+      "Manifest": "gameplay/maps/gym_manifest.llmap"
     }
   ],
   "__references": [],

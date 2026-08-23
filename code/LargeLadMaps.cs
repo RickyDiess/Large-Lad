@@ -97,9 +97,10 @@ public sealed class LargeLadMapManifest : GameResource
 		"when this is empty." )]
 	public string MapperCredit { get; set; }
 
-	[Property, Title( "Local/Fallback Presentation Asset" )]
+	[Property, Title( "Local/Fallback Thumbnail" ), TextureImagePath]
 	[Description(
-		"An image or other previewable asset path for local development. The " +
+		"Select a texture or image for local development. Never select the map " +
+		"scene or a prefab: that creates a recursive asset dependency. The " +
 		"published package thumbnail is authoritative when available." )]
 	public string PresentationAsset { get; set; }
 
@@ -556,12 +557,21 @@ public static class LargeLadMapCatalog
 		var presentationAsset = FirstNonEmpty(
 			packageMetadata?.PresentationAsset,
 			manifest.PresentationAsset );
+		var manifestPresentationAsset = Clean( manifest.PresentationAsset );
 
 		if ( string.IsNullOrWhiteSpace( presentationAsset ) )
 		{
 			failures.Add(
 				$"Map '{mapLabel}' needs a package thumbnail or manifest " +
 				"presentation asset." );
+		}
+
+		if ( IsRecursivePresentationAsset( manifestPresentationAsset ) )
+		{
+			failures.Add(
+				$"Map '{mapLabel}' uses '{manifestPresentationAsset}' as its local " +
+				"thumbnail. Select a texture or image; a scene, map, manifest, " +
+				"catalog, or prefab creates a recursive content dependency." );
 		}
 
 		if ( !LargeLadMapContract.IsSupported( manifest.ContractVersion ) )
@@ -720,6 +730,25 @@ public static class LargeLadMapCatalog
 			identifier?.EndsWith(
 				".vmap",
 				StringComparison.OrdinalIgnoreCase ) == true;
+	}
+
+	private static bool IsRecursivePresentationAsset( string assetPath )
+	{
+		return assetPath.EndsWith(
+			".scene",
+			StringComparison.OrdinalIgnoreCase ) ||
+			assetPath.EndsWith(
+				".vmap",
+				StringComparison.OrdinalIgnoreCase ) ||
+			assetPath.EndsWith(
+				".prefab",
+				StringComparison.OrdinalIgnoreCase ) ||
+			assetPath.EndsWith(
+				".llmap",
+				StringComparison.OrdinalIgnoreCase ) ||
+			assetPath.EndsWith(
+				".llmaps",
+				StringComparison.OrdinalIgnoreCase );
 	}
 
 	private static bool IdentifiersEqual( string left, string right )
