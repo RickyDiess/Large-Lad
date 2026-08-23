@@ -89,7 +89,7 @@ public sealed class LargeLadRoleAbilityPresentationRulesTests
 			LargeLadRoleAbilityPresentationRules.ResolveView(
 				Copy(
 					active,
-					roundPhase: LargeLadRoundPhase.PostRound ) ) );
+					roundPhase: LargeLadRoundPhase.RoundOver ) ) );
 	}
 
 	private static LargeLadRoleAbilityPresentationState ActiveState(

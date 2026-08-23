@@ -40,14 +40,6 @@
             },
             "Property": "SurvivalDuration",
             "Value": 600
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "dba8dd07-c638-458a-a652-179d91de1a05"
-            },
-            "Property": "StartupMap",
-            "Value": "scenes/halls.scene"
           }
         ],
         "MovedObjects": []

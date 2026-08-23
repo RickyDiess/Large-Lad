@@ -268,17 +268,23 @@ For an optional compound barricade:
 
 All child objects, props, and rigidbodies are frozen automatically while intact.
 When a stage or final destruction reaches a child, the host creates its model
-gibs and the authored child disappears immediately. The authored child itself
-is retained invisibly so round reset can restore it; it never becomes a loose,
-fully networked physics crate. The authoritative blocker remains solid through
-all ordinary stages and is disabled at zero health. Opening passage before zero
+gibs, retains about 30% of those pieces for barricade debris, and the authored
+child disappears immediately. Retained barricade gibs stay solid against the
+map and ordinary props but ignore player collision entirely, so they cannot
+block movement. This reduction and player-collision exception are local to
+barricades; other Prop systems keep their normal gib counts and collision. The
+authored child itself is retained
+invisibly so round reset can restore it; it never becomes a loose, fully
+networked physics crate. The authoritative blocker remains solid through all
+ordinary stages and is disabled at zero health. Opening passage before zero
 requires the separate Enable Early Passage option plus its own valid Remaining
 Health Fraction; leaving that option off cannot open passage accidentally.
 Missing or duplicate stage thresholds, negative child counts, and stage counts
 that exceed the available direct children are map-validation errors.
 
-Round reset restores the authored health, blocker state, child enabled states,
-local transforms, static/anchored/physics-motion state, and active-stage count.
+Round reset removes every surviving barricade gib, then restores the authored
+health, blocker state, child enabled states, local transforms,
+static/anchored/physics-motion state, and active-stage count.
 `AuthoritativeDestroyed` is a host-only, once-per-round event that future
 spawn-stage code can subscribe to without putting spawn behavior in the
 barricade.

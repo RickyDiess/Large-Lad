@@ -1,0 +1,35 @@
+{
+  "ColorTexture": {
+    "$compiler": "texture",
+    "$source": "svgsource",
+    "data": {
+      "Size": "4096,2276",
+      "Source": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n<!-- Created with Inkscape (http://www.inkscape.org/) -->\n\n<svg\n   width=\"1680mm\"\n   height=\"1000mm\"\n   viewBox=\"0 0 1680 1000\"\n   version=\"1.1\"\n   id=\"svg1\"\n   inkscape:version=\"1.4.2 (f4327f4, 2025-05-13)\"\n   sodipodi:docname=\"Basketball_court_markings.svg\"\n   xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\"\n   xmlns:sodipodi=\"http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd\"\n   xmlns=\"http://www.w3.org/2000/svg\"\n   xmlns:svg=\"http://www.w3.org/2000/svg\">\n  <sodipodi:namedview\n     id=\"namedview1\"\n     pagecolor=\"#000000\"\n     bordercolor=\"#eeeeee\"\n     borderopacity=\"1\"\n     inkscape:showpageshadow=\"false\"\n     inkscape:pageopacity=\"0\"\n     inkscape:pagecheckerboard=\"true\"\n     inkscape:deskcolor=\"#505050\"\n     inkscape:document-units=\"mm\"\n     inkscape:zoom=\"0.18378155\"\n     inkscape:cx=\"2562.8253\"\n     inkscape:cy=\"2489.3685\"\n     inkscape:window-width=\"2560\"\n     inkscape:window-height=\"1369\"\n     inkscape:window-x=\"1912\"\n     inkscape:window-y=\"-8\"\n     inkscape:window-maximized=\"1\"\n     inkscape:current-layer=\"layer1\"\n     showborder=\"true\" />\n  <defs\n     id=\"defs1\" />\n  <g\n     inkscape:label=\"Layer 1\"\n     inkscape:groupmode=\"layer\"\n     id=\"layer1\">\n    <rect\n       style=\"fill:#000000;fill-opacity:0;stroke:#ffffff;stroke-width:10;stroke-dasharray:none;stroke-opacity:1\"\n       id=\"rect1\"\n       width=\"1669.9708\"\n       height=\"989.96185\"\n       x=\"5.0145874\"\n       y=\"5.0190735\" />\n    <path\n       style=\"fill:#000000;fill-opacity:0;stroke:#ffffff;stroke-width:10;stroke-dasharray:none;stroke-opacity:1\"\n       d=\"M 840,-65.151671 V 1036.3187\"\n       id=\"path1\" />\n    <circle\n       style=\"fill:#000000;fill-opacity:0;stroke:#ffffff;stroke-width:10;stroke-dasharray:none;stroke-opacity:1\"\n       id=\"path2\"\n       cx=\"840\"\n       cy=\"500\"\n       r=\"144.55527\" />\n    <g\n       id=\"g5\">\n      <circle\n         style=\"fill:#000000;fill-opacity:0;stroke:#ffffff;stroke-width:10;stroke-dasharray:none;stroke-opacity:1\"\n         id=\"path2-8\"\n         cx=\"1325.8893\"\n         cy=\"500\"\n         r=\"144.55527\" />\n      <rect\n         style=\"fill:#000000;fill-opacity:0;stroke:#ffffff;stroke-width:10.3639;stroke-dasharray:none;stroke-opacity:1\"\n         id=\"rect2\"\n         width=\"344.73636\"\n         height=\"287.29196\"\n         x=\"1330.0817\"\n         y=\"356.57233\" />\n      <path\n         style=\"fill:#000000;fill-opacity:0;stroke:#ffffff;stroke-width:10;stroke-dasharray:none;stroke-opacity:1\"\n         id=\"path3\"\n         sodipodi:type=\"arc\"\n         sodipodi:cx=\"1480.9541\"\n         sodipodi:cy=\"500\"\n         sodipodi:rx=\"299.7995\"\n         sodipodi:ry=\"415.34189\"\n         sodipodi:start=\"1.5707963\"\n         sodipodi:end=\"4.712389\"\n         sodipodi:open=\"true\"\n         sodipodi:arc-type=\"arc\"\n         d=\"m 1480.9541,915.34189 a 299.7995,415.34189 0 0 1 -259.634,-207.67094 299.7995,415.34189 0 0 1 0,-415.3419 299.7995,415.34189 0 0 1 259.634,-207.670938\" />\n      <path\n         style=\"fill:#000000;fill-opacity:0;stroke:#ffffff;stroke-width:10;stroke-dasharray:none;stroke-opacity:1\"\n         d=\"m 1480.5722,84.659983 h 210.1907\"\n         id=\"path4\" />\n      <path\n         style=\"fill:#000000;fill-opacity:0;stroke:#ffffff;stroke-width:10;stroke-dasharray:none;stroke-opacity:1\"\n         d=\"m 1480.7036,915.3439 h 208.3911\"\n         id=\"path5\" />\n    </g>\n    <g\n       id=\"g8\"\n       transform=\"matrix(-1,0,0,1,1680.074,-0.00100579)\">\n      <circle\n         style=\"fill:#000000;fill-opacity:0;stroke:#ffffff;stroke-width:10;stroke-dasharray:none;stroke-opacity:1\"\n         id=\"circle5\"\n         cx=\"1325.8893\"\n         cy=\"500\"\n         r=\"144.55527\" />\n      <rect\n         style=\"fill:#000000;fill-opacity:0;stroke:#ffffff;stroke-width:10.3639;stroke-dasharray:none;stroke-opacity:1\"\n         id=\"rect5\"\n         width=\"344.73636\"\n         height=\"287.29196\"\n         x=\"1330.0817\"\n         y=\"356.57233\" />\n      <path\n         style=\"fill:#000000;fill-opacity:0;stroke:#ffffff;stroke-width:10;stroke-dasharray:none;stroke-opacity:1\"\n         id=\"path6\"\n         sodipodi:type=\"arc\"\n         sodipodi:cx=\"1480.9541\"\n         sodipodi:cy=\"500\"\n         sodipodi:rx=\"299.7995\"\n         sodipodi:ry=\"415.34189\"\n         sodipodi:start=\"1.5707963\"\n         sodipodi:end=\"4.712389\"\n         sodipodi:open=\"true\"\n         sodipodi:arc-type=\"arc\"\n         d=\"m 1480.9541,915.34189 a 299.7995,415.34189 0 0 1 -259.634,-207.67094 299.7995,415.34189 0 0 1 0,-415.3419 299.7995,415.34189 0 0 1 259.634,-207.670938\" />\n      <path\n         style=\"fill:#000000;fill-opacity:0;stroke:#ffffff;stroke-width:10;stroke-dasharray:none;stroke-opacity:1\"\n         d=\"m 1480.5722,84.659983 h 210.1907\"\n         id=\"path7\" />\n      <path\n         style=\"fill:#000000;fill-opacity:0;stroke:#ffffff;stroke-width:10;stroke-dasharray:none;stroke-opacity:1\"\n         d=\"m 1480.7036,915.3439 h 208.3911\"\n         id=\"path8\" />\n    </g>\n  </g>\n</svg>\n",
+      "Colorize": false,
+      "TargetColor": "1,1,1,1",
+      "Scale": 1,
+      "Offset": "0,0",
+      "Rotate": 0,
+      "FlipVertical": false,
+      "FlipHorizontal": false,
+      "FormatOverride": null
+    },
+    "compiled": "textures/generated/svgsource/d3312d1a17a71e70.vtex"
+  },
+  "NormalTexture": null,
+  "RoughMetalOcclusionTexture": null,
+  "EmissiveTexture": null,
+  "EmissionEnergy": 1,
+  "HeightTexture": null,
+  "ParallaxStrength": 1,
+  "CoverageAmount": 1,
+  "Tint": "1,1,1,1",
+  "ColorMix": 1,
+  "Width": 4096,
+  "Height": 2276,
+  "FilterMode": "Anisotropic",
+  "__references": [
+    "rokey.basketball_court_markings#343313"
+  ],
+  "__version": 0
+}

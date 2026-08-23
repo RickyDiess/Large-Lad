@@ -145,7 +145,7 @@
                   "MipLodBias": 0,
                   "MaxAnisotropy": 8,
                   "BorderColor": "0,0,0,0",
-                  "Index": 10
+                  "Index": 1
                 }
               },
               "ResourceVersion": 3,
@@ -342,14 +342,15 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "dae40e5f-3c3a-8c26-a5ba-258ee7be704f"
+                      "$blob": "9266ebd7-dd7b-8764-a556-963e062be7d2"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
                       "materials/generic/wall_brick_older.vmat",
                       "materials/concrete/floor/concrete_polished_01.vmat",
                       "materials/plaster/wall/plaster_b.vmat",
-                      "materials/wood/floor/wooden_flooring_b2.vmat"
+                      "materials/wood/floor/wooden_flooring_b2.vmat",
+                      "materials/generic/floor_asphalt_b.vmat"
                     ]
                   },
                   "OnComponentDestroy": null,
@@ -459,7 +460,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "9c18a910-249b-803a-a8cd-1957fc566ca5"
+                      "$blob": "4df46d14-8dd6-87b2-b513-f9b4ad957e5c"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -685,7 +686,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "9c18a910-249b-803a-a8cd-1957fc566ca5"
+                      "$blob": "4df46d14-8dd6-87b2-b513-f9b4ad957e5c"
                     },
                     "Materials": [
                       "materials/dev/gray_grid_4.vmat",
@@ -885,7 +886,7 @@
               "__version": 2,
               "Flags": 0,
               "Name": "Block (7)",
-              "Position": "1275.56812,-1907.13135,67.1304626",
+              "Position": "1275.56812,-1909.13135,67.1304626",
               "Rotation": "0,0,0,1",
               "Scale": "1,1,1",
               "Tags": "world",
@@ -910,7 +911,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "4e8bae97-b8d7-861a-a3be-995e4cbdd459"
+                      "$blob": "1fd02bf0-73e8-8de6-b45a-5e4112856170"
                     },
                     "Materials": [
                       "materials/glass/glass_a.vmat"
@@ -1110,7 +1111,7 @@
               "__version": 2,
               "Flags": 0,
               "Name": "Block",
-              "Position": "43.5681763,-2155.13135,-92.8695374",
+              "Position": "43.5681763,-1919.13135,-92.8695374",
               "Rotation": "0,0,0,1",
               "Scale": "1,1,1",
               "Tags": "world",
@@ -1135,63 +1136,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "4a209c1b-9063-8053-929f-5ae6b74208c0"
-                    },
-                    "Materials": [
-                      "materials/subzero-studios/planks/planks006.vmat"
-                    ]
-                  },
-                  "OnComponentDestroy": null,
-                  "OnComponentDisabled": null,
-                  "OnComponentEnabled": null,
-                  "OnComponentFixedUpdate": null,
-                  "OnComponentStart": null,
-                  "OnComponentUpdate": null,
-                  "OnObjectTriggerEnter": null,
-                  "OnObjectTriggerExit": null,
-                  "OnTriggerEnter": null,
-                  "OnTriggerExit": null,
-                  "RenderType": "On",
-                  "RollingResistance": null,
-                  "SmoothingAngle": 40,
-                  "Static": true,
-                  "Surface": null,
-                  "SurfaceVelocity": "0,0,0"
-                }
-              ],
-              "Children": []
-            },
-            {
-              "__guid": "2738b598-bff1-4adb-a204-74142168dd0d",
-              "__version": 2,
-              "Flags": 0,
-              "Name": "Block",
-              "Position": "1075.56812,-2043.13135,-92.8695374",
-              "Rotation": "0,0,0,1",
-              "Scale": "1,1,1",
-              "Tags": "world",
-              "Enabled": true,
-              "NetworkMode": 2,
-              "NetworkFlags": 0,
-              "NetworkOrphaned": 0,
-              "NetworkTransmit": true,
-              "OwnerTransfer": 1,
-              "Components": [
-                {
-                  "__type": "Sandbox.MeshComponent",
-                  "__guid": "d03be719-808d-485e-84cf-32c4b5a52356",
-                  "__enabled": true,
-                  "Flags": 0,
-                  "ColliderFlags": 0,
-                  "Collision": "Mesh",
-                  "Color": "1,1,1,1",
-                  "Elasticity": null,
-                  "Friction": null,
-                  "HideInGame": false,
-                  "IsTrigger": false,
-                  "Mesh": {
-                    "Data": {
-                      "$blob": "87225913-7792-863e-bdb4-ddf22be1dd03"
+                      "$blob": "d4e45021-a44a-837d-8225-45ce665cd82b"
                     },
                     "Materials": [
                       "materials/subzero-studios/planks/planks006.vmat"
@@ -1222,7 +1167,7 @@
               "__version": 2,
               "Flags": 0,
               "Name": "Block",
-              "Position": "43.5681763,2420.86865,-92.8695374",
+              "Position": "43.5681763,1912.86865,-92.8695374",
               "Rotation": "0,0,0,1",
               "Scale": "1,1,1",
               "Tags": "world",
@@ -1247,63 +1192,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "f23fca70-5b09-845a-a2ff-daf3b21f5ff5"
-                    },
-                    "Materials": [
-                      "materials/subzero-studios/planks/planks006.vmat"
-                    ]
-                  },
-                  "OnComponentDestroy": null,
-                  "OnComponentDisabled": null,
-                  "OnComponentEnabled": null,
-                  "OnComponentFixedUpdate": null,
-                  "OnComponentStart": null,
-                  "OnComponentUpdate": null,
-                  "OnObjectTriggerEnter": null,
-                  "OnObjectTriggerExit": null,
-                  "OnTriggerEnter": null,
-                  "OnTriggerExit": null,
-                  "RenderType": "On",
-                  "RollingResistance": null,
-                  "SmoothingAngle": 40,
-                  "Static": true,
-                  "Surface": null,
-                  "SurfaceVelocity": "0,0,0"
-                }
-              ],
-              "Children": []
-            },
-            {
-              "__guid": "13158e3a-279f-482f-8711-5b271154ff3f",
-              "__version": 2,
-              "Flags": 0,
-              "Name": "Block",
-              "Position": "1075.56812,2172.86865,-92.8695374",
-              "Rotation": "0,0,0,1",
-              "Scale": "1,1,1",
-              "Tags": "world",
-              "Enabled": true,
-              "NetworkMode": 2,
-              "NetworkFlags": 0,
-              "NetworkOrphaned": 0,
-              "NetworkTransmit": true,
-              "OwnerTransfer": 1,
-              "Components": [
-                {
-                  "__type": "Sandbox.MeshComponent",
-                  "__guid": "92955068-b546-4da4-b926-4df532e58b2e",
-                  "__enabled": true,
-                  "Flags": 0,
-                  "ColliderFlags": 0,
-                  "Collision": "Mesh",
-                  "Color": "1,1,1,1",
-                  "Elasticity": null,
-                  "Friction": null,
-                  "HideInGame": false,
-                  "IsTrigger": false,
-                  "Mesh": {
-                    "Data": {
-                      "$blob": "98f17e19-5fe5-8e5c-ab34-8851923dc51d"
+                      "$blob": "86b0e8a3-d8e7-8b37-8ada-ac495786618d"
                     },
                     "Materials": [
                       "materials/subzero-studios/planks/planks006.vmat"
@@ -10162,52 +10051,6 @@
           "Children": []
         }
       ]
-    },
-    {
-      "__guid": "4f6a595e-b151-4de1-b9bd-3aba389e7abb",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "locker_b_open",
-      "Position": "1786.09924,1515.80396,4.0920454E-06",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.ModelRenderer",
-          "__guid": "42d156f3-ddd1-47e5-9e14-4f1cb493453b",
-          "__enabled": true,
-          "Flags": 0,
-          "BodyGroups": 18446744073709551615,
-          "CreateAttachments": false,
-          "LodOverride": null,
-          "MaterialGroup": null,
-          "MaterialOverride": null,
-          "Materials": null,
-          "Model": "models/rust_props/lockers/locker_b_open.vmdl",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "RenderOptions": {
-            "GameLayer": true,
-            "OverlayLayer": false,
-            "BloomLayer": false,
-            "AfterUILayer": false
-          },
-          "RenderType": "On",
-          "Tint": "1,1,1,1"
-        }
-      ],
-      "Children": []
     },
     {
       "__guid": "7c5d3daa-eca1-46e4-abb5-f11aff77d574",

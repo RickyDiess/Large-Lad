@@ -52,6 +52,9 @@ public sealed class LargeLadBarricadeDestructionGate
 /// </summary>
 public static class LargeLadBarricadeStageRules
 {
+	private const int BarricadeGibSelectionPeriod = 10;
+	private const int BarricadeGibsRetainedPerPeriod = 3;
+
 	public static IReadOnlyList<string> GetConfigurationWarnings(
 		IReadOnlyList<LargeLadBarricadeStage> stages,
 		int directChildCount )
@@ -199,6 +202,20 @@ public static class LargeLadBarricadeStageRules
 		}
 
 		return System.Math.Clamp( childCount, 0, totalChildCount );
+	}
+
+	/// <summary>
+	/// Retains three evenly distributed pieces from every ten barricade gibs.
+	/// Other prop systems keep their normal model-defined gib counts.
+	/// </summary>
+	public static bool ShouldRetainBarricadeGib( int zeroBasedSequence )
+	{
+		if ( zeroBasedSequence < 0 )
+			return false;
+
+		var slot = zeroBasedSequence % BarricadeGibSelectionPeriod;
+		return slot * BarricadeGibsRetainedPerPeriod %
+			BarricadeGibSelectionPeriod < BarricadeGibsRetainedPerPeriod;
 	}
 
 	public static bool ShouldOpenPassage(

@@ -20,6 +20,9 @@ public enum LargeLadBarricadeMode
 public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 	ILargeLadDamageable
 {
+	private const string RetainedGibCollisionTag =
+		"large_lad_barricade_gib";
+
 	private sealed class AuthoredObjectState
 	{
 		public GameObject Target { get; init; }
@@ -151,10 +154,13 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 		authoredComponentStates = new();
 	private readonly List<GameObject> authoredChildRoots = new();
 	private readonly HashSet<GameObject> brokenChildRoots = new();
+	private readonly HashSet<Prop> subscribedGibProps = new();
+	private readonly HashSet<GameObject> roundGibObjects = new();
 	private readonly LargeLadBarricadeDestructionGate destructionGate = new();
 	private bool hasCapturedAuthoredState;
 	private bool isResettingForRound;
 	private int appliedStageCount;
+	private int generatedGibSequence;
 	private bool? appliedDestroyedState;
 	private bool? appliedPassageOpenState;
 
@@ -200,7 +206,14 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 	{
 		ResolveAuthoredParts();
 
-		if ( hasCapturedAuthoredState && AuthoredStateNeedsRefresh() )
+		// Disabling an authored Prop destroys its generated components on the
+		// host, while proxies retain theirs. Those invalid components are an
+		// expected part of the broken presentation, not a mapper-authored change.
+		// Recapturing here while damaged would replace the intact snapshot with
+		// disabled child roots, making every later host reset restore the wreckage.
+		if ( hasCapturedAuthoredState &&
+			IsFullyIntact() &&
+			AuthoredStateNeedsRefresh() )
 		{
 			RecaptureAuthoredState();
 			FreezeAuthoredChildren();
@@ -226,6 +239,20 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 		}
 
 		RefreshPresentation();
+	}
+
+	protected override void OnDestroy()
+	{
+		ClearRoundGibs();
+
+		foreach ( var prop in subscribedGibProps )
+		{
+			if ( prop is not null && prop.IsValid )
+				prop.OnGibsCreated -= OnBarricadeGibsCreated;
+		}
+
+		subscribedGibProps.Clear();
+		base.OnDestroy();
 	}
 
 	protected override void OnValidate()
@@ -290,7 +317,49 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 				"barricade root." );
 		}
 
+		ValidateGibCollisionRules( warnings );
+
 		return warnings;
+	}
+
+	private static void ValidateGibCollisionRules( List<string> warnings )
+	{
+		var collision = ProjectSettings.Collision;
+
+		if ( collision is null )
+			return;
+
+		var playerBodyTags = new[]
+		{
+			LargeLadGameplayRules.HunterBodyTag,
+			LargeLadGameplayRules.SoftPlayerBodyTag,
+			LargeLadGameplayRules.MinionBodyTag
+		};
+
+		if ( playerBodyTags.Any( bodyTag =>
+			collision.GetCollisionRule(
+				RetainedGibCollisionTag,
+				bodyTag ) !=
+			Sandbox.Physics.CollisionRules.Result.Ignore ) )
+		{
+			warnings.Add(
+				"project collision rules must ignore contact between " +
+				"barricade gibs and every player body tag." );
+		}
+
+		if ( collision.GetCollisionRule(
+			RetainedGibCollisionTag,
+			"world" ) !=
+			Sandbox.Physics.CollisionRules.Result.Collide ||
+			collision.GetCollisionRule(
+				RetainedGibCollisionTag,
+				"solid" ) !=
+			Sandbox.Physics.CollisionRules.Result.Collide )
+		{
+			warnings.Add(
+				"project collision rules must keep barricade gibs solid " +
+				"against the map and ordinary physics bodies." );
+		}
 	}
 
 	private void ConfigureObject()
@@ -509,6 +578,7 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 
 		if ( targetCount < appliedStageCount )
 		{
+			ClearRoundGibs();
 			RestoreAuthoredState();
 			brokenChildRoots.Clear();
 			FreezeAuthoredChildren();
@@ -734,6 +804,7 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 		var prop = target.Components.Get<Prop>(
 			FindMode.EverythingInSelf );
 		var body = rigidbody?.PhysicsBody;
+		SubscribeToPropGibs( prop );
 		authoredObjectStates.Add(
 			target,
 			new AuthoredObjectState
@@ -865,12 +936,81 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 
 	private void RestoreIntactPresentation()
 	{
+		ClearRoundGibs();
 		RestoreAuthoredState();
 		brokenChildRoots.Clear();
 		FreezeAuthoredChildren();
 		appliedStageCount = 0;
 		appliedDestroyedState = null;
 		appliedPassageOpenState = null;
+	}
+
+	private void SubscribeToPropGibs( Prop prop )
+	{
+		if ( prop is null || !prop.IsValid || !subscribedGibProps.Add( prop ) )
+			return;
+
+		prop.OnGibsCreated += OnBarricadeGibsCreated;
+	}
+
+	private void OnBarricadeGibsCreated( List<Gib> gibs )
+	{
+		if ( gibs is null )
+			return;
+
+		foreach ( var gib in gibs )
+		{
+			var gibObject = gib?.GameObject;
+
+			if ( gibObject is null || !gibObject.IsValid )
+				continue;
+
+			var retain =
+				LargeLadBarricadeStageRules.ShouldRetainBarricadeGib(
+					generatedGibSequence++ );
+
+			if ( retain )
+			{
+				roundGibObjects.Add( gibObject );
+				ConfigureRetainedGibCollision( gibObject );
+
+				if ( Networking.IsHost && gibObject.Network.Active )
+					BroadcastConfigureRetainedGibCollision( gibObject );
+			}
+			else
+				gibObject.Destroy();
+		}
+	}
+
+	private static void ConfigureRetainedGibCollision( GameObject gibObject )
+	{
+		if ( gibObject is null || !gibObject.IsValid )
+			return;
+
+		gibObject.Tags.Add( RetainedGibCollisionTag );
+	}
+
+	[Rpc.Broadcast]
+	private void BroadcastConfigureRetainedGibCollision( GameObject gibObject )
+	{
+		if ( Networking.IsHost )
+			return;
+
+		// Networked gibs spawn before Prop raises OnGibsCreated, so copy the
+		// late-added collision tag to every proxy explicitly.
+		ConfigureRetainedGibCollision( gibObject );
+	}
+
+	private void ClearRoundGibs()
+	{
+		foreach ( var gibObject in roundGibObjects )
+		{
+			if ( gibObject is not null && gibObject.IsValid )
+				gibObject.Destroy();
+		}
+
+		roundGibObjects.Clear();
+		generatedGibSequence = 0;
 	}
 
 	private bool GetAuthoredEnabled( Component target )

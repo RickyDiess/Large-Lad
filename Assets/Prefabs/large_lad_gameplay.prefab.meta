@@ -1,0 +1,22 @@
+{
+  "publish": {
+    "Enabled": false,
+    "ProjectConfig": {
+      "Title": "Large Lad Gameplay",
+      "Type": "prefab",
+      "Org": "local",
+      "Ident": "large_lad_gameplay",
+      "Schema": 0,
+      "IncludeSourceFiles": false,
+      "Resources": null,
+      "PackageReferences": null,
+      "EditorReferences": null,
+      "Mounts": null,
+      "IsStandaloneOnly": false,
+      "Metadata": {
+        "SingleAssetSource": "prefabs/large_lad_gameplay.prefab",
+        "ParentPackage": "rokey.large_lad"
+      }
+    }
+  }
+}

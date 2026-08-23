@@ -1,0 +1,23 @@
+{
+  "publish": {
+    "Enabled": true,
+    "ProjectConfig": {
+      "Title": "Basketball Court Markings",
+      "Type": "decal",
+      "Org": "rokey",
+      "Ident": "basketball_court_markings",
+      "Schema": 0,
+      "IncludeSourceFiles": false,
+      "Resources": null,
+      "PackageReferences": null,
+      "EditorReferences": null,
+      "Mounts": null,
+      "IsStandaloneOnly": false,
+      "Metadata": {
+        "SingleAssetSource": "textures/basketball_court_markings.decal",
+        "ParentPackage": "rokey.large_lad",
+        "AssetLicense": "CC0"
+      }
+    }
+  }
+}

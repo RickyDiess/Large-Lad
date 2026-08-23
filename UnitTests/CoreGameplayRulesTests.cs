@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
+using System.Linq;
 
 [TestClass]
 public sealed class TimerRulesTests
@@ -1466,6 +1467,22 @@ public sealed class BarricadeRulesTests
 				totalChildCount: 5,
 				childBreakCounts ),
 			"Stages cannot break beyond the automatically captured children." );
+	}
+
+	[TestMethod]
+	public void BarricadeGibs_RetainThirtyPercentEvenly()
+	{
+		var retained = Enumerable.Range( 0, 100 )
+			.Where( LargeLadBarricadeStageRules.ShouldRetainBarricadeGib )
+			.ToArray();
+
+		Assert.AreEqual( 30, retained.Length );
+		Assert.IsTrue(
+			retained.Zip( retained.Skip( 1 ), ( first, second ) => second - first )
+				.All( gap => gap is >= 3 and <= 4 ),
+			"Retained pieces should be spread across the generated sequence." );
+		Assert.IsFalse(
+			LargeLadBarricadeStageRules.ShouldRetainBarricadeGib( -1 ) );
 	}
 
 	[TestMethod]
