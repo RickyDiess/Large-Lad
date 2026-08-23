@@ -31,15 +31,18 @@ listen-host snapshot safety can retain. Published package maps use the native
 callback/unload path directly.
 
 The game manager remains the owner of round state, transitions, timing, spawn
-contract validation, and player lifecycle. A loaded callback asks it to rebuild
-the map-owned spawn cache and validate the map. Only then can the coordinator
-enter `Ready`. Before an unload or replacement request, the coordinator enters
-`Unloading`, immediately holds persistent players, uses the existing inventory
-map-transition cleanup once, returns the round to its waiting state, and
-invalidates map-owned spawn data. The unloaded callback then enters `Unloaded`
-or begins the replacement's `Loading` state. A loaded map that fails blocking
-validation enters `Failed`. No timer, round transition, gameplay respawn, or
-conversion advances outside `Ready`.
+contract validation, and player lifecycle. A loaded callback first resolves the
+loaded map's one `LargeLadMapProfile` into the common map descriptor and checks
+its compatibility version. It then asks the manager to rebuild the map-owned
+spawn cache and run the existing structural validation. Only then can the
+coordinator enter `Ready`. Before an unload or replacement request, the
+coordinator enters `Unloading`, immediately holds persistent players, uses the
+existing inventory map-transition cleanup once, returns the round to its waiting
+state, clears the active map descriptor and balance layer, and invalidates
+map-owned spawn data. The unloaded callback then enters `Unloaded` or begins the
+replacement's `Loading` state. A loaded map that fails blocking validation
+enters `Failed`. No timer, round transition, gameplay respawn, or conversion
+advances outside `Ready`.
 
 The game project declares `MapSelect` as `Empty`, has no external `MapList`, and
 starts `scenes/game_shell.scene`. The shell's `MapInstance` keeps `Use Map From
@@ -54,23 +57,109 @@ uses the engine's automatic download/mount behavior. For local development,
 `scenes/gym.scene`. The coordinator synchronizes its selected name from the host
 and passes either form directly to `MapInstance`.
 
+## Map manifest and compatibility
+
+Every playable Large Lad content scene must contain exactly one enabled
+`LargeLadMapProfile`. Assign it one `Large Lad Map Manifest` (`.llmap`) asset.
+The profile keeps the manifest referenced by the scene so normal map publishing
+includes it, and it lets the persistent shell inspect the exact loaded map
+rather than a cache of previously mounted resources. `Gym.scene` and
+`Gameplay/Maps/gym.llmap` are the working local example. The mapping template
+already contains an unassigned profile.
+
+Set these manifest fields:
+
+- `Stable Map Id`: a permanent lowercase key such as
+  `my_org.school_escape`. It may contain letters, digits, `.`, `_`, and `-`.
+  Never derive it from a changeable display name.
+- `Large Lad Contract Version`: currently `1`. Compatibility is an exact
+  integer match. An unsupported version reports the map, its declared version,
+  the version this game supports, and blocks `Ready`.
+- `Published Package Ident`: the immutable `organization.ident` selected when
+  publishing the map. It must match the value later passed to `MapInstance`.
+  Local `.scene`/`.vmap` identity instead comes from the shell's active
+  `MapInstance` selection, avoiding a scene-to-manifest-to-scene asset cycle.
+- `Local/Fallback Display Name`, `Mapper/Author Credit`, and
+  `Local/Fallback Presentation Asset`: supply complete local-development
+  presentation. For a published map, its package title and thumbnail are used
+  first; mapper credit remains available because a publishing organization is
+  not always the individual mapper.
+- Optional `Backstory` and `Gameplay Tip`.
+- An ordered recommended player range from 2 through 32. This is presentation
+  and validation metadata only; it never changes Large Lad's global supported
+  maximum of 32 players.
+
+A manifest has no official/community switch. `Gameplay/Maps/official_maps.llmaps`
+is the first-party catalog owned by Large Lad. Matching membership in that
+catalog is the only source of the normalized descriptor's official-curation
+status. A community map with the same stable id as an official map remains a
+community map and cannot promote itself. Official and community entries use the
+same descriptor, compatibility rules, loader, structural validation, balance
+composition, round systems, and future voting inputs.
+
+The `Approved Balance Overrides` group deliberately contains only:
+
+- survival duration in seconds;
+- Skinny Progression barricade maximum-health multiplier;
+- Large Lad maximum-health multiplier;
+- late-round Hunter escalation multiplier.
+
+Zero means no override. Survival duration replaces the shell default for that
+map. The two health factors multiply the existing fixed player-count band from
+`default_round_balance.llbalance`. The Hunter factor multiplies both existing
+role-specific late-round maximums without changing the timer-only ramp interval.
+Every value is resolved from the game defaults and the newly loaded manifest;
+no resolved value is written back into either source, so reloads and map changes
+cannot compound. Firearms, Eat, Ground Slam, conversion/respawn, Last Skinny
+Kid, dodgeball, roles, inventory, and movement rules have no map override.
+
+For a community map, use the currently supported asset workflow:
+
+1. Create an Addon Project and choose Large Lad as its Target Game in Project
+   Settings. Changing the target requires an editor restart. The target exposes
+   Large Lad's components, prefabs, and custom resource types without copying
+   game code into the map project.
+2. Create a scene map, preferably starting from Large Lad's mapping template,
+   and author it in Mapping mode.
+3. Create a `Large Lad Map Manifest`, configure the stable id, current contract
+   version, metadata, recommended range, and only any intentional
+   approved overrides. Assign it to the scene's one map profile.
+4. Place the supplied team spawns and gameplay prefabs, then fix every manifest
+   and structural map-contract failure.
+5. Point the persistent Large Lad shell at the local scene and test through
+   `game_shell.scene`, not a second gameplay bootstrap in the content scene.
+6. Publish the scene asset from the Asset Browser through normal s&box map
+   publishing. Configure the package page title, summary, thumbnail, and other
+   presentation there; these are the published authoritative values.
+7. Put the chosen published `organization.ident` into `Published Package Ident`
+   and publish that manifest-bearing scene revision. Test by giving the same
+   ident to the shell coordinator. `MapInstance` performs its normal automatic
+   download, mount, asynchronous load, and unload.
+
+Discovery or a future browser may obtain package idents, but it must hand them
+to this catalog/descriptor layer. It must not create another map format or
+loader.
+
 ## Starting a map
 
 1. Duplicate `template.scene` and give the copy a map-specific name.
 2. Keep the scene content-only; it must not contain a gameplay bootstrap.
-3. Enter the editor's Mapping mode and build ordinary scene geometry.
-4. Place or duplicate the gameplay prefabs from `Assets/Prefabs/Gameplay`.
-5. Point the shell bootstrap coordinator's `Startup Map` or
+3. Create a map manifest and assign it to the template's map profile.
+4. Enter the editor's Mapping mode and build ordinary scene geometry.
+5. Place or duplicate the gameplay prefabs from `Assets/Prefabs/Gameplay`.
+6. Point the shell bootstrap coordinator's `Startup Map` or
    `Local Development Map` at the new scene.
-6. Run through `game_shell.scene` and resolve every `Map contract:` warning.
+7. Run through `game_shell.scene` and resolve every manifest error and
+   `Map contract:` warning.
 
 The game manager's prefab defaults are two minimum players, a 0.5-second
 player-ready delay, a 10-second head start, a 60-second survival timer, a
 5-second intermission, and 5-second Large Lad and other-player respawn delays.
-Session-specific tuning belongs on the shell's one bootstrap instance, not in a
-map. The current shell retains Gym's development timing overrides, while the
-round minimum remains the supported value of two players. Project/session
-metadata may still allow a one-player lobby, but it cannot begin a round.
+Session-specific tuning belongs on the shell's one bootstrap instance except
+for the four explicitly approved manifest overrides above. The current shell
+retains Gym's development timing defaults, while the round minimum remains the
+supported value of two players. Project/session metadata may still allow a
+one-player lobby, but it cannot begin a round.
 
 ## Team spawns
 
@@ -462,6 +551,10 @@ the Large Lad respawn timer.
 
 - Exactly one gameplay bootstrap exists in `game_shell.scene`; the map-content
   scene has none.
+- Exactly one enabled `LargeLadMapProfile` exists in the content scene, it
+  references the intended `.llmap`, and its stable id, loader identifier,
+  contract version, presentation metadata, recommended range, and optional
+  approved balance values pass validation.
 - The shell's coordinator and `MapInstance` references target that same
   bootstrap object, and map readiness is confirmed before round testing.
 - At least one team-spawn component exists for each group.

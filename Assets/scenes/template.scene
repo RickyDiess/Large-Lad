@@ -2,6 +2,38 @@
   "__guid": "4fe6d994-91c5-4eb6-a3e3-44fce0364203",
   "GameObjects": [
     {
+      "__guid": "3194c9af-2bb7-4c4a-96dd-89d4cebc4189",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Large Lad Map Profile",
+      "Position": "0,0,0",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "LargeLadMapProfile",
+          "__guid": "c4d979f5-981a-4a70-aa54-e0531919cc79",
+          "__enabled": true,
+          "Flags": 0,
+          "Manifest": null,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null
+        }
+      ],
+      "Children": []
+    },
+    {
       "__guid": "66a22a55-8d67-4681-8bbe-583af3bce21a",
       "__version": 2,
       "Flags": 0,

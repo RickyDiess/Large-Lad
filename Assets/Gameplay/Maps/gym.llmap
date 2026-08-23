@@ -1,0 +1,20 @@
+{
+  "StableMapId": "large_lad.gym",
+  "ContractVersion": 1,
+  "PublishedPackageIdent": "",
+  "DisplayName": "Gym",
+  "MapperCredit": "Rokey",
+  "PresentationAsset": "scenes/gym.scene",
+  "Backstory": "",
+  "GameplayTip": "up",
+  "RecommendedMinimumPlayers": 2,
+  "RecommendedMaximumPlayers": 32,
+  "BalanceOverrides": {
+    "SurvivalDurationSeconds": 0,
+    "SkinnyProgressionBarricadeMaximumHealthMultiplier": 0,
+    "LargeLadMaximumHealthMultiplier": 0,
+    "HunterEscalationMultiplier": 0
+  },
+  "__references": [],
+  "__version": 0
+}

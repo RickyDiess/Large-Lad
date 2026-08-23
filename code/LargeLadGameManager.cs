@@ -91,6 +91,16 @@ public sealed class LargeLadGameManager : Component
 	private LargeLadRoundBalanceSettings EffectiveRoundBalanceSettings =>
 		RoundBalanceSettings ?? defaultRoundBalanceSettings;
 
+	/// <summary>
+	/// The descriptor admitted by the current loaded-map preparation boundary.
+	/// Null outside a successfully prepared map, including every transition.
+	/// </summary>
+	public LargeLadMapDescriptor CurrentMapDescriptor => activeMapDescriptor;
+
+	public float EffectiveSurvivalDuration =>
+		activeMapDescriptor?.Balance.ResolveSurvivalDuration(
+			SurvivalDuration ) ?? SurvivalDuration;
+
 	[Property]
 	public NetworkHelper NetworkHelper { get; set; }
 
@@ -206,23 +216,27 @@ public sealed class LargeLadGameManager : Component
 	public float GetHunterMovementEscalationMultiplier(
 		LargeLadRole role )
 	{
+		var mapBalance = activeMapDescriptor?.Balance;
 		return LargeLadHunterMovementEscalationRules
 			.GetMovementMultiplier(
 				role,
 				NormalizedElapsedSurvivalRoundTime,
 				HunterMovementRampStartNormalizedTime,
 				HunterMovementRampEndNormalizedTime,
-				LargeLadMovementMaximumMultiplier,
-				MinionMovementMaximumMultiplier );
+				LargeLadMapCatalog.ComposeHunterMaximumMultiplier(
+					LargeLadMovementMaximumMultiplier,
+					mapBalance ),
+				LargeLadMapCatalog.ComposeHunterMaximumMultiplier(
+					MinionMovementMaximumMultiplier,
+					mapBalance ) );
 	}
 
 	/// <summary>
-	/// Returns the current round's band factor composed with an optional future
-	/// map-specific Large Lad health factor. Before the first successful round,
-	/// balance remains neutral.
+	/// Returns the current round's band factor composed with the validated active
+	/// map's Large Lad health factor. Before the first successful round, the band
+	/// remains neutral.
 	/// </summary>
-	public float GetLargeLadMaximumHealthMultiplier(
-		float mapSpecificMultiplier = 1.0f )
+	public float GetLargeLadMaximumHealthMultiplier()
 	{
 		var bandMultiplier = 1.0f;
 
@@ -236,15 +250,15 @@ public sealed class LargeLadGameManager : Component
 
 		return LargeLadRoundBalanceRules.ComposeHealthMultipliers(
 			bandMultiplier,
-			mapSpecificMultiplier );
+			activeMapDescriptor?.Balance
+				.ResolveLargeLadMaximumHealthMultiplier() ?? 1.0f );
 	}
 
 	/// <summary>
-	/// Returns the current round's band factor composed with an optional future
-	/// map-specific SkinnyProgression barricade health factor.
+	/// Returns the current round's band factor composed with the validated active
+	/// map's SkinnyProgression barricade health factor.
 	/// </summary>
-	public float GetSkinnyProgressionBarricadeMaximumHealthMultiplier(
-		float mapSpecificMultiplier = 1.0f )
+	public float GetSkinnyProgressionBarricadeMaximumHealthMultiplier()
 	{
 		var bandMultiplier = 1.0f;
 
@@ -259,7 +273,8 @@ public sealed class LargeLadGameManager : Component
 
 		return LargeLadRoundBalanceRules.ComposeHealthMultipliers(
 			bandMultiplier,
-			mapSpecificMultiplier );
+			activeMapDescriptor?.Balance
+				.ResolveSkinnyProgressionBarricadeMultiplier() ?? 1.0f );
 	}
 
 	internal bool PublishBarricadeDestructionAnnouncement(
@@ -332,6 +347,7 @@ public sealed class LargeLadGameManager : Component
 	private bool hasSceneGameplayOwnership;
 	private Scene registeredScene;
 	private LargeLadPlayer currentLargeLad;
+	private LargeLadMapDescriptor activeMapDescriptor;
 	private string barricadeDestructionAnnouncement;
 	private TimeSince timeSinceBarricadeDestructionAnnouncement;
 	private string lastSkinnyKidAnnouncement;
@@ -1217,7 +1233,9 @@ public sealed class LargeLadGameManager : Component
 
 		BeginSurvivalRoundTiming();
 		SetPhase( LargeLadRoundPhase.Playing );
-		Log.Info( $"Head start finished. Skinny Kids must survive {SurvivalDuration:0.#} seconds." );
+		Log.Info(
+			$"Head start finished. Skinny Kids must survive " +
+			$"{EffectiveSurvivalDuration:0.#} seconds." );
 	}
 
 	public void EndRound( LargeLadWinner winner )
@@ -1581,27 +1599,38 @@ public sealed class LargeLadGameManager : Component
 	/// resulting ready/not-ready state.
 	/// </summary>
 	internal bool PrepareLoadedMap(
-		LargeLadSessionCoordinator coordinator )
+		LargeLadSessionCoordinator coordinator,
+		LargeLadMapDescriptor descriptor )
 	{
 		ResolveBootstrapReferences();
 
 		if ( !Networking.IsHost ||
 			!OwnsSceneGameplay() ||
 			coordinator is null ||
-			coordinator != SessionCoordinator )
+			coordinator != SessionCoordinator ||
+			descriptor is null ||
+			descriptor != coordinator.CurrentMapDescriptor )
 		{
 			return false;
 		}
 
+		activeMapDescriptor = descriptor;
 		SpawnAllocator?.InvalidateCandidateCache();
 		SpawnAllocator?.ConfigureNetworkHelper( NetworkHelper );
 		SpawnAllocator?.RebuildCandidatesAndRefreshLobbyPoints();
 		ValidateMap( logResults: true, validateGeometry: true );
 
 		if ( GetBlockingRoundSpawnIssues( requireReadyMap: false ).Count > 0 )
+		{
+			activeMapDescriptor = null;
 			return false;
+		}
 
-		return TryPlacePlayersInLoadedMapLobby();
+		if ( TryPlacePlayersInLoadedMapLobby() )
+			return true;
+
+		activeMapDescriptor = null;
+		return false;
 	}
 
 	/// <summary>
@@ -1622,6 +1651,7 @@ public sealed class LargeLadGameManager : Component
 			return;
 		}
 
+		activeMapDescriptor = null;
 		var players = GetActivePlayerSnapshot();
 
 		foreach ( var player in players )
@@ -2101,7 +2131,7 @@ public sealed class LargeLadGameManager : Component
 		SurvivalRoundStartTime = hostNow;
 		PhaseEndTime = LargeLadGameplayRules.GetTimerDeadline(
 			hostNow,
-			SurvivalDuration );
+			EffectiveSurvivalDuration );
 	}
 
 	private void ResetSurvivalRoundTiming()

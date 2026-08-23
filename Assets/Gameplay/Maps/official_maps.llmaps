@@ -1,0 +1,10 @@
+{
+  "Entries": [
+    {
+      "MapInstanceIdentifier": "scenes/gym.scene",
+      "Manifest": "gameplay/maps/gym.llmap"
+    }
+  ],
+  "__references": [],
+  "__version": 0
+}

@@ -83,6 +83,7 @@
 		},
 		"LocalDevelopmentMap": "scenes/gym.scene",
 		"StartupMap": "scenes/gym.scene",
+		"OfficialMapCatalog": "gameplay/maps/official_maps.llmaps",
 		"MapInstance": {
 		  "_type": "component",
 		  "component_id": "edca6724-d1f9-4701-a212-4ae4df243c02",

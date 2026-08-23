@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Sandbox;
 
@@ -31,6 +32,12 @@ public sealed class LargeLadSessionCoordinator : Component
 	[Property, Title( "Local Development Map" )]
 	public string LocalDevelopmentMap { get; set; } = "scenes/gym.scene";
 
+	[Property, Group( "Map Catalog" )]
+	[Description(
+		"First-party curation owned by Large Lad. Mapper-authored manifests cannot " +
+		"grant themselves official status." )]
+	public LargeLadOfficialMapCatalog OfficialMapCatalog { get; set; }
+
 	[Sync( SyncFlags.FromHost ), Change( nameof( OnCurrentMapNameChanged ) )]
 	public string CurrentMapName { get; private set; }
 
@@ -40,11 +47,23 @@ public sealed class LargeLadSessionCoordinator : Component
 
 	public bool IsMapReady => MapState == LargeLadMapSessionState.Ready;
 
+	/// <summary>
+	/// Normalized metadata for the map that completed manifest validation on
+	/// this peer. Gameplay uses the same descriptor shape for official and
+	/// community maps.
+	/// </summary>
+	public LargeLadMapDescriptor CurrentMapDescriptor { get; private set; }
+
+	public IReadOnlyList<string> LoadedMapValidationIssues =>
+		loadedMapValidationIssues;
+
 	private Scene registeredScene;
 	private MapInstance subscribedMapInstance;
 	private string pendingReloadMapName;
 	private int unloadNotificationVersion;
 	private bool mapTransitionCleanupStarted;
+	private int loadedMapPreparationVersion;
+	private readonly List<string> loadedMapValidationIssues = new();
 
 	protected override void OnEnabled()
 	{
@@ -56,6 +75,7 @@ public sealed class LargeLadSessionCoordinator : Component
 
 	protected override void OnDisabled()
 	{
+		InvalidateLoadedMapResolution();
 		DetachFromSceneRegistry();
 		DetachMapCallbacks();
 		base.OnDisabled();
@@ -190,6 +210,7 @@ public sealed class LargeLadSessionCoordinator : Component
 
 	private void UnloadSelectedMap( string unloadedMapName )
 	{
+		InvalidateLoadedMapResolution();
 		SetMapState( LargeLadMapSessionState.Unloading );
 		BeginMapTransitionCleanup();
 
@@ -241,17 +262,15 @@ public sealed class LargeLadSessionCoordinator : Component
 			GameManager = Components.Get<LargeLadGameManager>();
 	}
 
-	private void HandleMapLoaded()
+	private async void HandleMapLoaded()
 	{
 		ResolveBootstrapReferences();
 
 		if ( !Networking.IsHost )
 		{
 			SuppressClientAuthoredNetworkCopies();
-			return;
 		}
-
-		if ( MapState != LargeLadMapSessionState.Loading ||
+		else if ( MapState != LargeLadMapSessionState.Loading ||
 			string.IsNullOrWhiteSpace( CurrentMapName ) )
 		{
 			Log.Warning(
@@ -260,9 +279,64 @@ public sealed class LargeLadSessionCoordinator : Component
 			return;
 		}
 
+		var preparationVersion = ++loadedMapPreparationVersion;
+		var preparedMapIdentifier = CurrentMapName?.Trim() ?? string.Empty;
+		var profiles = MapInstance?.GameObject?.Components
+			.GetAll<LargeLadMapProfile>(
+				FindMode.EverythingInSelfAndDescendants )
+			.Where( profile =>
+				profile is not null &&
+				profile.IsValid &&
+				profile.Enabled )
+			.ToArray() ?? [];
+
+		if ( profiles.Length != 1 )
+		{
+			var issue = profiles.Length == 0
+				? $"Map '{preparedMapIdentifier}' is missing its required enabled " +
+					"LargeLadMapProfile. Place exactly one profile in the map and " +
+					"assign its Large Lad Map Manifest."
+				: $"Map '{preparedMapIdentifier}' contains {profiles.Length} enabled " +
+					"LargeLadMapProfile components. Keep exactly one map profile.";
+			FailLoadedMapResolution( issue );
+			return;
+		}
+
+		var packageMetadata = await LargeLadMapCatalog
+			.FetchPublishedPackageMetadata( preparedMapIdentifier );
+
+		if ( preparationVersion != loadedMapPreparationVersion ||
+			!string.Equals(
+				CurrentMapName,
+				preparedMapIdentifier,
+				StringComparison.OrdinalIgnoreCase ) ||
+			(Networking.IsHost &&
+				MapState != LargeLadMapSessionState.Loading) )
+		{
+			return;
+		}
+
+		if ( !LargeLadMapCatalog.TryResolveLoadedMap(
+			profiles[0].Manifest,
+			preparedMapIdentifier,
+			packageMetadata,
+			OfficialMapCatalog,
+			out var descriptor,
+			out var resolutionIssues ) )
+		{
+			FailLoadedMapResolution( resolutionIssues );
+			return;
+		}
+
+		CurrentMapDescriptor = descriptor;
+		loadedMapValidationIssues.Clear();
+
+		if ( !Networking.IsHost )
+			return;
+
 		mapTransitionCleanupStarted = false;
 		PromoteNestedMapNetworkObjects();
-		var isReady = GameManager?.PrepareLoadedMap( this ) == true;
+		var isReady = GameManager?.PrepareLoadedMap( this, descriptor ) == true;
 		SetMapState(
 			isReady
 				? LargeLadMapSessionState.Ready
@@ -271,7 +345,8 @@ public sealed class LargeLadSessionCoordinator : Component
 		if ( isReady )
 		{
 			Log.Info(
-				$"Large Lad map '{MapInstance.MapName}' is ready; the " +
+				$"Large Lad map '{descriptor.DisplayName}' " +
+				$"({descriptor.MapInstanceIdentifier}) is ready; the " +
 				"persistent session bootstrap remained active." );
 		}
 		else
@@ -430,6 +505,7 @@ public sealed class LargeLadSessionCoordinator : Component
 	private void HandleMapUnloaded()
 	{
 		unloadNotificationVersion++;
+		InvalidateLoadedMapResolution();
 
 		if ( Networking.IsHost )
 		{
@@ -462,6 +538,7 @@ public sealed class LargeLadSessionCoordinator : Component
 		if ( !Networking.IsHost )
 			return;
 
+		InvalidateLoadedMapResolution();
 		var selectedMapName = mapName?.Trim() ?? string.Empty;
 
 		if ( string.IsNullOrWhiteSpace( selectedMapName ) )
@@ -486,6 +563,35 @@ public sealed class LargeLadSessionCoordinator : Component
 		GameManager?.HandleMapTransition( this );
 	}
 
+	private void FailLoadedMapResolution( string issue )
+	{
+		FailLoadedMapResolution( new[] { issue } );
+	}
+
+	private void FailLoadedMapResolution(
+		IEnumerable<string> issues )
+	{
+		CurrentMapDescriptor = null;
+		loadedMapValidationIssues.Clear();
+		loadedMapValidationIssues.AddRange(
+			issues?.Where( issue => !string.IsNullOrWhiteSpace( issue ) ) ?? [] );
+
+		if ( Networking.IsHost )
+		{
+			foreach ( var issue in loadedMapValidationIssues )
+				Log.Error( $"Map manifest blocks readiness: {issue}" );
+
+			SetMapState( LargeLadMapSessionState.Failed );
+		}
+	}
+
+	private void InvalidateLoadedMapResolution()
+	{
+		loadedMapPreparationVersion++;
+		CurrentMapDescriptor = null;
+		loadedMapValidationIssues.Clear();
+	}
+
 	private void SetMapState( LargeLadMapSessionState newState )
 	{
 		if ( !Networking.IsHost || MapState == newState )
@@ -508,6 +614,14 @@ public sealed class LargeLadSessionCoordinator : Component
 		string oldMapName,
 		string newMapName )
 	{
+		if ( !string.Equals(
+			oldMapName,
+			newMapName,
+			StringComparison.OrdinalIgnoreCase ) )
+		{
+			InvalidateLoadedMapResolution();
+		}
+
 		ApplyCurrentMapName();
 	}
 

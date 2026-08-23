@@ -2,6 +2,38 @@
   "__guid": "4fe6d994-91c5-4eb6-a3e3-44fce0364203",
   "GameObjects": [
     {
+      "__guid": "71bc29b5-0bb3-4df6-915d-1c44e2469ee8",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Large Lad Map Profile",
+      "Position": "0,0,0",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "LargeLadMapProfile",
+          "__guid": "c525630b-fb1b-480a-a8b3-1d843fa5c9f8",
+          "__enabled": true,
+          "Flags": 0,
+          "Manifest": "gameplay/maps/gym.llmap",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null
+        }
+      ],
+      "Children": []
+    },
+    {
       "__guid": "0e7ca1aa-49f5-45d1-aa32-0252f1a7af58",
       "__version": 2,
       "Flags": 0,
