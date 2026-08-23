@@ -55,7 +55,17 @@ such as `organization.map_name`; that is the production map-selection path and
 uses the engine's automatic download/mount behavior. For local development,
 `Startup Map` and `Local Development Map` are currently
 `scenes/gym.scene`. The coordinator synchronizes its selected name from the host
-and passes either form directly to `MapInstance`.
+and passes either form directly to each peer's local `MapInstance`. The dedicated
+`Map Content Host` uses Network Mode `Never`: the persistent scene creates the
+host's authored loader locally, and the coordinator creates the equivalent one
+direct local child when a remote network scene excludes that Never-mode prefab
+child. The coordinator never serializes a component reference across that local
+boundary. It sends the authoritative selected identifier through synchronized
+state and a reliable runtime RPC. Every peer therefore performs the engine's
+normal local map load,
+including static world geometry and collision; those are not replicated as
+ordinary network GameObjects. Map-authored Object-mode gameplay objects continue
+to use their normal host-spawned networking path.
 
 ## Map manifest and compatibility
 

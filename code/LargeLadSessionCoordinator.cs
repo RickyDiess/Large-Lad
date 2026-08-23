@@ -106,10 +106,9 @@ internal static class LargeLadBootstrapPlacement
 /// scene-map creation, and unloading; this component only turns its callbacks
 /// into the scene-scoped lifecycle contract consumed by round flow.
 /// </summary>
-public sealed class LargeLadSessionCoordinator : Component
+public sealed partial class LargeLadSessionCoordinator : Component
 {
-	[Property]
-	public MapInstance MapInstance { get; set; }
+	public MapInstance MapInstance { get; private set; }
 
 	[Property, RequireComponent]
 	public LargeLadGameManager GameManager { get; set; }
@@ -198,14 +197,10 @@ public sealed class LargeLadSessionCoordinator : Component
 		ResolveBootstrapReferences();
 		AttachMapCallbacks();
 
-		if ( Networking.IsHost && string.IsNullOrWhiteSpace( CurrentMapName ) )
-		{
-			BeginLoadingMap( StartupMap );
-		}
+		if ( Networking.IsHost )
+			InitializeMapFlow();
 		else
-		{
 			ApplyCurrentMapName();
-		}
 
 		// OnLoad can complete before this component reaches OnStart. This is a
 		// one-time lifecycle catch-up, not readiness polling; all later changes
@@ -352,12 +347,35 @@ public sealed class LargeLadSessionCoordinator : Component
 	{
 		if ( !IsUsableMapInstance( MapInstance ) )
 		{
-			MapInstance = GameObject.Components.Get<MapInstance>(
-				FindMode.EverythingInSelfAndDescendants );
+			MapInstance = GameObject.Components
+				.GetAll<MapInstance>(
+					FindMode.EverythingInSelfAndDescendants )
+				.FirstOrDefault( IsUsableMapInstance );
+
+			if ( MapInstance is null && Game.IsPlaying )
+				MapInstance = CreatePeerLocalMapInstance();
 		}
 
 		if ( !IsUsableBootstrapComponent( GameManager ) )
 			GameManager = Components.Get<LargeLadGameManager>();
+	}
+
+	private MapInstance CreatePeerLocalMapInstance()
+	{
+		var mapHost = new GameObject( "Map Content Host" )
+		{
+			NetworkMode = NetworkMode.Never
+		};
+		mapHost.SetParent( GameObject, keepWorldPosition: false );
+
+		var mapInstance = mapHost.Components.Create<MapInstance>();
+		mapInstance.EnableCollision = true;
+		mapInstance.UseMapFromLaunch = false;
+
+		Log.Info(
+			"Created the peer-local Large Lad MapInstance because the " +
+			"local-only prefab child was not present in this network scene." );
+		return mapInstance;
 	}
 
 	private async void HandleMapLoaded()
@@ -441,7 +459,6 @@ public sealed class LargeLadSessionCoordinator : Component
 		if ( !Networking.IsHost )
 			return;
 
-		mapTransitionCleanupStarted = false;
 		PromoteNestedMapNetworkObjects();
 		var isReady = GameManager?.PrepareLoadedMap( this, descriptor ) == true;
 		SetMapState(
@@ -451,6 +468,8 @@ public sealed class LargeLadSessionCoordinator : Component
 
 		if ( isReady )
 		{
+			mapTransitionCleanupStarted = false;
+			HandleMapBecameReady( descriptor );
 			Log.Info(
 				$"Large Lad map '{descriptor.DisplayName}' " +
 				$"({descriptor.MapInstanceIdentifier}) is ready; the " +
@@ -458,6 +477,9 @@ public sealed class LargeLadSessionCoordinator : Component
 		}
 		else
 		{
+			HandleSelectedMapFailure(
+				"the loaded map did not satisfy Large Lad's blocking structural " +
+				"spawn and lobby contract" );
 			Log.Error(
 				$"Large Lad map '{MapInstance?.MapName}' loaded but did not " +
 				"satisfy the blocking map contract. Round flow remains closed." );
@@ -658,7 +680,18 @@ public sealed class LargeLadSessionCoordinator : Component
 		// Loading is published before MapName because assigning MapName begins the
 		// built-in asynchronous load operation.
 		SetMapState( LargeLadMapSessionState.Loading );
-		SelectMapName( selectedMapName );
+		NotifyMapLoadAttemptStarted( selectedMapName );
+
+		try
+		{
+			SelectMapName( selectedMapName );
+		}
+		catch ( Exception exception )
+		{
+			SetMapState( LargeLadMapSessionState.Failed );
+			HandleSelectedMapFailure(
+				$"MapInstance rejected the map load: {exception.Message}" );
+		}
 	}
 
 	private void BeginMapTransitionCleanup()
@@ -689,6 +722,10 @@ public sealed class LargeLadSessionCoordinator : Component
 				Log.Error( $"Map manifest blocks readiness: {issue}" );
 
 			SetMapState( LargeLadMapSessionState.Failed );
+			HandleSelectedMapFailure(
+				loadedMapValidationIssues.Count == 0
+					? "the loaded map failed manifest/descriptor validation"
+					: string.Join( " | ", loadedMapValidationIssues ) );
 		}
 	}
 
@@ -778,7 +815,23 @@ public sealed class LargeLadSessionCoordinator : Component
 	private void SelectMapName( string mapName )
 	{
 		CurrentMapName = mapName?.Trim() ?? string.Empty;
-		ApplyCurrentMapName();
+		ApplyMapNameLocally( CurrentMapName );
+
+		// MapInstance is deliberately local on every peer because world geometry
+		// and collision are loaded from the map file rather than replicated. Keep
+		// the synchronized name for late joiners and reliably notify peers that are
+		// already connected when a runtime selection changes.
+		if ( Game.IsPlaying && Networking.IsHost )
+			ApplySelectedMapNameOnClients( CurrentMapName );
+	}
+
+	[Rpc.Broadcast( NetFlags.HostOnly )]
+	private void ApplySelectedMapNameOnClients( string mapName )
+	{
+		if ( Networking.IsHost )
+			return;
+
+		ApplyMapNameLocally( mapName );
 	}
 
 	private void OnCurrentMapNameChanged(
@@ -793,15 +846,21 @@ public sealed class LargeLadSessionCoordinator : Component
 			InvalidateLoadedMapResolution();
 		}
 
-		ApplyCurrentMapName();
+		if ( !Networking.IsHost )
+			ApplyMapNameLocally( newMapName );
 	}
 
 	private void ApplyCurrentMapName()
 	{
+		ApplyMapNameLocally( CurrentMapName );
+	}
+
+	private void ApplyMapNameLocally( string mapName )
+	{
 		ResolveBootstrapReferences();
 
 		if ( MapInstance is not null )
-			MapInstance.MapName = CurrentMapName ?? string.Empty;
+			MapInstance.MapName = mapName?.Trim() ?? string.Empty;
 	}
 
 	private bool CanControlMap()

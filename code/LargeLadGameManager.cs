@@ -167,7 +167,7 @@ public sealed class LargeLadGameManager : Component
 	/// The complete gameplay interval in which role survivability rules apply.
 	/// </summary>
 	public bool IsRoundActive =>
-		SessionCoordinator?.IsMapReady == true &&
+		SessionCoordinator?.CanAdvanceRoundFlow == true &&
 		Phase is LargeLadRoundPhase.HeadStart or LargeLadRoundPhase.Playing;
 
 	public bool HasLastSkinnyKidAnnouncement =>
@@ -1048,7 +1048,7 @@ public sealed class LargeLadGameManager : Component
 
 		// Readiness is callback-authored by the session coordinator. While the
 		// map is absent, loading, unloading, or invalid, no round state advances.
-		if ( SessionCoordinator?.IsMapReady != true )
+		if ( SessionCoordinator?.CanAdvanceRoundFlow != true )
 			return;
 
 		var players = GetActivePlayerSnapshot();
@@ -1306,6 +1306,7 @@ public sealed class LargeLadGameManager : Component
 			? "Skinny Kids"
 			: "Large Lad team";
 		Log.Info( $"Round over. {winnerName} won. Next round in {IntermissionDuration:0.#} seconds." );
+		SessionCoordinator?.NotifyRoundCompleted( this, winner );
 	}
 
 	private void FinishIntermission( List<LargeLadPlayer> players )
@@ -1824,6 +1825,15 @@ public sealed class LargeLadGameManager : Component
 
 		activePlayers.Add( player );
 		IndexPlayerRole( player, player.Role );
+
+		// NetworkHelper can create players while the persistent shell has no map.
+		// Freeze them at creation instead of allowing their owning peer to simulate
+		// gravity in the void while the host is choosing or loading content.
+		if ( Networking.IsHost &&
+			SessionCoordinator?.CanAdvanceRoundFlow != true )
+		{
+			player.MovementLocked = true;
+		}
 
 		if ( !isHydratingRegistrations )
 		{

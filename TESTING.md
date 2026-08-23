@@ -101,6 +101,77 @@ tests cannot provide:
    inventory is prepared once per `RespawnAs` (no duplicate core grants and no
    firearm entries for Large Lad or Minions).
 
+## Map selection, rotation, and voting checklist
+
+The deterministic `LargeLadMapRotationTests` cover successful-round counting,
+the rounds-per-map threshold, one accepted vote per eligible connection,
+invalid candidates, disconnect handling, plurality, tied-leader selection,
+the deterministic no-vote result, source-neutral official/community rules,
+stable identity for duplicate display names, bounded fallback ordering, and
+resetting the counter only after the replacement map reaches `Ready`.
+
+For a listening-host test, start `game_shell.scene` with a host and at least one
+remote client:
+
+1. Join the remote client before choosing a map. Confirm every peer sees a fully
+   black game view with the map-flow UI above it, no spawned player falls or can
+   move in the empty shell, and only the host sees the initial chooser. The
+   remote client must instead see `Waiting for the host to pick a map` and must
+   not be able to authorize a selection. Confirm its scene reports exactly one
+   active, direct, Never-mode `Map Content Host`/`MapInstance` and never logs an
+   unknown map-host GameObject or a zero-MapInstance bootstrap failure. Confirm
+   the host's Gym card shows the
+   Stage 1 display name, thumbnail, mapper, player range, description, and
+   official badge.
+2. Select Gym. Confirm the already-connected remote receives the authoritative
+   map identifier, applies it to its local `MapInstance`, and remains
+	black and locally movement-frozen until that instance reports loaded. Verify
+   the remote sees the map's static world geometry and has matching floor/wall
+   collision—not only its networked GameObjects—and cannot fall through the map.
+   Confirm the flow passes through `Loading` to `Playing`, map content appears
+   only beneath the existing `Map Content Host`, the same bootstrap objects and
+   player connections remain alive, all persistent players arrive at valid Lobby
+   positions, and the first round does not begin until map preparation reaches
+   `Ready`.
+3. Temporarily set `Rounds Per Map` to 1. Complete one real round and confirm
+   the vote opens only after the normal `EndRound` boundary; rejected round
+   starts, lobby waiting, aborted starts, and partial rounds must not increment
+   the count.
+4. Confirm each card uses the same Stage 1 metadata as the initial chooser and
+   that a connection can submit exactly one candidate. The displayed accepted
+   selection and totals must come from host state, and forged or stale candidate
+   IDs must be rejected.
+5. With multiple candidates configured, verify plurality wins. Force a top tie
+   and confirm the host randomly selects only among tied leaders. Let a vote
+   expire with no submissions and confirm the stable-ID-first candidate wins.
+6. Join a client after voting begins. Confirm it can observe the vote but cannot
+   submit in that vote. Disconnect an eligible voter before it submits, and in
+   a separate run disconnect one after submission; neither connection nor its
+   stale vote may block or decide completion.
+7. Complete the vote. Confirm gameplay stays closed through `Transitioning` and
+   map unload/load, the shell and all connected players survive, and the
+   completed-round counter resets only when the selected map reaches `Ready`.
+   With only Gym available, confirm selecting it follows the normal full reload
+   path rather than bypassing transition cleanup.
+
+For failure recovery, configure or request a missing map and then a map that
+fails the blocking spawn/content contract. Confirm each failed identifier is
+attempted at most once in that transaction, no round/timer/spawn flow resumes,
+and fallback is tried in this order: last known good map, configured startup
+map, then the first valid official catalog entry. If every option fails, confirm
+the flow remains visibly/logically `Failed` without restarting `game_shell.scene`
+or disconnecting clients. Selecting a later valid map must recover through the
+same coordinator and `MapInstance`.
+
+For a dedicated-server test, launch the normal Large Lad project rather than a
+content scene. Confirm startup priority is: an explicit launch map identifier,
+then the configured coordinator `Startup Map`, then the first valid official
+catalog entry. Each source must still enter the common descriptor resolution,
+validation, preparation, and transition path. The editor MCP listening-host run
+does not emulate a dedicated process or inject dedicated launch arguments, so
+perform this final matrix with the normal s&box dedicated launch workflow; no
+external .NET build step is needed.
+
 ## Persistent session and map reload checklist
 
 1. Start the game normally. Confirm `game_shell.scene` supplies exactly one
@@ -109,9 +180,12 @@ tests cannot provide:
    direct `Map Content Host` child with the sole `MapInstance`.
 2. Confirm Gym appears only beneath `Map Content Host` and contains none of the
    session-global components itself.
-3. Observe `Unloaded -> Loading -> Ready`. Confirm generated Lobby positions,
-   blocking validation, and persistent-player Lobby placement finish before
-   `Ready`, and that no round flow advances during `Loading`.
+3. On a listening host, observe `WaitingForInitialMapSelection -> Loading ->
+   Playing` after choosing a map. On a dedicated server, observe the configured
+   startup resolution enter `Loading -> Playing`. In both cases, confirm
+   generated Lobby positions, blocking validation, and persistent-player Lobby
+   placement finish before the underlying map state reaches `Ready`, and that no
+   round flow advances during `Loading`.
 4. Begin a valid two-or-more-player round, then use `Unload Map`, `Reload Current
    Map`, or host code calling `LoadMap`. Confirm state leaves `Ready` for
    `Unloading` before map content disappears and phase/timers stop immediately.

@@ -1,0 +1,195 @@
+@using Sandbox
+@using Sandbox.UI
+@using System
+@inherits PanelComponent
+
+<root class="@(IsVisible ? "visible" : "hidden")">
+	@if ( ShouldBlackout )
+	{
+		<div class="blackout"></div>
+	}
+
+	@if ( ShowInitialSelection )
+	{
+		<div class="scrim">
+			<div class="dialog">
+				<div class="eyebrow">Large Lad Session</div>
+				<div class="title">Choose the first map</div>
+				<div class="subtitle">The listening host starts the persistent session on one validated catalog map.</div>
+
+				<div class="map-list">
+					@foreach ( var descriptor in Coordinator.GetInitialMapCandidates() )
+					{
+						<div class="map-card">
+							@if ( !string.IsNullOrWhiteSpace( descriptor.PresentationAsset ) )
+							{
+								<img class="thumbnail" src="@descriptor.PresentationAsset" />
+							}
+							<div class="map-details">
+								<div class="map-heading">
+									<div class="map-name">@descriptor.DisplayName</div>
+									<div class="curation">@(descriptor.IsOfficiallyCurated ? "Official" : "Community")</div>
+								</div>
+								<div class="mapper">Mapped by @descriptor.MapperCredit</div>
+								<div class="players">Recommended: @descriptor.RecommendedMinimumPlayers-@descriptor.RecommendedMaximumPlayers players</div>
+								@if ( !string.IsNullOrWhiteSpace( descriptor.Description ) )
+								{
+									<div class="description">@descriptor.Description</div>
+								}
+							</div>
+							<button class="select" onclick=@(() => SelectInitialMap( descriptor.StableMapId ))>Start Map</button>
+						</div>
+					}
+				</div>
+			</div>
+		</div>
+	}
+	else if ( ShowWaitingForHost )
+	{
+		<div class="status-layer">
+			<div class="status-card">
+				<div class="eyebrow">Large Lad Session</div>
+				<div class="status-title">Waiting for the host to pick a map</div>
+				<div class="status-subtitle">The match will begin after the selected map finishes loading.</div>
+			</div>
+		</div>
+	}
+	else if ( ShowVote )
+	{
+		<div class="scrim">
+			<div class="dialog">
+				<div class="eyebrow">Map Rotation</div>
+				<div class="vote-heading">
+					<div class="title">Vote for the next map</div>
+					<div class="timer">@MathF.Ceiling( Coordinator.VoteTimeRemaining )s</div>
+				</div>
+				<div class="subtitle">One connected eligible player, one host-validated vote.</div>
+
+				<div class="map-list">
+					@foreach ( var descriptor in Coordinator.GetActiveVoteCandidates() )
+					{
+						var mapIdentity = descriptor.StableMapId;
+						var isSubmittedChoice = string.Equals(
+							Coordinator.LocalSubmittedVoteId,
+							mapIdentity,
+							StringComparison.OrdinalIgnoreCase );
+						var hasSubmitted = !string.IsNullOrWhiteSpace(
+							Coordinator.LocalSubmittedVoteId );
+
+						<div class="map-card @(isSubmittedChoice ? "submitted" : "")">
+							@if ( !string.IsNullOrWhiteSpace( descriptor.PresentationAsset ) )
+							{
+								<img class="thumbnail" src="@descriptor.PresentationAsset" />
+							}
+							<div class="map-details">
+								<div class="map-heading">
+									<div class="map-name">@descriptor.DisplayName</div>
+									<div class="curation">@(descriptor.IsOfficiallyCurated ? "Official" : "Community")</div>
+								</div>
+								<div class="mapper">Mapped by @descriptor.MapperCredit</div>
+								<div class="players">Recommended: @descriptor.RecommendedMinimumPlayers-@descriptor.RecommendedMaximumPlayers players</div>
+							</div>
+							<div class="vote-total">@Coordinator.GetPublishedVoteTotal( mapIdentity )</div>
+							@if ( isSubmittedChoice )
+							{
+								<div class="submitted-label">Submitted</div>
+							}
+							else if ( !hasSubmitted )
+							{
+								<button class="select" onclick=@(() => SubmitVote( mapIdentity ))>Vote</button>
+							}
+						</div>
+					}
+				</div>
+			</div>
+		</div>
+	}
+	else if ( ShowMapStatus )
+	{
+		<div class="status-layer">
+			<div class="status-card">
+				<div class="eyebrow">Large Lad Session</div>
+				<div class="status-title">@MapStatusTitle</div>
+				<div class="status-subtitle">@MapStatusSubtitle</div>
+			</div>
+		</div>
+	}
+</root>
+
+@code
+{
+	[Property]
+	public LargeLadSessionCoordinator Coordinator { get; set; }
+
+	private bool ShowInitialSelection =>
+		Coordinator?.ShowInitialMapSelection == true;
+
+	private bool ShowVote =>
+		Coordinator?.MapFlowState == LargeLadMapFlowState.Voting;
+
+	private bool ShowWaitingForHost =>
+		Coordinator?.MapFlowState ==
+			LargeLadMapFlowState.WaitingForInitialMapSelection &&
+		!Networking.IsHost;
+
+	private bool ShouldBlackout =>
+		Coordinator?.ShouldBlackoutLocalView == true;
+
+	private bool ShowMapStatus =>
+		ShouldBlackout &&
+		!ShowInitialSelection &&
+		!ShowWaitingForHost &&
+		!ShowVote;
+
+	private bool IsVisible =>
+		ShouldBlackout || ShowInitialSelection || ShowWaitingForHost || ShowVote;
+
+	private string MapStatusTitle => Coordinator?.MapFlowState switch
+	{
+		LargeLadMapFlowState.Transitioning => "Changing map",
+		LargeLadMapFlowState.Recovering => "Recovering map",
+		LargeLadMapFlowState.Failed => "Map unavailable",
+		_ => "Loading map"
+	};
+
+	private string MapStatusSubtitle => Coordinator?.MapFlowState switch
+	{
+		LargeLadMapFlowState.Transitioning =>
+			"The next map is being prepared without restarting the session.",
+		LargeLadMapFlowState.Recovering =>
+			"The selected map failed, so the host is trying a safe fallback.",
+		LargeLadMapFlowState.Failed =>
+			"No safe map could be loaded. Round flow remains stopped.",
+		_ => "Preparing the selected map on this client."
+	};
+
+	private void SelectInitialMap( string stableMapId )
+	{
+		Coordinator?.SelectInitialMap( stableMapId );
+	}
+
+	private void SubmitVote( string stableMapId )
+	{
+		Coordinator?.SubmitMapVote( stableMapId );
+	}
+
+	protected override int BuildHash()
+	{
+		if ( Coordinator is null )
+			return 0;
+
+		var hash = new HashCode();
+		hash.Add( (int)Coordinator.MapFlowState );
+		hash.Add( Coordinator.VoteSessionId );
+		hash.Add( Coordinator.ActiveVoteCandidateIds );
+		hash.Add( Coordinator.ActiveVoteCounts );
+		hash.Add( (int)MathF.Ceiling( Coordinator.VoteTimeRemaining ) );
+		hash.Add( Coordinator.LocalSubmittedVoteId );
+		hash.Add( Coordinator.CompletedRoundsOnCurrentMap );
+		hash.Add( Coordinator.ShowInitialMapSelection );
+		hash.Add( Coordinator.ShouldBlackoutLocalView );
+		hash.Add( Coordinator.IsLocalSelectedMapLoaded );
+		hash.Add( Networking.IsHost );
+		return hash.ToHashCode();
+	}
+}

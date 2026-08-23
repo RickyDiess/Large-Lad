@@ -29,6 +29,7 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 	private Vector3 pendingSoftSeparationDisplacement;
 	private LargeLadEatAttack eatClaimOwner;
 	private float groundSlamStaggerEndsAt;
+	private bool lastLocalMapHoldState;
 
 	[Property, RequireComponent]
 	public LargeLadHealth Health { get; set; }
@@ -115,6 +116,7 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 	{
 		LogRoleProfileWarnings();
 		ApplyRoleProfile( Role );
+		lastLocalMapHoldState = IsHeldForLocalMap();
 		RefreshMovementState();
 	}
 
@@ -125,6 +127,16 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 			Time.Now >= groundSlamStaggerEndsAt )
 		{
 			IsGroundSlamStaggered = false;
+		}
+
+		if ( !IsProxy )
+		{
+			var localMapHoldState = IsHeldForLocalMap();
+			if ( localMapHoldState != lastLocalMapHoldState )
+			{
+				lastLocalMapHoldState = localMapHoldState;
+				RefreshMovementState();
+			}
 		}
 
 		// The owning peer rebuilds current Hunter speeds from the immutable role
@@ -162,7 +174,9 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 			return;
 		}
 
-		if ( MovementLocked || Health?.IsDead == true )
+		if ( MovementLocked ||
+			Health?.IsDead == true ||
+			IsHeldForLocalMap() )
 		{
 			StopMovement();
 			return;
@@ -620,7 +634,8 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 
 		var isHardLocked =
 			MovementLocked ||
-			Health?.IsDead == true;
+			Health?.IsDead == true ||
+			IsHeldForLocalMap();
 		controller.UseInputControls =
 			!isHardLocked && !IsGroundSlamStaggered;
 
@@ -635,6 +650,13 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 		}
 
 		controller.Body.MotionEnabled = true;
+	}
+
+	private bool IsHeldForLocalMap()
+	{
+		return LargeLadGameManager.FindForScene( Scene )?
+			.SessionCoordinator?
+			.ShouldHoldLocalPlayerForMap == true;
 	}
 
 	internal void ApplyGroundSlamEffect(
