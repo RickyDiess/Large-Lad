@@ -1,4 +1,5 @@
 using Sandbox;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -338,7 +339,7 @@ public sealed class LargeLadGameManager : Component
 		timeSinceLastSkinnyKidAnnouncement = 0.0f;
 	}
 
-	private int nextLargeLadIndex;
+	private LargeLadRoleSelectionSessionState roleSelectionSessionState;
 	private int waitingPlayerCount = -1;
 	private float playerReadyTimeRemaining;
 	private bool spawnFailureReported;
@@ -356,6 +357,10 @@ public sealed class LargeLadGameManager : Component
 	private bool hasAnnouncedLastSkinnyKidThisRound;
 	private readonly List<LargeLadPlayer> activePlayers = new();
 	private readonly HashSet<LargeLadPlayer> registeredPlayers = new();
+	private readonly HashSet<string> firstRoundBootstrapRosterIdentities =
+		new( StringComparer.Ordinal );
+	private readonly HashSet<string> activeRoundStarterIdentities =
+		new( StringComparer.Ordinal );
 	private readonly Dictionary<LargeLadRole, List<LargeLadPlayer>> playersByRole =
 		new()
 		{
@@ -1141,24 +1146,31 @@ public sealed class LargeLadGameManager : Component
 			return false;
 		}
 
-		var authoritativePreferences = players
-			.Select( player => player.GetAuthoritativeRolePreference() )
-			.ToList();
-		var selectedLargeLadIndex =
-			LargeLadRoleSelectionRules.SelectLargeLadIndex(
-				authoritativePreferences,
-				nextLargeLadIndex );
-
-		if ( selectedLargeLadIndex < 0 ||
-			selectedLargeLadIndex >= players.Count )
+		if ( !TryBuildRoleSelectionCandidates(
+			players,
+			out var playersBySessionIdentity,
+			out var roleSelectionCandidates ) )
 		{
-			Log.Error(
-				"Round start rejected before changing gameplay state: no valid " +
-				"Large Lad candidate could be selected." );
 			return false;
 		}
 
-		var largeLad = players[selectedLargeLadIndex];
+		var selectedCandidate =
+			LargeLadRoleSelectionRules.SelectLargeLadCandidate(
+				roleSelectionCandidates,
+				Game.Random.Int( 0, int.MaxValue - 1 ) );
+
+		if ( selectedCandidate is not { } candidate ||
+			!playersBySessionIdentity.TryGetValue(
+				candidate.SessionIdentity,
+				out var largeLad ) )
+		{
+			Log.Error(
+				"Round start rejected before changing gameplay state: no " +
+				"eligible Large Lad candidate exists. Newly connected players " +
+				"must complete a full successful round before selection." );
+			return false;
+		}
+
 		var hunterPlayers = new List<LargeLadPlayer> { largeLad };
 		var skinnyKidPlayers = players
 			.Where( player => player != largeLad )
@@ -1197,7 +1209,37 @@ public sealed class LargeLadGameManager : Component
 			return false;
 		}
 
+		var captureBootstrapRoster =
+			!roleSelectionSessionState.HasCapturedBootstrapRoster;
+
+		if ( !LargeLadRoleSelectionRules.TryCommitSuccessfulRoundStart(
+			roleSelectionSessionState,
+			candidate.SessionIdentity,
+			spawnAllocationSucceeded: true,
+			out var committedSelectionState,
+			out var selectionOrdinal ) )
+		{
+			Log.Error(
+				"Round start aborted before changing gameplay state: the " +
+				"Large Lad fairness transaction was already committed or " +
+				"contained an invalid selected identity." );
+			return false;
+		}
+
 		CommitRoundBalanceState( skinnyKidPlayers.Count );
+		roleSelectionSessionState = committedSelectionState;
+		largeLad.CommitLargeLadSelection( selectionOrdinal );
+
+		if ( captureBootstrapRoster )
+		{
+			firstRoundBootstrapRosterIdentities.Clear();
+			firstRoundBootstrapRosterIdentities.UnionWith(
+				playersBySessionIdentity.Keys );
+		}
+
+		activeRoundStarterIdentities.Clear();
+		activeRoundStarterIdentities.UnionWith(
+			playersBySessionIdentity.Keys );
 
 		// Player-held exclusive and utility items are cleared before their
 		// authored pickups reset, so a reset can never create a second copy.
@@ -1210,10 +1252,6 @@ public sealed class LargeLadGameManager : Component
 		ResetSurvivalRoundTiming();
 		ResetLastSkinnyKidState();
 		Winner = LargeLadWinner.None;
-		nextLargeLadIndex =
-			LargeLadRoleSelectionRules.GetNextSelectionIndex(
-				selectedLargeLadIndex,
-				players.Count );
 		lobbyPlacedPlayers.Clear();
 
 		ApplyRespawnAllocations(
@@ -1235,7 +1273,50 @@ public sealed class LargeLadGameManager : Component
 			$"Round started with {players.Count} players, " +
 			$"{skinnyKidPlayers.Count} Skinny Kids, the " +
 			$"{SelectedBalanceBand} balance band, and a " +
-			$"{HeadStartDuration:0.#}-second head start." );
+			$"{HeadStartDuration:0.#}-second head start. Large Lad fairness " +
+			$"ordinal {selectionOrdinal} committed." );
+		return true;
+	}
+
+	private bool TryBuildRoleSelectionCandidates(
+		IReadOnlyList<LargeLadPlayer> players,
+		out Dictionary<string, LargeLadPlayer> playersBySessionIdentity,
+		out List<LargeLadRoleSelectionCandidate> candidates )
+	{
+		playersBySessionIdentity = new Dictionary<string, LargeLadPlayer>(
+			StringComparer.Ordinal );
+		candidates = new List<LargeLadRoleSelectionCandidate>( players.Count );
+
+		foreach ( var player in players )
+		{
+			var identity = player.GetRoleSelectionSessionIdentity();
+
+			if ( string.IsNullOrWhiteSpace( identity ) ||
+				!playersBySessionIdentity.TryAdd( identity, player ) )
+			{
+				Log.Error(
+					"Round start rejected before changing gameplay state: every " +
+					"connected player needs one unique session identity." );
+				return false;
+			}
+
+			var history = player.GetRoleSelectionHistory();
+			var isBootstrapEligible =
+				LargeLadRoleSelectionRules.IsBootstrapEligible(
+					history,
+					roleSelectionSessionState,
+					firstRoundBootstrapRosterIdentities.Contains( identity ) );
+			var wasPreviousLargeLad = string.Equals(
+				identity,
+				roleSelectionSessionState.PreviousLargeLadIdentity,
+				StringComparison.Ordinal );
+
+			candidates.Add( player.BuildRoleSelectionCandidate(
+				history.HasCompletedFullRound,
+				isBootstrapEligible,
+				wasPreviousLargeLad ) );
+		}
+
 		return true;
 	}
 
@@ -1284,6 +1365,22 @@ public sealed class LargeLadGameManager : Component
 		SetPhase( LargeLadRoundPhase.RoundOver );
 
 		var players = GetActivePlayerSnapshot();
+		var roundCompletedSuccessfully = winner != LargeLadWinner.None;
+
+		foreach ( var player in players )
+		{
+			var identity = player.GetRoleSelectionSessionIdentity();
+			player.CommitFullRoundCompletion(
+				activeRoundStarterIdentities.Contains( identity ),
+				isConnectedAtCompletion: true,
+				roundCompletedSuccessfully );
+		}
+
+		roleSelectionSessionState =
+			LargeLadRoleSelectionRules.MarkRoundCompleted(
+				roleSelectionSessionState,
+				roundCompletedSuccessfully );
+		activeRoundStarterIdentities.Clear();
 
 		foreach ( var player in players )
 		{
@@ -1331,6 +1428,10 @@ public sealed class LargeLadGameManager : Component
 
 	private void FinishIntermission( List<LargeLadPlayer> players )
 	{
+		roleSelectionSessionState =
+			LargeLadRoleSelectionRules.PrepareNextRound(
+				roleSelectionSessionState );
+		activeRoundStarterIdentities.Clear();
 		PhaseEndTime = 0.0f;
 		ResetSurvivalRoundTiming();
 		ResetLastSkinnyKidState();
@@ -1684,6 +1785,10 @@ public sealed class LargeLadGameManager : Component
 
 		activeMapDescriptor = null;
 		var players = GetActivePlayerSnapshot();
+		roleSelectionSessionState =
+			LargeLadRoleSelectionRules.AbortForMapTransition(
+				roleSelectionSessionState );
+		activeRoundStarterIdentities.Clear();
 
 		foreach ( var player in players )
 		{
@@ -1877,6 +1982,14 @@ public sealed class LargeLadGameManager : Component
 		{
 			player.CancelEatParticipationForLifecycle();
 			player.NativeInventory?.HandleDisconnect();
+
+			var identity = player.GetRoleSelectionSessionIdentity();
+			firstRoundBootstrapRosterIdentities.Remove( identity );
+			activeRoundStarterIdentities.Remove( identity );
+			roleSelectionSessionState =
+				LargeLadRoleSelectionRules.ForgetDisconnectedPlayer(
+					roleSelectionSessionState,
+					identity );
 		}
 
 		activePlayers.Remove( player );

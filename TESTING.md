@@ -204,13 +204,15 @@ external .NET build step is needed.
 
 ## Tab scoreboard and private role-preference checklist
 
-The deterministic `LargeLadRoleSelectionTests` cover the three accepted enum
-values, invalid-value rejection without changing settled state, preference-tier
-fallbacks, and round-robin fairness within the currently eligible tier. The host
-selects willing Large Lad players first, then players who do not care, and uses
-players who prefer Skinny Kid only when the roster provides no other candidate.
-The cursor advances after a successful round start so multiple players in the
-same tier rotate and wrap deterministically.
+The deterministic `LargeLadRoleSelectionTests` cover private preference value
+validation plus the full host selection contract: full-round eligibility, the
+first-session bootstrap roster, immediate-repeat exclusion, preference tiers,
+longest-waiting fairness, host-random true ties, and transactional history
+commits. The host first builds the ordinarily eligible pool, excludes the
+previous Large Lad when another eligible player exists, then ranks
+`PreferLargeLad`, `NoPreference`, and `PreferSkinnyKid`. Within the applicable
+tier, never-selected and longest-waiting players win; only genuine ties use
+host randomness.
 
 Use a listening host plus at least two remote clients through `game_shell.scene`
 for the engine input, focus, ownership, and recipient filtering that pure tests
@@ -253,19 +255,49 @@ do not emulate:
 16. Complete a map vote and runtime map transition. Confirm the persistent
     player object's preference survives and is returned owner-only when the
     scoreboard next opens.
-17. Start rounds with at least one `PreferLargeLad` player and confirm selection
-    comes only from willing players, rotating between multiple willing players.
-18. Repeat with no willing players and at least one `NoPreference` player;
-    confirm neutral players are selected before anyone preferring Skinny Kid.
-19. Set every connected player to `PreferSkinnyKid` and confirm the host still
-    selects one through the fair round-robin fallback so round flow cannot stall.
+17. Start a fresh server session with enough initial players and confirm the
+    first round starts even though nobody has full-round completion credit. The
+    successfully started roster becomes the one narrow bootstrap roster.
+18. Complete that round. Confirm each player who was present at successful start
+    and remains connected at completion gains ordinary Large Lad eligibility.
+    Death or conversion during the round must not revoke the credit.
+19. Join a new player during `HeadStart` or `Playing`. Confirm that player does
+    not receive credit for the active round and cannot be Large Lad in the
+    immediately following round, even if they choose `PreferLargeLad`.
+20. Keep that player connected from the next successful round start through its
+    completion. Confirm they then gain ordinary eligibility for later rounds.
+21. Disconnect a round starter before completion and confirm they receive no
+    credit. Reconnecting creates a new session and must not restore eligibility
+    or fairness history from the old connection.
+22. Make the previous Large Lad the only `PreferLargeLad` volunteer while another
+    eligible player is neutral. Confirm the previous Large Lad is excluded first
+    and the neutral player is selected. Then repeat with literally no other
+    eligible candidate and confirm the previous Large Lad may repeat.
+23. Give two eligible, non-previous players the same preference and different
+    last-selection histories. Confirm the player who has waited longer is chosen;
+    a never-selected player must outrank a recently selected player.
+24. Create a genuine tie in eligibility, repeat status, preference, and fairness
+    history. Repeat enough times to confirm the host chooses only between those
+    tied finalists and never chooses a lower preference tier.
+25. Force Hunter or Skinny Kid batch allocation to fail after prospective
+    selection. Confirm the round remains fail-closed and neither the successful
+    round ordinal, previous Large Lad, nor selected player's fairness history
+    changes. Restore valid spawns and confirm one successful start commits the
+    selected history exactly once.
+26. Perform a map vote and runtime transition. Confirm each connected player's
+    private preference, full-round eligibility, and last-selection history, plus
+    the manager's previous-Large-Lad identity, bootstrap state, and global
+    fairness ordinal all survive. A round interrupted by the transition must not
+    grant completion credit.
 
 ## Persistent session and map reload checklist
 
-1. Start the game normally. Confirm `game_shell.scene` supplies exactly one
-   persistent bootstrap with one `LargeLadSessionCoordinator`,
-   `LargeLadGameManager`, `LargeLadSpawnAllocator`, and `NetworkHelper`, plus one
-   separate root-level Snapshot `Map Content Host` with the sole `MapInstance`.
+1. Start the game normally with a listening host and remote clients. On the host
+   and every client, confirm `game_shell.scene` supplies exactly one persistent
+   bootstrap with one `LargeLadSessionCoordinator`, `LargeLadGameManager`,
+   `LargeLadSpawnAllocator`, and `NetworkHelper`, plus exactly one separate
+   root-level **Snapshot** `Map Content Host` with the sole `MapInstance` and
+   `UseMapFromLaunch = false`.
 2. Confirm Gym appears only beneath `Map Content Host` and contains none of the
    session-global components itself.
 3. On a listening host, observe `WaitingForInitialMapSelection -> Loading ->

@@ -33,6 +33,7 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 	private bool lastLocalUiInputSuppressed;
 	private LargeLadRolePreference authoritativeRolePreference =
 		LargeLadRolePreference.NoPreference;
+	private LargeLadRoleSelectionHistory roleSelectionHistory;
 	private int nextLocalRolePreferenceRequestId;
 
 	[Property, RequireComponent]
@@ -433,6 +434,63 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 				authoritativeRolePreference )
 			? authoritativeRolePreference
 			: LargeLadRolePreference.NoPreference;
+	}
+
+	internal string GetRoleSelectionSessionIdentity()
+	{
+		return Networking.IsHost
+			? Network.OwnerId.ToString( "N" )
+			: string.Empty;
+	}
+
+	internal LargeLadRoleSelectionHistory GetRoleSelectionHistory()
+	{
+		return Networking.IsHost
+			? roleSelectionHistory
+			: default;
+	}
+
+	internal LargeLadRoleSelectionCandidate BuildRoleSelectionCandidate(
+		bool isOrdinarilyEligible,
+		bool isBootstrapEligible,
+		bool wasPreviousLargeLad )
+	{
+		var history = GetRoleSelectionHistory();
+		return new LargeLadRoleSelectionCandidate(
+			GetRoleSelectionSessionIdentity(),
+			GetAuthoritativeRolePreference(),
+			isOrdinarilyEligible,
+			isBootstrapEligible,
+			wasPreviousLargeLad,
+			history.HasBeenLargeLad,
+			history.LastLargeLadSelectionOrdinal );
+	}
+
+	internal void CommitLargeLadSelection( long selectionOrdinal )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		roleSelectionHistory =
+			LargeLadRoleSelectionRules.CommitLargeLadSelection(
+				roleSelectionHistory,
+				selectionOrdinal );
+	}
+
+	internal void CommitFullRoundCompletion(
+		bool wasPresentAtSuccessfulStart,
+		bool isConnectedAtCompletion,
+		bool roundCompletedSuccessfully )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		roleSelectionHistory =
+			LargeLadRoleSelectionRules.CommitFullRoundCompletion(
+				roleSelectionHistory,
+				wasPresentAtSuccessfulStart,
+				isConnectedAtCompletion,
+				roundCompletedSuccessfully );
 	}
 
 	[Rpc.Host]
