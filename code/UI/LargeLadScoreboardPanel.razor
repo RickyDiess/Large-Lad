@@ -20,8 +20,11 @@
 
 				<div class="column-headings">
 					<div class="name-column">Player</div>
-					<div class="preference-column">Your role preference</div>
 					<div class="status-column">Status</div>
+					<div class="stat-column">K</div>
+					<div class="stat-column">D</div>
+					<div class="stat-column">A</div>
+					<div class="preference-column">Your role preference</div>
 				</div>
 
 				<div class="player-list">
@@ -36,6 +39,11 @@
 								}
 							</div>
 
+							<div class="status-column role-status">@row.Status</div>
+							<div class="stat-column stat-value">@row.Player.SessionKills</div>
+							<div class="stat-column stat-value">@row.Player.SessionDeaths</div>
+							<div class="stat-column stat-value">@row.Player.SessionAssists</div>
+
 							<div class="preference-column">
 								@if ( row.IsLocal )
 								{
@@ -49,8 +57,6 @@
 									}
 								}
 							</div>
-
-							<div class="status-column role-status">@row.Status</div>
 						</div>
 					}
 				</div>
@@ -254,6 +260,9 @@
 			hash.Add( row.DisplayName );
 			hash.Add( row.Status );
 			hash.Add( row.IsLocal );
+			hash.Add( row.Player.SessionKills );
+			hash.Add( row.Player.SessionDeaths );
+			hash.Add( row.Player.SessionAssists );
 
 			if ( row.IsLocal )
 			{

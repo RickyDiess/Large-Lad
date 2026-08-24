@@ -163,6 +163,7 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 	private int generatedGibSequence;
 	private bool? appliedDestroyedState;
 	private bool? appliedPassageOpenState;
+	private LargeLadDamageContext? pendingAuthoritativeDestructionDamage;
 
 	public Vector3 GetClosestWorldPoint( Vector3 worldPoint )
 	{
@@ -445,13 +446,16 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 		appliedDamage = damage.WithAppliedDamage( amount );
 
 		if ( CurrentHealth <= 0.0f )
+		{
+			pendingAuthoritativeDestructionDamage = appliedDamage;
 			IsDestroyed = true;
+		}
 
 		RefreshAuthoritativeStageState();
 		RefreshPresentation();
 
 		if ( IsDestroyed )
-			CommitAuthoritativeDestruction();
+			CommitAuthoritativeDestruction( appliedDamage );
 
 		return true;
 	}
@@ -464,6 +468,7 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 		ResolveAuthoredParts();
 		EnsureAuthoredStateCaptured();
 		destructionGate.ResetForRound();
+		pendingAuthoritativeDestructionDamage = null;
 		isResettingForRound = true;
 
 		try
@@ -538,11 +543,13 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 
 		if ( newValue && !oldValue )
 		{
-			CommitAuthoritativeDestruction();
+			CommitAuthoritativeDestruction(
+				pendingAuthoritativeDestructionDamage );
 		}
 	}
 
-	private void CommitAuthoritativeDestruction()
+	private void CommitAuthoritativeDestruction(
+		LargeLadDamageContext? finalDamage = null )
 	{
 		if ( !Networking.IsHost ||
 			!IsDestroyed ||
@@ -552,6 +559,13 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 		}
 
 		var manager = LargeLadGameManager.FindForScene( Scene );
+		var committedDamage = finalDamage ??
+			pendingAuthoritativeDestructionDamage;
+		pendingAuthoritativeDestructionDamage = null;
+
+		if ( committedDamage is { } damage )
+			manager?.HandleAuthoritativeBarricadeDestruction( this, damage );
+
 		manager?.PublishBarricadeDestructionAnnouncement(
 			AnnounceDestruction,
 			Mode,

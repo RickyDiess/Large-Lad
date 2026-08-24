@@ -67,6 +67,15 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 	[Sync( SyncFlags.FromHost ), Change( nameof( OnRoleChanged ) )]
 	public LargeLadRole Role { get; private set; } = LargeLadRole.Unassigned;
 
+	[Sync( SyncFlags.FromHost )]
+	public int SessionKills { get; private set; }
+
+	[Sync( SyncFlags.FromHost )]
+	public int SessionDeaths { get; private set; }
+
+	[Sync( SyncFlags.FromHost )]
+	public int SessionAssists { get; private set; }
+
 	/// <summary>
 	/// The host-accepted preference visible only on this player's owning peer.
 	/// This is intentionally not synchronized to observers.
@@ -598,6 +607,74 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 
 		return IsOwnedByConnection( Connection.Local ) ||
 			(Networking.IsHost && IsOwnedByConnection( Connection.Host ));
+	}
+
+	internal void CommitSessionKill()
+	{
+		if ( Networking.IsHost )
+			SessionKills++;
+	}
+
+	internal void CommitSessionDeath()
+	{
+		if ( Networking.IsHost )
+			SessionDeaths++;
+	}
+
+	internal void CommitSessionAssist()
+	{
+		if ( Networking.IsHost )
+			SessionAssists++;
+	}
+
+	/// <summary>
+	/// Host-decided career deltas are delivered to this network object's owner.
+	/// The receiving peer revalidates the fixed identifier catalog before
+	/// touching its own local s&box Stats service context.
+	/// </summary>
+	internal void SubmitCareerStats(
+		IEnumerable<LargeLadStatDelta> earnedDeltas )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		var owner = Network.Owner ?? Connection.Find( Network.OwnerId );
+		if ( owner is null || !owner.IsActive )
+			return;
+
+		foreach ( var delta in LargeLadCareerStatRules.Aggregate(
+			earnedDeltas ) )
+		{
+			ReceiveCareerStatIncrement( delta.Identifier, delta.Amount );
+		}
+	}
+
+	[Rpc.Owner( NetFlags.HostOnly )]
+	private void ReceiveCareerStatIncrement(
+		string identifier,
+		int amount )
+	{
+		if ( !LargeLadCareerStatRules.CanSubmitInLocalServiceContext(
+			Application.IsDedicatedServer,
+			IsOwnedByLocalPlayer(),
+			identifier,
+			amount ) )
+		{
+			return;
+		}
+
+		try
+		{
+			Sandbox.Services.Stats.Increment( identifier, amount );
+		}
+		catch ( System.Exception exception )
+		{
+			// Career persistence is a side effect of an already-committed host
+			// event. Service availability must never affect gameplay state.
+			Log.Warning(
+				$"Large Lad could not submit career stat '{identifier}' for " +
+				$"{GameObject.Name}: {exception.Message}" );
+		}
 	}
 
 	private bool IsOwnedByConnection( Connection connection )

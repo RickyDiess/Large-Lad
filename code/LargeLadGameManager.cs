@@ -28,6 +28,8 @@ public sealed class LargeLadGameManager : Component
 	public const int TargetPlayerCount = 32;
 	private const float BarricadeAnnouncementDuration = 3.5f;
 	private const float LastSkinnyKidAnnouncementDuration = 4.0f;
+	private const float KillfeedEntryDuration = 6.5f;
+	private const int MaximumKillfeedEntries = 6;
 	private readonly LargeLadRoundBalanceSettings defaultRoundBalanceSettings =
 		new();
 
@@ -183,13 +185,11 @@ public sealed class LargeLadGameManager : Component
 			: null;
 
 	/// <summary>
-	/// Host-only lethal attribution hook for scoring and kill-feed systems.
-	/// The damage envelope retains the attacker, weapon, shot sequence, hit
-	/// region, and stable killfeed cause.
+	/// Host-only notification emitted after all built-in consumers have received
+	/// the one committed death record.
 	/// </summary>
-	public event System.Action<
-		LargeLadPlayer,
-		LargeLadDamageContext> AuthoritativePlayerKilled;
+	public event System.Action<LargeLadDeathRecord>
+		AuthoritativeDeathCommitted;
 
 	public float PhaseTimeRemaining =>
 		Phase == LargeLadRoundPhase.WaitingForPlayers
@@ -300,6 +300,38 @@ public sealed class LargeLadGameManager : Component
 		return true;
 	}
 
+	internal void HandleAuthoritativeBarricadeDestruction(
+		LargeLadBarricade barricade,
+		LargeLadDamageContext finalDamage )
+	{
+		if ( !Networking.IsHost ||
+			!OwnsSceneGameplay() ||
+			!IsRoundActive ||
+			barricade is null ||
+			!barricade.IsValid ||
+			barricade.Scene != Scene ||
+			!barricade.IsDestroyed ||
+			finalDamage.AppliedDamage <= 0.0f ||
+			!LargeLadGameplayRules.CanDamageBarricade(
+				barricade.Mode,
+				finalDamage.AttackerRole,
+				finalDamage.DamageType ) ||
+			!TryResolveRegisteredAttacker(
+				victim: null,
+				finalDamage.Attacker,
+				out var attacker,
+				out _ ) )
+		{
+			return;
+		}
+
+		attacker.SubmitCareerStats(
+			LargeLadCareerStatRules.GetBarricadeDestructionDeltas(
+				barricade.Mode,
+				finalDamage.AttackerRole,
+				isFinalAuthoritativeDestruction: true ) );
+	}
+
 	[Rpc.Broadcast]
 	private void BroadcastBarricadeDestructionAnnouncement( string message )
 	{
@@ -353,14 +385,27 @@ public sealed class LargeLadGameManager : Component
 	private TimeSince timeSinceBarricadeDestructionAnnouncement;
 	private string lastSkinnyKidAnnouncement;
 	private TimeSince timeSinceLastSkinnyKidAnnouncement;
+	private TimeSince timeSinceContributionPrune;
 	private int previousEffectiveLivingSkinnyKidCount;
 	private bool hasAnnouncedLastSkinnyKidThisRound;
+	private int activeRoundSequenceId;
+	private int nextDeathEventSequenceId;
+	private int lastReceivedKillfeedEventSequenceId;
+	private int committedLargeLadDeathsThisRound;
+	private string activeRoundLargeLadIdentity;
 	private readonly List<LargeLadPlayer> activePlayers = new();
 	private readonly HashSet<LargeLadPlayer> registeredPlayers = new();
 	private readonly HashSet<string> firstRoundBootstrapRosterIdentities =
 		new( StringComparer.Ordinal );
 	private readonly HashSet<string> activeRoundStarterIdentities =
 		new( StringComparer.Ordinal );
+	private readonly Dictionary<string, LargeLadRole>
+		activeRoundStartingRoles = new( StringComparer.Ordinal );
+	private readonly HashSet<string> lastSkinnyKidIdentitiesThisRound =
+		new( StringComparer.Ordinal );
+	private readonly LargeLadRecentDamageStore recentDamageContributions = new();
+	private readonly LargeLadRoundOutcomeCommitGate roundOutcomeCommitGate = new();
+	private readonly List<LargeLadKillfeedEntry> localKillfeedEntries = new();
 	private readonly Dictionary<LargeLadRole, List<LargeLadPlayer>> playersByRole =
 		new()
 		{
@@ -394,6 +439,19 @@ public sealed class LargeLadGameManager : Component
 		{
 			PruneInvalidRegistrations();
 			return activePlayers;
+		}
+	}
+
+	/// <summary>
+	/// The small local presentation queue populated by reliable host death RPCs.
+	/// It is neither synchronized state nor replayed to late joiners.
+	/// </summary>
+	public IReadOnlyList<LargeLadKillfeedEntry> KillfeedEntries
+	{
+		get
+		{
+			PruneExpiredKillfeedEntries();
+			return localKillfeedEntries;
 		}
 	}
 
@@ -780,8 +838,18 @@ public sealed class LargeLadGameManager : Component
 
 	protected override void OnUpdate()
 	{
+		PruneExpiredKillfeedEntries();
+
 		if ( !Networking.IsHost || !OwnsSceneGameplay() )
 			return;
+
+		if ( timeSinceContributionPrune >= 1.0f )
+		{
+			timeSinceContributionPrune = 0.0f;
+			recentDamageContributions.Prune(
+				activeRoundSequenceId,
+				Time.Now );
+		}
 
 		// Readiness is callback-authored by the session coordinator. While the
 		// map is absent, loading, unloading, or invalid, no round state advances.
@@ -972,6 +1040,21 @@ public sealed class LargeLadGameManager : Component
 		activeRoundStarterIdentities.Clear();
 		activeRoundStarterIdentities.UnionWith(
 			playersBySessionIdentity.Keys );
+		activeRoundStartingRoles.Clear();
+
+		foreach ( var rosterEntry in playersBySessionIdentity )
+		{
+			activeRoundStartingRoles[rosterEntry.Key] =
+				rosterEntry.Value == largeLad
+					? LargeLadRole.LargeLad
+					: LargeLadRole.SkinnyKid;
+		}
+
+		activeRoundSequenceId++;
+		activeRoundLargeLadIdentity = candidate.SessionIdentity;
+		committedLargeLadDeathsThisRound = 0;
+		recentDamageContributions.Clear();
+		roundOutcomeCommitGate.ResetForSuccessfulRoundStart();
 
 		// Player-held exclusive and utility items are cleared before their
 		// authored pickups reset, so a reset can never create a second copy.
@@ -1091,13 +1174,16 @@ public sealed class LargeLadGameManager : Component
 		}
 
 		Winner = winner;
+		var players = GetActivePlayerSnapshot();
+		var roundCompletedSuccessfully = winner != LargeLadWinner.None;
+		CommitRoundCareerStats(
+			winner,
+			players,
+			roundCompletedSuccessfully );
 		ResetSurvivalRoundTiming();
 		ResetLastSkinnyKidState();
 		SetPhaseDeadline( IntermissionDuration );
 		SetPhase( LargeLadRoundPhase.RoundOver );
-
-		var players = GetActivePlayerSnapshot();
-		var roundCompletedSuccessfully = winner != LargeLadWinner.None;
 
 		foreach ( var player in players )
 		{
@@ -1113,6 +1199,8 @@ public sealed class LargeLadGameManager : Component
 				roleSelectionSessionState,
 				roundCompletedSuccessfully );
 		activeRoundStarterIdentities.Clear();
+		activeRoundStartingRoles.Clear();
+		activeRoundLargeLadIdentity = null;
 
 		foreach ( var player in players )
 		{
@@ -1156,6 +1244,56 @@ public sealed class LargeLadGameManager : Component
 			: "Large Lad team";
 		Log.Info( $"Round over. {winnerName} won. Next round in {IntermissionDuration:0.#} seconds." );
 		SessionCoordinator?.NotifyRoundCompleted( this, winner );
+	}
+
+	private void CommitRoundCareerStats(
+		LargeLadWinner winner,
+		IReadOnlyList<LargeLadPlayer> players,
+		bool roundCompletedSuccessfully )
+	{
+		if ( !roundOutcomeCommitGate.TryCommit(
+			roundCompletedSuccessfully ) )
+		{
+			return;
+		}
+
+		foreach ( var player in players ?? Array.Empty<LargeLadPlayer>() )
+		{
+			if ( player is null ||
+				!player.IsValid ||
+				!player.Enabled ||
+				player.Scene != Scene )
+			{
+				continue;
+			}
+
+			var identity = player.GetRoleSelectionSessionIdentity();
+			var wasStarter = activeRoundStartingRoles.TryGetValue(
+				identity,
+				out var startingRole );
+			var isLiving = player.Health is not null &&
+				!player.Health.IsDead &&
+				player.Health.CurrentHealth > 0.0f;
+			var participant = new LargeLadRoundParticipantOutcome(
+				identity,
+				wasStarter,
+				IsConnectedAtCompletion: true,
+				startingRole,
+				GetEffectiveRoundRole( player ),
+				isLiving,
+				string.Equals(
+					identity,
+					activeRoundLargeLadIdentity,
+					StringComparison.Ordinal ),
+				lastSkinnyKidIdentitiesThisRound.Contains( identity ) );
+
+			player.SubmitCareerStats(
+				LargeLadCareerStatRules.GetRoundOutcomeDeltas(
+					winner,
+					roundCompletedSuccessfully,
+					committedLargeLadDeathsThisRound,
+					participant ) );
+		}
 	}
 
 	private void FinishIntermission( List<LargeLadPlayer> players )
@@ -1241,6 +1379,15 @@ public sealed class LargeLadGameManager : Component
 				hasAnnouncedLastSkinnyKidThisRound ) )
 		{
 			hasAnnouncedLastSkinnyKidThisRound = true;
+			var lastSkinnyKid = activePlayers.FirstOrDefault( player =>
+				registeredPlayers.Contains( player ) &&
+				IsEffectiveLivingSkinnyKid( player ) );
+			var identity = lastSkinnyKid?
+				.GetRoleSelectionSessionIdentity();
+
+			if ( !string.IsNullOrWhiteSpace( identity ) )
+				lastSkinnyKidIdentitiesThisRound.Add( identity );
+
 			PublishLastSkinnyKidAnnouncement();
 		}
 
@@ -1270,6 +1417,7 @@ public sealed class LargeLadGameManager : Component
 	{
 		previousEffectiveLivingSkinnyKidCount = 0;
 		hasAnnouncedLastSkinnyKidThisRound = false;
+		lastSkinnyKidIdentitiesThisRound.Clear();
 		lastSkinnyKidAnnouncement = null;
 		timeSinceLastSkinnyKidAnnouncement = 0.0f;
 	}
@@ -1310,8 +1458,9 @@ public sealed class LargeLadGameManager : Component
 			return false;
 		}
 
+		var victimRole = player.Role;
 		var plan = LargeLadGameplayRules.ResolveDeathPlan(
-			player.Role,
+			victimRole,
 			damage.DamageType,
 			LargeLadRespawnDelay,
 			PlayerRespawnDelay );
@@ -1329,7 +1478,10 @@ public sealed class LargeLadGameManager : Component
 		player.SetPendingRespawnRole( plan.ResultingRole );
 		player.MovementLocked = true;
 
-		var conversion = player.Role == LargeLadRole.SkinnyKid
+		var convertedToMinion =
+			victimRole == LargeLadRole.SkinnyKid &&
+			plan.ResultingRole == LargeLadRole.Minion;
+		var conversion = convertedToMinion
 			? " and will convert to a Minion"
 			: string.Empty;
 
@@ -1341,10 +1493,349 @@ public sealed class LargeLadGameManager : Component
 				$"{plan.RespawnDelay:0.#} seconds." );
 		}
 
-		AuthoritativePlayerKilled?.Invoke( player, damage );
+		CommitAuthoritativeDeath(
+			player,
+			victimRole,
+			damage,
+			convertedToMinion );
 		RefreshLastSkinnyKidState();
 		EvaluateWinnerAfterLifecycleChange();
 		return true;
+	}
+
+	/// <summary>
+	/// Receives only applied, nonlethal health transactions. A lethal hit is
+	/// represented directly by CommitAuthoritativeDeath, while a rejected lethal
+	/// is rolled back by LargeLadHealth and never reaches this method.
+	/// </summary>
+	internal void RecordAppliedPlayerDamage(
+		LargeLadPlayer victim,
+		LargeLadDamageContext damage )
+	{
+		if ( !Networking.IsHost ||
+			!OwnsSceneGameplay() ||
+			!IsRoundActive ||
+			victim is null ||
+			!registeredPlayers.Contains( victim ) ||
+			!TryResolveRegisteredAttacker(
+				victim,
+				damage.Attacker,
+				out _,
+				out var attackerIdentity ) )
+		{
+			return;
+		}
+
+		var victimIdentity = victim.GetRoleSelectionSessionIdentity();
+		if ( !LargeLadCombatAttributionRules.IsValidContribution(
+			victimIdentity,
+			victim.Role,
+			attackerIdentity,
+			damage.AttackerRole,
+			damage.AppliedDamage ) )
+		{
+			return;
+		}
+
+		recentDamageContributions.Record(
+			new LargeLadDamageContribution(
+				victimIdentity,
+				victim.Role,
+				attackerIdentity,
+				damage.AttackerRole,
+				activeRoundSequenceId,
+				Time.Now,
+				damage.AppliedDamage,
+				damage.DamageType,
+				damage.SourceWeapon ) );
+	}
+
+	private void CommitAuthoritativeDeath(
+		LargeLadPlayer victim,
+		LargeLadRole victimRole,
+		LargeLadDamageContext damage,
+		bool convertedToMinion )
+	{
+		var now = Time.Now;
+		var victimIdentity = victim.GetRoleSelectionSessionIdentity();
+		var contributions = recentDamageContributions.Consume(
+			victimIdentity,
+			activeRoundSequenceId,
+			now );
+		var validContributions = contributions
+			.Where( contribution => TryFindRegisteredPlayerBySessionIdentity(
+				contribution.AttackerSessionIdentity,
+				out _ ) )
+			.ToArray();
+		LargeLadPlayer creditedKiller = null;
+		var creditedKillerIdentity = string.Empty;
+		var creditedKillerRole = LargeLadRole.Unassigned;
+		var inheritedEnvironmentCredit = false;
+
+		if ( damage.DamageType != LargeLadDamageType.Environment &&
+			TryResolveRegisteredAttacker(
+				victim,
+				damage.Attacker,
+				out var directAttacker,
+				out var directAttackerIdentity ) &&
+			LargeLadCombatAttributionRules.IsDirectKillCreditEligible(
+				victimIdentity,
+				victimRole,
+				directAttackerIdentity,
+				damage.AttackerRole,
+				damage.DamageType,
+				damage.AppliedDamage ) )
+		{
+			creditedKiller = directAttacker;
+			creditedKillerIdentity = directAttackerIdentity;
+			creditedKillerRole = damage.AttackerRole;
+		}
+		else if ( damage.DamageType == LargeLadDamageType.Environment &&
+			LargeLadCombatAttributionRules.ResolveEnvironmentalKiller(
+				validContributions,
+				activeRoundSequenceId,
+				now ) is { } inheritedContribution &&
+			TryFindRegisteredPlayerBySessionIdentity(
+				inheritedContribution.AttackerSessionIdentity,
+				out var inheritedKiller ) )
+		{
+			// The most recent valid hostile contributor receives general/role
+			// credit, but the lethal cause remains visibly environmental.
+			creditedKiller = inheritedKiller;
+			creditedKillerIdentity =
+				inheritedContribution.AttackerSessionIdentity;
+			creditedKillerRole = inheritedContribution.AttackerRole;
+			inheritedEnvironmentCredit = true;
+		}
+
+		var assistantIdentities =
+			LargeLadCombatAttributionRules.ResolveAssistantIdentities(
+				validContributions,
+				victimIdentity,
+				creditedKillerIdentity,
+				activeRoundSequenceId,
+				now )
+			.Where( identity => TryFindRegisteredPlayerBySessionIdentity(
+				identity,
+				out _ ) )
+			.ToArray();
+		var record = new LargeLadDeathRecord
+		{
+			EventSequenceId = ++nextDeathEventSequenceId,
+			RoundSequenceId = activeRoundSequenceId,
+			Victim = victim,
+			VictimSessionIdentity = victimIdentity,
+			VictimDisplayName = GetPlayerDisplayName( victim ),
+			VictimRole = victimRole,
+			CreditedKiller = creditedKiller,
+			CreditedKillerSessionIdentity = creditedKillerIdentity,
+			CreditedKillerDisplayName = creditedKiller is null
+				? null
+				: GetPlayerDisplayName( creditedKiller ),
+			CreditedKillerRole = creditedKillerRole,
+			KillfeedCause = damage.KillfeedCause,
+			SourceWeapon = inheritedEnvironmentCredit
+				? LargeLadWeaponId.None
+				: damage.SourceWeapon,
+			HitRegion = inheritedEnvironmentCredit
+				? LargeLadHitRegion.None
+				: damage.HitRegion,
+			DamageType = damage.DamageType,
+			WasEatExecution =
+				damage.DamageType == LargeLadDamageType.Eat &&
+				damage.IsExecution,
+			WasEnvironmentalInfluenceKill = inheritedEnvironmentCredit,
+			ConvertedToMinion = convertedToMinion,
+			AssistantSessionIdentities = assistantIdentities
+		};
+
+		if ( victimRole == LargeLadRole.LargeLad )
+			committedLargeLadDeathsThisRound++;
+
+		victim.CommitSessionDeath();
+		victim.SubmitCareerStats(
+			LargeLadCareerStatRules.GetVictimDeltas( record ) );
+
+		if ( creditedKiller is not null )
+		{
+			creditedKiller.CommitSessionKill();
+			creditedKiller.SubmitCareerStats(
+				LargeLadCareerStatRules.GetKillerDeltas( record ) );
+		}
+
+		foreach ( var assistantIdentity in assistantIdentities )
+		{
+			if ( !TryFindRegisteredPlayerBySessionIdentity(
+				assistantIdentity,
+				out var assistant ) )
+			{
+				continue;
+			}
+
+			assistant.CommitSessionAssist();
+			assistant.SubmitCareerStats(
+				LargeLadCareerStatRules.GetAssistantDeltas() );
+		}
+
+		PublishKillfeedEntry( record );
+		AuthoritativeDeathCommitted?.Invoke( record );
+	}
+
+	private bool TryResolveRegisteredAttacker(
+		LargeLadPlayer victim,
+		GameObject attackerObject,
+		out LargeLadPlayer attacker,
+		out string attackerIdentity )
+	{
+		attacker = null;
+		attackerIdentity = string.Empty;
+
+		if ( attackerObject is null || !attackerObject.IsValid )
+			return false;
+
+		attacker = attackerObject.Components.Get<LargeLadPlayer>(
+			FindMode.EverythingInSelfAndAncestors );
+
+		if ( attacker is null ||
+			!attacker.IsValid ||
+			!attacker.Enabled ||
+			attacker == victim ||
+			attacker.Scene != Scene ||
+			!registeredPlayers.Contains( attacker ) )
+		{
+			return false;
+		}
+
+		attackerIdentity = attacker.GetRoleSelectionSessionIdentity();
+		return !string.IsNullOrWhiteSpace( attackerIdentity );
+	}
+
+	private bool TryFindRegisteredPlayerBySessionIdentity(
+		string sessionIdentity,
+		out LargeLadPlayer player )
+	{
+		player = null;
+
+		if ( string.IsNullOrWhiteSpace( sessionIdentity ) )
+			return false;
+
+		player = activePlayers.FirstOrDefault( candidate =>
+			candidate is not null &&
+			candidate.IsValid &&
+			candidate.Enabled &&
+			candidate.Scene == Scene &&
+			registeredPlayers.Contains( candidate ) &&
+			string.Equals(
+				candidate.GetRoleSelectionSessionIdentity(),
+				sessionIdentity,
+				StringComparison.Ordinal ) );
+		return player is not null;
+	}
+
+	private static string GetPlayerDisplayName( LargeLadPlayer player )
+	{
+		if ( player is null )
+			return "Unknown Player";
+
+		var connection = player.Network.Owner ??
+			Connection.Find( player.Network.OwnerId );
+		return string.IsNullOrWhiteSpace( connection?.DisplayName )
+			? player.GameObject.Name
+			: connection.DisplayName;
+	}
+
+	private void PublishKillfeedEntry( LargeLadDeathRecord record )
+	{
+		var causeLabel = LargeLadKillfeedPresentationRules.GetCauseLabel(
+			record.KillfeedCause,
+			record.SourceWeapon );
+		ReceiveKillfeedEntry(
+			record.EventSequenceId,
+			record.CreditedKillerDisplayName,
+			record.VictimDisplayName,
+			causeLabel,
+			record.KillfeedCause,
+			record.WasEnvironmentalInfluenceKill );
+		BroadcastKillfeedEntry(
+			record.EventSequenceId,
+			record.CreditedKillerDisplayName,
+			record.VictimDisplayName,
+			causeLabel,
+			record.KillfeedCause,
+			record.WasEnvironmentalInfluenceKill );
+	}
+
+	[Rpc.Broadcast( NetFlags.HostOnly )]
+	private void BroadcastKillfeedEntry(
+		int eventSequenceId,
+		string killerDisplayName,
+		string victimDisplayName,
+		string causeLabel,
+		LargeLadKillfeedCause cause,
+		bool wasEnvironmentalInfluenceKill )
+	{
+		if ( Networking.IsHost )
+			return;
+
+		ReceiveKillfeedEntry(
+			eventSequenceId,
+			killerDisplayName,
+			victimDisplayName,
+			causeLabel,
+			cause,
+			wasEnvironmentalInfluenceKill );
+	}
+
+	private void ReceiveKillfeedEntry(
+		int eventSequenceId,
+		string killerDisplayName,
+		string victimDisplayName,
+		string causeLabel,
+		LargeLadKillfeedCause cause,
+		bool wasEnvironmentalInfluenceKill )
+	{
+		if ( eventSequenceId <= lastReceivedKillfeedEventSequenceId )
+			return;
+
+		lastReceivedKillfeedEventSequenceId = eventSequenceId;
+		localKillfeedEntries.Add( new LargeLadKillfeedEntry
+		{
+			EventSequenceId = eventSequenceId,
+			KillerDisplayName = killerDisplayName,
+			VictimDisplayName = string.IsNullOrWhiteSpace( victimDisplayName )
+				? "Unknown Player"
+				: victimDisplayName,
+			CauseLabel = string.IsNullOrWhiteSpace( causeLabel )
+				? "DEFEATED"
+				: causeLabel,
+			Cause = cause,
+			WasEnvironmentalInfluenceKill =
+				wasEnvironmentalInfluenceKill,
+			ExpiresAt = Time.Now + KillfeedEntryDuration
+		} );
+
+		while ( localKillfeedEntries.Count > MaximumKillfeedEntries )
+			localKillfeedEntries.RemoveAt( 0 );
+	}
+
+	private void PruneExpiredKillfeedEntries()
+	{
+		var now = Time.Now;
+		localKillfeedEntries.RemoveAll( entry => entry.ExpiresAt <= now );
+	}
+
+	private void ClearLocalKillfeed()
+	{
+		localKillfeedEntries.Clear();
+	}
+
+	[Rpc.Broadcast( NetFlags.HostOnly )]
+	private void BroadcastClearKillfeed()
+	{
+		if ( Networking.IsHost )
+			return;
+
+		ClearLocalKillfeed();
 	}
 
 	public void RequestEnvironmentalDeath( LargeLadPlayer player )
@@ -1531,6 +2022,15 @@ public sealed class LargeLadGameManager : Component
 			LargeLadRoleSelectionRules.AbortForMapTransition(
 				roleSelectionSessionState );
 		activeRoundStarterIdentities.Clear();
+		activeRoundStartingRoles.Clear();
+		activeRoundLargeLadIdentity = null;
+		committedLargeLadDeathsThisRound = 0;
+		recentDamageContributions.Clear();
+		roundOutcomeCommitGate.Abort();
+		ClearLocalKillfeed();
+
+		if ( Game.IsPlaying )
+			BroadcastClearKillfeed();
 
 		foreach ( var player in players )
 		{
@@ -1663,6 +2163,9 @@ public sealed class LargeLadGameManager : Component
 			var identity = player.GetRoleSelectionSessionIdentity();
 			firstRoundBootstrapRosterIdentities.Remove( identity );
 			activeRoundStarterIdentities.Remove( identity );
+			activeRoundStartingRoles.Remove( identity );
+			lastSkinnyKidIdentitiesThisRound.Remove( identity );
+			recentDamageContributions.RemovePlayer( identity );
 			roleSelectionSessionState =
 				LargeLadRoleSelectionRules.ForgetDisconnectedPlayer(
 					roleSelectionSessionState,

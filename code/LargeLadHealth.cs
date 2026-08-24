@@ -298,7 +298,15 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable,
 			// retry the same lethal edge after registry/bootstrap recovery.
 			CurrentHealth = previousHealth;
 			appliedDamage = damage.WithAppliedDamage( 0.0f );
+			return false;
 		}
+
+		// Only damage which remains committed enters the bounded host-side
+		// influence history. Lethal damage is represented directly by the one
+		// death record above; a rejected lethal was rolled back and records nothing.
+		GetGameManager()?.RecordAppliedPlayerDamage(
+			player,
+			appliedDamage );
 
 		return false;
 	}

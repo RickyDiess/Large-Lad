@@ -705,3 +705,77 @@ engine-independent role-ability presentation tests in `UnitTests/`.
 4. Repeat switching, utility selection, Exclusive drop, death, conversion, role
    change, round end/reset, late join, and map transition. Confirm no stale custom
    ability objects or native weapon models survive their owning state.
+
+## Stage 5 authoritative combat, session K/D/A, and lifetime Stats
+
+The deterministic `LargeLadStage5RulesTests` cover direct and environmental
+kill credit, the seven-second influence window, assist aggregation/exclusions,
+history consumption, exact combat and outcome deltas, the 27-ident catalog,
+perfect-win rules, and final barricade/shortcut awards. They do not emulate the
+s&box Stats backend or RPC transport.
+
+Use a listening host plus at least two remote clients for the authoritative
+multiplayer matrix:
+
+1. Kill a remote player from the host, then kill the host from a remote player.
+   Confirm every peer displays one identical transient killfeed entry and the
+   credited players' replicated session K/D/A changes exactly once.
+2. Commit lethal Pistol and SMG body shots, a firearm headshot, ordinary melee,
+   a dodgeball Minion kill, and a successful Eat. Confirm the feed's cause text
+   remains distinct, the headshot is visible, and Eat produces exactly one kill
+   plus one `skinny_kids_eaten` career increment only after execution completes.
+3. Enter a kill volume without prior damage. Confirm the feed shows pure
+   `ENVIRONMENT`, the victim receives one session/lifetime death, and no player
+   receives a kill.
+4. Damage an opponent and push/lead them into a kill volume within seven
+   seconds. Confirm the most recent valid hostile contributor receives the kill,
+   the feed still says `ENVIRONMENT`, and no old weapon/headshot/method counter
+   is awarded. Repeat after more than seven seconds and confirm pure environment.
+5. Have two opposing players damage one victim, including repeated hits from one
+   assistant, then commit the death with the other attacker. Confirm one kill,
+   one death, and exactly one assist per distinct eligible non-killer. Repeat with
+   friendly/self contact and confirm it never enters assistance history.
+6. Begin an Eat after valid outside damage. Confirm the earlier contribution may
+   assist the committed execution, outside damage cannot apply during the locked
+   Eat commit, and neither Eat start/cancel nor duplicate lethal callbacks create
+   feed, K/D/A, or lifetime increments.
+7. Kill a Skinny Kid and confirm the death and conversion are each committed
+   once, the player respawns as a Minion, previous-life contribution history is
+   gone, and later damage cannot reuse an old assist.
+8. Kill the Large Lad, allow the respawn, and win as Hunters. Confirm
+   `large_lad_wins` increments but `perfect_large_lad_wins` does not. In a fresh
+   round, win without any Large Lad death and confirm both counters increment.
+9. Complete a Skinny victory with ordinary living Skinny Kids. Then complete one
+   after a player authoritatively became Last Skinny Kid and survived. Confirm
+   only the latter receives `last_skinny_kid_survivals`. A player who later dies
+   or converts receives neither the Skinny win nor the survival counter.
+10. Convert a round-start Skinny Kid, then win as Hunters. Confirm that connected
+    full-round participant receives `rounds_played`, `skinny_rounds_played`, and
+    `minion_wins`, not `skinny_kid_wins`. Confirm a mid-round joiner and a starter
+    who disconnects before completion receive no completion/win counters.
+11. Destroy a Skinny Progression barricade with the final valid Skinny Kid melee
+    action and a Lad Shortcut with the Large Lad's Eat structural fallback.
+    Confirm the matching lifetime counter increments once only on final
+    destruction; intermediate stages, reset, cleanup, and invalid roles earn none.
+12. Hold Tab on every peer and confirm one row per connection with
+    `Name | Status | K | D | A`; only the local row retains its private role
+    preference control. Verify Tab hold/release, map-flow priority, cursor focus,
+    and combat/input suppression remain unchanged.
+13. Complete ordinary round boundaries and confirm session K/D/A persists. Run a
+    normal Stage 2 map vote/transition and confirm the same counters persist while
+    contribution history is cleared and cleanup creates no death, feed, assist,
+    conversion, destruction, round, win, or perfect-win artifact.
+14. Disconnect and reconnect a client. Confirm the new connection starts at
+    session K/D/A zero and old contribution records cannot resolve to it.
+15. In the published-package smoke test, create all definitions from `STATS.md`
+    under **Services → Stats**, then verify listening-host earnings reach the real
+    host account and each remote earning reaches only that remote owner's account.
+    Stats failures must not change gameplay/session results or block round flow.
+16. Launch the normal dedicated-server workflow. Confirm there is no server
+    pseudo-player and no Stats submission for the dedicated process; only real
+    connected player owners receive host-decided owner RPC deliveries.
+
+Unpublished/local editor sessions may not provide a meaningful backend account
+verification. In that case, record the owner-RPC/hotcompile result locally and
+perform steps 15–16 against the published package rather than claiming backend
+success from editor-only play.

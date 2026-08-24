@@ -53,6 +53,7 @@ public sealed class LargeLadHud : Component
 		DrawLargeLadStatus( hud, round, scale );
 		DrawBarricadeDestructionAnnouncement( hud, round, scale );
 		DrawLastSkinnyKidAnnouncement( hud, round, scale );
+		DrawKillfeed( hud, round, scale );
 		DrawRoleStatus( hud, player, scale );
 		DrawWeaponStatus( hud, player, scale );
 		DrawGroundSlamFeedback( hud, player, scale );
@@ -264,6 +265,68 @@ public sealed class LargeLadHud : Component
 			Inset( panel, 18.0f * scale, 8.0f * scale ),
 			TextFlag.Center | TextFlag.SingleLine,
 			BoldFontWeight );
+	}
+
+	private static void DrawKillfeed(
+		HudPainter hud,
+		LargeLadGameManager round,
+		float scale )
+	{
+		var entries = round.KillfeedEntries;
+		if ( entries.Count == 0 )
+			return;
+
+		var width = 470.0f * scale;
+		var height = 38.0f * scale;
+		var gap = 7.0f * scale;
+		var left = Screen.Width - width - 24.0f * scale;
+		var top = 24.0f * scale;
+		var visibleIndex = 0;
+
+		for ( var index = entries.Count - 1;
+			index >= 0 && visibleIndex < 6;
+			index--, visibleIndex++ )
+		{
+			var entry = entries[index];
+			var panel = new Rect(
+				left,
+				top + visibleIndex * (height + gap),
+				width,
+				height );
+			var text = entry.HasCreditedKiller
+				? $"{entry.KillerDisplayName}  {entry.CauseLabel}  " +
+					entry.VictimDisplayName
+				: $"{entry.CauseLabel}  {entry.VictimDisplayName}";
+
+			DrawPanel( hud, panel, GetKillfeedColor( entry.Cause ), scale );
+			DrawHudText(
+				hud,
+				text,
+				14.0f * scale,
+				10.0f * scale,
+				Color.White,
+				Inset( panel, 13.0f * scale, 5.0f * scale ),
+				TextFlag.RightCenter | TextFlag.SingleLine,
+				BoldFontWeight );
+		}
+	}
+
+	private static Color GetKillfeedColor( LargeLadKillfeedCause cause )
+	{
+		return cause switch
+		{
+			LargeLadKillfeedCause.FirearmHeadshot =>
+				new Color( 1.0f, 0.78f, 0.18f ),
+			LargeLadKillfeedCause.Eat =>
+				new Color( 1.0f, 0.22f, 0.08f ),
+			LargeLadKillfeedCause.Environment =>
+				new Color( 0.65f, 0.68f, 0.75f ),
+			LargeLadKillfeedCause.Dodgeball =>
+				new Color( 0.95f, 0.30f, 0.30f ),
+			LargeLadKillfeedCause.Melee =>
+				new Color( 0.72f, 0.35f, 1.0f ),
+			_ => new Color( 0.25f, 0.85f, 1.0f )
+		};
 	}
 
 	private static void DrawRoleStatus(

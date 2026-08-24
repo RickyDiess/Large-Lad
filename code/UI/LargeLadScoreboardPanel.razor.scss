@@ -23,7 +23,7 @@ LargeLadScoreboardPanel {
 	}
 
 	.scoreboard-card {
-		width: 1120px;
+		width: 1240px;
 		max-height: 820px;
 		display: flex;
 		flex-direction: column;
@@ -96,19 +96,29 @@ LargeLadScoreboardPanel {
 	}
 
 	.name-column {
-		width: 410px;
+		width: 320px;
 	}
 
 	.preference-column {
-		width: 420px;
+		width: 400px;
 		display: flex;
 		align-items: center;
 		gap: 10px;
 	}
 
 	.status-column {
-		width: 220px;
-		text-align: right;
+		width: 230px;
+	}
+
+	.stat-column {
+		width: 70px;
+		text-align: center;
+	}
+
+	.stat-value {
+		font-size: 20px;
+		font-weight: 800;
+		color: #f6f3eb;
 	}
 
 	.player-name {
