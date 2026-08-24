@@ -56,6 +56,7 @@ public sealed class LargeLadMeleeCombat : Component
 	{
 		if ( IsProxy ||
 			cachedAttacker?.NativeInventory?.HasNativeInputControl == true ||
+			LargeLadLocalUiInput.ShouldSuppressGameplayInput ||
 			!Input.Down( "Attack1" ) )
 			return;
 

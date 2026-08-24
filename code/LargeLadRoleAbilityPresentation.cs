@@ -906,6 +906,7 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 			0.0f,
 			1.0f );
 		var altMoveDown =
+			!LargeLadLocalUiInput.ShouldSuppressGameplayInput &&
 			!string.IsNullOrWhiteSpace( controller.AltMoveButton ) &&
 			Input.Down( controller.AltMoveButton );
 		var wantsRun = controller.RunByDefault
@@ -952,7 +953,10 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 				localVelocity.z / ViewmodelFullMoveSpeed,
 				-1.0f,
 				1.0f ) );
-		TrySetFirstPersonParameter( "attack_hold", Input.Down( "Attack1" ) );
+		TrySetFirstPersonParameter(
+			"attack_hold",
+			!LargeLadLocalUiInput.ShouldSuppressGameplayInput &&
+				Input.Down( "Attack1" ) );
 		TrySetFirstPersonParameter( "b_twohanded", twoHanded );
 
 		if ( hasFirstPersonGroundState &&

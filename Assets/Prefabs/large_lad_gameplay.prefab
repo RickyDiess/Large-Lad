@@ -160,6 +160,30 @@
             "OnComponentFixedUpdate": null,
             "OnComponentStart": null,
             "OnComponentUpdate": null
+          },
+          {
+            "__type": "LargeLadScoreboardPanel",
+            "__guid": "643ff089-8988-4601-9fa9-68c203ab90fa",
+            "__enabled": true,
+            "Flags": 0,
+            "Coordinator": {
+              "_type": "component",
+              "component_id": "dba8dd07-c638-458a-a652-179d91de1a05",
+              "go": "4ec5f084-cef2-4cca-9d9d-3d3a4ba40ec5",
+              "component_type": "LargeLadSessionCoordinator"
+            },
+            "GameManager": {
+              "_type": "component",
+              "component_id": "6ba98835-269e-4ca8-95a4-06e9faf5db59",
+              "go": "4ec5f084-cef2-4cca-9d9d-3d3a4ba40ec5",
+              "component_type": "LargeLadGameManager"
+            },
+            "OnComponentDestroy": null,
+            "OnComponentDisabled": null,
+            "OnComponentEnabled": null,
+            "OnComponentFixedUpdate": null,
+            "OnComponentStart": null,
+            "OnComponentUpdate": null
           }
         ],
         "Children": []

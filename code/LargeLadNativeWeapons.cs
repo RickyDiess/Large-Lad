@@ -940,6 +940,9 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 
 	private bool TryRouteInventoryInput()
 	{
+		if ( LargeLadLocalUiInput.ShouldSuppressGameplayInput )
+			return true;
+
 		for ( var index = 0;
 			index < DirectSelectionActions.Length;
 			index++ )
@@ -1230,7 +1233,9 @@ public sealed class LargeLadDodgeballItem : BaseInventoryItem
 
 	protected override void OnControl()
 	{
-		if ( !IsActive || !Input.Pressed( "Attack1" ) )
+		if ( !IsActive ||
+			LargeLadLocalUiInput.ShouldSuppressGameplayInput ||
+			!Input.Pressed( "Attack1" ) )
 			return;
 
 		(Inventory as LargeLadNativeInventory)?
@@ -1265,7 +1270,8 @@ public sealed class LargeLadMeleeWeapon : BaseCombatWeapon
 
 	public override bool CanPrimaryAttack()
 	{
-		return ResolveMeleeCombat()?.CanNativeAttack( this ) == true &&
+		return !LargeLadLocalUiInput.ShouldSuppressGameplayInput &&
+			ResolveMeleeCombat()?.CanNativeAttack( this ) == true &&
 			base.CanPrimaryAttack();
 	}
 
@@ -1694,7 +1700,8 @@ public sealed class LargeLadFirearm : BaseCombatWeapon,
 
 	public override bool CanPrimaryAttack()
 	{
-		return IsValidHolderState( requirePlayingRound: true ) &&
+		return !LargeLadLocalUiInput.ShouldSuppressGameplayInput &&
+			IsValidHolderState( requirePlayingRound: true ) &&
 			base.CanPrimaryAttack();
 	}
 

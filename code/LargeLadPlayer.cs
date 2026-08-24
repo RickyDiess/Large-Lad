@@ -30,6 +30,10 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 	private LargeLadEatAttack eatClaimOwner;
 	private float groundSlamStaggerEndsAt;
 	private bool lastLocalMapHoldState;
+	private bool lastLocalUiInputSuppressed;
+	private LargeLadRolePreference authoritativeRolePreference =
+		LargeLadRolePreference.NoPreference;
+	private int nextLocalRolePreferenceRequestId;
 
 	[Property, RequireComponent]
 	public LargeLadHealth Health { get; set; }
@@ -61,6 +65,15 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 
 	[Sync( SyncFlags.FromHost ), Change( nameof( OnRoleChanged ) )]
 	public LargeLadRole Role { get; private set; } = LargeLadRole.Unassigned;
+
+	/// <summary>
+	/// The host-accepted preference visible only on this player's owning peer.
+	/// This is intentionally not synchronized to observers.
+	/// </summary>
+	public LargeLadRolePreference LocalAcceptedRolePreference { get; private set; } =
+		LargeLadRolePreference.NoPreference;
+
+	public bool IsLocalRolePreferencePending { get; private set; }
 
 	[Sync( SyncFlags.FromHost )]
 	public LargeLadRole PendingRespawnRole { get; private set; } =
@@ -117,6 +130,8 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 		LogRoleProfileWarnings();
 		ApplyRoleProfile( Role );
 		lastLocalMapHoldState = IsHeldForLocalMap();
+		lastLocalUiInputSuppressed =
+			LargeLadLocalUiInput.ShouldSuppressGameplayInput;
 		RefreshMovementState();
 	}
 
@@ -132,9 +147,13 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 		if ( !IsProxy )
 		{
 			var localMapHoldState = IsHeldForLocalMap();
-			if ( localMapHoldState != lastLocalMapHoldState )
+			var localUiInputSuppressed =
+				LargeLadLocalUiInput.ShouldSuppressGameplayInput;
+			if ( localMapHoldState != lastLocalMapHoldState ||
+				localUiInputSuppressed != lastLocalUiInputSuppressed )
 			{
 				lastLocalMapHoldState = localMapHoldState;
+				lastLocalUiInputSuppressed = localUiInputSuppressed;
 				RefreshMovementState();
 			}
 		}
@@ -375,6 +394,159 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 			return;
 
 		PendingRespawnRole = role;
+	}
+
+	/// <summary>
+	/// Requests a fresh owner-only copy of the host's current preference. The
+	/// scoreboard calls this when it opens so hotload/rebuild state cannot make
+	/// its settled value drift from host authority.
+	/// </summary>
+	public bool RefreshLocalRolePreference()
+	{
+		if ( !CanSubmitLocalRolePreferenceRequest() )
+			return false;
+
+		var requestId = BeginLocalRolePreferenceRequest();
+		RequestCurrentRolePreference( requestId );
+		return true;
+	}
+
+	public bool SubmitLocalRolePreference(
+		LargeLadRolePreference requestedPreference )
+	{
+		if ( !CanSubmitLocalRolePreferenceRequest() ||
+			!LargeLadRoleSelectionRules.IsValidPreference(
+				requestedPreference ) )
+		{
+			return false;
+		}
+
+		var requestId = BeginLocalRolePreferenceRequest();
+		RequestRolePreference( requestedPreference, requestId );
+		return true;
+	}
+
+	internal LargeLadRolePreference GetAuthoritativeRolePreference()
+	{
+		return Networking.IsHost &&
+			LargeLadRoleSelectionRules.IsValidPreference(
+				authoritativeRolePreference )
+			? authoritativeRolePreference
+			: LargeLadRolePreference.NoPreference;
+	}
+
+	[Rpc.Host]
+	private void RequestCurrentRolePreference( int requestId )
+	{
+		if ( !CanAcceptRolePreferenceRequest() )
+			return;
+
+		ReceiveAcceptedRolePreference(
+			GetAuthoritativeRolePreference(),
+			requestId );
+	}
+
+	[Rpc.Host]
+	private void RequestRolePreference(
+		LargeLadRolePreference requestedPreference,
+		int requestId )
+	{
+		if ( !CanAcceptRolePreferenceRequest() )
+			return;
+
+		if ( LargeLadRoleSelectionRules.TryAcceptPreference(
+			authoritativeRolePreference,
+			requestedPreference,
+			out var acceptedPreference ) )
+		{
+			authoritativeRolePreference = acceptedPreference;
+		}
+
+		// Invalid enum payloads restore the owner's previously accepted value.
+		// The response targets this network object's owner, never a broadcast.
+		ReceiveAcceptedRolePreference(
+			GetAuthoritativeRolePreference(),
+			requestId );
+	}
+
+	[Rpc.Owner( NetFlags.HostOnly )]
+	private void ReceiveAcceptedRolePreference(
+		LargeLadRolePreference acceptedPreference,
+		int requestId )
+	{
+		if ( !IsOwnedByLocalPlayer() ||
+			requestId < nextLocalRolePreferenceRequestId )
+		{
+			return;
+		}
+
+		LocalAcceptedRolePreference =
+			LargeLadRoleSelectionRules.IsValidPreference( acceptedPreference )
+				? acceptedPreference
+				: LargeLadRolePreference.NoPreference;
+		IsLocalRolePreferencePending = false;
+	}
+
+	private int BeginLocalRolePreferenceRequest()
+	{
+		nextLocalRolePreferenceRequestId++;
+		IsLocalRolePreferencePending = true;
+		return nextLocalRolePreferenceRequestId;
+	}
+
+	private bool CanSubmitLocalRolePreferenceRequest()
+	{
+		return !Application.IsDedicatedServer &&
+			IsOwnedByLocalPlayer();
+	}
+
+	private bool CanAcceptRolePreferenceRequest()
+	{
+		if ( !Networking.IsHost ||
+			LargeLadGameManager.FindForScene( Scene ) is not
+				LargeLadGameManager manager ||
+			!manager.IsRegisteredPlayer( this ) )
+		{
+			return false;
+		}
+
+		return ResolveRolePreferenceCaller() is not null;
+	}
+
+	private Connection ResolveRolePreferenceCaller()
+	{
+		// A real remote caller either owns this exact player object or is rejected.
+		// Never fall back to the listening host for a mismatched remote caller.
+		var caller = Rpc.Caller;
+		if ( caller is not null )
+			return IsOwnedByConnection( caller ) ? caller : null;
+
+		if ( !Networking.IsHost || Application.IsDedicatedServer )
+			return null;
+
+		if ( IsOwnedByConnection( Connection.Local ) )
+			return Connection.Local;
+
+		if ( IsOwnedByConnection( Connection.Host ) )
+			return Connection.Host;
+
+		return null;
+	}
+
+	public bool IsOwnedByLocalPlayer()
+	{
+		if ( Application.IsDedicatedServer )
+			return false;
+
+		return IsOwnedByConnection( Connection.Local ) ||
+			(Networking.IsHost && IsOwnedByConnection( Connection.Host ));
+	}
+
+	private bool IsOwnedByConnection( Connection connection )
+	{
+		return connection is not null &&
+			connection.IsActive &&
+			Network.OwnerId == connection.Id;
 	}
 
 	public bool HasKillVolumeTeleportGrace =>
@@ -630,7 +802,9 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 
 		var isHardLocked = IsMovementHardLocked();
 		controller.UseInputControls =
-			!isHardLocked && !IsGroundSlamStaggered;
+			!isHardLocked &&
+			!IsGroundSlamStaggered &&
+			!LargeLadLocalUiInput.ShouldSuppressGameplayInput;
 
 		if ( controller.Body is null )
 			return;

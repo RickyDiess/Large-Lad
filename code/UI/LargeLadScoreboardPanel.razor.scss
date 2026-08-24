@@ -1,0 +1,166 @@
+LargeLadScoreboardPanel {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	font-family: Poppins;
+	color: #f6f3eb;
+	pointer-events: none;
+
+	&.closed {
+		display: none;
+	}
+
+	.scoreboard-layer {
+		position: absolute;
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: flex-start;
+		justify-content: center;
+		padding-top: 78px;
+		background-color: rgba( 4, 7, 12, 0.76 );
+		pointer-events: all;
+	}
+
+	.scoreboard-card {
+		width: 1120px;
+		max-height: 820px;
+		display: flex;
+		flex-direction: column;
+		padding: 30px;
+		border-radius: 16px;
+		background-color: #171d27;
+		border: 2px solid #374256;
+		box-shadow: 0 20px 80px rgba( 0, 0, 0, 0.65 );
+	}
+
+	.scoreboard-heading,
+	.column-headings,
+	.player-row {
+		display: flex;
+		align-items: center;
+	}
+
+	.scoreboard-heading {
+		justify-content: space-between;
+		margin-bottom: 24px;
+	}
+
+	.eyebrow {
+		font-size: 15px;
+		font-weight: 700;
+		letter-spacing: 2px;
+		text-transform: uppercase;
+		color: #f2b84b;
+	}
+
+	.title {
+		font-size: 42px;
+		font-weight: 800;
+	}
+
+	.player-count {
+		font-size: 19px;
+		font-weight: 700;
+		color: #aeb8c9;
+	}
+
+	.column-headings {
+		min-height: 42px;
+		padding: 0 18px;
+		font-size: 14px;
+		font-weight: 700;
+		letter-spacing: 1px;
+		text-transform: uppercase;
+		color: #7f8ca1;
+	}
+
+	.player-list {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		overflow: scroll;
+	}
+
+	.player-row {
+		min-height: 70px;
+		padding: 10px 18px;
+		border-radius: 10px;
+		background-color: #222a37;
+		border: 2px solid transparent;
+
+		&.local {
+			background-color: #2b2d2c;
+			border-color: #8d7238;
+		}
+	}
+
+	.name-column {
+		width: 410px;
+	}
+
+	.preference-column {
+		width: 420px;
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+
+	.status-column {
+		width: 220px;
+		text-align: right;
+	}
+
+	.player-name {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		font-size: 22px;
+		font-weight: 700;
+	}
+
+	.you-label {
+		padding: 3px 8px;
+		border-radius: 999px;
+		background-color: #f2b84b;
+		color: #17120a;
+		font-size: 11px;
+		font-weight: 800;
+		text-transform: uppercase;
+	}
+
+	.preference-select {
+		width: 300px;
+		min-height: 42px;
+		padding: 9px 12px;
+		border-radius: 7px;
+		background-color: #11161f;
+		border: 1px solid #4b586f;
+		font-size: 15px;
+		cursor: pointer;
+		pointer-events: all;
+
+		&:hover {
+			border-color: #f2b84b;
+		}
+	}
+
+	.pending-label {
+		font-size: 12px;
+		font-weight: 700;
+		color: #f2b84b;
+	}
+
+	.role-status {
+		font-size: 17px;
+		font-weight: 700;
+		color: #c5cedc;
+	}
+
+	.hold-hint {
+		margin-top: 18px;
+		font-size: 14px;
+		text-align: center;
+		color: #7f8ca1;
+	}
+}

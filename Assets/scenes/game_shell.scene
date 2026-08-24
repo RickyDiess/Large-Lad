@@ -40,6 +40,14 @@
             },
             "Property": "SurvivalDuration",
             "Value": 600
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "643ff089-8988-4601-9fa9-68c203ab90fa"
+            },
+            "Property": "__type",
+            "Value": "LargeLadScoreboardPanel"
           }
         ],
         "MovedObjects": []
@@ -52,7 +60,8 @@
         "13a94fea-a2de-45da-beb8-61e564e6e245": "f9b492c3-7720-4280-ba09-c2a34d026ee7",
         "2cf099ea-cf8c-4b1c-a9dc-ad9a8b74c19a": "2747881c-2a76-8ba8-bf5a-20cda03cc0bf",
         "c33759ee-757d-4580-a74b-77699083b30a": "75512cb8-4276-8b94-b713-4fc4ec8ab16f",
-        "88557120-f4fb-4bf2-99dd-30822052365a": "f0160e03-87af-89e2-b339-1c4704b7db13"
+        "88557120-f4fb-4bf2-99dd-30822052365a": "f0160e03-87af-89e2-b339-1c4704b7db13",
+        "6af5575d-3105-4eb1-8c2d-a1a4824c7b7b": "417b496f-1b8f-8a64-8016-e00cbcc77d72"
       }
     },
     {
@@ -65,7 +74,7 @@
       "Scale": "1,1,1",
       "Tags": "",
       "Enabled": true,
-      "NetworkMode": 2,
+      "NetworkMode": 1,
       "NetworkFlags": 0,
       "NetworkOrphaned": 0,
       "NetworkTransmit": true,

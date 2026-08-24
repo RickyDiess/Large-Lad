@@ -136,6 +136,7 @@ public sealed class LargeLadGroundSlam : Component
 		TickLocalPresentationState();
 
 		if ( IsProxy ||
+			LargeLadLocalUiInput.ShouldSuppressGameplayInput ||
 			!Input.Pressed( "Attack2" ) )
 		{
 			return;

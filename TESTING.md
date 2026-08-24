@@ -202,6 +202,64 @@ does not emulate a dedicated process or inject dedicated launch arguments, so
 perform this final matrix with the normal s&box dedicated launch workflow; no
 external .NET build step is needed.
 
+## Tab scoreboard and private role-preference checklist
+
+The deterministic `LargeLadRoleSelectionTests` cover the three accepted enum
+values, invalid-value rejection without changing settled state, preference-tier
+fallbacks, and round-robin fairness within the currently eligible tier. The host
+selects willing Large Lad players first, then players who do not care, and uses
+players who prefer Skinny Kid only when the roster provides no other candidate.
+The cursor advances after a successful round start so multiple players in the
+same tier rotate and wrap deterministically.
+
+Use a listening host plus at least two remote clients through `game_shell.scene`
+for the engine input, focus, ownership, and recipient filtering that pure tests
+do not emulate:
+
+1. Hold Tab on the host and confirm the scoreboard appears. Release Tab and
+   confirm it disappears.
+2. Repeat on a remote client and confirm each peer's scoreboard opens and closes
+   independently without changing gameplay or pausing another peer.
+3. Confirm every connected Large Lad player appears exactly once with their
+   display name and current role/lifecycle status.
+4. Confirm only the local player's row contains the role-preference dropdown.
+   No remote player's preference is shown and no remote row contains a control.
+5. On a remote client, select each option in turn: `I want to play Large Lad`,
+   `I want to play a Skinny Kid`, and `I don't care`.
+6. For each selection, inspect the host and confirm it records the validated
+   authoritative value on that remote client's persistent player object.
+7. Confirm only the requesting remote client receives and displays the accepted
+   value. A second client must neither learn nor display it.
+8. Attempt to invoke the preference RPC on a player object owned by another
+   connection. Confirm the host rejects the caller/owner mismatch and the target
+   player's settled preference does not change.
+9. Use the listening host's own dropdown and confirm its host-local request
+   resolves through its local/host connection and settles normally.
+10. Launch the normal dedicated-server workflow and confirm the server has no
+    local scoreboard, creates no server pseudo-player, and stores preferences
+    only for connected player-owned objects.
+11. While holding Tab, open the dropdown and click all three choices. Confirm
+    the cursor remains usable and no firearm, melee, Eat, Ground Slam, dodgeball,
+    inventory switch/drop, movement, or look input triggers through the panel.
+12. Release Tab while the dropdown is open. Confirm the scoreboard and popup
+    close, cursor behavior returns to automatic gameplay handling, and ordinary
+    movement and combat input resumes.
+13. Hold Tab while a blocking initial selection, vote, result, loading,
+    transition, recovery, or failure screen owns map flow. Confirm the map-flow
+    UI wins and the scoreboard neither appears nor steals focus.
+14. Die and respawn, including a Skinny Kid-to-Minion conversion, and confirm
+    the same host-accepted preference remains selected.
+15. Complete a round and confirm the preference survives the round boundary.
+16. Complete a map vote and runtime map transition. Confirm the persistent
+    player object's preference survives and is returned owner-only when the
+    scoreboard next opens.
+17. Start rounds with at least one `PreferLargeLad` player and confirm selection
+    comes only from willing players, rotating between multiple willing players.
+18. Repeat with no willing players and at least one `NoPreference` player;
+    confirm neutral players are selected before anyone preferring Skinny Kid.
+19. Set every connected player to `PreferSkinnyKid` and confirm the host still
+    selects one through the fair round-robin fallback so round flow cannot stall.
+
 ## Persistent session and map reload checklist
 
 1. Start the game normally. Confirm `game_shell.scene` supplies exactly one

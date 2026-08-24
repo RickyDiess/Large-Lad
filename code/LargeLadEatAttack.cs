@@ -133,7 +133,9 @@ public sealed class LargeLadEatAttack : Component
 		if ( Networking.IsHost )
 			TickAuthoritativeEat();
 
-		if ( IsProxy || !Input.Down( "Attack1" ) )
+		if ( IsProxy ||
+			LargeLadLocalUiInput.ShouldSuppressGameplayInput ||
+			!Input.Down( "Attack1" ) )
 			return;
 
 		var attacker = cachedAttacker;

@@ -1141,7 +1141,24 @@ public sealed class LargeLadGameManager : Component
 			return false;
 		}
 
-		var largeLad = players[nextLargeLadIndex % players.Count];
+		var authoritativePreferences = players
+			.Select( player => player.GetAuthoritativeRolePreference() )
+			.ToList();
+		var selectedLargeLadIndex =
+			LargeLadRoleSelectionRules.SelectLargeLadIndex(
+				authoritativePreferences,
+				nextLargeLadIndex );
+
+		if ( selectedLargeLadIndex < 0 ||
+			selectedLargeLadIndex >= players.Count )
+		{
+			Log.Error(
+				"Round start rejected before changing gameplay state: no valid " +
+				"Large Lad candidate could be selected." );
+			return false;
+		}
+
+		var largeLad = players[selectedLargeLadIndex];
 		var hunterPlayers = new List<LargeLadPlayer> { largeLad };
 		var skinnyKidPlayers = players
 			.Where( player => player != largeLad )
@@ -1193,7 +1210,10 @@ public sealed class LargeLadGameManager : Component
 		ResetSurvivalRoundTiming();
 		ResetLastSkinnyKidState();
 		Winner = LargeLadWinner.None;
-		nextLargeLadIndex = (nextLargeLadIndex + 1) % players.Count;
+		nextLargeLadIndex =
+			LargeLadRoleSelectionRules.GetNextSelectionIndex(
+				selectedLargeLadIndex,
+				players.Count );
 		lobbyPlacedPlayers.Clear();
 
 		ApplyRespawnAllocations(
@@ -1840,6 +1860,12 @@ public sealed class LargeLadGameManager : Component
 			RefreshLastSkinnyKidState();
 			EvaluateWinnerAfterLifecycleChange();
 		}
+	}
+
+	internal bool IsRegisteredPlayer( LargeLadPlayer player )
+	{
+		PruneInvalidRegistrations();
+		return player is not null && registeredPlayers.Contains( player );
 	}
 
 	internal void UnregisterPlayer( LargeLadPlayer player )
