@@ -68,16 +68,23 @@ normal peer-local map load, including static world geometry, collision, lights,
 and presentation. Local `.scene` content keeps those top-level static roots in
 Network Mode `Never`; they are deterministically created by every peer's
 `MapInstance` and are not replicated as ordinary network GameObjects. Map-authored
-Object-mode gameplay objects continue to use their normal host-spawned networking
-path. The engine reconciles those objects by their authored scene identities:
-networked objects already received from the host take precedence, while the
-peer-local map loader skips recreating the same root. Runtime transitions are
-therefore host-first: the host loads and validates the scene so its Object-mode
-roots are network-spawned, then publishes the selected map name and releases
-connected clients to run their local `MapInstance` load. This preserves complete
-networked prefab hierarchies without racing them against client-authored copies.
-Large Lad does not disable, replace, reparent, respawn, or post-load refresh those
-map-authored roots.
+Object-mode gameplay objects remain host-authoritative. After a host load, the
+coordinator collects every highest authored Object root, including top-level and
+nested roots, and clones the complete set as one generation. The engine therefore
+assigns fresh GameObject/component GUIDs and remaps cross-root references together.
+The coordinator removes the stable-ID authored sources, places the generation
+roots directly beneath `Map Content Host` with their authored world transforms,
+and network-spawns them. Fresh identities are required on every load: reusing an
+authored GUID during a same-map reload can make a replacement create collide with
+the departing proxy's delete on a client. The coordinator publishes the exact
+generation root GUIDs alongside the selected map. Each client waits until every
+listed GUID resolves to an active network root before starting its local
+`MapInstance` load; host readiness or message ordering alone is not treated as a
+delivery barrier. After loading, the client destroys only inactive, highest
+authored Object roots left by scene deserialization and preserves every active
+authoritative root. Static map content continues to load locally and is never part
+of reconciliation. This boundary is generic and does not special-case gameplay
+component types.
 
 ## Map manifest and compatibility
 

@@ -132,21 +132,9 @@ public sealed class LargeLadDodgeballPickup :
 	private float flightExpireTime;
 	private int nextPresentationSequence;
 	private int lastLocalPresentationSequence;
-	private bool clientAuthoredCopySuppressed;
 
 	internal LargeLadUtilityLocation Location =>
 		utilityInstance?.Location ?? LargeLadUtilityLocation.OriginAvailable;
-
-	internal void SuppressClientAuthoredCopy()
-	{
-		if ( Networking.IsHost )
-			return;
-
-		clientAuthoredCopySuppressed = true;
-		ResolveAuthoredParts();
-		StopPhysicsMotion();
-		ApplyAvailableState();
-	}
 
 	protected override void OnAwake()
 	{
@@ -961,7 +949,7 @@ public sealed class LargeLadDodgeballPickup :
 
 	private void ApplyAvailableState()
 	{
-		var presentLocally = Available && !clientAuthoredCopySuppressed;
+		var presentLocally = Available;
 		var simulateLocally = presentLocally &&
 			( !GameObject.Network.Active || !GameObject.Network.IsProxy );
 

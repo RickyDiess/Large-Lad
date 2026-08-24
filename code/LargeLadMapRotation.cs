@@ -9,6 +9,7 @@ public enum LargeLadMapFlowState
 	Loading,
 	Playing,
 	Voting,
+	VoteResult,
 	Transitioning,
 	Recovering,
 	Failed
@@ -235,6 +236,9 @@ public sealed partial class LargeLadSessionCoordinator
 	[Property, Group( "Map Rotation" ), Title( "Vote Duration (Seconds)" )]
 	public float VoteDuration { get; set; } = 20.0f;
 
+	[Property, Group( "Map Rotation" ), Title( "Vote Result Duration (Seconds)" )]
+	public float VoteResultDuration { get; set; } = 5.0f;
+
 	[Property, Group( "Map Rotation" ), Title( "Map Load Timeout (Seconds)" )]
 	public float MapLoadTimeout { get; set; } = 30.0f;
 
@@ -247,6 +251,9 @@ public sealed partial class LargeLadSessionCoordinator
 
 	[Sync( SyncFlags.FromHost )]
 	public float VoteEndsAt { get; private set; }
+
+	[Sync( SyncFlags.FromHost )]
+	public float VoteResultEndsAt { get; private set; }
 
 	[Sync( SyncFlags.FromHost ), Change( nameof( OnVoteSessionChanged ) )]
 	public int VoteSessionId { get; private set; }
@@ -303,6 +310,14 @@ public sealed partial class LargeLadSessionCoordinator
 			? MathF.Max( 0.0f, VoteEndsAt - Time.Now )
 			: 0.0f;
 
+	public bool IsShowingVoteResult =>
+		MapFlowState == LargeLadMapFlowState.VoteResult;
+
+	public float VoteResultTimeRemaining =>
+		IsShowingVoteResult
+			? MathF.Max( 0.0f, VoteResultEndsAt - Time.Now )
+			: 0.0f;
+
 	private readonly HashSet<string> eligibleVoteConnections =
 		new( StringComparer.OrdinalIgnoreCase );
 	private readonly Dictionary<string, string> submittedMapVotes =
@@ -318,7 +333,12 @@ public sealed partial class LargeLadSessionCoordinator
 	protected override void OnUpdate()
 	{
 		if ( !Networking.IsHost )
+		{
+			if ( !string.IsNullOrWhiteSpace( pendingClientMapName ) )
+				TryApplyPendingClientMap();
+
 			return;
+		}
 
 		if ( MapState == LargeLadMapSessionState.Loading &&
 			mapLoadDeadline > 0.0f &&
@@ -332,8 +352,15 @@ public sealed partial class LargeLadSessionCoordinator
 			return;
 		}
 
-		if ( MapFlowState == LargeLadMapFlowState.Voting )
-			UpdateActiveVote();
+		switch ( MapFlowState )
+		{
+			case LargeLadMapFlowState.Voting:
+				UpdateActiveVote();
+				break;
+			case LargeLadMapFlowState.VoteResult:
+				UpdateVoteResult();
+				break;
+		}
 	}
 
 	internal void InitializeMapFlow()
@@ -415,6 +442,18 @@ public sealed partial class LargeLadSessionCoordinator
 			.Where( knownById.ContainsKey )
 			.Select( id => knownById[id] )
 			.ToList();
+	}
+
+	public LargeLadMapDescriptor GetWinningVoteDescriptor()
+	{
+		if ( string.IsNullOrWhiteSpace( LastWinningMapId ) )
+			return null;
+
+		return GetActiveVoteCandidates().FirstOrDefault( descriptor =>
+			string.Equals(
+				LargeLadMapRotationRules.GetMapIdentity( descriptor ),
+				LastWinningMapId,
+				StringComparison.OrdinalIgnoreCase ) );
 	}
 
 	public int GetPublishedVoteTotal( string stableMapId )
@@ -611,6 +650,8 @@ public sealed partial class LargeLadSessionCoordinator
 
 		submittedMapVotes.Clear();
 		voteCompletionCommitted = false;
+		VoteResultEndsAt = 0.0f;
+		LastWinningMapId = string.Empty;
 		VoteSessionId++;
 		LocalSubmittedVoteId = string.Empty;
 		ActiveVoteCandidateIds = EncodeVoteFields(
@@ -684,10 +725,18 @@ public sealed partial class LargeLadSessionCoordinator
 
 	private void UpdateActiveVote()
 	{
-		if ( MapFlowState != LargeLadMapFlowState.Voting ||
-			voteCompletionCommitted )
-		{
+		if ( MapFlowState != LargeLadMapFlowState.Voting )
 			return;
+
+		// Completion is synchronous and moves the flow out of Voting. If an
+		// exception or hotload left this latch behind, it never represented a
+		// completed transition and must not permanently strand the session.
+		if ( voteCompletionCommitted )
+		{
+			voteCompletionCommitted = false;
+			Log.Warning(
+				$"Recovering map vote {VoteSessionId}: its previous completion " +
+				"attempt did not leave the Voting state." );
 		}
 
 		var connectedVoters = GetConnectedVoteIdentities();
@@ -717,15 +766,18 @@ public sealed partial class LargeLadSessionCoordinator
 		if ( voteCompletionCommitted )
 			return;
 
-		voteCompletionCommitted = true;
+		// Game.Random.Int uses an inclusive upper bound. int.MaxValue cannot be
+		// represented after the engine converts that bound for System.Random,
+		// so keep the host-only tie breaker inside the safe integer range.
 		var winner = LargeLadMapRotationRules.SelectWinner(
 			activeVoteDescriptors,
 			submittedMapVotes,
 			connectedVoters,
-			Game.Random.Int( 0, int.MaxValue ) );
+			Game.Random.Int( 0, int.MaxValue - 1 ) );
 
 		if ( winner is null )
 		{
+			voteCompletionCommitted = true;
 			SetMapFlowState( LargeLadMapFlowState.Failed );
 			Log.Error(
 				"Map vote ended without a resolvable candidate. Round flow " +
@@ -733,14 +785,39 @@ public sealed partial class LargeLadSessionCoordinator
 			return;
 		}
 
+		voteCompletionCommitted = true;
 		LastWinningMapId = LargeLadMapRotationRules.GetMapIdentity( winner );
 		VoteEndsAt = 0.0f;
-		SetMapFlowState( LargeLadMapFlowState.Transitioning );
+		VoteResultEndsAt = Time.Now + MathF.Max( 1.0f, VoteResultDuration );
+		SetMapFlowState( LargeLadMapFlowState.VoteResult );
 		Log.Info(
 			$"Map vote {VoteSessionId} selected '{winner.DisplayName}' " +
-			$"({winner.MapInstanceIdentifier})." );
+			$"({winner.MapInstanceIdentifier}); showing the result for " +
+			$"{MathF.Max( 1.0f, VoteResultDuration ):0.#} seconds before transition." );
+	}
+
+	private void UpdateVoteResult()
+	{
+		if ( MapFlowState != LargeLadMapFlowState.VoteResult ||
+			Time.Now < VoteResultEndsAt )
+		{
+			return;
+		}
+
+		var winner = GetWinningVoteDescriptor();
+		if ( winner is null )
+		{
+			VoteResultEndsAt = 0.0f;
+			SetMapFlowState( LargeLadMapFlowState.Failed );
+			Log.Error(
+				"The map vote result expired without its winning descriptor. " +
+				"Round flow remains closed." );
+			return;
+		}
 
 		var winningMapIdentifier = winner.MapInstanceIdentifier;
+		VoteResultEndsAt = 0.0f;
+		voteCompletionCommitted = false;
 		activeVoteDescriptors.Clear();
 		eligibleVoteConnections.Clear();
 		submittedMapVotes.Clear();

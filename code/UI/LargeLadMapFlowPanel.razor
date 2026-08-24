@@ -56,14 +56,17 @@
 	}
 	else if ( ShowVote )
 	{
+		var isShowingResult = Coordinator.IsShowingVoteResult;
+		var winningDescriptor = Coordinator.GetWinningVoteDescriptor();
+
 		<div class="scrim">
 			<div class="dialog">
 				<div class="eyebrow">Map Rotation</div>
 				<div class="vote-heading">
-					<div class="title">Vote for the next map</div>
-					<div class="timer">@MathF.Ceiling( Coordinator.VoteTimeRemaining )s</div>
+					<div class="title">@(isShowingResult ? $"{winningDescriptor?.DisplayName ?? "Map selected"} wins!" : "Vote for the next map")</div>
+					<div class="timer">@(isShowingResult ? $"Next map in {MathF.Ceiling( Coordinator.VoteResultTimeRemaining )}s" : $"{MathF.Ceiling( Coordinator.VoteTimeRemaining )}s")</div>
 				</div>
-				<div class="subtitle">One connected eligible player, one host-validated vote.</div>
+				<div class="subtitle">@(isShowingResult ? "The winner is locked in. Take a breath before the map changes." : "One connected eligible player, one host-validated vote.")</div>
 
 				<div class="map-list">
 					@foreach ( var descriptor in Coordinator.GetActiveVoteCandidates() )
@@ -75,8 +78,12 @@
 							StringComparison.OrdinalIgnoreCase );
 						var hasSubmitted = !string.IsNullOrWhiteSpace(
 							Coordinator.LocalSubmittedVoteId );
+						var isWinner = isShowingResult && string.Equals(
+							Coordinator.LastWinningMapId,
+							mapIdentity,
+							StringComparison.OrdinalIgnoreCase );
 
-						<div class="map-card @(isSubmittedChoice ? "submitted" : "")">
+						<div class="map-card @(isSubmittedChoice ? "submitted" : "") @(isWinner ? "winner" : "")">
 							@if ( !string.IsNullOrWhiteSpace( descriptor.PresentationAsset ) )
 							{
 								<img class="thumbnail" src="@descriptor.PresentationAsset" />
@@ -90,11 +97,15 @@
 								<div class="players">Recommended: @descriptor.RecommendedMinimumPlayers-@descriptor.RecommendedMaximumPlayers players</div>
 							</div>
 							<div class="vote-total">@Coordinator.GetPublishedVoteTotal( mapIdentity )</div>
-							@if ( isSubmittedChoice )
+							@if ( isWinner )
+							{
+								<div class="winner-label">Winner</div>
+							}
+							else if ( !isShowingResult && isSubmittedChoice )
 							{
 								<div class="submitted-label">Submitted</div>
 							}
-							else if ( !hasSubmitted )
+							else if ( !isShowingResult && !hasSubmitted )
 							{
 								<button class="select" onclick=@(() => SubmitVote( mapIdentity ))>Vote</button>
 							}
@@ -125,7 +136,8 @@
 		Coordinator?.ShowInitialMapSelection == true;
 
 	private bool ShowVote =>
-		Coordinator?.MapFlowState == LargeLadMapFlowState.Voting;
+		Coordinator?.MapFlowState == LargeLadMapFlowState.Voting ||
+		Coordinator?.MapFlowState == LargeLadMapFlowState.VoteResult;
 
 	private bool ShowWaitingForHost =>
 		Coordinator?.MapFlowState ==
@@ -184,6 +196,8 @@
 		hash.Add( Coordinator.ActiveVoteCandidateIds );
 		hash.Add( Coordinator.ActiveVoteCounts );
 		hash.Add( (int)MathF.Ceiling( Coordinator.VoteTimeRemaining ) );
+		hash.Add( Coordinator.LastWinningMapId );
+		hash.Add( (int)MathF.Ceiling( Coordinator.VoteResultTimeRemaining ) );
 		hash.Add( Coordinator.LocalSubmittedVoteId );
 		hash.Add( Coordinator.CompletedRoundsOnCurrentMap );
 		hash.Add( Coordinator.ShowInitialMapSelection );

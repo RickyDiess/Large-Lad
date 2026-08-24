@@ -129,6 +129,12 @@ LargeLadMapFlowPanel {
 			border-color: #58d68d;
 			background-color: #20352d;
 		}
+
+		&.winner {
+			border-color: #f2b84b;
+			background-color: #3a3220;
+			box-shadow: 0 0 28px rgba(242, 184, 75, 0.22);
+		}
 	}
 
 	.thumbnail {
@@ -172,7 +178,8 @@ LargeLadMapFlowPanel {
 	}
 
 	.select,
-	.submitted-label {
+	.submitted-label,
+	.winner-label {
 		min-width: 132px;
 		padding: 14px 18px;
 		border-radius: 9px;
@@ -195,6 +202,11 @@ LargeLadMapFlowPanel {
 	.submitted-label {
 		background-color: #58d68d;
 		color: #102018;
+	}
+
+	.winner-label {
+		background-color: #f2b84b;
+		color: #17120a;
 	}
 
 	.vote-total {

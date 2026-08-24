@@ -130,10 +130,13 @@ remote client:
    collision—not only its networked GameObjects—and cannot fall through the map.
    Verify the same client also sees every authored barricade piece, the pistol
    and SMG models rather than gray fallback boxes, red dodgeball models, and vent
-   covers with their authored model and collision dimensions. No client-authored
-   map network root should be disabled or replaced after its local map load.
-   In the console, confirm the host logs that it loaded and validated Gym before
-   releasing client `MapInstance`s. Compare the one-time host/client map-object
+   covers with their authored model and collision dimensions. No inactive
+   client-authored Object-mode root should remain after its local map load.
+   In the console, confirm the host reports the number of activated map-authored
+   Object roots and publishes their authoritative GUID manifest. Confirm each
+   client receives every listed root before loading its local `MapInstance`, then
+   discards only inactive locally authored Object-mode roots while preserving
+   active authoritative roots. Compare the one-time host/client map-object
    summaries: barricade, dodgeball, weapon-pickup, and Minion-passage counts must
    match exactly; a doubled client count is a blocking failure.
    Confirm the flow passes through `Loading` to `Playing`, map content appears
@@ -156,11 +159,18 @@ remote client:
    submit in that vote. Disconnect an eligible voter before it submits, and in
    a separate run disconnect one after submission; neither connection nor its
    stale vote may block or decide completion.
-7. Complete the vote. Confirm gameplay stays closed through `Transitioning` and
-   map unload/load, the shell and all connected players survive, and the
+7. Complete the vote. Confirm every peer enters `VoteResult`, displays the same
+   winning map and final totals for five seconds, rejects further submissions,
+   and does not begin map unload before the result timer expires. Confirm
+   gameplay stays closed through the result pause, `Transitioning`, and map
+   unload/load, the shell and all connected players survive, and the
    completed-round counter resets only when the selected map reaches `Ready`.
    With only Gym available, confirm selecting it follows the normal full reload
-   path rather than bypassing transition cleanup.
+   path rather than bypassing transition cleanup. Confirm the host publishes a
+   fresh Object-root GUID generation, every connected client receives the complete
+   manifest and advances past `Loading Map`, and no client remains permanently
+   short only the native top-level roots from the departing generation. Repeat the
+   same-map vote reload once more to catch stale create/delete accumulation.
 
 For failure recovery, configure or request a missing map and then a map that
 fails the blocking spawn/content contract. Confirm each failed identifier is

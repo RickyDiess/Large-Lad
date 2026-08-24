@@ -128,6 +128,9 @@ public sealed partial class LargeLadSessionCoordinator : Component
 	[Sync( SyncFlags.FromHost ), Change( nameof( OnCurrentMapNameChanged ) )]
 	public string CurrentMapName { get; private set; }
 
+	[Sync( SyncFlags.FromHost ), Change( nameof( OnMapNetworkRootManifestChanged ) )]
+	public string CurrentMapNetworkRootManifest { get; private set; }
+
 	[Sync( SyncFlags.FromHost )]
 	public LargeLadMapSessionState MapState { get; private set; } =
 		LargeLadMapSessionState.Unloaded;
@@ -151,6 +154,9 @@ public sealed partial class LargeLadSessionCoordinator : Component
 	private int unloadNotificationVersion;
 	private bool mapTransitionCleanupStarted;
 	private int loadedMapPreparationVersion;
+	private string pendingClientMapName;
+	private string pendingClientMapNetworkRootManifest;
+	private bool loggedPendingClientNetworkRootBarrier;
 	private readonly List<string> loadedMapValidationIssues = new();
 
 	protected override void OnEnabled()
@@ -367,9 +373,12 @@ public sealed partial class LargeLadSessionCoordinator : Component
 	{
 		ResolveBootstrapReferences();
 
+		if ( !Networking.IsHost )
+			ReconcileClientAuthoredMapNetworkRoots();
+
 		var preparedMapIdentifier = Networking.IsHost
 			? hostLoadingMapName?.Trim() ?? string.Empty
-			: CurrentMapName?.Trim() ?? string.Empty;
+			: MapInstance?.MapName?.Trim() ?? string.Empty;
 
 		if ( Networking.IsHost &&
 			(MapState != LargeLadMapSessionState.Loading ||
@@ -417,7 +426,7 @@ public sealed partial class LargeLadSessionCoordinator : Component
 
 		var currentPreparingIdentifier = Networking.IsHost
 			? hostLoadingMapName?.Trim() ?? string.Empty
-			: CurrentMapName?.Trim() ?? string.Empty;
+			: MapInstance?.MapName?.Trim() ?? string.Empty;
 		if ( preparationVersion != loadedMapPreparationVersion ||
 			!string.Equals(
 				currentPreparingIdentifier,
@@ -443,27 +452,38 @@ public sealed partial class LargeLadSessionCoordinator : Component
 
 		CurrentMapDescriptor = descriptor;
 		loadedMapValidationIssues.Clear();
+
+		GameObject[] authoritativeMapNetworkRoots = [];
+		if ( Networking.IsHost &&
+			!TryActivateHostMapNetworkRoots(
+				out authoritativeMapNetworkRoots,
+				out var networkRootIssue ) )
+		{
+			FailLoadedMapResolution( networkRootIssue );
+			return;
+		}
+
 		LogLoadedGameplayObjectSummary( preparedMapIdentifier );
 
 		if ( !Networking.IsHost )
 		{
 			Log.Info(
 				$"Large Lad client finished its local MapInstance load for " +
-				$"'{preparedMapIdentifier}' after receiving the host's network " +
-				$"objects." );
+				$"'{preparedMapIdentifier}' and reconciled its authored Object-mode " +
+				$"roots against network authority." );
 			return;
 		}
 
 		var isReady = GameManager?.PrepareLoadedMap( this, descriptor ) == true;
 		if ( isReady )
 		{
-			// Scene-map Object roots are spawned by the host during MapInstance's
-			// load. Only release the map name after that has completed so an
-			// already-connected client receives those authoritative roots before
-			// its local MapInstance deserializes static/presentation content. The
-			// loader can then skip the matching network roots instead of creating
-			// local duplicates.
-			PublishLoadedMapNameToPeers( preparedMapIdentifier );
+			// Host validation and Object spawning are complete before selection is
+			// published. The accompanying GUID manifest is the delivery contract:
+			// each client waits for every active proxy before starting its local
+			// MapInstance deserialization. Message ordering alone is not a barrier.
+			PublishLoadedMapNameToPeers(
+				preparedMapIdentifier,
+				authoritativeMapNetworkRoots );
 			hostLoadingMapName = null;
 		}
 
@@ -492,6 +512,241 @@ public sealed partial class LargeLadSessionCoordinator : Component
 		}
 	}
 
+	private bool TryActivateHostMapNetworkRoots(
+		out GameObject[] authoritativeRoots,
+		out string issue )
+	{
+		authoritativeRoots = [];
+		issue = null;
+
+		if ( !Networking.IsHost )
+			return true;
+
+		var mapHost = MapInstance?.GameObject;
+		if ( mapHost is null || !mapHost.IsValid )
+		{
+			issue = "The loaded map has no valid MapInstance content host for its " +
+				"authoritative Object-mode roots.";
+			return false;
+		}
+
+		var authoredRoots = mapHost.GetAllObjects( true )
+			.Where( candidate =>
+				candidate is not null &&
+				candidate.IsValid &&
+				candidate != mapHost &&
+				candidate.NetworkMode == NetworkMode.Object &&
+				!HasObjectModeAncestor( candidate, mapHost ) )
+			.ToArray();
+		var authoredRootStates = authoredRoots
+			.Select( root => (
+				Root: root,
+				Parent: root.Parent,
+				WorldTransform: root.WorldTransform,
+				Enabled: root.Enabled,
+				Flags: root.Flags,
+				WasNativeSpawn: root.Network.Active ) )
+			.ToArray();
+		var sourceIds = authoredRootStates
+			.Select( state => state.Root.Id )
+			.ToHashSet();
+		var nativeSpawnCount = authoredRootStates.Count( state =>
+			state.WasNativeSpawn );
+		GameObject sourceBatch = null;
+		GameObject clonedBatch = null;
+		GameObject[] runtimeRoots = [];
+
+		try
+		{
+			// Authored GUIDs are stable across a same-map reload. Reusing them for
+			// network roots lets a replacement create race the departing proxy's
+			// delete on clients. Clone all roots in one batch so the new generation
+			// receives fresh GameObject/component IDs while cross-root references are
+			// remapped by the engine's normal clone map.
+			sourceBatch = new GameObject(
+				mapHost,
+				false,
+				"Map Network Root Clone Source" )
+			{
+				NetworkMode = NetworkMode.Never
+			};
+
+			foreach ( var state in authoredRootStates )
+			{
+				// Active native network roots carry NotSaved. GameObject.Clone
+				// intentionally omits children with that flag, so clear it only
+				// while building the replacement generation. NetworkSpawn restores
+				// the runtime flag on the fresh authoritative clone.
+				state.Root.Flags &= ~GameObjectFlags.NotSaved;
+				state.Root.SetParent( sourceBatch, keepWorldPosition: true );
+				state.Root.WorldTransform = state.WorldTransform;
+			}
+
+			clonedBatch = sourceBatch.Clone(
+				default,
+				mapHost,
+				startEnabled: false,
+				name: "Map Network Root Clone Result" );
+			if ( clonedBatch is null || !clonedBatch.IsValid )
+				throw new InvalidOperationException( "GameObject.Clone returned no batch." );
+
+			runtimeRoots = clonedBatch.Children.ToArray();
+			if ( runtimeRoots.Length != authoredRootStates.Length )
+			{
+				throw new InvalidOperationException(
+					$"GameObject.Clone produced {runtimeRoots.Length} of " +
+					$"{authoredRootStates.Length} Object roots." );
+			}
+
+			for ( var index = 0; index < runtimeRoots.Length; index++ )
+			{
+				var runtimeRoot = runtimeRoots[index];
+				var authoredState = authoredRootStates[index];
+				runtimeRoot.Enabled = false;
+					runtimeRoot.SetParent( mapHost, keepWorldPosition: true );
+					runtimeRoot.WorldTransform = authoredState.WorldTransform;
+					runtimeRoot.Flags = authoredState.Flags & ~GameObjectFlags.NotSaved;
+					runtimeRoot.NetworkMode = NetworkMode.Object;
+			}
+
+			if ( runtimeRoots.Select( root => root.Id ).Distinct().Count() !=
+				runtimeRoots.Length ||
+				runtimeRoots.Any( root => sourceIds.Contains( root.Id ) ) )
+			{
+				throw new InvalidOperationException(
+					"GameObject.Clone did not assign generation-unique root IDs." );
+			}
+
+			// Removing the source batch also withdraws MapInstance's short-lived
+			// native top-level spawns. Their stable IDs are never published in the
+			// manifest and cannot satisfy the new generation's client barrier.
+			sourceBatch.DestroyImmediate();
+			sourceBatch = null;
+			clonedBatch.DestroyImmediate();
+			clonedBatch = null;
+
+			for ( var index = 0; index < runtimeRoots.Length; index++ )
+			{
+				var runtimeRoot = runtimeRoots[index];
+				runtimeRoot.Enabled = authoredRootStates[index].Enabled;
+				if ( !runtimeRoot.NetworkSpawn() )
+				{
+					throw new InvalidOperationException(
+						$"NetworkSpawn returned false for '{runtimeRoot.Name}'." );
+				}
+			}
+		}
+		catch ( Exception exception )
+		{
+			foreach ( var runtimeRoot in runtimeRoots )
+			{
+				if ( runtimeRoot is not null && runtimeRoot.IsValid )
+					runtimeRoot.DestroyImmediate();
+			}
+
+			if ( clonedBatch is not null && clonedBatch.IsValid )
+				clonedBatch.DestroyImmediate();
+
+			if ( sourceBatch is not null && sourceBatch.IsValid )
+			{
+				foreach ( var state in authoredRootStates )
+				{
+					if ( state.Root is null || !state.Root.IsValid )
+						continue;
+
+					state.Root.SetParent(
+						state.Parent,
+						keepWorldPosition: true );
+					state.Root.WorldTransform = state.WorldTransform;
+					state.Root.Flags = state.Flags;
+				}
+
+				sourceBatch.DestroyImmediate();
+			}
+
+			issue = $"Map-authored Object roots could not become a unique host " +
+				$"network generation: {exception.Message}";
+			return false;
+		}
+
+		authoritativeRoots = runtimeRoots
+			.Where( candidate =>
+				candidate is not null &&
+				candidate.IsValid &&
+				candidate.Network.Active &&
+				candidate.Network.RootGameObject == candidate )
+			.OrderBy( candidate => candidate.Id )
+			.ToArray();
+
+		if ( authoritativeRoots.Length != authoredRoots.Length )
+		{
+			issue = $"The host activated {authoritativeRoots.Length} of " +
+				$"{authoredRoots.Length} map-authored Object-mode roots.";
+			return false;
+		}
+
+		Log.Info(
+			$"Large Lad host activated {authoritativeRoots.Length} generation-unique " +
+			$"map-authored Object-mode roots ({nativeSpawnCount} native stable-ID " +
+			"spawns replaced)." );
+		return true;
+	}
+
+	private void ReconcileClientAuthoredMapNetworkRoots()
+	{
+		if ( Networking.IsHost )
+			return;
+
+		var mapHost = MapInstance?.GameObject;
+		if ( mapHost is null || !mapHost.IsValid )
+			return;
+
+		var disposableRoots = mapHost.GetAllObjects( true )
+			.Where( candidate =>
+				candidate is not null &&
+				candidate.IsValid &&
+				candidate != mapHost &&
+				candidate.NetworkMode == NetworkMode.Object &&
+				!candidate.Network.Active &&
+				!HasObjectModeAncestor( candidate, mapHost ) )
+			.ToArray();
+
+		foreach ( var disposableRoot in disposableRoots )
+		{
+			if ( disposableRoot.IsValid && !disposableRoot.Network.Active )
+				disposableRoot.DestroyImmediate();
+		}
+
+		var authoritativeRootCount = mapHost.GetAllObjects( true )
+			.Count( candidate =>
+				candidate is not null &&
+				candidate.IsValid &&
+				candidate != mapHost &&
+				candidate.NetworkMode == NetworkMode.Object &&
+				candidate.Network.Active &&
+				candidate.Network.RootGameObject == candidate );
+
+		Log.Info(
+			$"Large Lad client map reconciliation discarded " +
+			$"{disposableRoots.Length} locally authored Object-mode roots and " +
+			$"preserved {authoritativeRootCount} active authoritative roots." );
+	}
+
+	private static bool HasObjectModeAncestor(
+		GameObject gameObject,
+		GameObject mapHost )
+	{
+		for ( var current = gameObject.Parent;
+			current is not null && current != mapHost;
+			current = current.Parent )
+		{
+			if ( current.NetworkMode == NetworkMode.Object )
+				return true;
+		}
+
+		return false;
+	}
+
 	private void LogLoadedGameplayObjectSummary( string mapIdentifier )
 	{
 		var mapHost = MapInstance?.GameObject;
@@ -517,8 +772,8 @@ public sealed partial class LargeLadSessionCoordinator : Component
 			.ToArray();
 		var barricadesWithPresentation = barricades.Count( component =>
 			component.GameObject.Components
-				.GetAll<MeshComponent>( findMode )
-				.Any( mesh => mesh is not null && mesh.IsValid ) );
+				.GetAll<Renderer>( findMode )
+				.Any( renderer => renderer is not null && renderer.IsValid ) );
 		var dodgeballsWithPresentation = dodgeballs.Count( component =>
 			component.GameObject.Components
 				.GetAll<Renderer>( findMode )
@@ -753,34 +1008,55 @@ public sealed partial class LargeLadSessionCoordinator : Component
 		return CurrentMapName?.Trim() ?? string.Empty;
 	}
 
-	private void PublishLoadedMapNameToPeers( string mapName )
+	private void PublishLoadedMapNameToPeers(
+		string mapName,
+		IEnumerable<GameObject> authoritativeMapNetworkRoots )
 	{
-		CurrentMapName = mapName?.Trim() ?? string.Empty;
+		var selectedMapName = mapName?.Trim() ?? string.Empty;
+		var networkRootManifest = BuildMapNetworkRootManifest(
+			selectedMapName,
+			authoritativeMapNetworkRoots );
+
+		CurrentMapNetworkRootManifest = networkRootManifest;
+		CurrentMapName = selectedMapName;
 		Log.Info(
 			$"Host loaded and validated Large Lad map '{CurrentMapName}'; " +
-			"releasing client MapInstances after its network objects." );
+			"published its authoritative Object-root manifest to connected clients." );
 
 		if ( Game.IsPlaying && Networking.IsHost )
-			ApplySelectedMapNameOnClients( CurrentMapName );
+		{
+			ApplySelectedMapNameOnClients(
+				CurrentMapName,
+				CurrentMapNetworkRootManifest );
+		}
 	}
 
 	private void ClearMapNameOnAllPeers()
 	{
 		hostLoadingMapName = null;
-		ApplyMapNameLocally( string.Empty, "host map unload" );
+		RequestApplyMapNameLocally(
+			string.Empty,
+			string.Empty,
+			"host map unload" );
+		CurrentMapNetworkRootManifest = string.Empty;
 		CurrentMapName = string.Empty;
 
 		if ( Game.IsPlaying && Networking.IsHost )
-			ApplySelectedMapNameOnClients( string.Empty );
+			ApplySelectedMapNameOnClients( string.Empty, string.Empty );
 	}
 
 	[Rpc.Broadcast( NetFlags.HostOnly )]
-	private void ApplySelectedMapNameOnClients( string mapName )
+	private void ApplySelectedMapNameOnClients(
+		string mapName,
+		string networkRootManifest )
 	{
 		if ( Networking.IsHost )
 			return;
 
-		ApplyMapNameLocally( mapName, "reliable host RPC" );
+		RequestApplyMapNameLocally(
+			mapName,
+			networkRootManifest,
+			"reliable host RPC" );
 	}
 
 	private void OnCurrentMapNameChanged(
@@ -796,12 +1072,99 @@ public sealed partial class LargeLadSessionCoordinator : Component
 		}
 
 		if ( !Networking.IsHost )
-			ApplyMapNameLocally( newMapName, "synchronized state change" );
+		{
+			RequestApplyMapNameLocally(
+				newMapName,
+				CurrentMapNetworkRootManifest,
+				"synchronized state change" );
+		}
+	}
+
+	private void OnMapNetworkRootManifestChanged(
+		string oldManifest,
+		string newManifest )
+	{
+		if ( Networking.IsHost )
+			return;
+
+		RequestApplyMapNameLocally(
+			CurrentMapName,
+			newManifest,
+			"synchronized Object-root manifest" );
 	}
 
 	private void ApplyCurrentMapName()
 	{
-		ApplyMapNameLocally( CurrentMapName, "client startup reconciliation" );
+		RequestApplyMapNameLocally(
+			CurrentMapName,
+			CurrentMapNetworkRootManifest,
+			"client startup reconciliation" );
+	}
+
+	private void RequestApplyMapNameLocally(
+		string mapName,
+		string networkRootManifest,
+		string source )
+	{
+		var desiredMapName = mapName?.Trim() ?? string.Empty;
+		if ( Networking.IsHost || string.IsNullOrWhiteSpace( desiredMapName ) )
+		{
+			pendingClientMapName = null;
+			pendingClientMapNetworkRootManifest = null;
+			loggedPendingClientNetworkRootBarrier = false;
+			ApplyMapNameLocally( desiredMapName, source );
+			return;
+		}
+
+		pendingClientMapName = desiredMapName;
+		pendingClientMapNetworkRootManifest = networkRootManifest;
+		TryApplyPendingClientMap();
+	}
+
+	private void TryApplyPendingClientMap()
+	{
+		if ( Networking.IsHost || string.IsNullOrWhiteSpace( pendingClientMapName ) )
+			return;
+
+		if ( !TryParseMapNetworkRootManifest(
+			pendingClientMapNetworkRootManifest,
+			pendingClientMapName,
+			out var expectedNetworkRootIds ) )
+		{
+			return;
+		}
+
+		var missingRootCount = expectedNetworkRootIds.Count( id =>
+		{
+			var candidate = Scene?.Directory?.FindByGuid( id );
+			return candidate is null ||
+				!candidate.IsValid ||
+				!candidate.Network.Active ||
+				candidate.Network.RootGameObject != candidate;
+		} );
+
+		if ( missingRootCount > 0 )
+		{
+			if ( !loggedPendingClientNetworkRootBarrier )
+			{
+				Log.Info(
+					$"Large Lad client is waiting for {missingRootCount} of " +
+					$"{expectedNetworkRootIds.Length} authoritative map Object " +
+					$"roots before loading '{pendingClientMapName}'." );
+				loggedPendingClientNetworkRootBarrier = true;
+			}
+
+			return;
+		}
+
+		var readyMapName = pendingClientMapName;
+		pendingClientMapName = null;
+		pendingClientMapNetworkRootManifest = null;
+		loggedPendingClientNetworkRootBarrier = false;
+		Log.Info(
+			$"Large Lad client received all {expectedNetworkRootIds.Length} " +
+			$"authoritative map Object roots; loading '{readyMapName}'." );
+		ApplyMapNameLocally( readyMapName, "authoritative Object-root barrier" );
 	}
 
 	private void ApplyMapNameLocally( string mapName, string source )
@@ -829,6 +1192,57 @@ public sealed partial class LargeLadSessionCoordinator : Component
 		}
 
 		MapInstance.MapName = desiredMapName;
+	}
+
+	private static string BuildMapNetworkRootManifest(
+		string mapName,
+		IEnumerable<GameObject> authoritativeRoots )
+	{
+		var ids = authoritativeRoots is null
+			? Enumerable.Empty<string>()
+			: authoritativeRoots
+				.Where( root => root is not null && root.IsValid )
+				.Select( root => root.Id.ToString( "D" ) )
+				.OrderBy( id => id, StringComparer.Ordinal );
+		return $"1|{mapName?.Trim()}|{string.Join( ',', ids )}";
+	}
+
+	private static bool TryParseMapNetworkRootManifest(
+		string manifest,
+		string expectedMapName,
+		out Guid[] networkRootIds )
+	{
+		networkRootIds = [];
+		if ( string.IsNullOrWhiteSpace( manifest ) )
+			return false;
+
+		var fields = manifest.Split( '|', 3 );
+		if ( fields.Length != 3 ||
+			fields[0] != "1" ||
+			!string.Equals(
+				fields[1],
+				expectedMapName?.Trim(),
+				StringComparison.OrdinalIgnoreCase ) )
+		{
+			return false;
+		}
+
+		if ( string.IsNullOrWhiteSpace( fields[2] ) )
+			return true;
+
+		var serializedIds = fields[2].Split(
+			',',
+			StringSplitOptions.RemoveEmptyEntries |
+			StringSplitOptions.TrimEntries );
+		var parsedIds = new Guid[serializedIds.Length];
+		for ( var index = 0; index < serializedIds.Length; index++ )
+		{
+			if ( !Guid.TryParse( serializedIds[index], out parsedIds[index] ) )
+				return false;
+		}
+
+		networkRootIds = parsedIds;
+		return true;
 	}
 
 	private bool CanControlMap()
