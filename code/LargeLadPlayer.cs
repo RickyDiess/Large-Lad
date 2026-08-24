@@ -174,9 +174,7 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 			return;
 		}
 
-		if ( MovementLocked ||
-			Health?.IsDead == true ||
-			IsHeldForLocalMap() )
+		if ( IsMovementHardLocked() )
 		{
 			StopMovement();
 			return;
@@ -197,8 +195,7 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 	{
 		if ( IsProxy ||
 			pendingTeleportFrames > 0 ||
-			MovementLocked ||
-			Health?.IsDead == true )
+			IsMovementHardLocked() )
 		{
 			pendingSoftSeparationDisplacement = Vector3.Zero;
 			return;
@@ -217,8 +214,7 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 
 		if ( IsProxy ||
 			pendingTeleportFrames > 0 ||
-			MovementLocked ||
-			Health?.IsDead == true )
+			IsMovementHardLocked() )
 		{
 			return;
 		}
@@ -632,10 +628,7 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 		if ( IsProxy )
 			return;
 
-		var isHardLocked =
-			MovementLocked ||
-			Health?.IsDead == true ||
-			IsHeldForLocalMap();
+		var isHardLocked = IsMovementHardLocked();
 		controller.UseInputControls =
 			!isHardLocked && !IsGroundSlamStaggered;
 
@@ -657,6 +650,13 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 		return LargeLadGameManager.FindForScene( Scene )?
 			.SessionCoordinator?
 			.ShouldHoldLocalPlayerForMap == true;
+	}
+
+	private bool IsMovementHardLocked()
+	{
+		return MovementLocked ||
+			Health?.IsDead == true ||
+			IsHeldForLocalMap();
 	}
 
 	internal void ApplyGroundSlamEffect(

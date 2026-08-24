@@ -642,8 +642,8 @@ public sealed partial class LargeLadSessionCoordinator
 		}
 
 		eligibleVoteConnections.Clear();
-		foreach ( var connection in Connection.All.Where( connection =>
-			connection is not null && connection.IsActive ) )
+		foreach ( var connection in Connection.All.Where(
+			IsEligibleMapVoteConnection ) )
 		{
 			eligibleVoteConnections.Add( GetConnectionIdentity( connection ) );
 		}
@@ -676,7 +676,7 @@ public sealed partial class LargeLadSessionCoordinator
 			return;
 		}
 
-		var caller = Rpc.Caller;
+		var caller = ResolveMapVoteCaller( out var isListeningHostVote );
 		if ( caller is null || !caller.IsActive )
 			return;
 
@@ -693,7 +693,7 @@ public sealed partial class LargeLadSessionCoordinator
 
 		var canonicalVote = submittedMapVotes[voterIdentity];
 		PublishVoteTotals();
-		if ( Connection.Local is not null &&
+		if ( isListeningHostVote ||
 			string.Equals(
 				voterIdentity,
 				GetConnectionIdentity( Connection.Local ),
@@ -917,9 +917,60 @@ public sealed partial class LargeLadSessionCoordinator
 	private HashSet<string> GetConnectedVoteIdentities()
 	{
 		return Connection.All
-			.Where( connection => connection is not null && connection.IsActive )
+			.Where( IsEligibleMapVoteConnection )
 			.Select( GetConnectionIdentity )
 			.ToHashSet( StringComparer.OrdinalIgnoreCase );
+	}
+
+	private Connection ResolveMapVoteCaller( out bool isListeningHostVote )
+	{
+		isListeningHostVote = false;
+
+		// Remote requests must always use the engine-authored caller. A locally
+		// invoked listen-host RPC can have no ordinary remote caller, in which
+		// case the engine's local/host connection represents that one player.
+		var caller = Rpc.Caller;
+		if ( caller is not null )
+			return caller;
+
+		if ( !Networking.IsHost || Application.IsDedicatedServer )
+			return null;
+
+		var localConnection = Connection.Local;
+		if ( IsEligibleMapVoteConnection( localConnection ) &&
+			eligibleVoteConnections.Contains(
+				GetConnectionIdentity( localConnection ) ) )
+		{
+			isListeningHostVote = true;
+			return localConnection;
+		}
+
+		var hostConnection = Connection.Host;
+		if ( IsEligibleMapVoteConnection( hostConnection ) &&
+			eligibleVoteConnections.Contains(
+				GetConnectionIdentity( hostConnection ) ) )
+		{
+			isListeningHostVote = true;
+			return hostConnection;
+		}
+
+		return null;
+	}
+
+	private static bool IsEligibleMapVoteConnection( Connection connection )
+	{
+		if ( connection is null || !connection.IsActive )
+			return false;
+
+		if ( !Application.IsDedicatedServer || Connection.Local is null )
+			return true;
+
+		// A dedicated process has no listening player. Do not let its local
+		// pseudo-connection become an eligible voter or affect completion.
+		return !string.Equals(
+			GetConnectionIdentity( connection ),
+			GetConnectionIdentity( Connection.Local ),
+			StringComparison.OrdinalIgnoreCase );
 	}
 
 	private static string GetConnectionIdentity( Connection connection )

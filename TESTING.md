@@ -148,17 +148,20 @@ remote client:
    the vote opens only after the normal `EndRound` boundary; rejected round
    starts, lobby waiting, aborted starts, and partial rounds must not increment
    the count.
-4. Confirm each card uses the same Stage 1 metadata as the initial chooser and
-   that a connection can submit exactly one candidate. The displayed accepted
-   selection and totals must come from host state, and forged or stale candidate
-   IDs must be rejected.
+4. At vote start, confirm the listening host and remote client are both eligible.
+   Submit the remote client's vote, then submit the listening host's vote. Confirm
+   both accepted choices are displayed from host-authored state and both votes
+   count exactly once. With those as the only eligible voters, confirm the vote
+   may complete early after both submit. Repeated host clicks must not alter the
+   accepted host vote. Forged or stale candidate IDs must still be rejected.
 5. With multiple candidates configured, verify plurality wins. Force a top tie
    and confirm the host randomly selects only among tied leaders. Let a vote
    expire with no submissions and confirm the stable-ID-first candidate wins.
-6. Join a client after voting begins. Confirm it can observe the vote but cannot
-   submit in that vote. Disconnect an eligible voter before it submits, and in
-   a separate run disconnect one after submission; neither connection nor its
-   stale vote may block or decide completion.
+6. Join a client after voting begins. Confirm it can observe the vote but remains
+   ineligible and cannot submit in that already-running vote. Disconnect an
+   eligible voter before it submits, and in a separate run disconnect one after
+   submission; neither connection nor its stale vote may block or decide
+   completion.
 7. Complete the vote. Confirm every peer enters `VoteResult`, displays the same
    winning map and final totals for five seconds, rejects further submissions,
    and does not begin map unload before the result timer expires. Confirm
@@ -171,15 +174,24 @@ remote client:
    manifest and advances past `Loading Map`, and no client remains permanently
    short only the native top-level roots from the departing generation. Repeat the
    same-map vote reload once more to catch stale create/delete accumulation.
+8. While the map-flow blackout is active, overlap two unassigned or Skinny Kid
+   players. Confirm neither pre-physics calculation nor post-physics application
+   moves either player through soft separation, including when the hold begins
+   between those two callbacks. Return the session to `Playing` and confirm the
+   ordinary light horizontal soft separation resumes without changed gameplay
+   behavior.
 
-For failure recovery, configure or request a missing map and then a map that
-fails the blocking spawn/content contract. Confirm each failed identifier is
-attempted at most once in that transaction, no round/timer/spawn flow resumes,
-and fallback is tried in this order: last known good map, configured startup
-map, then the first valid official catalog entry. If every option fails, confirm
-the flow remains visibly/logically `Failed` without restarting `game_shell.scene`
-or disconnecting clients. Selecting a later valid map must recover through the
-same coordinator and `MapInstance`.
+For failure recovery, configure or request a package/map that never successfully
+loads and allow `Map Load Timeout` to expire. Confirm the coordinator progresses
+through load cancellation/unload into the next bounded fallback and does not
+remain permanently stranded in `Unloading`. Then test a map that fails the
+blocking spawn/content contract. Confirm each failed identifier is attempted at
+most once in that transaction, no round/timer/spawn flow resumes, and fallback is
+tried in this order: last known good map, configured startup map, then the first
+valid official catalog entry. If every option fails, confirm the flow remains
+visibly/logically `Failed` without restarting `game_shell.scene` or disconnecting
+clients. Selecting a later valid map must recover through the same coordinator
+and `MapInstance`.
 
 For a dedicated-server test, launch the normal Large Lad project rather than a
 content scene. Confirm startup priority is: an explicit launch map identifier,

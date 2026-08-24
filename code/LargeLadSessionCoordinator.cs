@@ -317,6 +317,7 @@ public sealed partial class LargeLadSessionCoordinator : Component
 		BeginMapTransitionCleanup();
 
 		var unloadVersionBefore = unloadNotificationVersion;
+		var mapWasLoaded = MapInstance.IsLoaded;
 		var localSceneChildren = unloadedMapName?.EndsWith(
 			".scene",
 			StringComparison.OrdinalIgnoreCase ) == true
@@ -341,11 +342,11 @@ public sealed partial class LargeLadSessionCoordinator : Component
 			}
 		}
 
-		// Package maps invoke OnMapUnloaded directly. Current direct scene-map
-		// resources do not, so close the same readiness contract here when the
-		// callback did not run, even if that map failed readiness validation.
-		// This remains lifecycle-driven without polling.
-		if ( localSceneChildren is not null &&
+		// Loaded package maps invoke OnMapUnloaded directly. Current direct scene
+		// maps and cancellation of an async package that never reached IsLoaded do
+		// not, so close the same lifecycle contract after UnloadMap returns. A late
+		// callback is ignored by HandleMapUnloaded once the fallback is Loading.
+		if ( (localSceneChildren is not null || !mapWasLoaded) &&
 			unloadNotificationVersion == unloadVersionBefore )
 		{
 			HandleMapUnloaded();
@@ -817,6 +818,15 @@ public sealed partial class LargeLadSessionCoordinator : Component
 
 	private void HandleMapUnloaded()
 	{
+		if ( Networking.IsHost &&
+			MapState != LargeLadMapSessionState.Unloading )
+		{
+			Log.Info(
+				$"Ignored stale MapInstance unload completion while the map " +
+				$"session was {MapState}." );
+			return;
+		}
+
 		unloadNotificationVersion++;
 		InvalidateLoadedMapResolution();
 
