@@ -1,9 +1,9 @@
 # Large Lad scene-mapping guide
 
-`Assets/scenes/game_shell.scene` is the game-mode startup scene. It contains the
-one persistent `Large Lad Gameplay Bootstrap`; its built-in `MapInstance` loads
-replaceable map content beneath the bootstrap's dedicated `Map Content Host`
-child. `Assets/scenes/Gym.scene` is the current proof map and local-development
+`Assets/scenes/game_shell.scene` is the game-mode startup scene. It contains one
+persistent `Large Lad Gameplay Bootstrap` plus a separate root-level Snapshot
+`Map Content Host`; that host's built-in `MapInstance` loads replaceable map
+content beneath itself. `Assets/scenes/Gym.scene` is the current proof map and local-development
 default. It contains geometry, spawns, pickups, passages, barricades, lighting,
 and other map-owned state, but no game manager, network helper, spawn allocator,
 session coordinator, or map instance.
@@ -16,9 +16,10 @@ session-global owner to a map-content scene.
 
 ## Game shell and map-content boundary
 
-The persistent bootstrap owns exactly one `LargeLadSessionCoordinator`, built-in
-`MapInstance`, `NetworkHelper`, `LargeLadSpawnAllocator`, and
-`LargeLadGameManager`. The coordinator owns map selection, loading, unloading,
+The persistent bootstrap owns exactly one `LargeLadSessionCoordinator`,
+`NetworkHelper`, `LargeLadSpawnAllocator`, and `LargeLadGameManager`. The shell's
+separate Map Content Host owns exactly one built-in `MapInstance`. The coordinator
+owns map selection, loading, unloading,
 the host-synchronized current map name, and the synchronized `Unloaded`,
 `Loading`, `Ready`, `Unloading`, or `Failed` lifecycle state. `IsMapReady` is
 derived from that state rather than being an independently mutable flag.
@@ -56,16 +57,27 @@ uses the engine's automatic download/mount behavior. For local development,
 `Startup Map` and `Local Development Map` are currently
 `scenes/gym.scene`. The coordinator synchronizes its selected name from the host
 and passes either form directly to each peer's local `MapInstance`. The dedicated
-`Map Content Host` uses Network Mode `Never`: the persistent scene creates the
-host's authored loader locally, and the coordinator creates the equivalent one
-direct local child when a remote network scene excludes that Never-mode prefab
-child. The coordinator never serializes a component reference across that local
+root-level `Map Content Host` uses Network Mode `Snapshot`, so the authored loader
+is present in the initial scene snapshot for both early and late joiners. The
+coordinator resolves that
+existing scene loader on every peer; it never fabricates a replacement or
+serializes a component reference across the gameplay bootstrap's network-object
 boundary. It sends the authoritative selected identifier through synchronized
 state and a reliable runtime RPC. Every peer therefore performs the engine's
-normal local map load,
-including static world geometry and collision; those are not replicated as
-ordinary network GameObjects. Map-authored Object-mode gameplay objects continue
-to use their normal host-spawned networking path.
+normal peer-local map load, including static world geometry, collision, lights,
+and presentation. Local `.scene` content keeps those top-level static roots in
+Network Mode `Never`; they are deterministically created by every peer's
+`MapInstance` and are not replicated as ordinary network GameObjects. Map-authored
+Object-mode gameplay objects continue to use their normal host-spawned networking
+path. The engine reconciles those objects by their authored scene identities:
+networked objects already received from the host take precedence, while the
+peer-local map loader skips recreating the same root. Runtime transitions are
+therefore host-first: the host loads and validates the scene so its Object-mode
+roots are network-spawned, then publishes the selected map name and releases
+connected clients to run their local `MapInstance` load. This preserves complete
+networked prefab hierarchies without racing them against client-authored copies.
+Large Lad does not disable, replace, reparent, respawn, or post-load refresh those
+map-authored roots.
 
 ## Map manifest and compatibility
 
@@ -574,8 +586,9 @@ the Large Lad respawn timer.
   references the intended `.llmap`, and its stable id, loader identifier,
   contract version, presentation metadata, recommended range, and optional
   approved balance values pass validation.
-- The shell's coordinator and `MapInstance` references target that same
-  bootstrap object, and map readiness is confirmed before round testing.
+- The shell has one coordinator on the gameplay bootstrap and one separate
+  root-level Snapshot Map Content Host/`MapInstance`, and map readiness is
+  confirmed before round testing.
 - At least one team-spawn component exists for each group.
 - Configured capacities meet 32 Lobby, 31 Skinny Kid, and 32 Hunter.
 - Spawn circles produce clear floor positions and do not cross walls.

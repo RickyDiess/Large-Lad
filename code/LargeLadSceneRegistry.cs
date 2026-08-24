@@ -340,7 +340,7 @@ internal static class LargeLadSceneRegistry
 		}
 		else
 		{
-			manager.SessionCoordinator.ResolveBootstrapReferences();
+			manager.SessionCoordinator.ResolveBootstrapReferences( mapInstances[0] );
 
 			if ( manager.SessionCoordinator.GameManager != manager )
 			{
@@ -351,12 +351,11 @@ internal static class LargeLadSceneRegistry
 
 			if ( mapInstances.Count != 1 ||
 				manager.SessionCoordinator.MapInstance != mapInstances[0] ||
-				manager.SessionCoordinator.MapInstance.GameObject.Parent !=
-					manager.GameObject )
+				!manager.SessionCoordinator.MapInstance.GameObject.IsRoot )
 			{
 				issues.Add(
 					"LargeLadSessionCoordinator needs an active MapInstance on a " +
-					"dedicated direct child of the gameplay bootstrap object." );
+					"dedicated root-level Snapshot Map Content Host." );
 			}
 		}
 
@@ -526,7 +525,7 @@ internal static class LargeLadSceneRegistry
 
 		candidate.ResolveBootstrapReferencesForRegistry();
 		var coordinator = coordinators[0];
-		coordinator.ResolveBootstrapReferences();
+		coordinator.ResolveBootstrapReferences( mapInstances[0] );
 
 		if ( candidate.NetworkHelper != helpers[0] ||
 			candidate.NetworkHelper.GameObject != candidate.GameObject )
@@ -556,12 +555,12 @@ internal static class LargeLadSceneRegistry
 		}
 
 		if ( coordinator.MapInstance != mapInstances[0] ||
-			coordinator.MapInstance.GameObject.Parent != coordinator.GameObject )
+			!coordinator.MapInstance.GameObject.IsRoot )
 		{
 			issues.Add(
 				"LargeLadSessionCoordinator needs an active MapInstance " +
-				"reference on a dedicated direct child of the gameplay " +
-				"bootstrap object." );
+				"reference on a dedicated root-level Snapshot Map Content " +
+				"Host." );
 		}
 
 		return issues;

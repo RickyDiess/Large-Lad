@@ -112,43 +112,6 @@
     ],
     "Children": [
       {
-        "__guid": "3d25ed8a-2734-4aac-97c7-70bd30e9f109",
-        "__version": 2,
-        "Flags": 0,
-        "Name": "Map Content Host",
-        "Position": "0,0,0",
-        "Rotation": "0,0,0,1",
-        "Scale": "1,1,1",
-        "Tags": "",
-        "Enabled": true,
-        "NetworkMode": 0,
-        "NetworkFlags": 0,
-        "NetworkOrphaned": 0,
-        "NetworkTransmit": false,
-        "OwnerTransfer": 0,
-        "Components": [
-          {
-            "__type": "Sandbox.MapInstance",
-            "__guid": "edca6724-d1f9-4701-a212-4ae4df243c02",
-            "__enabled": true,
-            "Flags": 0,
-            "EnableCollision": true,
-            "MapName": "",
-            "NoOrigin": false,
-            "OnComponentDestroy": null,
-            "OnComponentDisabled": null,
-            "OnComponentEnabled": null,
-            "OnComponentFixedUpdate": null,
-            "OnComponentStart": null,
-            "OnComponentUpdate": null,
-            "OnMapLoaded": null,
-            "OnMapUnloaded": null,
-            "UseMapFromLaunch": false
-          }
-        ],
-        "Children": []
-      },
-      {
         "__guid": "2cf099ea-cf8c-4b1c-a9dc-ad9a8b74c19a",
         "__version": 2,
         "Flags": 0,

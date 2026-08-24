@@ -146,6 +146,7 @@ public sealed partial class LargeLadSessionCoordinator : Component
 
 	private Scene registeredScene;
 	private MapInstance subscribedMapInstance;
+	private string hostLoadingMapName;
 	private string pendingReloadMapName;
 	private int unloadNotificationVersion;
 	private bool mapTransitionCleanupStarted;
@@ -209,6 +210,7 @@ public sealed partial class LargeLadSessionCoordinator : Component
 			MapInstance?.IsLoaded == true &&
 			!IsMapReady )
 		{
+			hostLoadingMapName = MapInstance.MapName?.Trim() ?? string.Empty;
 			SetMapState( LargeLadMapSessionState.Loading );
 			HandleMapLoaded();
 		}
@@ -231,7 +233,7 @@ public sealed partial class LargeLadSessionCoordinator : Component
 		var selectedMapName = mapName.Trim();
 
 		if ( string.Equals(
-			CurrentMapName,
+			GetHostSelectedOrLoadingMapName(),
 			selectedMapName,
 			StringComparison.OrdinalIgnoreCase ) )
 		{
@@ -251,7 +253,7 @@ public sealed partial class LargeLadSessionCoordinator : Component
 			MapState != LargeLadMapSessionState.Unloaded )
 		{
 			pendingReloadMapName = selectedMapName;
-			var unloadedMapName = CurrentMapName;
+			var unloadedMapName = GetHostSelectedOrLoadingMapName();
 			UnloadSelectedMap( unloadedMapName );
 			return;
 		}
@@ -274,12 +276,12 @@ public sealed partial class LargeLadSessionCoordinator : Component
 
 		if ( MapState == LargeLadMapSessionState.Unloaded &&
 			MapInstance?.IsLoaded != true &&
-			string.IsNullOrWhiteSpace( CurrentMapName ) )
+			string.IsNullOrWhiteSpace( GetHostSelectedOrLoadingMapName() ) )
 		{
 			return;
 		}
 
-		var unloadedMapName = CurrentMapName;
+		var unloadedMapName = GetHostSelectedOrLoadingMapName();
 		pendingReloadMapName = null;
 		UnloadSelectedMap( unloadedMapName );
 	}
@@ -287,8 +289,9 @@ public sealed partial class LargeLadSessionCoordinator : Component
 	[Button( "Reload Current Map" )]
 	public void ReloadCurrentMap()
 	{
+		var selectedMapName = GetHostSelectedOrLoadingMapName();
 		if ( !CanControlMap() ||
-			string.IsNullOrWhiteSpace( CurrentMapName ) )
+			string.IsNullOrWhiteSpace( selectedMapName ) )
 		{
 			return;
 		}
@@ -296,8 +299,8 @@ public sealed partial class LargeLadSessionCoordinator : Component
 		// Clear the selection before unloading so MapInstance does not reload it
 		// on its next update. The unload callback restores the selected ident and
 		// lets MapInstance perform a normal asynchronous replacement load.
-		pendingReloadMapName = CurrentMapName;
-		var unloadedMapName = CurrentMapName;
+		pendingReloadMapName = selectedMapName;
+		var unloadedMapName = selectedMapName;
 		UnloadSelectedMap( unloadedMapName );
 	}
 
@@ -316,7 +319,7 @@ public sealed partial class LargeLadSessionCoordinator : Component
 
 		// State and gameplay are closed before clearing MapName because changing
 		// it can itself begin MapInstance's asynchronous unload.
-		SelectMapName( string.Empty );
+		ClearMapNameOnAllPeers();
 		MapInstance.UnloadMap();
 
 		// Snapshot-networked objects from a direct local .scene can be retained by
@@ -343,51 +346,34 @@ public sealed partial class LargeLadSessionCoordinator : Component
 		}
 	}
 
-	internal void ResolveBootstrapReferences()
+	internal void ResolveBootstrapReferences( MapInstance knownMapInstance = null )
 	{
-		if ( !IsUsableMapInstance( MapInstance ) )
+		if ( knownMapInstance is not null && knownMapInstance.IsValid )
 		{
-			MapInstance = GameObject.Components
-				.GetAll<MapInstance>(
-					FindMode.EverythingInSelfAndDescendants )
+			MapInstance = knownMapInstance;
+		}
+		else if ( !IsUsableMapInstance( MapInstance ) )
+		{
+			MapInstance = Scene
+				.GetAllComponents<MapInstance>()
 				.FirstOrDefault( IsUsableMapInstance );
-
-			if ( MapInstance is null && Game.IsPlaying )
-				MapInstance = CreatePeerLocalMapInstance();
 		}
 
 		if ( !IsUsableBootstrapComponent( GameManager ) )
 			GameManager = Components.Get<LargeLadGameManager>();
 	}
 
-	private MapInstance CreatePeerLocalMapInstance()
-	{
-		var mapHost = new GameObject( "Map Content Host" )
-		{
-			NetworkMode = NetworkMode.Never
-		};
-		mapHost.SetParent( GameObject, keepWorldPosition: false );
-
-		var mapInstance = mapHost.Components.Create<MapInstance>();
-		mapInstance.EnableCollision = true;
-		mapInstance.UseMapFromLaunch = false;
-
-		Log.Info(
-			"Created the peer-local Large Lad MapInstance because the " +
-			"local-only prefab child was not present in this network scene." );
-		return mapInstance;
-	}
-
 	private async void HandleMapLoaded()
 	{
 		ResolveBootstrapReferences();
 
-		if ( !Networking.IsHost )
-		{
-			SuppressClientAuthoredNetworkCopies();
-		}
-		else if ( MapState != LargeLadMapSessionState.Loading ||
-			string.IsNullOrWhiteSpace( CurrentMapName ) )
+		var preparedMapIdentifier = Networking.IsHost
+			? hostLoadingMapName?.Trim() ?? string.Empty
+			: CurrentMapName?.Trim() ?? string.Empty;
+
+		if ( Networking.IsHost &&
+			(MapState != LargeLadMapSessionState.Loading ||
+			string.IsNullOrWhiteSpace( preparedMapIdentifier )) )
 		{
 			Log.Warning(
 				$"Ignored a completed map load while the Large Lad session was " +
@@ -396,7 +382,6 @@ public sealed partial class LargeLadSessionCoordinator : Component
 		}
 
 		var preparationVersion = ++loadedMapPreparationVersion;
-		var preparedMapIdentifier = CurrentMapName?.Trim() ?? string.Empty;
 		var embeddedBootstrapIssues = GetEmbeddedBootstrapValidationIssues(
 			preparedMapIdentifier );
 
@@ -430,9 +415,12 @@ public sealed partial class LargeLadSessionCoordinator : Component
 		var packageMetadata = await LargeLadMapCatalog
 			.FetchPublishedPackageMetadata( preparedMapIdentifier );
 
+		var currentPreparingIdentifier = Networking.IsHost
+			? hostLoadingMapName?.Trim() ?? string.Empty
+			: CurrentMapName?.Trim() ?? string.Empty;
 		if ( preparationVersion != loadedMapPreparationVersion ||
 			!string.Equals(
-				CurrentMapName,
+				currentPreparingIdentifier,
 				preparedMapIdentifier,
 				StringComparison.OrdinalIgnoreCase ) ||
 			(Networking.IsHost &&
@@ -455,12 +443,30 @@ public sealed partial class LargeLadSessionCoordinator : Component
 
 		CurrentMapDescriptor = descriptor;
 		loadedMapValidationIssues.Clear();
+		LogLoadedGameplayObjectSummary( preparedMapIdentifier );
 
 		if ( !Networking.IsHost )
+		{
+			Log.Info(
+				$"Large Lad client finished its local MapInstance load for " +
+				$"'{preparedMapIdentifier}' after receiving the host's network " +
+				$"objects." );
 			return;
+		}
 
-		PromoteNestedMapNetworkObjects();
 		var isReady = GameManager?.PrepareLoadedMap( this, descriptor ) == true;
+		if ( isReady )
+		{
+			// Scene-map Object roots are spawned by the host during MapInstance's
+			// load. Only release the map name after that has completed so an
+			// already-connected client receives those authoritative roots before
+			// its local MapInstance deserializes static/presentation content. The
+			// loader can then skip the matching network roots instead of creating
+			// local duplicates.
+			PublishLoadedMapNameToPeers( preparedMapIdentifier );
+			hostLoadingMapName = null;
+		}
+
 		SetMapState(
 			isReady
 				? LargeLadMapSessionState.Ready
@@ -486,134 +492,57 @@ public sealed partial class LargeLadSessionCoordinator : Component
 		}
 	}
 
-	private void SuppressClientAuthoredNetworkCopies()
+	private void LogLoadedGameplayObjectSummary( string mapIdentifier )
 	{
-		if ( Networking.IsHost || MapInstance is null )
+		var mapHost = MapInstance?.GameObject;
+		if ( mapHost is null || !mapHost.IsValid )
 			return;
 
-		var mapHost = MapInstance.GameObject;
-		var authoredNetworkCopies = GetNestedMapNetworkRoots( mapHost );
-
-		foreach ( var sourceObject in authoredNetworkCopies )
-		{
-			sourceObject.Components
-				.Get<LargeLadDodgeballPickup>( FindMode.EverythingInSelf )?
-				.SuppressClientAuthoredCopy();
-			sourceObject.Enabled = false;
-		}
+		var findMode = FindMode.EverythingInSelfAndDescendants;
+		var barricades = mapHost.Components
+			.GetAll<LargeLadBarricade>( findMode )
+			.Where( component => component is not null && component.IsValid )
+			.ToArray();
+		var dodgeballs = mapHost.Components
+			.GetAll<LargeLadDodgeballPickup>( findMode )
+			.Where( component => component is not null && component.IsValid )
+			.ToArray();
+		var weaponPickups = mapHost.Components
+			.GetAll<LargeLadWeaponPickup>( findMode )
+			.Where( component => component is not null && component.IsValid )
+			.ToArray();
+		var minionPassages = mapHost.Components
+			.GetAll<LargeLadMinionPassage>( findMode )
+			.Where( component => component is not null && component.IsValid )
+			.ToArray();
+		var barricadesWithPresentation = barricades.Count( component =>
+			component.GameObject.Components
+				.GetAll<MeshComponent>( findMode )
+				.Any( mesh => mesh is not null && mesh.IsValid ) );
+		var dodgeballsWithPresentation = dodgeballs.Count( component =>
+			component.GameObject.Components
+				.GetAll<Renderer>( findMode )
+				.Any( renderer => renderer is not null && renderer.IsValid ) );
+		var weaponPickupsWithPresentation = weaponPickups.Count( component =>
+			component.GameObject.Components
+				.GetAll<Renderer>( findMode )
+				.Any( renderer => renderer is not null && renderer.IsValid ) );
+		var minionPassagesWithPresentation = minionPassages.Count( component =>
+			component.GameObject.Components
+				.GetAll<Renderer>( findMode )
+				.Any( renderer => renderer is not null && renderer.IsValid ) );
 
 		Log.Info(
-			$"Suppressed {authoredNetworkCopies.Length} client-authored " +
-			"network/physics copies beneath the loaded map." );
-	}
-
-	private void PromoteNestedMapNetworkObjects()
-	{
-		if ( !Networking.IsHost || MapInstance is null )
-			return;
-
-		var mapHost = MapInstance.GameObject;
-
-		// Nested scene-map network roots depend on Snapshot parents that are not
-		// stable in the persistent shell's late-join graph. Dynamic physics props
-		// have the same problem when MapInstance promotes them automatically.
-		// Promote only those roots beneath the known map host. Static/local map
-		// content and already-direct network roots stay untouched, and keeping the
-		// authored objects preserves their network identities for late joiners.
-		var authoredNetworkRoots = GetNestedMapNetworkRoots( mapHost );
-
-		foreach ( var sourceObject in authoredNetworkRoots )
-			PromoteNestedMapNetworkObject( sourceObject, mapHost );
-	}
-
-	private static void PromoteNestedMapNetworkObject(
-		GameObject sourceObject,
-		GameObject mapHost )
-	{
-		var sourceParent = sourceObject.Parent;
-		var sourceWorldTransform = sourceObject.WorldTransform;
-		var sourceNetworkMode = sourceObject.NetworkMode;
-
-		try
-		{
-			// Reparent in place so authored identities, exact transforms, and any
-			// live physics bodies survive the promotion. Cloning ModelPhysics also
-			// rebuilds articulated bodies around the scene origin.
-			sourceObject.SetParent( mapHost, keepWorldPosition: true );
-			sourceObject.WorldTransform = sourceWorldTransform;
-			sourceObject.NetworkMode = NetworkMode.Object;
-
-			if ( sourceObject.Network.Active &&
-				sourceObject.Network.RootGameObject == sourceObject )
-			{
-				sourceObject.Network.Refresh();
-			}
-			else if ( !sourceObject.NetworkSpawn() )
-			{
-				throw new InvalidOperationException(
-					"NetworkSpawn returned false." );
-			}
-		}
-		catch ( Exception exception )
-		{
-			sourceObject.SetParent( sourceParent, keepWorldPosition: true );
-			sourceObject.WorldTransform = sourceWorldTransform;
-			sourceObject.NetworkMode = sourceNetworkMode;
-			Log.Error(
-				$"{sourceObject.Name}: failed to promote its persistent-map " +
-				$"network object: {exception.Message}" );
-		}
-	}
-
-	private static GameObject[] GetNestedMapNetworkRoots( GameObject mapHost )
-	{
-		if ( mapHost is null )
-			return [];
-
-		return mapHost.GetAllObjects( true )
-			.Where( candidate =>
-				candidate != mapHost &&
-				candidate.Parent != mapHost &&
-				IsMapNetworkRoot( candidate ) &&
-				!HasMapNetworkRootAncestor( candidate, mapHost ) )
-			.ToArray();
-	}
-
-	private static bool HasMapNetworkRootAncestor(
-		GameObject gameObject,
-		GameObject mapHost )
-	{
-		for ( var current = gameObject.Parent;
-			current is not null && current != mapHost;
-			current = current.Parent )
-		{
-			if ( IsMapNetworkRoot( current ) )
-				return true;
-		}
-
-		return false;
-	}
-
-	private static bool IsMapNetworkRoot( GameObject gameObject )
-	{
-		if ( gameObject.NetworkMode == NetworkMode.Object )
-			return true;
-
-		return IsDynamicPhysicsProp( gameObject );
-	}
-
-	private static bool IsDynamicPhysicsProp( GameObject gameObject )
-	{
-		if ( gameObject.Components.Get<Prop>(
-			FindMode.EverythingInSelf ) is null )
-		{
-			return false;
-		}
-
-		return gameObject.Components.Get<ModelPhysics>(
-				FindMode.EverythingInSelf ) is not null ||
-			gameObject.Components.Get<Rigidbody>(
-				FindMode.EverythingInSelf ) is not null;
+			$"Large Lad map object summary on " +
+			$"{(Networking.IsHost ? "host" : "client")} for " +
+			$"'{mapIdentifier}': barricades={barricades.Length} " +
+			$"(presented={barricadesWithPresentation}), " +
+			$"dodgeballs={dodgeballs.Length} " +
+			$"(presented={dodgeballsWithPresentation}), " +
+			$"weapon-pickups={weaponPickups.Length} " +
+			$"(presented={weaponPickupsWithPresentation}), " +
+			$"minion-passages={minionPassages.Length} " +
+			$"(presented={minionPassagesWithPresentation})." );
 	}
 
 	private static bool IsDescendantOf(
@@ -672,7 +601,7 @@ public sealed partial class LargeLadSessionCoordinator : Component
 
 		if ( string.IsNullOrWhiteSpace( selectedMapName ) )
 		{
-			SelectMapName( string.Empty );
+			ClearMapNameOnAllPeers();
 			SetMapState( LargeLadMapSessionState.Unloaded );
 			return;
 		}
@@ -684,7 +613,11 @@ public sealed partial class LargeLadSessionCoordinator : Component
 
 		try
 		{
-			SelectMapName( selectedMapName );
+			hostLoadingMapName = selectedMapName;
+			Log.Info(
+				$"Host is loading Large Lad map '{selectedMapName}' before " +
+				"releasing it to connected clients." );
+			ApplyMapNameLocally( selectedMapName, "host-first map load" );
 		}
 		catch ( Exception exception )
 		{
@@ -812,17 +745,33 @@ public sealed partial class LargeLadSessionCoordinator : Component
 			$"{newState}." );
 	}
 
-	private void SelectMapName( string mapName )
+	private string GetHostSelectedOrLoadingMapName()
+	{
+		if ( Networking.IsHost && !string.IsNullOrWhiteSpace( hostLoadingMapName ) )
+			return hostLoadingMapName.Trim();
+
+		return CurrentMapName?.Trim() ?? string.Empty;
+	}
+
+	private void PublishLoadedMapNameToPeers( string mapName )
 	{
 		CurrentMapName = mapName?.Trim() ?? string.Empty;
-		ApplyMapNameLocally( CurrentMapName );
+		Log.Info(
+			$"Host loaded and validated Large Lad map '{CurrentMapName}'; " +
+			"releasing client MapInstances after its network objects." );
 
-		// MapInstance is deliberately local on every peer because world geometry
-		// and collision are loaded from the map file rather than replicated. Keep
-		// the synchronized name for late joiners and reliably notify peers that are
-		// already connected when a runtime selection changes.
 		if ( Game.IsPlaying && Networking.IsHost )
 			ApplySelectedMapNameOnClients( CurrentMapName );
+	}
+
+	private void ClearMapNameOnAllPeers()
+	{
+		hostLoadingMapName = null;
+		ApplyMapNameLocally( string.Empty, "host map unload" );
+		CurrentMapName = string.Empty;
+
+		if ( Game.IsPlaying && Networking.IsHost )
+			ApplySelectedMapNameOnClients( string.Empty );
 	}
 
 	[Rpc.Broadcast( NetFlags.HostOnly )]
@@ -831,14 +780,14 @@ public sealed partial class LargeLadSessionCoordinator : Component
 		if ( Networking.IsHost )
 			return;
 
-		ApplyMapNameLocally( mapName );
+		ApplyMapNameLocally( mapName, "reliable host RPC" );
 	}
 
 	private void OnCurrentMapNameChanged(
 		string oldMapName,
 		string newMapName )
 	{
-		if ( !string.Equals(
+		if ( !Networking.IsHost && !string.Equals(
 			oldMapName,
 			newMapName,
 			StringComparison.OrdinalIgnoreCase ) )
@@ -847,20 +796,39 @@ public sealed partial class LargeLadSessionCoordinator : Component
 		}
 
 		if ( !Networking.IsHost )
-			ApplyMapNameLocally( newMapName );
+			ApplyMapNameLocally( newMapName, "synchronized state change" );
 	}
 
 	private void ApplyCurrentMapName()
 	{
-		ApplyMapNameLocally( CurrentMapName );
+		ApplyMapNameLocally( CurrentMapName, "client startup reconciliation" );
 	}
 
-	private void ApplyMapNameLocally( string mapName )
+	private void ApplyMapNameLocally( string mapName, string source )
 	{
 		ResolveBootstrapReferences();
+		AttachMapCallbacks();
 
-		if ( MapInstance is not null )
-			MapInstance.MapName = mapName?.Trim() ?? string.Empty;
+		var desiredMapName = mapName?.Trim() ?? string.Empty;
+
+		if ( MapInstance is null )
+		{
+			Log.Error(
+				$"Large Lad could not reconcile map '{desiredMapName}' from " +
+				$"{source}: this peer has no root-level MapInstance." );
+			return;
+		}
+
+		var localMapName = MapInstance.MapName?.Trim() ?? string.Empty;
+		if ( string.Equals(
+			localMapName,
+			desiredMapName,
+			StringComparison.OrdinalIgnoreCase ) )
+		{
+			return;
+		}
+
+		MapInstance.MapName = desiredMapName;
 	}
 
 	private bool CanControlMap()
@@ -947,7 +915,6 @@ public sealed partial class LargeLadSessionCoordinator : Component
 	{
 		return mapInstance is not null &&
 			mapInstance.IsValid &&
-			mapInstance.Scene == Scene &&
-			mapInstance.GameObject.Parent == GameObject;
+			mapInstance.GameObject.IsRoot;
 	}
 }

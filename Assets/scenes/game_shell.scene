@@ -49,13 +49,49 @@
         "6ba98835-269e-4ca8-95a4-06e9faf5db59": "58dd6f55-56a9-4a93-81d3-862dee1ef001",
         "71d9cc78-bf50-49ca-95cc-aa5a3f7a4900": "4ae8e92d-0276-4540-abf6-ddb8d3e42f2b",
         "dba8dd07-c638-458a-a652-179d91de1a05": "928de990-0557-41b6-b3df-4501fc3f9cfb",
-        "edca6724-d1f9-4701-a212-4ae4df243c02": "cf9ca03a-7531-4cc9-8bcc-e90e6d02ffdb",
         "13a94fea-a2de-45da-beb8-61e564e6e245": "f9b492c3-7720-4280-ba09-c2a34d026ee7",
-        "3d25ed8a-2734-4aac-97c7-70bd30e9f109": "1de6ff3a-c743-86c2-a284-cfb235c13044",
         "2cf099ea-cf8c-4b1c-a9dc-ad9a8b74c19a": "2747881c-2a76-8ba8-bf5a-20cda03cc0bf",
         "c33759ee-757d-4580-a74b-77699083b30a": "75512cb8-4276-8b94-b713-4fc4ec8ab16f",
         "88557120-f4fb-4bf2-99dd-30822052365a": "f0160e03-87af-89e2-b339-1c4704b7db13"
       }
+    },
+    {
+      "__guid": "034a1e68-4b01-41c1-9733-e924edfd24d7",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Map Content Host",
+      "Position": "0,0,0",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.MapInstance",
+          "__guid": "0ac06607-50ec-48c0-972e-f4949a0d3a5a",
+          "__enabled": true,
+          "Flags": 0,
+          "__version": 1,
+          "EnableCollision": true,
+          "MapName": null,
+          "NoOrigin": false,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnMapLoaded": null,
+          "OnMapUnloaded": null,
+          "UseMapFromLaunch": false
+        }
+      ],
+      "Children": []
     }
   ],
   "SceneProperties": {

@@ -347,7 +347,9 @@ public sealed partial class LargeLadSessionCoordinator
 				IsMapReady
 					? LargeLadMapFlowState.Playing
 					: LargeLadMapFlowState.Loading );
-			SelectMapName( CurrentMapName );
+			ApplyMapNameLocally(
+				CurrentMapName,
+				"host startup reconciliation" );
 			return;
 		}
 
@@ -536,7 +538,7 @@ public sealed partial class LargeLadSessionCoordinator
 			return;
 
 		mapLoadDeadline = 0.0f;
-		var failedMap = CurrentMapName?.Trim() ?? string.Empty;
+		var failedMap = GetHostSelectedOrLoadingMapName();
 		CurrentMapDescriptor = null;
 		attemptedTransitionMaps.Add( failedMap );
 		Log.Error(
@@ -760,7 +762,7 @@ public sealed partial class LargeLadSessionCoordinator
 			isRuntimeTransition );
 
 		if ( string.Equals(
-			CurrentMapName,
+			GetHostSelectedOrLoadingMapName(),
 			selectedIdentifier,
 			StringComparison.OrdinalIgnoreCase ) &&
 			MapState == LargeLadMapSessionState.Ready )

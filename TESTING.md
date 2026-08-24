@@ -118,7 +118,7 @@ remote client:
    move in the empty shell, and only the host sees the initial chooser. The
    remote client must instead see `Waiting for the host to pick a map` and must
    not be able to authorize a selection. Confirm its scene reports exactly one
-   active, direct, Never-mode `Map Content Host`/`MapInstance` and never logs an
+   active, root-level Snapshot `Map Content Host`/`MapInstance` and never logs an
    unknown map-host GameObject or a zero-MapInstance bootstrap failure. Confirm
    the host's Gym card shows the
    Stage 1 display name, thumbnail, mapper, player range, description, and
@@ -128,6 +128,14 @@ remote client:
 	black and locally movement-frozen until that instance reports loaded. Verify
    the remote sees the map's static world geometry and has matching floor/wall
    collision—not only its networked GameObjects—and cannot fall through the map.
+   Verify the same client also sees every authored barricade piece, the pistol
+   and SMG models rather than gray fallback boxes, red dodgeball models, and vent
+   covers with their authored model and collision dimensions. No client-authored
+   map network root should be disabled or replaced after its local map load.
+   In the console, confirm the host logs that it loaded and validated Gym before
+   releasing client `MapInstance`s. Compare the one-time host/client map-object
+   summaries: barricade, dodgeball, weapon-pickup, and Minion-passage counts must
+   match exactly; a doubled client count is a blocking failure.
    Confirm the flow passes through `Loading` to `Playing`, map content appears
    only beneath the existing `Map Content Host`, the same bootstrap objects and
    player connections remain alive, all persistent players arrive at valid Lobby
@@ -177,7 +185,7 @@ external .NET build step is needed.
 1. Start the game normally. Confirm `game_shell.scene` supplies exactly one
    persistent bootstrap with one `LargeLadSessionCoordinator`,
    `LargeLadGameManager`, `LargeLadSpawnAllocator`, and `NetworkHelper`, plus one
-   direct `Map Content Host` child with the sole `MapInstance`.
+   separate root-level Snapshot `Map Content Host` with the sole `MapInstance`.
 2. Confirm Gym appears only beneath `Map Content Host` and contains none of the
    session-global components itself.
 3. On a listening host, observe `WaitingForInitialMapSelection -> Loading ->
