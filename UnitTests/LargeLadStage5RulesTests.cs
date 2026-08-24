@@ -204,6 +204,23 @@ public sealed class LargeLadCombatAttributionRulesTests
 }
 
 [TestClass]
+public sealed class LargeLadKillfeedPresentationRulesTests
+{
+	[DataTestMethod]
+	[DataRow( LargeLadKillfeedCause.Firearm, "SHOT" )]
+	[DataRow( LargeLadKillfeedCause.FirearmHeadshot, "HEADSHOT" )]
+	[DataRow( LargeLadKillfeedCause.Eat, "ATE" )]
+	public void PlayerKillCause_UsesSentenceFriendlyVerb(
+		LargeLadKillfeedCause cause,
+		string expected )
+	{
+		Assert.AreEqual(
+			expected,
+			LargeLadKillfeedPresentationRules.GetCauseLabel( cause ) );
+	}
+}
+
+[TestClass]
 public sealed class LargeLadCareerStatRulesTests
 {
 	[TestMethod]

@@ -11,11 +11,11 @@
 		<div class="scoreboard-layer">
 			<div class="scoreboard-card">
 				<div class="scoreboard-heading">
-					<div>
-						<div class="eyebrow">Large Lad Session</div>
-						<div class="title">Players</div>
+					<div class="scoreboard-meta">
+						<div class="eyebrow">Large Lad</div>
+						<div class="player-count">@PlayerCountText</div>
 					</div>
-					<div class="player-count">@PlayerCountText</div>
+					<div class="title">Players</div>
 				</div>
 
 				<div class="column-headings">
@@ -30,7 +30,7 @@
 				<div class="player-list">
 					@foreach ( var row in GetPlayerRows() )
 					{
-						<div class="player-row @(row.IsLocal ? "local" : "remote")">
+						<div class="player-row @(row.IsLocal ? "local" : "remote") @row.TeamClass">
 							<div class="name-column player-name">
 								<span>@row.DisplayName</span>
 								@if ( row.IsLocal )
@@ -60,8 +60,6 @@
 						</div>
 					}
 				</div>
-
-				<div class="hold-hint">Hold Tab to keep this list open</div>
 			</div>
 		</div>
 	}
@@ -186,10 +184,11 @@
 				ConnectionId = connection.Id,
 				DisplayName = string.IsNullOrWhiteSpace(
 					connection.DisplayName )
-					? player.GameObject.Name
-					: connection.DisplayName,
+						? player.GameObject.Name
+						: connection.DisplayName,
 				IsLocal = player.IsOwnedByLocalPlayer(),
-				Status = GetStatusText( player )
+				Status = GetStatusText( player ),
+				TeamClass = GetTeamClass( player.Role )
 			} );
 		}
 
@@ -245,6 +244,16 @@
 		return $"Dead · {roleName}";
 	}
 
+	private static string GetTeamClass( LargeLadRole role )
+	{
+		return role switch
+		{
+			LargeLadRole.SkinnyKid => "skinny-team",
+			LargeLadRole.LargeLad or LargeLadRole.Minion => "lad-team",
+			_ => "lobby-team"
+		};
+	}
+
 	protected override int BuildHash()
 	{
 		var hash = new HashCode();
@@ -281,5 +290,6 @@
 		public string DisplayName { get; init; }
 		public bool IsLocal { get; init; }
 		public string Status { get; init; }
+		public string TeamClass { get; init; }
 	}
 }

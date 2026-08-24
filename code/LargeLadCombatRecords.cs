@@ -372,27 +372,17 @@ public sealed class LargeLadRecentDamageStore
 public static class LargeLadKillfeedPresentationRules
 {
 	public static string GetCauseLabel(
-		LargeLadKillfeedCause cause,
-		LargeLadWeaponId sourceWeapon )
+		LargeLadKillfeedCause cause )
 	{
 		return cause switch
 		{
-			LargeLadKillfeedCause.FirearmHeadshot =>
-				$"{GetWeaponName( sourceWeapon )} HEADSHOT",
-			LargeLadKillfeedCause.Firearm => GetWeaponName( sourceWeapon ),
+			LargeLadKillfeedCause.FirearmHeadshot => "HEADSHOT",
+			LargeLadKillfeedCause.Firearm => "SHOT",
 			LargeLadKillfeedCause.Melee => "MELEE",
-			LargeLadKillfeedCause.Eat => "EAT",
+			LargeLadKillfeedCause.Eat => "ATE",
 			LargeLadKillfeedCause.Environment => "ENVIRONMENT",
 			LargeLadKillfeedCause.Dodgeball => "DODGEBALL",
 			_ => "DEFEATED"
 		};
-	}
-
-	private static string GetWeaponName( LargeLadWeaponId weapon )
-	{
-		return LargeLadWeaponCatalog.TryGet( weapon, out var definition ) &&
-			!string.IsNullOrWhiteSpace( definition.DisplayName )
-			? definition.DisplayName.ToUpperInvariant()
-			: "FIREARM";
 	}
 }

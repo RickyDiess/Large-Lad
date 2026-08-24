@@ -113,6 +113,11 @@ public sealed class LargeLadEatAttack : Component
 	private LargeLadGameManager cachedGameManager;
 
 	public bool IsEating => eatState.IsActive;
+	public float LocalCooldownRemaining => System.MathF.Max(
+		0.0f,
+		System.MathF.Max( 0.01f, Cooldown ) -
+			(float)timeSinceLocalActivation );
+	public bool IsLocalCooldownReady => LocalCooldownRemaining <= 0.0f;
 	public LargeLadEatAttackResult LastAttackResult { get; private set; } =
 		LargeLadEatAttackResult.Miss;
 

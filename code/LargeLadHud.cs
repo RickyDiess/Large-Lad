@@ -3,7 +3,7 @@ using Sandbox.Rendering;
 
 public sealed class LargeLadHud : Component
 {
-	private const string HudFont = "Roboto Condensed";
+	private const string HudFont = "Poppins";
 	private const int RegularFontWeight = 400;
 	private const int BoldFontWeight = 700;
 	private const float ReferenceWidth = 1920.0f;
@@ -11,11 +11,23 @@ public sealed class LargeLadHud : Component
 	private const float MinimumHudScale = 0.85f;
 	private const float MaximumHudScale = 2.0f;
 	private static readonly Color PanelColor =
-		new( 0.025f, 0.03f, 0.045f, 0.78f );
+		new( 0.09f, 0.115f, 0.153f, 0.94f );
+	private static readonly Color PanelBorderColor =
+		new( 0.216f, 0.259f, 0.337f, 0.96f );
+	private static readonly Color PanelShadowColor =
+		new( 0.0f, 0.0f, 0.0f, 0.48f );
 	private static readonly Color BarTrackColor =
-		new( 0.72f, 0.76f, 0.84f, 0.18f );
+		new( 0.72f, 0.76f, 0.84f, 0.16f );
 	private static readonly Color MutedTextColor =
-		new( 0.75f, 0.78f, 0.84f, 1.0f );
+		new( 0.682f, 0.722f, 0.788f, 1.0f );
+	private static readonly Color TeamBlueColor =
+		new( 0.271f, 0.651f, 0.91f, 1.0f );
+	private static readonly Color TeamRedColor =
+		new( 0.925f, 0.286f, 0.239f, 1.0f );
+	private static readonly Color ReadyColor =
+		new( 0.345f, 0.839f, 0.506f, 1.0f );
+	private static readonly Color MenuAccentColor =
+		new( 0.949f, 0.722f, 0.294f, 1.0f );
 	private LargeLadPlayer cachedPlayer;
 	private PlayerController cachedController;
 	private LargeLadGameManager cachedGameManager;
@@ -222,7 +234,7 @@ public sealed class LargeLadHud : Component
 			112.0f * scale,
 			420.0f * scale,
 			44.0f * scale );
-		var accent = new Color( 0.25f, 0.85f, 1.0f );
+		var accent = TeamBlueColor;
 		DrawPanel( hud, panel, accent, scale );
 		DrawHudText(
 			hud,
@@ -254,7 +266,7 @@ public sealed class LargeLadHud : Component
 			center.y - 32.0f * scale,
 			440.0f * scale,
 			64.0f * scale );
-		var accent = new Color( 0.25f, 0.85f, 1.0f );
+		var accent = TeamBlueColor;
 		DrawPanel( hud, panel, accent, scale );
 		DrawHudText(
 			hud,
@@ -276,10 +288,9 @@ public sealed class LargeLadHud : Component
 		if ( entries.Count == 0 )
 			return;
 
-		var width = 470.0f * scale;
-		var height = 38.0f * scale;
-		var gap = 7.0f * scale;
-		var left = Screen.Width - width - 24.0f * scale;
+		var height = 32.0f * scale;
+		var gap = 6.0f * scale;
+		var right = Screen.Width - 24.0f * scale;
 		var top = 24.0f * scale;
 		var visibleIndex = 0;
 
@@ -288,24 +299,36 @@ public sealed class LargeLadHud : Component
 			index--, visibleIndex++ )
 		{
 			var entry = entries[index];
-			var panel = new Rect(
-				left,
-				top + visibleIndex * (height + gap),
-				width,
-				height );
 			var text = entry.HasCreditedKiller
 				? $"{entry.KillerDisplayName}  {entry.CauseLabel}  " +
 					entry.VictimDisplayName
 				: $"{entry.CauseLabel}  {entry.VictimDisplayName}";
+			var textSize = 13.0f * scale;
+			var horizontalPadding = 12.0f * scale;
+			var measuredWidth = CreateTextScope(
+				text,
+				Color.White,
+				textSize,
+				BoldFontWeight ).Measure().x;
+			var width = System.MathF.Min(
+				Screen.Width * 0.46f,
+				System.MathF.Max(
+					96.0f * scale,
+					measuredWidth + horizontalPadding * 2.0f ) );
+			var panel = new Rect(
+				right - width,
+				top + visibleIndex * (height + gap),
+				width,
+				height );
 
 			DrawPanel( hud, panel, GetKillfeedColor( entry.Cause ), scale );
 			DrawHudText(
 				hud,
 				text,
-				14.0f * scale,
-				10.0f * scale,
+				textSize,
+				9.0f * scale,
 				Color.White,
-				Inset( panel, 13.0f * scale, 5.0f * scale ),
+				Inset( panel, horizontalPadding, 4.0f * scale ),
 				TextFlag.RightCenter | TextFlag.SingleLine,
 				BoldFontWeight );
 		}
@@ -315,17 +338,13 @@ public sealed class LargeLadHud : Component
 	{
 		return cause switch
 		{
-			LargeLadKillfeedCause.FirearmHeadshot =>
-				new Color( 1.0f, 0.78f, 0.18f ),
-			LargeLadKillfeedCause.Eat =>
-				new Color( 1.0f, 0.22f, 0.08f ),
+			LargeLadKillfeedCause.FirearmHeadshot => TeamBlueColor,
+			LargeLadKillfeedCause.Eat => TeamRedColor,
 			LargeLadKillfeedCause.Environment =>
 				new Color( 0.65f, 0.68f, 0.75f ),
-			LargeLadKillfeedCause.Dodgeball =>
-				new Color( 0.95f, 0.30f, 0.30f ),
-			LargeLadKillfeedCause.Melee =>
-				new Color( 0.72f, 0.35f, 1.0f ),
-			_ => new Color( 0.25f, 0.85f, 1.0f )
+			LargeLadKillfeedCause.Dodgeball => TeamBlueColor,
+			LargeLadKillfeedCause.Melee => MenuAccentColor,
+			_ => TeamBlueColor
 		};
 	}
 
@@ -414,8 +433,8 @@ public sealed class LargeLadHud : Component
 	{
 		var center = new Vector2( Screen.Width * 0.5f, Screen.Height * 0.42f );
 		var accent = round.Winner == LargeLadWinner.SkinnyKids
-			? new Color( 0.25f, 0.85f, 1.0f )
-			: new Color( 1.0f, 0.32f, 0.10f );
+			? TeamBlueColor
+			: TeamRedColor;
 
 		var panel = new Rect(
 			center.x - 240.0f * scale,
@@ -834,7 +853,7 @@ public sealed class LargeLadHud : Component
 
 		if ( player.Role is LargeLadRole.LargeLad or LargeLadRole.Minion )
 		{
-			DrawBuiltInRoleAttackStatus( hud, player.Role, scale );
+			DrawBuiltInRoleAttackStatus( hud, player, scale );
 			return;
 		}
 
@@ -854,12 +873,12 @@ public sealed class LargeLadHud : Component
 		if ( !TryGetItemPresentation(
 			inventory.ActiveItem,
 			out var displayName,
-			out var accent,
 			out var tag ) )
 		{
 			return;
 		}
 
+		var accent = GetRoleColor( player.Role );
 		var panel = new Rect(
 			Screen.Width - 324.0f * scale,
 			Screen.Height - 96.0f * scale,
@@ -909,7 +928,7 @@ public sealed class LargeLadHud : Component
 		float scale )
 	{
 		var definition = LargeLadWeaponCatalog.Get( firearm.WeaponId );
-		var accent = definition.AccentColor;
+		var accent = GetRoleColor( player.Role );
 		var panel = new Rect(
 			Screen.Width - 324.0f * scale,
 			Screen.Height - 96.0f * scale,
@@ -992,7 +1011,6 @@ public sealed class LargeLadHud : Component
 			if ( !TryGetItemPresentation(
 					item,
 					out _,
-					out var color,
 					out _ ) )
 			{
 				continue;
@@ -1007,7 +1025,9 @@ public sealed class LargeLadHud : Component
 			DrawRoundedRect(
 				hud,
 				slot,
-				selected ? color.WithAlpha( 0.26f ) : BarTrackColor,
+				selected
+					? GetRoleColor( player.Role ).WithAlpha( 0.26f )
+					: BarTrackColor,
 				3.0f * scale );
 			if ( selected )
 			{
@@ -1018,7 +1038,7 @@ public sealed class LargeLadHud : Component
 						slot.Bottom - 2.0f * scale,
 						slot.Width,
 						2.0f * scale ),
-					color );
+					GetRoleColor( player.Role ) );
 			}
 
 			var slotNumber = index == 9 ? "0" : $"{index + 1}";
@@ -1037,11 +1057,9 @@ public sealed class LargeLadHud : Component
 	private static bool TryGetItemPresentation(
 		BaseInventoryItem item,
 		out string displayName,
-		out Color color,
 		out string tag )
 	{
 		displayName = string.Empty;
-		color = MutedTextColor;
 		tag = string.Empty;
 
 		if ( item is LargeLadMeleeWeapon )
@@ -1049,7 +1067,6 @@ public sealed class LargeLadHud : Component
 			var definition =
 				LargeLadWeaponCatalog.Get( LargeLadWeaponId.Melee );
 			displayName = definition.DisplayName;
-			color = definition.AccentColor;
 			tag = "MELEE";
 			return true;
 		}
@@ -1058,7 +1075,6 @@ public sealed class LargeLadHud : Component
 		{
 			displayName =
 				LargeLadUtilityRules.GetDisplayName( utility.UtilityId );
-			color = LargeLadUtilityRules.GetColor( utility.UtilityId );
 			tag = "UTILITY";
 			return true;
 		}
@@ -1068,20 +1084,26 @@ public sealed class LargeLadHud : Component
 
 		var firearm = LargeLadWeaponCatalog.Get( nativeFirearm.WeaponId );
 		displayName = firearm.DisplayName;
-		color = nativeFirearm.IsExclusive
-			? new Color( 1.0f, 0.58f, 0.16f )
-			: firearm.AccentColor;
 		tag = nativeFirearm.IsExclusive ? "EXCLUSIVE" : string.Empty;
 		return true;
 	}
 
 	private static void DrawBuiltInRoleAttackStatus(
 		HudPainter hud,
-		LargeLadRole role,
+		LargeLadPlayer player,
 		float scale )
 	{
-		var accent = GetRoleColor( role );
-		var label = role == LargeLadRole.LargeLad ? "EAT" : "MELEE";
+		var isLargeLad = player.Role == LargeLadRole.LargeLad;
+		var eatAttack = player.EatAttack;
+		var cooldownRemaining = eatAttack?.LocalCooldownRemaining ?? 0.0f;
+		var isEatReady = eatAttack?.IsLocalCooldownReady == true;
+		var accent = isLargeLad
+			? (isEatReady ? ReadyColor : TeamRedColor)
+			: GetRoleColor( player.Role );
+		var label = isLargeLad ? "EAT" : "MELEE";
+		var status = isLargeLad
+			? (isEatReady ? "READY" : FormatSeconds( cooldownRemaining ))
+			: "PRIMARY";
 		var panel = new Rect(
 			Screen.Width - 324.0f * scale,
 			Screen.Height - 88.0f * scale,
@@ -1104,10 +1126,10 @@ public sealed class LargeLadHud : Component
 			BoldFontWeight );
 		DrawHudText(
 			hud,
-			"PRIMARY",
-			11.0f * scale,
-			9.0f * scale,
-			MutedTextColor,
+			status,
+			13.0f * scale,
+			10.0f * scale,
+			isLargeLad ? accent : MutedTextColor,
 			new Rect(
 				panel.Right - 94.0f * scale,
 				panel.Top,
@@ -1132,9 +1154,7 @@ public sealed class LargeLadHud : Component
 			return;
 		}
 
-		var accent = presentation.HasReadyHud
-			? new Color( 0.45f, 1.0f, 0.38f )
-			: new Color( 1.0f, 0.48f, 0.12f );
+		var accent = GetRoleColor( player.Role );
 		var panel = new Rect(
 			Screen.Width - 324.0f * scale,
 			Screen.Height - 128.0f * scale,
@@ -1191,7 +1211,7 @@ public sealed class LargeLadHud : Component
 			Screen.Height * 0.68f,
 			420.0f * scale,
 			44.0f * scale );
-		var accent = new Color( 1.0f, 0.58f, 0.16f );
+		var accent = MenuAccentColor;
 		DrawPanel( hud, panel, accent, scale );
 		DrawHudText(
 			hud,
@@ -1326,7 +1346,8 @@ public sealed class LargeLadHud : Component
 		Color accent,
 		float scale )
 	{
-		var cornerRadius = 3.0f * scale;
+		var cornerRadius = 6.0f * scale;
+		var borderWidth = System.MathF.Max( 1.0f, 1.5f * scale );
 		var shadowOffset = 3.0f * scale;
 		DrawRoundedRect(
 			hud,
@@ -1335,9 +1356,23 @@ public sealed class LargeLadHud : Component
 				rect.Top + shadowOffset,
 				rect.Width,
 				rect.Height ),
-			accent.WithAlpha( 0.45f ),
+			PanelShadowColor,
 			cornerRadius );
-		DrawRoundedRect( hud, rect, PanelColor, cornerRadius );
+		DrawRoundedRect( hud, rect, PanelBorderColor, cornerRadius );
+		DrawRoundedRect(
+			hud,
+			Inset( rect, borderWidth, borderWidth ),
+			PanelColor,
+			System.MathF.Max( 0.0f, cornerRadius - borderWidth ) );
+		DrawRoundedRect(
+			hud,
+			new Rect(
+				rect.Left + borderWidth,
+				rect.Top + 7.0f * scale,
+				4.0f * scale,
+				System.MathF.Max( 0.0f, rect.Height - 14.0f * scale ) ),
+			accent,
+			2.0f * scale );
 	}
 
 	private static Rect Inset( Rect rect, float horizontal, float vertical )
@@ -1401,11 +1436,11 @@ public sealed class LargeLadHud : Component
 		return round.Phase switch
 		{
 			LargeLadRoundPhase.WaitingForPlayers => new Color( 0.65f, 0.68f, 0.75f ),
-			LargeLadRoundPhase.HeadStart => new Color( 1.0f, 0.78f, 0.18f ),
-			LargeLadRoundPhase.Playing => new Color( 0.25f, 0.85f, 1.0f ),
+			LargeLadRoundPhase.HeadStart => MenuAccentColor,
+			LargeLadRoundPhase.Playing => MenuAccentColor,
 			LargeLadRoundPhase.RoundOver when round.Winner == LargeLadWinner.SkinnyKids =>
-				new Color( 0.25f, 0.85f, 1.0f ),
-			LargeLadRoundPhase.RoundOver => new Color( 1.0f, 0.32f, 0.10f ),
+				TeamBlueColor,
+			LargeLadRoundPhase.RoundOver => TeamRedColor,
 			_ => Color.White
 		};
 	}
@@ -1414,9 +1449,8 @@ public sealed class LargeLadHud : Component
 	{
 		return role switch
 		{
-			LargeLadRole.SkinnyKid => new Color( 0.25f, 0.85f, 1.0f ),
-			LargeLadRole.LargeLad => new Color( 1.0f, 0.32f, 0.10f ),
-			LargeLadRole.Minion => new Color( 0.72f, 0.35f, 1.0f ),
+			LargeLadRole.SkinnyKid => TeamBlueColor,
+			LargeLadRole.LargeLad or LargeLadRole.Minion => TeamRedColor,
 			_ => new Color( 0.65f, 0.68f, 0.75f )
 		};
 	}

@@ -1747,8 +1747,7 @@ public sealed class LargeLadGameManager : Component
 	private void PublishKillfeedEntry( LargeLadDeathRecord record )
 	{
 		var causeLabel = LargeLadKillfeedPresentationRules.GetCauseLabel(
-			record.KillfeedCause,
-			record.SourceWeapon );
+			record.KillfeedCause );
 		ReceiveKillfeedEntry(
 			record.EventSequenceId,
 			record.CreditedKillerDisplayName,

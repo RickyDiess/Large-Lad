@@ -17,8 +17,8 @@ LargeLadScoreboardPanel {
 		display: flex;
 		align-items: flex-start;
 		justify-content: center;
-		padding-top: 78px;
-		background-color: rgba( 4, 7, 12, 0.76 );
+		padding-top: 72px;
+		background-color: rgba( 4, 7, 12, 0.78 );
 		pointer-events: all;
 	}
 
@@ -27,14 +27,16 @@ LargeLadScoreboardPanel {
 		max-height: 820px;
 		display: flex;
 		flex-direction: column;
-		padding: 30px;
-		border-radius: 16px;
+		padding: 28px;
+		border-radius: 8px;
 		background-color: #171d27;
 		border: 2px solid #374256;
-		box-shadow: 0 20px 80px rgba( 0, 0, 0, 0.65 );
+		border-top: 4px solid #f2b84b;
+		box-shadow: 0 18px 64px rgba( 0, 0, 0, 0.62 );
 	}
 
 	.scoreboard-heading,
+	.scoreboard-meta,
 	.column-headings,
 	.player-row {
 		display: flex;
@@ -42,8 +44,15 @@ LargeLadScoreboardPanel {
 	}
 
 	.scoreboard-heading {
+		flex-direction: column;
+		align-items: stretch;
+		margin-bottom: 20px;
+	}
+
+	.scoreboard-meta {
+		width: 100%;
 		justify-content: space-between;
-		margin-bottom: 24px;
+		min-height: 24px;
 	}
 
 	.eyebrow {
@@ -55,20 +64,26 @@ LargeLadScoreboardPanel {
 	}
 
 	.title {
+		width: 100%;
+		margin-top: 3px;
 		font-size: 42px;
 		font-weight: 800;
+		text-align: left;
 	}
 
 	.player-count {
-		font-size: 19px;
+		font-size: 17px;
 		font-weight: 700;
 		color: #aeb8c9;
 	}
 
 	.column-headings {
-		min-height: 42px;
-		padding: 0 18px;
-		font-size: 14px;
+		min-height: 40px;
+		padding: 0 16px;
+		border-radius: 5px;
+		background-color: #11161f;
+		border: 1px solid #303a4c;
+		font-size: 13px;
 		font-weight: 700;
 		letter-spacing: 1px;
 		text-transform: uppercase;
@@ -78,20 +93,42 @@ LargeLadScoreboardPanel {
 	.player-list {
 		display: flex;
 		flex-direction: column;
-		gap: 8px;
+		gap: 7px;
+		margin-top: 8px;
 		overflow: scroll;
 	}
 
 	.player-row {
-		min-height: 70px;
-		padding: 10px 18px;
-		border-radius: 10px;
+		min-height: 66px;
+		padding: 9px 16px 9px 14px;
+		border-radius: 6px;
 		background-color: #222a37;
-		border: 2px solid transparent;
+		border: 2px solid #303a4c;
+		border-left-width: 4px;
 
 		&.local {
-			background-color: #2b2d2c;
-			border-color: #8d7238;
+			background-color: #292923;
+			border-color: #69572f;
+		}
+
+		&.skinny-team {
+			border-left-color: #45a6e8;
+
+			.role-status {
+				color: #6bbcf2;
+			}
+		}
+
+		&.lad-team {
+			border-left-color: #ec493d;
+
+			.role-status {
+				color: #f06a60;
+			}
+		}
+
+		&.lobby-team {
+			border-left-color: #7f8ca1;
 		}
 	}
 
@@ -125,7 +162,7 @@ LargeLadScoreboardPanel {
 		display: flex;
 		align-items: center;
 		gap: 10px;
-		font-size: 22px;
+		font-size: 21px;
 		font-weight: 700;
 	}
 
@@ -141,16 +178,18 @@ LargeLadScoreboardPanel {
 
 	.preference-select {
 		width: 300px;
-		min-height: 42px;
-		padding: 9px 12px;
-		border-radius: 7px;
+		min-height: 40px;
+		padding: 8px 11px;
+		border-radius: 5px;
 		background-color: #11161f;
 		border: 1px solid #4b586f;
-		font-size: 15px;
+		color: #f6f3eb;
+		font-size: 14px;
 		cursor: pointer;
 		pointer-events: all;
 
-		&:hover {
+		&:hover,
+		&:focus {
 			border-color: #f2b84b;
 		}
 	}
@@ -162,15 +201,8 @@ LargeLadScoreboardPanel {
 	}
 
 	.role-status {
-		font-size: 17px;
+		font-size: 16px;
 		font-weight: 700;
 		color: #c5cedc;
-	}
-
-	.hold-hint {
-		margin-top: 18px;
-		font-size: 14px;
-		text-align: center;
-		color: #7f8ca1;
 	}
 }

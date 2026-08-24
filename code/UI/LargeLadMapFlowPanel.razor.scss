@@ -31,6 +31,7 @@ LargeLadMapFlowPanel {
 	}
 
 	.scrim {
+		background-color: rgba( 4, 7, 12, 0.72 );
 		pointer-events: all;
 	}
 
@@ -43,12 +44,13 @@ LargeLadMapFlowPanel {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 14px;
-		padding: 42px;
-		border-radius: 18px;
-		background-color: #11161f;
-		border: 2px solid #303a4c;
-		box-shadow: 0 20px 80px rgba(0, 0, 0, 0.7);
+		gap: 12px;
+		padding: 38px;
+		border-radius: 8px;
+		background-color: #171d27;
+		border: 2px solid #374256;
+		border-top: 4px solid #f2b84b;
+		box-shadow: 0 18px 64px rgba( 0, 0, 0, 0.68 );
 		text-align: center;
 	}
 
@@ -58,7 +60,7 @@ LargeLadMapFlowPanel {
 	}
 
 	.status-subtitle {
-		font-size: 18px;
+		font-size: 17px;
 		color: #aeb8c9;
 	}
 
@@ -67,16 +69,17 @@ LargeLadMapFlowPanel {
 		max-height: 880px;
 		display: flex;
 		flex-direction: column;
-		gap: 12px;
-		padding: 38px;
-		border-radius: 18px;
+		gap: 10px;
+		padding: 34px;
+		border-radius: 8px;
 		background-color: #171d27;
 		border: 2px solid #374256;
-		box-shadow: 0 20px 80px rgba(0, 0, 0, 0.55);
+		border-top: 4px solid #f2b84b;
+		box-shadow: 0 18px 64px rgba( 0, 0, 0, 0.58 );
 	}
 
 	.eyebrow {
-		font-size: 18px;
+		font-size: 16px;
 		font-weight: 700;
 		letter-spacing: 2px;
 		text-transform: uppercase;
@@ -84,14 +87,14 @@ LargeLadMapFlowPanel {
 	}
 
 	.title {
-		font-size: 44px;
+		font-size: 42px;
 		font-weight: 800;
 	}
 
 	.subtitle {
-		font-size: 18px;
-		color: #aeb8c9;
 		margin-bottom: 12px;
+		font-size: 17px;
+		color: #aeb8c9;
 	}
 
 	.vote-heading,
@@ -103,7 +106,7 @@ LargeLadMapFlowPanel {
 	}
 
 	.timer {
-		font-size: 34px;
+		font-size: 32px;
 		font-weight: 800;
 		color: #f2b84b;
 	}
@@ -111,79 +114,80 @@ LargeLadMapFlowPanel {
 	.map-list {
 		display: flex;
 		flex-direction: column;
-		gap: 12px;
+		gap: 9px;
 		overflow: scroll;
 	}
 
 	.map-card {
-		min-height: 150px;
+		min-height: 144px;
 		display: flex;
 		align-items: center;
-		gap: 20px;
-		padding: 16px;
-		border-radius: 12px;
+		gap: 18px;
+		padding: 14px;
+		border-radius: 6px;
 		background-color: #222a37;
-		border: 2px solid transparent;
+		border: 2px solid #303a4c;
 
 		&.submitted {
-			border-color: #58d68d;
-			background-color: #20352d;
+			border-color: #45a6e8;
+			background-color: #1b3040;
 		}
 
 		&.winner {
 			border-color: #f2b84b;
-			background-color: #3a3220;
-			box-shadow: 0 0 28px rgba(242, 184, 75, 0.22);
+			background-color: #352f21;
+			box-shadow: 0 0 24px rgba( 242, 184, 75, 0.2 );
 		}
 	}
 
 	.thumbnail {
 		width: 210px;
-		height: 118px;
-		border-radius: 8px;
+		height: 116px;
+		border-radius: 4px;
 		object-fit: cover;
 		background-color: #0c1017;
+		border: 1px solid #4b586f;
 	}
 
 	.map-details {
 		flex-grow: 1;
 		display: flex;
 		flex-direction: column;
-		gap: 5px;
+		gap: 4px;
 	}
 
 	.map-name {
-		font-size: 28px;
+		font-size: 27px;
 		font-weight: 800;
 	}
 
 	.curation {
-		padding: 5px 10px;
+		padding: 4px 9px;
 		border-radius: 999px;
-		font-size: 14px;
-		font-weight: 700;
 		background-color: #38465c;
 		color: #dbe6f7;
+		font-size: 13px;
+		font-weight: 700;
 	}
 
 	.mapper,
 	.players,
 	.description {
-		font-size: 16px;
+		font-size: 15px;
 		color: #b8c2d2;
 	}
 
 	.description {
-		margin-top: 5px;
+		margin-top: 4px;
 	}
 
 	.select,
 	.submitted-label,
 	.winner-label {
-		min-width: 132px;
-		padding: 14px 18px;
-		border-radius: 9px;
-		font-size: 18px;
+		min-width: 126px;
+		padding: 12px 16px;
+		border-radius: 5px;
+		font-size: 17px;
 		font-weight: 800;
 		text-align: center;
 	}
@@ -200,8 +204,8 @@ LargeLadMapFlowPanel {
 	}
 
 	.submitted-label {
-		background-color: #58d68d;
-		color: #102018;
+		background-color: #45a6e8;
+		color: #09141d;
 	}
 
 	.winner-label {
@@ -210,8 +214,8 @@ LargeLadMapFlowPanel {
 	}
 
 	.vote-total {
-		width: 56px;
-		font-size: 32px;
+		width: 52px;
+		font-size: 30px;
 		font-weight: 800;
 		text-align: center;
 		color: #f2b84b;
