@@ -392,33 +392,13 @@ public sealed partial class LargeLadSessionCoordinator : Component
 		}
 
 		var preparationVersion = ++loadedMapPreparationVersion;
-		var embeddedBootstrapIssues = GetEmbeddedBootstrapValidationIssues(
-			preparedMapIdentifier );
-
-		if ( embeddedBootstrapIssues.Count > 0 )
+		if ( !LargeLadMapValidator.TryGetSingleEnabledProfile(
+			MapInstance?.GameObject,
+			out var profile,
+			out var profileIssues ) )
 		{
-			FailLoadedMapResolution( embeddedBootstrapIssues );
-			return;
-		}
-
-		var profiles = MapInstance?.GameObject?.Components
-			.GetAll<LargeLadMapProfile>(
-				FindMode.EverythingInSelfAndDescendants )
-			.Where( profile =>
-				profile is not null &&
-				profile.IsValid &&
-				profile.Enabled )
-			.ToArray() ?? [];
-
-		if ( profiles.Length != 1 )
-		{
-			var issue = profiles.Length == 0
-				? $"Map '{preparedMapIdentifier}' is missing its required enabled " +
-					"LargeLadMapProfile. Place exactly one profile in the map and " +
-					"assign its Large Lad Map Manifest."
-				: $"Map '{preparedMapIdentifier}' contains {profiles.Length} enabled " +
-					"LargeLadMapProfile components. Keep exactly one map profile.";
-			FailLoadedMapResolution( issue );
+			FailLoadedMapResolution(
+				profileIssues.Select( issue => issue.ToString() ) );
 			return;
 		}
 
@@ -440,7 +420,7 @@ public sealed partial class LargeLadSessionCoordinator : Component
 		}
 
 		if ( !LargeLadMapCatalog.TryResolveLoadedMap(
-			profiles[0].Manifest,
+			profile.Manifest,
 			preparedMapIdentifier,
 			packageMetadata,
 			OfficialMapCatalog,
@@ -925,70 +905,6 @@ public sealed partial class LargeLadSessionCoordinator : Component
 					? "the loaded map failed manifest/descriptor validation"
 					: string.Join( " | ", loadedMapValidationIssues ) );
 		}
-	}
-
-	private IReadOnlyList<string> GetEmbeddedBootstrapValidationIssues(
-		string mapIdentifier )
-	{
-		if ( Scene is null )
-			return Array.Empty<string>();
-
-		var unexpected = new List<Component>();
-		AddUnexpectedComponents(
-			unexpected,
-			Scene.GetAllComponents<LargeLadGameManager>(),
-			GameManager );
-		AddUnexpectedComponents(
-			unexpected,
-			Scene.GetAllComponents<LargeLadSessionCoordinator>(),
-			this );
-		AddUnexpectedComponents(
-			unexpected,
-			Scene.GetAllComponents<LargeLadSpawnAllocator>(),
-			GameManager?.SpawnAllocator );
-		AddUnexpectedComponents(
-			unexpected,
-			Scene.GetAllComponents<NetworkHelper>(),
-			GameManager?.NetworkHelper );
-		AddUnexpectedComponents(
-			unexpected,
-			Scene.GetAllComponents<MapInstance>(),
-			MapInstance );
-
-		if ( unexpected.Count == 0 )
-			return Array.Empty<string>();
-
-		var examples = string.Join(
-			", ",
-			unexpected
-				.Select( component =>
-					$"{component.GetType().Name} on " +
-					$"'{component.GameObject.Name}'" )
-				.Distinct()
-				.Take( 8 ) );
-
-		return new[]
-		{
-			$"Map '{mapIdentifier}' contains persistent gameplay-bootstrap " +
-			$"components ({examples}). Remove " +
-			"prefabs/large_lad_gameplay.prefab and any map-local MapInstance, " +
-			"manager, coordinator, allocator, or NetworkHelper. A content map " +
-			"needs exactly one LargeLadMapProfile; game_shell owns the only " +
-			"gameplay bootstrap and loader."
-		};
-	}
-
-	private static void AddUnexpectedComponents<T>(
-		List<Component> destination,
-		IEnumerable<T> candidates,
-		T expected )
-		where T : Component
-	{
-		destination.AddRange(
-			candidates.Where( candidate =>
-				candidate is not null &&
-				candidate.IsValid &&
-				candidate != expected ) );
 	}
 
 	private void InvalidateLoadedMapResolution()

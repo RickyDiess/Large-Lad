@@ -81,6 +81,84 @@ public static class LargeLadSpawnRules
 
 		return true;
 	}
+
+	public static LargeLadSpawnCapacityEvaluation EvaluateGroupCapacity(
+		LargeLadSpawnGroup group,
+		int playerCount,
+		IReadOnlyList<LargeLadSpawnAreaCapacity> areas )
+	{
+		var required = GetRequiredCapacity( group, playerCount );
+		var safeAreas = areas ?? Array.Empty<LargeLadSpawnAreaCapacity>();
+		var configured = safeAreas.Sum( area =>
+			GetUsableAuthoredCapacity( area.ConfiguredCapacity ) );
+		var valid = safeAreas.Sum( area =>
+			System.Math.Clamp(
+				area.ValidCapacity,
+				0,
+				GetUsableAuthoredCapacity( area.ConfiguredCapacity ) ) );
+		var failure = safeAreas.Count == 0
+			? LargeLadSpawnCapacityFailure.MissingArea
+			: configured < required
+				? LargeLadSpawnCapacityFailure.ConfiguredCapacityShortfall
+				: valid < required
+					? LargeLadSpawnCapacityFailure.GeometryShortfall
+					: LargeLadSpawnCapacityFailure.None;
+
+		return new LargeLadSpawnCapacityEvaluation(
+			group,
+			required,
+			configured,
+			valid,
+			failure );
+	}
+}
+
+public enum LargeLadSpawnCapacityFailure
+{
+	None,
+	MissingArea,
+	ConfiguredCapacityShortfall,
+	GeometryShortfall
+}
+
+public readonly struct LargeLadSpawnAreaCapacity
+{
+	public LargeLadSpawnAreaCapacity(
+		string name,
+		int configuredCapacity,
+		int validCapacity )
+	{
+		Name = name?.Trim() ?? string.Empty;
+		ConfiguredCapacity = configuredCapacity;
+		ValidCapacity = validCapacity;
+	}
+
+	public string Name { get; }
+	public int ConfiguredCapacity { get; }
+	public int ValidCapacity { get; }
+}
+
+public readonly struct LargeLadSpawnCapacityEvaluation
+{
+	public LargeLadSpawnCapacityEvaluation(
+		LargeLadSpawnGroup group,
+		int requiredCapacity,
+		int configuredCapacity,
+		int validCapacity,
+		LargeLadSpawnCapacityFailure failure )
+	{
+		Group = group;
+		RequiredCapacity = requiredCapacity;
+		ConfiguredCapacity = configuredCapacity;
+		ValidCapacity = validCapacity;
+		Failure = failure;
+	}
+
+	public LargeLadSpawnGroup Group { get; }
+	public int RequiredCapacity { get; }
+	public int ConfiguredCapacity { get; }
+	public int ValidCapacity { get; }
+	public LargeLadSpawnCapacityFailure Failure { get; }
 }
 
 /// <summary>
@@ -90,8 +168,6 @@ public static class LargeLadSpawnRules
 /// </summary>
 public sealed class LargeLadSpawnAllocator : Component
 {
-	private const int AttemptsPerRequestedPosition = 48;
-
 	private readonly List<GameObject> runtimeLobbyPoints = new();
 	private readonly Dictionary<
 		LargeLadTeamSpawn,
@@ -474,26 +550,34 @@ public sealed class LargeLadSpawnAllocator : Component
 
 	private void BuildCandidateCache()
 	{
+		EnsureAuthoredTeamSpawnCache();
+		ApplyCandidateProjection(
+			LargeLadSpawnProjection.Build( Scene, authoredTeamSpawns ) );
+	}
+
+	internal void ApplyCandidateProjection(
+		LargeLadSpawnProjectionResult projection )
+	{
 		candidatesBySpawn.Clear();
 		candidatesByGroup.Clear();
-		EnsureAuthoredTeamSpawnCache();
+		authoredTeamSpawns.Clear();
 
-		foreach ( var group in Enum.GetValues<LargeLadSpawnGroup>() )
+		if ( projection is not null )
 		{
-			var groupCandidates = new List<LargeLadSpawnLocation>();
+			authoredTeamSpawns.AddRange( projection.AuthoredSpawns );
 
-			foreach ( var spawn in GetCachedTeamSpawns( group ) )
+			foreach ( var spawn in projection.AuthoredSpawns )
 			{
-				var spawnCandidates = GenerateCandidates(
-					spawn,
-					groupCandidates );
-				candidatesBySpawn.Add( spawn, spawnCandidates );
-				groupCandidates.AddRange( spawnCandidates );
+				var candidates = projection.GetCandidates( spawn );
+				candidatesBySpawn.Add( spawn, candidates );
+				spawn.SetProjectedCandidatesPreview( candidates );
 			}
 
-			candidatesByGroup.Add( group, groupCandidates );
+			foreach ( var group in Enum.GetValues<LargeLadSpawnGroup>() )
+				candidatesByGroup.Add( group, projection.GetCandidates( group ) );
 		}
 
+		authoredTeamSpawnCacheDirty = false;
 		candidateCacheDirty = false;
 	}
 
@@ -514,100 +598,13 @@ public sealed class LargeLadSpawnAllocator : Component
 						spawn is not null &&
 						spawn.IsValid &&
 						spawn.Enabled &&
+						spawn.GameObject.Enabled &&
 						spawn.Scene == Scene )
 					.OrderBy( spawn => spawn.GameObject.Id )
 					.ThenBy( spawn => spawn.Id ) );
 		}
 
 		authoredTeamSpawnCacheDirty = false;
-	}
-
-	private List<LargeLadSpawnLocation> GenerateCandidates(
-		LargeLadTeamSpawn spawn,
-		IReadOnlyList<LargeLadSpawnLocation> existingGroupCandidates )
-	{
-		var desiredCount =
-			LargeLadSpawnRules.GetUsableAuthoredCapacity(
-				spawn.Capacity );
-		var radius = System.MathF.Max( 0.0f, spawn.SpawnRadius );
-		var separation = System.MathF.Max(
-			LargeLadGameplayRules.PlayerBodyRadius * 2.0f,
-			spawn.MinimumSeparation );
-		var attempts = desiredCount * AttemptsPerRequestedPosition;
-		var candidates = new List<LargeLadSpawnLocation>( desiredCount );
-
-		for ( var attempt = 0;
-			attempt < attempts && candidates.Count < desiredCount;
-			attempt++ )
-		{
-			var layoutOffset =
-				LargeLadSpawnRules.GetDeterministicLayoutOffset(
-					attempt,
-					desiredCount,
-					radius );
-			var desiredPosition = spawn.GameObject.WorldPosition +
-				GetHorizontalOffset(
-					spawn.GameObject.WorldRotation,
-					layoutOffset );
-
-			if ( !TryProjectToSafeFloor( desiredPosition, out var position ) )
-				continue;
-
-			var projectedCandidate = new LargeLadSpawnLocation(
-				position,
-				spawn.GameObject.WorldRotation,
-				separation );
-
-			if ( existingGroupCandidates
-				.Concat( candidates )
-				.Any( existing =>
-					!LargeLadSpawnRules.MeetsPairwiseSeparation(
-						projectedCandidate,
-						existing ) ) )
-			{
-				continue;
-			}
-
-			candidates.Add( projectedCandidate );
-		}
-
-		return candidates;
-	}
-
-	private bool TryProjectToSafeFloor(
-		Vector3 desiredPosition,
-		out Vector3 safePosition )
-	{
-		var floorTrace = Scene.Trace
-			.Ray(
-				desiredPosition + Vector3.Up * 64.0f,
-				desiredPosition - Vector3.Up * 256.0f )
-			.IgnoreDynamic()
-			.WithoutTags( "player" )
-			.Run();
-
-		if ( !floorTrace.Hit )
-		{
-			safePosition = default;
-			return false;
-		}
-
-		safePosition = floorTrace.EndPosition + Vector3.Up;
-		var capsule = new Capsule(
-			safePosition +
-				Vector3.Up * LargeLadGameplayRules.PlayerBodyRadius,
-			safePosition +
-				Vector3.Up *
-					(LargeLadGameplayRules.PlayerBodyHeight -
-						LargeLadGameplayRules.PlayerBodyRadius),
-			LargeLadGameplayRules.PlayerBodyRadius - 0.5f );
-		var clearance = Scene.Trace
-			.Capsule( capsule )
-			.IgnoreDynamic()
-			.WithoutTags( "player" )
-			.Run();
-
-		return !clearance.Hit && !clearance.StartedSolid;
 	}
 
 	private void ClearRuntimeLobbyPoints()
@@ -619,26 +616,6 @@ public sealed class LargeLadSpawnAllocator : Component
 		}
 
 		runtimeLobbyPoints.Clear();
-	}
-
-	private static Vector3 GetHorizontalOffset(
-		Rotation rotation,
-		Vector3 layoutOffset )
-	{
-		var forward = rotation.Forward;
-		var right = rotation.Right;
-		forward.z = 0.0f;
-		right.z = 0.0f;
-
-		forward = forward.LengthSquared > 0.001f
-			? forward.Normal
-			: Vector3.Forward;
-		right = right.LengthSquared > 0.001f
-			? right.Normal
-			: Vector3.Right;
-
-		return right * layoutOffset.x +
-			forward * layoutOffset.y;
 	}
 
 	private static bool IsFarEnough(

@@ -1,5 +1,134 @@
 # Large Lad scene-mapping guide
 
+## Community mapper quick-start
+
+1. Create an s&box **Addon Project**, set **Large Lad** as its Target Game in
+   Project Settings, and restart the editor if the target changed.
+2. Duplicate/open `Assets/scenes/template.scene`. Keep its one **Large Lad Map
+   Profile** and its three clearly named starter spawn-prefab instances. Move the
+   spawn areas to suit your layout; do not add gameplay/session infrastructure.
+3. Create a **Large Lad Map Manifest** (`.llmap`). Assign it to the Map Profile
+   and fill in a stable lowercase map id, contract version `1`, local display
+   name, mapper credit, local thumbnail, and recommended player range. Leave
+   **Published Package Ident** empty during local development.
+4. Build ordinary scene geometry, lighting, props, and collision.
+5. Place Large Lad objects from the Asset Browser's `Large Lad/` prefab menus:
+   team spawns, weapon/dodgeball pickups, barricades, Minion vents, and kill
+   volumes. Add the one-component Eat Smashable or Ground Slam Reactive Prop
+   only to custom objects that need those behaviors.
+6. Select **Large Lad Map Profile**. Use **Rebuild Spawns and Validate** after
+   moving floors, walls, ceilings, or spawn circles; use **Validate Large Lad
+   Map** for a normal audit. Fix every blocking error and review warnings.
+7. Test the content through `Assets/scenes/game_shell.scene`. A content scene is
+   intentionally not a standalone Large Lad session.
+8. Publish the scene through normal s&box map publishing. Configure the package
+   page's title, summary, and thumbnail.
+9. Put the published `organization.ident` into the manifest's **Published
+   Package Ident**, publish that manifest-bearing revision, and point the shell
+   coordinator at the same ident.
+10. Test the published ident with a host and remote client. It must pass the same
+    descriptor, map-content validation, spawn projection, and admission path as
+    a local scene.
+
+The content scene should contain map-owned content only. Never add
+`LargeLadGameManager`, `LargeLadSessionCoordinator`, `LargeLadSpawnAllocator`,
+`NetworkHelper`, `MapInstance`, a scene registry, or
+`prefabs/large_lad_gameplay.prefab`. Validation names any forbidden object and
+blocks admission.
+
+## Mapper-facing objects
+
+### Map Profile and manifest
+
+Place exactly one enabled **Large Lad Map Profile** (the template supplies it)
+and assign one `.llmap`. Normally edit the manifest's identity, local
+presentation, mapper credit, player range, and approved overrides. Common
+failures are a missing/duplicate profile, missing manifest, malformed stable id,
+unsupported contract version, missing local thumbnail/credit/name, or an invalid
+player range. Published Package Ident is not required until publishing.
+
+### Lobby spawn
+
+Use `Large Lad/Spawns/Lobby Team Spawn` for joining and between-round players.
+Normally move the circle and change `Spawn Radius` only when the room requires
+it; total configured and projected capacity must both reach 32. Failures report
+no area, configured shortfall, or geometry-projected shortfall separately.
+
+### Skinny Kid spawn
+
+Use `Large Lad/Spawns/Skinny Kid Team Spawn` for round-start survivors. Normally
+move/resize it while keeping the preset capacity of 31. Walls, low ceilings,
+missing walkable floor, or excessive overlap with another Skinny Kid area reduce
+its projected usable count.
+
+### Hunter spawn
+
+Use `Large Lad/Spawns/Hunter Team Spawn` for the Large Lad, Minions, conversions,
+and Hunter respawns. Normally move/resize it while keeping capacity 32. The same
+missing/configured/geometry distinctions used by the other spawn groups apply.
+
+### Weapon pickup
+
+Place the supplied Pistol or SMG pickup when Skinny Kids should gain a firearm.
+Normally change placement and `Pickup Policy (Per Instance)`; use `Core` for an
+independent permanent unlock point or `Exclusive` for one physical item. Common
+failures are an invalid weapon/policy, missing trigger/model, or an Exclusive
+root that is not Network Mode `Object`.
+
+### Dodgeball pickup
+
+Place `Large Lad/Pickups/Dodgeball` when the map should offer the utility ball.
+Normally change only placement. Its solid ball collider, separate pickup trigger,
+Rigidbody, collision tag, Object networking, and Move-only Ground Slam reaction
+are prefab setup; validation tells you to restore/replace the prefab if damaged.
+
+### Skinny Progression barricade
+
+Place `Large Lad/Barricades/Skinny Progression` where Skinny Kids may open route
+progress with melee. Normally change placement, health, optional compound stages,
+and optional destruction announcement/display name. Common failures are a
+missing root blocker, invalid stage thresholds, child ordering, or an enabled
+announcement without a name.
+
+### Lad Shortcut barricade
+
+Place `Large Lad/Barricades/Lad Shortcut` where the Large Lad's Eat fallback may
+break a shortcut. Normally change placement, health, and optional stages. It uses
+the same root-collider/stage validation as Skinny Progression but cannot announce
+route progress.
+
+### Minion vent
+
+Place `Large Lad/Passages/Minion Vent Opening` across each vent entrance that
+only Minions may traverse. Normally change placement and optionally enable/tune
+the supplied breakable cover. Common failures name a missing/non-solid/non-root
+opening collider, missing passage tag, wrong network mode, or a cover containing
+extra collision. Restore the supplied prefab instead of hand-assembling the gate.
+
+### Eat smashable
+
+Add `LargeLadEatSmashable` to a custom collidable structure only when Large Lad
+Eat should damage it after no player victim is available. Normally change
+`Maximum Health` and assign the intended collider. A missing collider or
+non-positive/non-finite health is reported on that object.
+
+### Ground Slam reactive prop
+
+Add `LargeLadGroundSlamReactiveProp` to a non-critical prop that should Move,
+Unanchor, or Break. Normally select the behavior, whether it starts frozen, and
+bounded impulse/cleanup options. Validation rejects critical gameplay objects,
+blockers, incompatible physics, invalid impulses, and destructive dodgeball
+behaviors.
+
+### Kill volume
+
+Place `Large Lad/Hazards/Kill Volume`, resize its box, and cover the lethal area.
+Normally change only transform, collider size, and optional gizmo padding. A
+missing collider or collider without **Is Trigger** is reported on the named
+volume.
+
+## Deeper architecture and publishing details
+
 `Assets/scenes/game_shell.scene` is the game-mode startup scene. It contains one
 persistent `Large Lad Gameplay Bootstrap` plus a separate root-level Snapshot
 `Map Content Host`; that host's built-in `MapInstance` loads replaceable map
@@ -31,11 +160,13 @@ finishes deleting only the exact pre-unload map-host children that the engine's
 listen-host snapshot safety can retain. Published package maps use the native
 callback/unload path directly.
 
-The game manager remains the owner of round state, transitions, timing, spawn
-contract validation, and player lifecycle. A loaded callback first resolves the
+The game manager remains the owner of round state, transitions, timing, and
+player lifecycle. `LargeLadMapValidator` owns mapper-authored map rules, while
+the runtime allocator owns the admitted projection cache and allocation. A loaded callback first resolves the
 loaded map's one `LargeLadMapProfile` into the common map descriptor and checks
 its compatibility version. It then asks the manager to rebuild the map-owned
-spawn cache and run the existing structural validation. Only then can the
+projection, run the focused structural validation, and cache the same result for
+runtime allocation. Only then can the
 coordinator enter `Ready`. Before an unload or replacement request, the
 coordinator enters `Unloading`, immediately holds persistent players, uses the
 existing inventory map-transition cleanup once, returns the round to its waiting
@@ -156,8 +287,8 @@ For a community map, use the currently supported asset workflow:
 3. Create a `Large Lad Map Manifest`, configure the stable id, current contract
    version, metadata, recommended range, and only any intentional
    approved overrides. Assign it to the scene's one map profile.
-4. Place the supplied team spawns and gameplay prefabs, then fix every manifest
-   and structural map-contract failure.
+4. Place the supplied team spawns and gameplay prefabs. Select the Map Profile,
+   use `Rebuild Spawns and Validate`, and fix every blocking map-content issue.
 5. Point the persistent Large Lad shell at the local scene and test through
    `game_shell.scene`, not a second gameplay bootstrap in the content scene.
 6. Publish the scene asset from the Asset Browser through normal s&box map
@@ -187,8 +318,8 @@ loader.
 5. Place or duplicate the gameplay prefabs from `Assets/Prefabs/Gameplay`.
 6. Point the shell bootstrap coordinator's `Startup Map` or
    `Local Development Map` at the new scene.
-7. Run through `game_shell.scene` and resolve every manifest error and
-   `Map contract:` warning.
+7. Validate from the Map Profile, then run through `game_shell.scene` and resolve
+   every blocking map error plus any relevant mapper warning.
 
 The game manager's prefab defaults are two minimum players, a 0.5-second
 player-ready delay, a 10-second head start, a 60-second survival timer, a
@@ -223,11 +354,12 @@ Multiple points may be used for unusually shaped rooms. There are no order
 numbers or hand-wired spawn lists. NetworkHelper's generated lobby positions
 appear as runtime children of the Lobby Team Spawn that produced them.
 
-After scene initialization the allocator applies the gizmo's deterministic
-golden-angle layout, probes downward for the floor, checks the 32-by-72 player
-capsule, and caches the valid projected positions for each authored area and
-group. Map validation, NetworkHelper, round batches, and individual respawns all
-reuse that same cache. Batch spawns reserve unique positions, and individual
+The shared spawn-projection service applies the gizmo's deterministic
+golden-angle layout, probes downward for the floor, and checks the authoritative
+32-by-72 player capsule. It works directly in a content scene with no manager or
+allocator. During loaded-map admission, the runtime allocator accepts that same
+projection as its cache for NetworkHelper, round batches, and individual
+respawns. Batch spawns reserve unique positions, and individual
 respawns prefer the valid point farthest from living players. If a circle is
 crowded it uses the least-crowded valid point; it never deliberately chooses a
 position inside geometry.
@@ -243,11 +375,13 @@ capacity, generated valid count, and the geometry or settings to check.
 Changing a team spawn's authored properties invalidates the cache
 automatically. After changing static floor or wall geometry, select any team
 spawn and use `Rebuild Projected Candidates`, or use
-`Rebuild And Validate Spawn Candidates` on the game manager. The colored
-gizmos show the cached projected capsules when an allocator is available.
-Ordinary validation, allocation, candidate-count, and gizmo reads only ensure
-the data cache; runtime NetworkHelper GameObjects are refreshed explicitly by
-initial configuration or either mapper rebuild command.
+`Rebuild Spawns and Validate` on the map profile. The colored gizmos show the
+spawn group, configured capacity, current valid projected count, and an
+individual clearance warning when the projected count is short.
+Editor projection previews are transient and never serialize an allocator or
+runtime spawn objects into the content scene. During admission the shell applies
+the same projection to its allocator and explicitly rebuilds NetworkHelper's
+runtime Lobby points.
 
 The full 32-player map contract requires total configured capacity of 32 for
 Lobby, 31 for Skinny Kids, and 32 for Hunter. The colored editor gizmos preview
@@ -613,7 +747,8 @@ the Large Lad respawn timer.
   authoritative-blocker component in its hierarchy. Its Network Mode `Object`
   setting is automatic.
 - Every kill volume has a trigger collider.
-- The scene reports no `Map contract:` warnings.
+- The Map Profile reports zero blocking errors; every remaining warning has been
+  reviewed and is intentional.
 - Host and remote clients complete a round, intermission, reset, late join,
   conversion, and respawn test.
 

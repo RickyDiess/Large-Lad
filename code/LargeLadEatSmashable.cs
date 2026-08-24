@@ -12,10 +12,10 @@ using System.Collections.Generic;
 public sealed class LargeLadEatSmashable : LargeLadRoundResettableComponent,
 	ILargeLadDamageable
 {
-	[Property]
+	[Property, Group( "Eat Smashable" ), Title( "Maximum Health" )]
 	public float MaximumHealth { get; set; } = 100.0f;
 
-	[Property]
+	[Property, Group( "Eat Smashable" ), Title( "Breakable Collider" )]
 	public Collider BreakableCollider { get; set; }
 
 	[Sync( SyncFlags.FromHost )]
@@ -66,14 +66,29 @@ public sealed class LargeLadEatSmashable : LargeLadRoundResettableComponent,
 	{
 		ResolveCollider();
 
-		if ( MaximumHealth <= 0.0f )
-			Log.Warning( $"{GameObject.Name}: Eat-smashable health must be positive." );
+		foreach ( var warning in GetValidationWarnings() )
+			Log.Warning( $"{GameObject.Name}: Eat smashable: {warning}" );
+	}
+
+	public IReadOnlyList<string> GetValidationWarnings()
+	{
+		var warnings = new List<string>();
+
+		if ( !float.IsFinite( MaximumHealth ) || MaximumHealth <= 0.0f )
+		{
+			warnings.Add(
+				"Maximum Health must be finite and positive. Set how much Large " +
+				"Lad melee damage this object should withstand." );
+		}
 
 		if ( BreakableCollider is null )
 		{
-			Log.Warning(
-				$"{GameObject.Name}: Eat-smashable needs an authored collider." );
+			warnings.Add(
+				"no Breakable Collider could be found. Add collision to this " +
+				"object or assign an existing collider in its hierarchy." );
 		}
+
+		return warnings;
 	}
 
 	public bool TryApplyDamage(

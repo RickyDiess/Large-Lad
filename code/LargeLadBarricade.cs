@@ -260,24 +260,51 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 		ConfigureObject();
 		ResolveAuthoredParts();
 
-		if ( BaseMaximumHealth <= 0.0f )
-			Log.Warning( $"{GameObject.Name}: barricade health must be positive." );
-
-		if ( BarricadeCollider is null )
-		{
-			Log.Warning(
-				$"{GameObject.Name}: assign one authoritative blocking collider." );
-		}
-
-		foreach ( var warning in GetValidationWarnings() )
+		foreach ( var warning in GetMapperValidationWarnings() )
 			Log.Warning( $"{GameObject.Name}: {warning}" );
 	}
 
 	public IReadOnlyList<string> GetValidationWarnings()
 	{
+		return GetMapperValidationWarnings()
+			.Concat( GetProjectValidationWarnings() )
+			.ToArray();
+	}
+
+	public IReadOnlyList<string> GetMapperValidationWarnings()
+	{
 		var warnings = new List<string>();
 		var stages = Stages ?? new();
 		var childRoots = GameObject.Children.ToList();
+
+		if ( !float.IsFinite( BaseMaximumHealth ) ||
+			BaseMaximumHealth <= 0.0f )
+		{
+			warnings.Add(
+				"Maximum Health must be finite and positive. Restore the supplied " +
+				"barricade prefab value or set the intended route durability." );
+		}
+
+		if ( !HasCollision )
+		{
+			warnings.Add(
+				"it needs one authoritative blocking collider on its root. Assign " +
+				"the collider or replace this instance with the supplied barricade prefab." );
+		}
+		else if ( BarricadeCollider.IsTrigger )
+		{
+			warnings.Add(
+				"its root collider must be solid, not a trigger. Disable Is Trigger " +
+				"or restore the supplied barricade prefab." );
+		}
+
+		if ( GameObject.NetworkMode != NetworkMode.Object )
+		{
+			warnings.Add(
+				"the barricade root must use Network Mode Object so damage and " +
+				"destruction replicate. Restore the supplied barricade prefab." );
+		}
+
 		warnings.AddRange(
 			LargeLadBarricadeStageRules.GetConfigurationWarnings(
 				stages,
@@ -317,8 +344,13 @@ public sealed class LargeLadBarricade : LargeLadRoundResettableComponent,
 				"barricade root." );
 		}
 
-		ValidateGibCollisionRules( warnings );
+		return warnings;
+	}
 
+	public static IReadOnlyList<string> GetProjectValidationWarnings()
+	{
+		var warnings = new List<string>();
+		ValidateGibCollisionRules( warnings );
 		return warnings;
 	}
 

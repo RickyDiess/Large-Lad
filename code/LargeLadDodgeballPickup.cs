@@ -1,4 +1,5 @@
 using Sandbox;
+using System.Collections.Generic;
 
 public enum LargeLadDodgeballPresentationPhase
 {
@@ -226,23 +227,93 @@ public sealed class LargeLadDodgeballPickup :
 	{
 		ResolveAuthoredParts();
 
+		foreach ( var warning in GetValidationWarnings() )
+			Log.Warning( $"{GameObject.Name}: dodgeball pickup: {warning}" );
+	}
+
+	public IReadOnlyList<string> GetValidationWarnings()
+	{
+		var warnings = new List<string>();
+
 		if ( GameObject.NetworkMode != NetworkMode.Object )
 		{
-			Log.Warning(
-				$"{GameObject.Name}: a dodgeball utility pickup must use " +
-				"Network Mode Object." );
+			warnings.Add(
+				"the root must use Network Mode Object so the one physical ball " +
+				"replicates. Restore the supplied Dodgeball Pickup prefab." );
 		}
 
 		if ( BallCollider is null || BallCollider.IsTrigger )
-			Log.Warning( $"{GameObject.Name}: dodgeball needs a solid ball collider." );
+		{
+			warnings.Add(
+				"it needs one solid Ball Collider. Restore the prefab reference " +
+				"or replace this instance with the supplied Dodgeball Pickup prefab." );
+		}
 
 		if ( PickupCollider is null || !PickupCollider.IsTrigger )
-			Log.Warning( $"{GameObject.Name}: dodgeball needs a separate pickup trigger." );
+		{
+			warnings.Add(
+				"it needs a separate trigger collider for pickup range. Restore " +
+				"the prefab's Pickup Trigger child." );
+		}
 
 		if ( BallRigidbody is null )
-			Log.Warning( $"{GameObject.Name}: dodgeball needs a Rigidbody." );
+		{
+			warnings.Add(
+				"it needs the prefab Rigidbody for authoritative ball physics. " +
+				"Restore or replace this prefab instance." );
+		}
 
-		ValidateConfiguration();
+		if ( PickupRenderer is null )
+		{
+			warnings.Add(
+				"its visible ball renderer is missing. Restore the supplied prefab." );
+		}
+
+		if ( !GameObject.Tags.Has( LargeLadDodgeballRules.CollisionTag ) )
+		{
+			warnings.Add(
+				$"the root needs the '{LargeLadDodgeballRules.CollisionTag}' tag so " +
+				"Minion vents remain solid to the ball. Restore the supplied prefab." );
+		}
+
+		AddRangeWarning(
+			warnings,
+			nameof( ThrowSpeed ),
+			ThrowSpeed,
+			0.0f,
+			LargeLadDodgeballRules.MaximumThrowSpeed );
+		AddRangeWarning(
+			warnings,
+			nameof( MaximumLinearSpeed ),
+			MaximumLinearSpeed,
+			0.0f,
+			LargeLadDodgeballRules.MaximumLinearSpeed );
+		AddRangeWarning(
+			warnings,
+			nameof( MaximumAngularSpeed ),
+			MaximumAngularSpeed,
+			0.0f,
+			LargeLadDodgeballRules.MaximumAngularSpeed );
+		AddRangeWarning(
+			warnings,
+			nameof( LargeLadDamage ),
+			LargeLadDamage,
+			0.0f,
+			LargeLadDodgeballRules.MaximumLargeLadDamage );
+		AddRangeWarning(
+			warnings,
+			nameof( LargeLadHorizontalKnockbackImpulse ),
+			LargeLadHorizontalKnockbackImpulse,
+			0.0f,
+			LargeLadDodgeballRules.MaximumHorizontalKnockbackImpulse );
+		AddRangeWarning(
+			warnings,
+			nameof( LargeLadUpwardKnockbackImpulse ),
+			LargeLadUpwardKnockbackImpulse,
+			0.0f,
+			LargeLadDodgeballRules.MaximumUpwardKnockbackImpulse );
+
+		return warnings;
 	}
 
 	protected override void OnDestroy()
@@ -1019,29 +1090,8 @@ public sealed class LargeLadDodgeballPickup :
 				targetRole ) );
 	}
 
-	private void ValidateConfiguration()
-	{
-		ValidateRange( nameof( ThrowSpeed ), ThrowSpeed, 0.0f,
-			LargeLadDodgeballRules.MaximumThrowSpeed );
-		ValidateRange( nameof( MaximumLinearSpeed ), MaximumLinearSpeed, 0.0f,
-			LargeLadDodgeballRules.MaximumLinearSpeed );
-		ValidateRange( nameof( MaximumAngularSpeed ), MaximumAngularSpeed, 0.0f,
-			LargeLadDodgeballRules.MaximumAngularSpeed );
-		ValidateRange( nameof( LargeLadDamage ), LargeLadDamage, 0.0f,
-			LargeLadDodgeballRules.MaximumLargeLadDamage );
-		ValidateRange(
-			nameof( LargeLadHorizontalKnockbackImpulse ),
-			LargeLadHorizontalKnockbackImpulse,
-			0.0f,
-			LargeLadDodgeballRules.MaximumHorizontalKnockbackImpulse );
-		ValidateRange(
-			nameof( LargeLadUpwardKnockbackImpulse ),
-			LargeLadUpwardKnockbackImpulse,
-			0.0f,
-			LargeLadDodgeballRules.MaximumUpwardKnockbackImpulse );
-	}
-
-	private void ValidateRange(
+	private static void AddRangeWarning(
+		List<string> warnings,
 		string propertyName,
 		float value,
 		float minimum,
@@ -1049,9 +1099,10 @@ public sealed class LargeLadDodgeballPickup :
 	{
 		if ( !float.IsFinite( value ) || value < minimum || value > maximum )
 		{
-			Log.Warning(
-				$"{GameObject.Name}: dodgeball {propertyName} must be " +
-				$"{minimum} to {maximum}; runtime use is clamped." );
+			warnings.Add(
+				$"{propertyName} must be {minimum} to {maximum}; runtime use is " +
+				"clamped. Restore the supplied prefab value unless this map " +
+				"intentionally needs a value in that range." );
 		}
 	}
 

@@ -1,25 +1,72 @@
-# Running the automated tests
+# Editor validation and automated rules
 
 Large Lad's deterministic gameplay tests live in `UnitTests/` and use the
-s&box-generated MSTest project. They do not start a multiplayer session or load
-a gameplay scene. Capacity coverage verifies the 2-player minimum, the former
-16-player boundary, the 31-player Skinny Kid maximum, and the complete
-32-player roster across spawn requirements, deterministic layouts, and batch
-collections.
+s&box-generated MSTest project. They cover pure rules without starting a
+multiplayer session or loading a gameplay scene. Use the current s&box
+editor-integrated test workflow for that generated project. Code validation is
+the editor's hotcompile/hotload status plus editor/MCP diagnostics; do not add an
+external .NET/C# build or `dotnet test` step.
 
-When setting up the tests for the first time:
+Spawn coverage verifies the 2-player minimum, the former 16-player boundary, the
+31-player Skinny Kid maximum, the complete 32-player roster, deterministic
+layouts, blocking/advisory issue classification, and missing versus configured
+versus geometry-projected spawn shortfalls.
 
-1. Open the project in the s&box editor. If the editor was already open when
-   `UnitTests/` was added, restart it once so s&box generates the unit-test
-   project.
-2. From this directory, run:
+## Mapper pipeline checklist
 
-   ```text
-   dotnet test UnitTests/large_lad.unittest.csproj
-   ```
+Use a fresh duplicate of `Assets/scenes/template.scene`, not Gym. Keep the
+starter geometry and the three movable spawn presets only where useful; the test
+is intended to exercise the workflow a new community mapper receives.
 
-The tests can also be run from Visual Studio's Test Explorer after the generated
-unit-test project appears in the solution.
+1. Inspect the duplicate and confirm it contains no `LargeLadGameManager`,
+   `LargeLadSessionCoordinator`, `LargeLadSpawnAllocator`, `NetworkHelper`,
+   `MapInstance`, gameplay bootstrap, or scene-registry object. Confirm exactly
+   one enabled **Large Lad Map Profile** is present.
+2. Leave the profile's manifest empty and use **Validate Large Lad Map**. Confirm
+   one obvious blocking error names the profile and tells the mapper to create
+   and assign a `.llmap`.
+3. Create a complete local manifest with Published Package Ident empty. Assign
+   it and confirm manifest validation accepts the local scene. Change Stable Map
+   Id to an uppercase/space-containing value and confirm the error explains the
+   lowercase character rules; restore it.
+4. Set the contract version above `1`. Confirm the blocking issue shows both the
+   declared and supported versions and tells the mapper to update the manifest;
+   restore version `1`.
+5. Remove/disable the Lobby, Skinny Kid, and Hunter starter prefab one at a time.
+   Confirm each produces a group-specific blocking issue with required usable
+   capacity 32, 31, and 32 respectively.
+6. With no GameManager or SpawnAllocator in the scene, select the Map Profile and
+   use **Rebuild Spawns and Validate**. Confirm each selected spawn gizmo shows
+   its group, configured capacity, and projected valid count.
+7. Place solid geometry through enough of one spawn circle to reduce its valid
+   projection below the required group capacity. Rebuild and confirm the error
+   distinguishes geometry projection from configured capacity and names every
+   authored area with its valid/configured counts. Move the geometry clear,
+   rebuild, and confirm the blocker disappears.
+8. Break a copy of a weapon-pickup prefab by clearing its trigger or renderer.
+   Confirm a warning names that pickup and tells the mapper to restore/replace
+   the prefab. Repeat with a dodgeball prefab's solid collider or pickup-trigger
+   reference.
+9. Break a barricade root collider, then a Minion vent's opening collider/root
+   setup. Confirm each warning uses the authored object name, says what is wrong,
+   and gives a concrete correction or recommends restoring the supplied prefab.
+10. Duplicate and then remove the Map Profile. Confirm both duplicate and missing
+    cases are blocking and explain that exactly one enabled profile is required.
+11. Add one forbidden bootstrap/session component to a clearly named object.
+    Confirm validation names that object and component and tells the mapper to
+    remove it from the content map.
+12. Restore the clean template-derived content, assign the valid local manifest,
+    place all spawn circles over usable floor, rebuild, and confirm mapper
+    validation reports one clear success result.
+13. Point the persistent coordinator in `game_shell.scene` at the new local
+    scene. Confirm the map follows Loading -> Ready, persistent players receive
+    valid Lobby positions, and round flow remains closed until admission
+    succeeds.
+14. Publish a test package, set the manifest's Published Package Ident to the
+    exact selected ident, and load that ident through the same shell. Confirm the
+    published community package follows the same profile resolution,
+    descriptor-compatibility, map validator, shared spawn projection, and
+    fail-closed admission path.
 
 ## Timer-only Hunter movement escalation
 

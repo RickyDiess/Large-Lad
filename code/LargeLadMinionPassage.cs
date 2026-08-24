@@ -171,7 +171,7 @@ public sealed class LargeLadMinionPassage :
 	{
 		ResolveReferences();
 
-		foreach ( var warning in GetValidationWarnings() )
+		foreach ( var warning in GetMapperValidationWarnings() )
 		{
 			Log.Warning(
 				$"{GameObject.Name}: invalid Minion passage: {warning}" );
@@ -244,6 +244,13 @@ public sealed class LargeLadMinionPassage :
 
 	public IReadOnlyList<string> GetValidationWarnings()
 	{
+		return GetMapperValidationWarnings()
+			.Concat( GetProjectValidationWarnings() )
+			.ToArray();
+	}
+
+	public IReadOnlyList<string> GetMapperValidationWarnings()
+	{
 		var warnings = new List<string>();
 
 		if ( OpeningCollider is null )
@@ -309,8 +316,6 @@ public sealed class LargeLadMinionPassage :
 				"replicates." );
 		}
 
-		ValidateCollisionRules( warnings );
-
 		if ( !float.IsFinite( BaseCoverHealth ) ||
 			BaseCoverHealth <= 0.0f )
 		{
@@ -363,7 +368,14 @@ public sealed class LargeLadMinionPassage :
 		return warnings;
 	}
 
-	private void ValidateCollisionRules( List<string> warnings )
+	public static IReadOnlyList<string> GetProjectValidationWarnings()
+	{
+		var warnings = new List<string>();
+		ValidateCollisionRules( warnings );
+		return warnings;
+	}
+
+	private static void ValidateCollisionRules( List<string> warnings )
 	{
 		var collision = ProjectSettings.Collision;
 

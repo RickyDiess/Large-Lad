@@ -1,26 +1,27 @@
 using Sandbox;
+using System.Collections.Generic;
 
 /// <summary>
-/// One authored firearm pickup. Core placements are permanent unlock points
-/// available independently to every Skinny Kid. Exclusive placements own one
-/// persistent native firearm for the match and remain unavailable while that
-/// same item is carried or dropped elsewhere.
+/// Mapper-authored firearm pickup. Prefer the supplied Pistol or SMG prefab.
+/// Core placements are permanent unlock points available independently to every
+/// Skinny Kid. Exclusive placements own one persistent native firearm for the
+/// match and remain unavailable while that same item is carried or dropped.
 /// </summary>
 public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 	Component.ITriggerListener
 {
-	[Property]
+	[Property, Group( "Pickup" )]
 	public LargeLadWeaponId Weapon { get; set; } =
 		LargeLadWeaponId.Pistol;
 
-	[Property, Title( "Pickup Policy (Per Instance)" )]
+	[Property, Group( "Pickup" ), Title( "Pickup Policy (Per Instance)" )]
 	public LargeLadPickupPolicy PickupPolicy { get; set; } =
 		LargeLadPickupPolicy.Core;
 
-	[Property]
+	[Property, Group( "Prefab Setup" )]
 	public Renderer PickupRenderer { get; set; }
 
-	[Property]
+	[Property, Group( "Prefab Setup" )]
 	public Collider PickupCollider { get; set; }
 
 	[Sync( SyncFlags.FromHost ), Change( nameof( OnAvailableChanged ) )]
@@ -57,37 +58,57 @@ public sealed class LargeLadWeaponPickup : LargeLadRoundResettableComponent,
 	{
 		ResolveAuthoredParts();
 
+		foreach ( var warning in GetValidationWarnings() )
+			Log.Warning( $"{GameObject.Name}: weapon pickup: {warning}" );
+	}
+
+	public IReadOnlyList<string> GetValidationWarnings()
+	{
+		var warnings = new List<string>();
+
 		if ( !LargeLadWeaponCatalog.IsFirearm( Weapon ) )
 		{
-			Log.Warning(
-				$"{GameObject.Name}: weapon pickup must use a firearm definition." );
-		}
-		else
-		{
-			foreach ( var warning in
-				LargeLadWeaponCatalog.Get( Weapon ).GetValidationWarnings() )
-			{
-				Log.Warning(
-					$"{GameObject.Name}: weapon definition '{Weapon}': " +
-					warning );
-			}
+			warnings.Add(
+				"select a valid firearm, or replace this object with a supplied " +
+				"Large Lad weapon-pickup prefab." );
 		}
 
 		if ( !System.Enum.IsDefined(
 			typeof( LargeLadPickupPolicy ),
 			PickupPolicy ) )
 		{
-			Log.Warning(
-				$"{GameObject.Name}: weapon pickup needs a valid pickup policy." );
+			warnings.Add( "select Core or Exclusive as its pickup policy." );
 		}
 
 		if ( PickupPolicy == LargeLadPickupPolicy.Exclusive &&
 			GameObject.NetworkMode != NetworkMode.Object )
 		{
-			Log.Warning(
-				$"{GameObject.Name}: an exclusive weapon pickup must use " +
-				"Network Mode Object." );
+			warnings.Add(
+				"an Exclusive pickup must use Network Mode Object so its " +
+				"availability replicates. Use the supplied pickup prefab as the base." );
 		}
+
+		if ( PickupCollider is null )
+		{
+			warnings.Add(
+				"its pickup trigger is missing. Restore the prefab reference or " +
+				"replace this instance with a supplied weapon-pickup prefab." );
+		}
+		else if ( !PickupCollider.IsTrigger )
+		{
+			warnings.Add(
+				"its Pickup Collider must be a trigger. Enable Is Trigger or " +
+				"restore the supplied prefab." );
+		}
+
+		if ( PickupRenderer is null )
+		{
+			warnings.Add(
+				"its visible weapon model is missing. Restore the prefab renderer " +
+				"reference or replace this instance with a supplied pickup prefab." );
+		}
+
+		return warnings;
 	}
 
 	public void OnTriggerEnter( Collider other )

@@ -378,6 +378,7 @@ public sealed class LargeLadGameManager : Component
 	private readonly List<LargeLadGroundSlamReactiveProp>
 		activeGroundSlamReactiveProps = new();
 	private readonly List<string> validatedBlockingBootstrapIssues = new();
+	private readonly List<string> validatedBlockingMapIssues = new();
 	private readonly HashSet<LargeLadPlayer> lobbyPlacedPlayers = new();
 	private readonly HashSet<(
 		LargeLadPlayer Player,
@@ -543,38 +544,14 @@ public sealed class LargeLadGameManager : Component
 		if ( SessionCoordinator?.IsMapReady == true )
 		{
 			SpawnAllocator?.ConfigureNetworkHelper( NetworkHelper );
-			ValidateMap( logResults: true, validateGeometry: true );
+			ValidateGameSession( logResults: true );
 		}
 	}
 
 	protected override void OnValidate()
 	{
 		ResolveBootstrapReferences();
-
-		// The bootstrap prefab is also compiled in isolation, where map-authored
-		// spawns intentionally do not exist. Full validation still always runs
-		// when a playable scene starts.
-		if ( SpawnAllocator is null ||
-			SpawnAllocator.AuthoredTeamSpawns.Count == 0 )
-			return;
-
-		ValidateMap( logResults: true, validateGeometry: false );
-	}
-
-	/// <summary>
-	/// Reprojects authored spawn candidates and validates those exact cached
-	/// positions against the full map contract.
-	/// </summary>
-	[Button]
-	public void RebuildAndValidateSpawnCandidates()
-	{
-		ResolveBootstrapReferences();
-
-		if ( !OwnsSceneGameplay() )
-			return;
-
-		SpawnAllocator?.RebuildCandidatesAndRefreshLobbyPoints();
-		ValidateMap( logResults: true, validateGeometry: true );
+		ValidateGameSession( logResults: true );
 	}
 
 	public IReadOnlyDictionary<LargeLadPlayer, LargeLadSpawnLocation> AllocateSpawnBatch(
@@ -646,30 +623,12 @@ public sealed class LargeLadGameManager : Component
 				issues.Add( issue );
 		}
 
-		if ( SpawnAllocator is null )
-			return issues;
+		foreach ( var issue in validatedBlockingMapIssues )
+		{
+			if ( !issues.Contains( issue ) )
+				issues.Add( issue );
+		}
 
-		ValidateSpawnGroup(
-			issues,
-			LargeLadSpawnGroup.Lobby,
-			LargeLadSpawnRules.GetRequiredCapacity(
-				LargeLadSpawnGroup.Lobby,
-				TargetPlayerCount ),
-			validateGeometry: true );
-		ValidateSpawnGroup(
-			issues,
-			LargeLadSpawnGroup.SkinnyKid,
-			LargeLadSpawnRules.GetRequiredCapacity(
-				LargeLadSpawnGroup.SkinnyKid,
-				TargetPlayerCount ),
-			validateGeometry: true );
-		ValidateSpawnGroup(
-			issues,
-			LargeLadSpawnGroup.Hunter,
-			LargeLadSpawnRules.GetRequiredCapacity(
-				LargeLadSpawnGroup.Hunter,
-				TargetPlayerCount ),
-			validateGeometry: true );
 		return issues;
 	}
 
@@ -694,9 +653,11 @@ public sealed class LargeLadGameManager : Component
 		return false;
 	}
 
-	public IReadOnlyList<string> ValidateMap(
-		bool logResults,
-		bool validateGeometry = false )
+	/// <summary>
+	/// Validates the persistent game/session owner only. Mapper-authored content
+	/// is validated by LargeLadMapValidator from its Map Profile and admission.
+	/// </summary>
+	public IReadOnlyList<string> ValidateGameSession( bool logResults )
 	{
 		var issues = new List<string>();
 		var blockingBootstrapIssues =
@@ -704,7 +665,6 @@ public sealed class LargeLadGameManager : Component
 				.ToList();
 		validatedBlockingBootstrapIssues.Clear();
 		validatedBlockingBootstrapIssues.AddRange( blockingBootstrapIssues );
-		var blockingSpawnIssues = new List<string>();
 		ResolveBootstrapReferences();
 		issues.AddRange( blockingBootstrapIssues );
 
@@ -718,7 +678,7 @@ public sealed class LargeLadGameManager : Component
 		if ( MinimumPlayers > TargetPlayerCount )
 		{
 			issues.Add(
-				$"Minimum players cannot exceed the {TargetPlayerCount}-player map contract." );
+				$"Minimum players cannot exceed the {TargetPlayerCount}-player contract." );
 		}
 
 		if ( PlayerReadyDelay < 0.0f )
@@ -763,251 +723,31 @@ public sealed class LargeLadGameManager : Component
 		}
 
 		if ( !LargeLadHunterMovementEscalationRules
-			.IsValidMaximumMultiplier(
-				LargeLadMovementMaximumMultiplier ) )
+			.IsValidMaximumMultiplier( LargeLadMovementMaximumMultiplier ) )
 		{
 			issues.Add(
-				"Large Lad movement escalation maximum must be finite and " +
-				"at least one." );
+				"Large Lad movement escalation maximum must be finite and at least one." );
 		}
 
 		if ( !LargeLadHunterMovementEscalationRules
-			.IsValidMaximumMultiplier(
-				MinionMovementMaximumMultiplier ) )
+			.IsValidMaximumMultiplier( MinionMovementMaximumMultiplier ) )
 		{
 			issues.Add(
-				"Minion movement escalation maximum must be finite and at " +
-				"least one." );
+				"Minion movement escalation maximum must be finite and at least one." );
 		}
 
 		issues.AddRange(
-			EffectiveRoundBalanceSettings.GetValidationWarnings() );
+			EffectiveRoundBalanceSettings.GetValidationWarnings()
+				.Select( issue => $"Round balance: {issue}" ) );
 		issues.AddRange(
-			LargeLadWeaponCatalog.GetCatalogValidationWarnings() );
-
-		ValidateSpawnGroup(
-			blockingSpawnIssues,
-			LargeLadSpawnGroup.Lobby,
-			LargeLadSpawnRules.GetRequiredCapacity(
-				LargeLadSpawnGroup.Lobby,
-				TargetPlayerCount ),
-			validateGeometry );
-		ValidateSpawnGroup(
-			blockingSpawnIssues,
-			LargeLadSpawnGroup.SkinnyKid,
-			LargeLadSpawnRules.GetRequiredCapacity(
-				LargeLadSpawnGroup.SkinnyKid,
-				TargetPlayerCount ),
-			validateGeometry );
-		ValidateSpawnGroup(
-			blockingSpawnIssues,
-			LargeLadSpawnGroup.Hunter,
-			LargeLadSpawnRules.GetRequiredCapacity(
-				LargeLadSpawnGroup.Hunter,
-				TargetPlayerCount ),
-			validateGeometry );
-		issues.AddRange( blockingSpawnIssues );
-
-		// This is an explicit editor/startup map-contract audit. Runtime combat,
-		// HUD, and round reset use their lifecycle registries instead.
-		var exclusivePickupNamesById =
-			new Dictionary<int, string>();
-
-		foreach ( var pickup in
-			Scene?.GetAllComponents<LargeLadWeaponPickup>() ??
-			Enumerable.Empty<LargeLadWeaponPickup>() )
-		{
-			if ( !LargeLadWeaponCatalog.IsFirearm( pickup.Weapon ) )
-				issues.Add( $"Weapon pickup '{pickup.GameObject.Name}' has no valid firearm." );
-
-			if ( !System.Enum.IsDefined(
-				typeof( LargeLadPickupPolicy ),
-				pickup.PickupPolicy ) )
-			{
-				issues.Add(
-					$"Weapon pickup '{pickup.GameObject.Name}' has no valid " +
-					"per-instance pickup policy." );
-			}
-
-			if ( pickup.PickupPolicy == LargeLadPickupPolicy.Exclusive &&
-				pickup.GameObject.NetworkMode != NetworkMode.Object )
-			{
-				issues.Add(
-					$"Exclusive weapon pickup '{pickup.GameObject.Name}' " +
-					"must use Network Mode Object so availability replicates." );
-			}
-
-			if ( pickup.PickupPolicy ==
-				LargeLadPickupPolicy.Exclusive &&
-				Networking.IsHost )
-			{
-				pickup.EnsureExclusiveIdentityForHost();
-				var instanceId = pickup.ExclusiveInstanceId;
-
-				if ( instanceId <= 0 )
-				{
-					issues.Add(
-						$"Exclusive weapon pickup '{pickup.GameObject.Name}' " +
-						"could not establish a stable instance identity." );
-				}
-				else if ( exclusivePickupNamesById.TryGetValue(
-					instanceId,
-					out var existingName ) )
-				{
-					issues.Add(
-						$"Exclusive weapon pickups '{existingName}' and " +
-						$"'{pickup.GameObject.Name}' have the same runtime " +
-						$"instance id {instanceId}." );
-				}
-				else
-				{
-					exclusivePickupNamesById.Add(
-						instanceId,
-						pickup.GameObject.Name );
-				}
-			}
-
-			if ( pickup.PickupCollider is null )
-				issues.Add( $"Weapon pickup '{pickup.GameObject.Name}' needs a trigger collider." );
-
-			if ( pickup.PickupRenderer is null )
-				issues.Add( $"Weapon pickup '{pickup.GameObject.Name}' needs visible scene geometry." );
-		}
-
-		var utilityPickupNamesById = new Dictionary<int, string>();
-
-		foreach ( var pickup in
-			Scene?.GetAllComponents<LargeLadDodgeballPickup>() ??
-			Enumerable.Empty<LargeLadDodgeballPickup>() )
-		{
-			if ( pickup.GameObject.NetworkMode != NetworkMode.Object )
-			{
-				issues.Add(
-					$"Dodgeball utility pickup '{pickup.GameObject.Name}' must " +
-					"use Network Mode Object so its single physical instance " +
-					"replicates." );
-			}
-
-			if ( Networking.IsHost )
-			{
-				pickup.EnsureUtilityIdentityForHost();
-				var instanceId = pickup.UtilityInstanceId;
-
-				if ( instanceId <= 0 )
-				{
-					issues.Add(
-						$"Dodgeball utility pickup '{pickup.GameObject.Name}' " +
-						"could not establish a stable instance identity." );
-				}
-				else if ( utilityPickupNamesById.TryGetValue(
-					instanceId,
-					out var existingName ) )
-				{
-					issues.Add(
-						$"Dodgeball utility pickups '{existingName}' and " +
-						$"'{pickup.GameObject.Name}' have the same runtime " +
-						$"instance id {instanceId}." );
-				}
-				else
-				{
-					utilityPickupNamesById.Add(
-						instanceId,
-						pickup.GameObject.Name );
-				}
-			}
-
-			if ( pickup.PickupCollider is null )
-			{
-				issues.Add(
-					$"Dodgeball utility pickup '{pickup.GameObject.Name}' " +
-					"needs a separate pickup trigger." );
-			}
-
-			if ( pickup.BallCollider is null ||
-				pickup.BallCollider.IsTrigger )
-			{
-				issues.Add(
-					$"Dodgeball utility pickup '{pickup.GameObject.Name}' " +
-					"needs a solid ball collider." );
-			}
-
-			if ( pickup.BallRigidbody is null )
-			{
-				issues.Add(
-					$"Dodgeball utility pickup '{pickup.GameObject.Name}' " +
-					"needs a Rigidbody for authoritative bounded physics." );
-			}
-
-			if ( !pickup.GameObject.Tags.Has(
-				LargeLadDodgeballRules.CollisionTag ) )
-			{
-				issues.Add(
-					$"Dodgeball utility pickup '{pickup.GameObject.Name}' needs " +
-					$"the '{LargeLadDodgeballRules.CollisionTag}' collision tag so " +
-					"Minion vent openings remain solid to it." );
-			}
-
-			if ( pickup.PickupRenderer is null )
-			{
-				issues.Add(
-					$"Dodgeball utility pickup '{pickup.GameObject.Name}' " +
-					"needs visible scene geometry." );
-			}
-		}
-
-		foreach ( var barricade in
-			Scene?.GetAllComponents<LargeLadBarricade>() ??
-			Enumerable.Empty<LargeLadBarricade>() )
-		{
-			if ( !barricade.HasCollision )
-			{
-				issues.Add(
-					$"Barricade '{barricade.GameObject.Name}' needs an " +
-					"authoritative blocking collider." );
-			}
-
-			if ( barricade.GameObject.NetworkMode != NetworkMode.Object )
-			{
-				issues.Add(
-					$"Barricade '{barricade.GameObject.Name}' must use Network Mode Object." );
-			}
-
-			foreach ( var warning in barricade.GetValidationWarnings() )
-			{
-				issues.Add(
-					$"Barricade '{barricade.GameObject.Name}': {warning}" );
-			}
-		}
-
-		foreach ( var passage in
-			Scene?.GetAllComponents<LargeLadMinionPassage>() ??
-			Enumerable.Empty<LargeLadMinionPassage>() )
-		{
-			foreach ( var warning in passage.GetValidationWarnings() )
-			{
-				issues.Add(
-					$"Minion passage '{passage.GameObject.Name}': {warning}" );
-			}
-		}
-
-		foreach ( var reactiveProp in
-			Scene?.GetAllComponents<LargeLadGroundSlamReactiveProp>() ??
-			Enumerable.Empty<LargeLadGroundSlamReactiveProp>() )
-		{
-			foreach ( var warning in reactiveProp.GetValidationWarnings() )
-			{
-				issues.Add(
-					$"Ground Slam prop '{reactiveProp.GameObject.Name}': {warning}" );
-			}
-		}
-
-		foreach ( var killVolume in
-			Scene?.GetAllComponents<LargeLadKillVolume>() ??
-			Enumerable.Empty<LargeLadKillVolume>() )
-		{
-			if ( killVolume.TriggerCollider is null )
-				issues.Add( $"Kill volume '{killVolume.GameObject.Name}' needs a trigger collider." );
-		}
+			LargeLadWeaponCatalog.GetCatalogValidationWarnings()
+				.Select( issue => $"Weapon catalog: {issue}" ) );
+		issues.AddRange(
+			LargeLadBarricade.GetProjectValidationWarnings()
+				.Select( issue => $"Barricade project setup: {issue}" ) );
+		issues.AddRange(
+			LargeLadMinionPassage.GetProjectValidationWarnings()
+				.Select( issue => $"Minion passage project setup: {issue}" ) );
 
 		if ( logResults )
 		{
@@ -1016,8 +756,8 @@ public sealed class LargeLadGameManager : Component
 				if ( EnableMapValidationDebugLogging )
 				{
 					Log.Info(
-						$"[Debug/Map Validation] Scene containing " +
-						$"'{GameObject.Name}' passes the Large Lad map contract." );
+						$"[Debug/Game Validation] Persistent gameplay bootstrap " +
+						$"'{GameObject.Name}' passes game/session validation." );
 				}
 			}
 			else
@@ -1026,19 +766,11 @@ public sealed class LargeLadGameManager : Component
 				{
 					if ( blockingBootstrapIssues.Contains( issue ) )
 					{
-						// The scene registry owns the single fail-closed bootstrap
-						// diagnostic so duplicate managers cannot each report it.
+						// The registry owns the one fail-closed bootstrap diagnostic.
 						continue;
 					}
-					else if ( blockingSpawnIssues.Contains( issue ) )
-					{
-						Log.Error(
-							$"Map contract blocks round start: {issue}" );
-					}
-					else
-					{
-						Log.Warning( $"Map contract: {issue}" );
-					}
+
+					Log.Warning( $"Game/session validation: {issue}" );
 				}
 			}
 		}
@@ -1726,9 +1458,9 @@ public sealed class LargeLadGameManager : Component
 	}
 
 	/// <summary>
-	/// Rebuilds the map-owned caches after MapInstance's loaded callback. Round
-	/// rules and validation remain manager policy; the coordinator owns the
-	/// resulting ready/not-ready state.
+	/// Runs focused map admission after MapInstance's loaded callback, then gives
+	/// the admitted projection to the runtime allocator. The coordinator owns the
+	/// resulting ready/not-ready transaction state.
 	/// </summary>
 	internal bool PrepareLoadedMap(
 		LargeLadSessionCoordinator coordinator,
@@ -1747,10 +1479,20 @@ public sealed class LargeLadGameManager : Component
 		}
 
 		activeMapDescriptor = descriptor;
+		validatedBlockingMapIssues.Clear();
+		var mapContentHost = coordinator.MapInstance?.GameObject;
+		var mapValidation = LargeLadMapValidator.ValidateLoadedContent(
+			mapContentHost );
+		validatedBlockingMapIssues.AddRange(
+			mapValidation.Issues
+				.Where( issue => issue.IsBlocking )
+				.Select( issue => issue.ToString() ) );
+
 		SpawnAllocator?.InvalidateCandidateCache();
+		SpawnAllocator?.ApplyCandidateProjection(
+			mapValidation.SpawnProjection );
 		SpawnAllocator?.ConfigureNetworkHelper( NetworkHelper );
-		SpawnAllocator?.RebuildCandidatesAndRefreshLobbyPoints();
-		ValidateMap( logResults: true, validateGeometry: true );
+		mapValidation.LogMapperSummary();
 
 		if ( GetBlockingRoundSpawnIssues( requireReadyMap: false ).Count > 0 )
 		{
@@ -1811,6 +1553,7 @@ public sealed class LargeLadGameManager : Component
 		lobbyPlacedPlayers.Clear();
 		reportedSpawnAllocationFailures.Clear();
 		validatedBlockingBootstrapIssues.Clear();
+		validatedBlockingMapIssues.Clear();
 
 		// A map/session boundary is not a gameplay phase transition, so it
 		// deliberately bypasses the ordinary round transition table.
@@ -1861,72 +1604,6 @@ public sealed class LargeLadGameManager : Component
 		waitingPlayerCount = players.Count;
 		playerReadyTimeRemaining = PlayerReadyDelay;
 		return true;
-	}
-
-	private void ValidateSpawnGroup(
-		List<string> issues,
-		LargeLadSpawnGroup group,
-		int requiredCapacity,
-		bool validateGeometry )
-	{
-		if ( SpawnAllocator is null )
-		{
-			issues.Add(
-				$"{group} cannot be validated because no LargeLadSpawnAllocator " +
-				"is available. Keep exactly one Large Lad Gameplay Bootstrap " +
-				"in the scene." );
-			return;
-		}
-
-		var spawns = SpawnAllocator.GetTeamSpawns( group );
-
-		if ( spawns.Count == 0 )
-		{
-			issues.Add(
-				$"{group} has no authored spawn object. Add a {group} Team Spawn " +
-				"prefab and rebuild projected candidates." );
-			return;
-		}
-
-		var capacity = SpawnAllocator.GetConfiguredCapacity( group );
-		if ( capacity < requiredCapacity )
-		{
-			var authoredCapacities = string.Join(
-				", ",
-				spawns.Select( spawn =>
-					$"'{spawn.GameObject.Name}' capacity {spawn.Capacity}" ) );
-			issues.Add(
-				$"{group} configured capacity is {capacity}/{requiredCapacity}. " +
-				$"Authored spawn objects: {authoredCapacities}. Increase capacity " +
-				"or add another authored spawn area." );
-		}
-
-		if ( !validateGeometry )
-			return;
-
-		var generated = SpawnAllocator.CountGeneratedCandidates( group );
-		if ( generated >= requiredCapacity )
-			return;
-
-		var generatedDescription = generated == 0
-			? "zero valid cached positions"
-			: $"{generated}/{requiredCapacity} valid cached positions";
-		issues.Add(
-			$"{group} produced {generatedDescription}; {requiredCapacity} are " +
-			"required for safe round flow. The round cannot start until the " +
-			"authored areas are fixed and rebuilt." );
-
-		foreach ( var spawn in spawns )
-		{
-			var spawnGenerated =
-				SpawnAllocator.CountGeneratedCandidates( spawn );
-			issues.Add(
-				$"{group} authored spawn '{spawn.GameObject.Name}': configured " +
-				$"capacity {spawn.Capacity}, generated {spawnGenerated} valid " +
-				"cached positions. Move or resize the area above walkable floor, " +
-				"clear nearby walls/ceilings, adjust MinimumSeparation if needed, " +
-				"then use Rebuild Projected Candidates." );
-		}
 	}
 
 	private void ResetMapState()

@@ -134,11 +134,43 @@ public sealed class LargeLadMapManifest : GameResource
 /// </summary>
 [Description(
 	"Place exactly one in the map and assign its Large Lad map manifest. " +
-	"The persistent session validates it before the map can become Ready." )]
+	"Use this component's two buttons to validate the open content scene; the " +
+	"persistent game shell validates the same map rules before Ready." )]
 public sealed class LargeLadMapProfile : Component
 {
-	[Property]
+	[Property, Title( "Large Lad Map Manifest" )]
+	[Description(
+		"Assign the .llmap asset for this content scene. Published Package Ident " +
+		"may remain empty during local development." )]
 	public LargeLadMapManifest Manifest { get; set; }
+
+	protected override void OnValidate()
+	{
+		if ( Manifest is null )
+		{
+			Log.Warning(
+				$"{GameObject.Name}: assign this map's .llmap manifest, then use " +
+				"Validate Large Lad Map." );
+		}
+	}
+
+	[Button( "Validate Large Lad Map" )]
+	public void ValidateLargeLadMap()
+	{
+		LargeLadMapValidator.ValidateScene(
+			Scene,
+			rebuildSpawnPreview: false )
+			.LogMapperSummary();
+	}
+
+	[Button( "Rebuild Spawns and Validate" )]
+	public void RebuildSpawnsAndValidate()
+	{
+		LargeLadMapValidator.ValidateScene(
+			Scene,
+			rebuildSpawnPreview: true )
+			.LogMapperSummary();
+	}
 }
 
 /// <summary>
@@ -284,6 +316,9 @@ public sealed class LargeLadMapDescriptor
 /// </summary>
 public static class LargeLadMapCatalog
 {
+	private const string LocalEditorMapIdentifier =
+		"scenes/large_lad_local_validation.scene";
+
 	public static bool TryResolveOfficial(
 		LargeLadOfficialMapCatalog catalog,
 		string stableMapIdOrMapInstanceIdentifier,
@@ -407,6 +442,24 @@ public static class LargeLadMapCatalog
 				$"'{Display( mapInstanceIdentifier )}': {exception.Message}" );
 			return null;
 		}
+	}
+
+	/// <summary>
+	/// Validates every manifest rule available while editing an unpublished
+	/// content scene. This deliberately uses the same resolver as runtime but a
+	/// local scene identifier, so Published Package Ident is not required.
+	/// </summary>
+	public static IReadOnlyList<string> GetLocalManifestValidationIssues(
+		LargeLadMapManifest manifest )
+	{
+		TryResolve(
+			manifest,
+			LocalEditorMapIdentifier,
+			packageMetadata: null,
+			officialEntry: null,
+			out _,
+			out var issues );
+		return issues;
 	}
 
 	public static IReadOnlyList<string> GetBalanceValidationIssues(
@@ -572,6 +625,14 @@ public static class LargeLadMapCatalog
 				$"Map '{mapLabel}' uses '{manifestPresentationAsset}' as its local " +
 				"thumbnail. Select a texture or image; a scene, map, manifest, " +
 				"catalog, or prefab creates a recursive content dependency." );
+		}
+		else if ( !string.IsNullOrWhiteSpace( manifestPresentationAsset ) &&
+			!IsValidLocalPresentationAsset( manifestPresentationAsset ) )
+		{
+			failures.Add(
+				$"Map '{mapLabel}' uses '{manifestPresentationAsset}' as its local " +
+				"thumbnail. Select a project-relative texture or image path " +
+				"(.vtex, .png, .jpg, .jpeg, .tga, .psd, .hdr, .exr, .webp, or .svg)." );
 		}
 
 		if ( !LargeLadMapContract.IsSupported( manifest.ContractVersion ) )
@@ -749,6 +810,31 @@ public static class LargeLadMapCatalog
 			assetPath.EndsWith(
 				".llmaps",
 				StringComparison.OrdinalIgnoreCase );
+	}
+
+	private static bool IsValidLocalPresentationAsset( string assetPath )
+	{
+		var clean = Clean( assetPath );
+		var normalized = clean.Replace( '\\', '/' );
+
+		if ( string.IsNullOrWhiteSpace( clean ) ||
+			normalized.StartsWith( "/" ) ||
+			normalized.Contains( ':' ) ||
+			normalized.Split( '/' ).Any( part => part is "." or ".." ) )
+		{
+			return false;
+		}
+
+		return clean.EndsWith( ".vtex", StringComparison.OrdinalIgnoreCase ) ||
+			clean.EndsWith( ".png", StringComparison.OrdinalIgnoreCase ) ||
+			clean.EndsWith( ".jpg", StringComparison.OrdinalIgnoreCase ) ||
+			clean.EndsWith( ".jpeg", StringComparison.OrdinalIgnoreCase ) ||
+			clean.EndsWith( ".tga", StringComparison.OrdinalIgnoreCase ) ||
+			clean.EndsWith( ".psd", StringComparison.OrdinalIgnoreCase ) ||
+			clean.EndsWith( ".hdr", StringComparison.OrdinalIgnoreCase ) ||
+			clean.EndsWith( ".exr", StringComparison.OrdinalIgnoreCase ) ||
+			clean.EndsWith( ".webp", StringComparison.OrdinalIgnoreCase ) ||
+			clean.EndsWith( ".svg", StringComparison.OrdinalIgnoreCase );
 	}
 
 	private static bool IdentifiersEqual( string left, string right )

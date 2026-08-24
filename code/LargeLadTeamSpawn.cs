@@ -1,5 +1,6 @@
 using Sandbox;
 using System.Collections.Generic;
+using System.Linq;
 
 public enum LargeLadSpawnGroup
 {
@@ -9,29 +10,33 @@ public enum LargeLadSpawnGroup
 }
 
 /// <summary>
-/// Defines a circular spawn area for one team. A single component can provide
-/// enough clear positions for an entire match.
+/// Mapper-owned circular team-spawn area. Use the supplied Lobby, Skinny Kid,
+/// or Hunter prefab, place it over walkable floor, then rebuild from the map
+/// profile. A single clear area can provide a complete match's positions.
 /// </summary>
 public sealed class LargeLadTeamSpawn : Component
 {
 	public const float DefaultSpawnRadius = 192.0f;
 	public const float DefaultMinimumSeparation = 48.0f;
 
-	[Property]
+	[Property, Group( "Spawn Area" ), Title( "Spawn Group" )]
 	public LargeLadSpawnGroup Group { get; set; }
 
-	[Property]
+	[Property, Group( "Spawn Area" )]
 	public float SpawnRadius { get; set; } = DefaultSpawnRadius;
 
-	[Property]
+	[Property, Group( "Spawn Area" )]
 	public int Capacity { get; set; } =
 		LargeLadGameManager.TargetPlayerCount;
 
-	[Property]
+	[Property, Group( "Spawn Area" )]
 	public float MinimumSeparation { get; set; } =
 		DefaultMinimumSeparation;
 
 	private LargeLadSpawnAllocator cachedSpawnAllocator;
+	private IReadOnlyList<LargeLadSpawnLocation> projectedCandidatesPreview;
+	private Transform projectedPreviewTransform;
+	private bool hasProjectedCandidatesPreview;
 
 	public Color MarkerColor => Group switch
 	{
@@ -49,12 +54,14 @@ public sealed class LargeLadTeamSpawn : Component
 
 	protected override void OnDisabled()
 	{
+		ClearProjectedCandidatesPreview();
 		GetSpawnAllocator()?.InvalidateCandidateCache();
 		base.OnDisabled();
 	}
 
 	protected override void OnDestroy()
 	{
+		ClearProjectedCandidatesPreview();
 		GetSpawnAllocator()?.InvalidateCandidateCache();
 		base.OnDestroy();
 	}
@@ -68,6 +75,7 @@ public sealed class LargeLadTeamSpawn : Component
 			LargeLadGameManager.TargetPlayerCount );
 		MinimumSeparation = System.MathF.Max( 32.0f, MinimumSeparation );
 
+		ClearProjectedCandidatesPreview();
 		GetSpawnAllocator()?.InvalidateCandidateCache();
 	}
 
@@ -75,18 +83,18 @@ public sealed class LargeLadTeamSpawn : Component
 	/// Reprojects all team-spawn candidates after static geometry has changed.
 	/// Authored spawn-property edits invalidate the cache automatically.
 	/// </summary>
-	[Button]
+	[Button( "Rebuild Projected Candidates" )]
 	public void RebuildProjectedCandidates()
 	{
-		var allocator = GetSpawnAllocator();
-
-		if ( allocator is null )
-		{
-			Log.Warning( "No LargeLadSpawnAllocator is available to rebuild." );
-			return;
-		}
-
-		allocator.RebuildCandidatesAndRefreshLobbyPoints();
+		var projection =
+			LargeLadSpawnProjection.RebuildAuthoringPreview( Scene );
+		var valid = projection.GetCandidates( Group ).Count;
+		var configured = projection.GetSpawns( Group ).Sum( spawn =>
+			LargeLadSpawnRules.GetUsableAuthoredCapacity( spawn.Capacity ) );
+		Log.Info(
+			$"Rebuilt {Group} spawn projection: {valid} usable positions " +
+			$"from {configured} configured across " +
+			$"{projection.GetSpawns( Group ).Count} area(s)." );
 	}
 
 	protected override void DrawGizmos()
@@ -96,9 +104,15 @@ public sealed class LargeLadTeamSpawn : Component
 			LargeLadSpawnRules.GetUsableAuthoredCapacity( Capacity );
 		var color = MarkerColor;
 		IReadOnlyList<LargeLadSpawnLocation> cachedCandidates = null;
-		var allocator = GetSpawnAllocator();
-		var hasCachedCandidates = allocator is not null &&
-			allocator.TryGetCachedCandidates( this, out cachedCandidates );
+		var hasCachedCandidates = TryGetProjectedCandidatesPreview(
+			out cachedCandidates );
+
+		if ( !hasCachedCandidates )
+		{
+			var allocator = GetSpawnAllocator();
+			hasCachedCandidates = allocator is not null &&
+				allocator.TryGetCachedCandidates( this, out cachedCandidates );
+		}
 
 		Gizmo.Draw.IgnoreDepth = true;
 		Gizmo.Draw.LineThickness = 2.0f;
@@ -142,10 +156,17 @@ public sealed class LargeLadTeamSpawn : Component
 			}
 		}
 
+		var validCount = hasCachedCandidates ? cachedCandidates.Count : -1;
+		var isIndividuallyShort = validCount >= 0 && validCount < previewCount;
+		var validLabel = validCount >= 0
+			? $"Valid {validCount}/{previewCount}" +
+				(isIndividuallyShort ? " - NEEDS CLEARANCE" : string.Empty)
+			: "Valid: rebuild to check";
+
 		Gizmo.Draw.Color = color;
 		Gizmo.Draw.Arrow( Vector3.Up * 54.0f, Vector3.Forward * 38.0f );
 		Gizmo.Draw.Text(
-			$"{Group} Spawn ({Capacity})",
+			$"{FriendlyGroupName()} Spawn | Capacity {Capacity} | {validLabel}",
 			new Transform( Vector3.Up * 82.0f ),
 			"Inter",
 			14.0f );
@@ -163,9 +184,51 @@ public sealed class LargeLadTeamSpawn : Component
 			return cachedSpawnAllocator;
 		}
 
-		cachedSpawnAllocator =
-			LargeLadGameManager.FindForScene( Scene )?.SpawnAllocator;
+		cachedSpawnAllocator = Scene?
+			.GetAllComponents<LargeLadSpawnAllocator>()
+			.FirstOrDefault( allocator =>
+				allocator is not null &&
+				allocator.IsValid &&
+				allocator.Enabled &&
+				allocator.Scene == Scene );
 		return cachedSpawnAllocator;
+	}
+
+	internal void SetProjectedCandidatesPreview(
+		IReadOnlyList<LargeLadSpawnLocation> candidates )
+	{
+		projectedCandidatesPreview =
+			candidates ?? System.Array.Empty<LargeLadSpawnLocation>();
+		projectedPreviewTransform = GameObject.WorldTransform;
+		hasProjectedCandidatesPreview = true;
+	}
+
+	private bool TryGetProjectedCandidatesPreview(
+		out IReadOnlyList<LargeLadSpawnLocation> candidates )
+	{
+		if ( hasProjectedCandidatesPreview &&
+			projectedPreviewTransform.Equals( GameObject.WorldTransform ) )
+		{
+			candidates = projectedCandidatesPreview;
+			return true;
+		}
+
+		ClearProjectedCandidatesPreview();
+		candidates = null;
+		return false;
+	}
+
+	private void ClearProjectedCandidatesPreview()
+	{
+		projectedCandidatesPreview = null;
+		hasProjectedCandidatesPreview = false;
+	}
+
+	private string FriendlyGroupName()
+	{
+		return Group == LargeLadSpawnGroup.SkinnyKid
+			? "Skinny Kid"
+			: Group.ToString();
 	}
 
 	private static void DrawHorizontalCircle( float radius )

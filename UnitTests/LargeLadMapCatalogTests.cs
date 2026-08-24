@@ -22,6 +22,35 @@ public sealed class LargeLadMapCatalogTests
 	}
 
 	[TestMethod]
+	public void LocalManifestValidation_DoesNotRequirePublishedPackageIdent()
+	{
+		var manifest = CreateValidLocalManifest();
+		manifest.PublishedPackageIdent = "";
+
+		var issues =
+			LargeLadMapCatalog.GetLocalManifestValidationIssues( manifest );
+
+		Assert.AreEqual( 0, issues.Count );
+	}
+
+	[TestMethod]
+	public void LocalManifestValidation_UsesRuntimeIdentityAndContractRules()
+	{
+		var manifest = CreateValidLocalManifest();
+		manifest.StableMapId = "Bad Map Id";
+		manifest.ContractVersion = LargeLadMapContract.CurrentVersion + 1;
+
+		var issues =
+			LargeLadMapCatalog.GetLocalManifestValidationIssues( manifest );
+
+		Assert.IsTrue( issues.Any( issue =>
+			issue.Contains( "stable lowercase map id" ) ) );
+		Assert.IsTrue( issues.Any( issue =>
+			issue.Contains( "map-contract version" ) &&
+			issue.Contains( LargeLadMapContract.CurrentVersion.ToString() ) ) );
+	}
+
+	[TestMethod]
 	public void UnsupportedContractVersion_IsRejectedWithBothVersions()
 	{
 		var manifest = CreateValidLocalManifest();
@@ -87,6 +116,25 @@ public sealed class LargeLadMapCatalogTests
 		Assert.IsTrue( issues.Any( issue =>
 			issue.Contains( "Select a texture or image" ) &&
 			issue.Contains( "recursive content dependency" ) ) );
+	}
+
+	[DataTestMethod]
+	[DataRow( "docs/map_thumbnail.txt" )]
+	[DataRow( "../outside/map_thumbnail.png" )]
+	[DataRow( "C:\\outside\\map_thumbnail.png" )]
+	[DataRow( "https://example.com/map_thumbnail.png" )]
+	public void LocalThumbnailMustUseAProjectRelativeTextureOrImagePath(
+		string presentationAsset )
+	{
+		var manifest = CreateValidLocalManifest();
+		manifest.PresentationAsset = presentationAsset;
+
+		var issues =
+			LargeLadMapCatalog.GetLocalManifestValidationIssues( manifest );
+
+		Assert.IsTrue( issues.Any( issue =>
+			issue.Contains( "project-relative texture or image path" ) &&
+			issue.Contains( presentationAsset ) ) );
 	}
 
 	[TestMethod]

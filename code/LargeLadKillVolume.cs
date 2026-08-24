@@ -1,8 +1,13 @@
 using Sandbox;
+using System.Collections.Generic;
 
+/// <summary>
+/// Mapper-authored lethal trigger volume. Prefer the supplied Kill Volume
+/// prefab, then resize and position its box collider.
+/// </summary>
 public sealed class LargeLadKillVolume : Component, Component.ITriggerListener
 {
-	[Property]
+	[Property, Group( "Kill Volume" ), Title( "Trigger Collider" )]
 	public Collider TriggerCollider { get; set; }
 
 	[Property, Title( "Editor Gizmo Padding" )]
@@ -31,8 +36,28 @@ public sealed class LargeLadKillVolume : Component, Component.ITriggerListener
 	{
 		ResolveTriggerCollider();
 
+		foreach ( var warning in GetValidationWarnings() )
+			Log.Warning( $"{GameObject.Name}: kill volume: {warning}" );
+	}
+
+	public IReadOnlyList<string> GetValidationWarnings()
+	{
+		var warnings = new List<string>();
+
 		if ( TriggerCollider is null )
-			Log.Warning( $"{GameObject.Name}: kill volume is missing its trigger collider reference." );
+		{
+			warnings.Add(
+				"its Trigger Collider is missing. Restore the supplied Kill " +
+				"Volume prefab or assign a collider on this root." );
+		}
+		else if ( !TriggerCollider.IsTrigger )
+		{
+			warnings.Add(
+				"its collider must have Is Trigger enabled. Enable it or restore " +
+				"the supplied Kill Volume prefab." );
+		}
+
+		return warnings;
 	}
 
 	private void ResolveTriggerCollider()
