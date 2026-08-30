@@ -3,6 +3,10 @@
     {
       "MapInstanceIdentifier": "scenes/gym.scene",
       "Manifest": "gameplay/maps/gym_manifest.llmap"
+    },
+    {
+      "MapInstanceIdentifier": "scenes/halls.scene",
+      "Manifest": "gameplay/maps/halls_manifest.llmap"
     }
   ],
   "__references": [],

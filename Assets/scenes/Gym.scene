@@ -426,7 +426,7 @@
                   "IsTrigger": false,
                   "Mesh": {
                     "Data": {
-                      "$blob": "7e5a60ca-cf77-8acd-8ef7-1ac708b9637e"
+                      "$blob": "4cea57b3-16a7-87c7-b760-479fccd7a154"
                     },
                     "Materials": [
                       "materials/generic/wall_brick_paint.vmat",
@@ -2134,7 +2134,7 @@
               "Scale": "1,1,1",
               "Tags": "",
               "Enabled": true,
-              "NetworkMode": 2,
+              "NetworkMode": 1,
               "NetworkFlags": 0,
               "NetworkOrphaned": 0,
               "NetworkTransmit": true,
@@ -2240,6 +2240,27 @@
                   },
                   "RigidbodyFlags": 0,
                   "StartAsleep": false
+                },
+                {
+                  "__type": "LargeLadGroundSlamReactiveProp",
+                  "__guid": "3513867e-eb48-4898-a088-1d84d67c3080",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "Behavior": "Move",
+                  "EnableDebugLogging": false,
+                  "EnableOutOfBoundsCleanup": false,
+                  "HorizontalImpulse": 125000,
+                  "MaximumDistanceFromStart": 4096,
+                  "MinimumWorldZ": -4096,
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "ReactiveRoot": null,
+                  "StartFrozen": true,
+                  "UpwardImpulse": 150000
                 }
               ],
               "Children": []
@@ -2254,7 +2275,7 @@
               "Scale": "1,1,1",
               "Tags": "",
               "Enabled": true,
-              "NetworkMode": 2,
+              "NetworkMode": 1,
               "NetworkFlags": 0,
               "NetworkOrphaned": 0,
               "NetworkTransmit": true,
@@ -2360,6 +2381,27 @@
                   },
                   "RigidbodyFlags": 0,
                   "StartAsleep": false
+                },
+                {
+                  "__type": "LargeLadGroundSlamReactiveProp",
+                  "__guid": "98567829-4cd5-4edb-8422-7807e5fefbcf",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "Behavior": "Move",
+                  "EnableDebugLogging": false,
+                  "EnableOutOfBoundsCleanup": false,
+                  "HorizontalImpulse": 125000,
+                  "MaximumDistanceFromStart": 4096,
+                  "MinimumWorldZ": -4096,
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "ReactiveRoot": null,
+                  "StartFrozen": true,
+                  "UpwardImpulse": 150000
                 }
               ],
               "Children": []
@@ -2374,7 +2416,7 @@
               "Scale": "1,1,1",
               "Tags": "",
               "Enabled": true,
-              "NetworkMode": 2,
+              "NetworkMode": 1,
               "NetworkFlags": 0,
               "NetworkOrphaned": 0,
               "NetworkTransmit": true,
@@ -2488,6 +2530,27 @@
                   "RigidbodyFlags": 0,
                   "SleepThreshold": 2,
                   "StartAsleep": false
+                },
+                {
+                  "__type": "LargeLadGroundSlamReactiveProp",
+                  "__guid": "1cc84f29-54fa-4de2-9731-d577d8d09d2b",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "Behavior": "Move",
+                  "EnableDebugLogging": false,
+                  "EnableOutOfBoundsCleanup": false,
+                  "HorizontalImpulse": 125000,
+                  "MaximumDistanceFromStart": 4096,
+                  "MinimumWorldZ": -4096,
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "ReactiveRoot": null,
+                  "StartFrozen": true,
+                  "UpwardImpulse": 150000
                 }
               ],
               "Children": []
@@ -2502,7 +2565,7 @@
               "Scale": "1,1,1",
               "Tags": "",
               "Enabled": true,
-              "NetworkMode": 2,
+              "NetworkMode": 1,
               "NetworkFlags": 0,
               "NetworkOrphaned": 0,
               "NetworkTransmit": true,
@@ -2616,6 +2679,27 @@
                   "RigidbodyFlags": 0,
                   "SleepThreshold": 2,
                   "StartAsleep": false
+                },
+                {
+                  "__type": "LargeLadGroundSlamReactiveProp",
+                  "__guid": "4481bba5-38b1-4281-bc4c-7c6a590011dd",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "Behavior": "Move",
+                  "EnableDebugLogging": false,
+                  "EnableOutOfBoundsCleanup": false,
+                  "HorizontalImpulse": 125000,
+                  "MaximumDistanceFromStart": 4096,
+                  "MinimumWorldZ": -4096,
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "ReactiveRoot": null,
+                  "StartFrozen": true,
+                  "UpwardImpulse": 150000
                 }
               ],
               "Children": []
@@ -2630,7 +2714,7 @@
               "Scale": "1,1,1",
               "Tags": "",
               "Enabled": true,
-              "NetworkMode": 2,
+              "NetworkMode": 1,
               "NetworkFlags": 0,
               "NetworkOrphaned": 0,
               "NetworkTransmit": true,
@@ -2744,6 +2828,27 @@
                   "RigidbodyFlags": 0,
                   "SleepThreshold": 2,
                   "StartAsleep": false
+                },
+                {
+                  "__type": "LargeLadGroundSlamReactiveProp",
+                  "__guid": "3bc83422-7c8f-4eb6-a1cb-ac067f7c7fc8",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "Behavior": "Move",
+                  "EnableDebugLogging": false,
+                  "EnableOutOfBoundsCleanup": false,
+                  "HorizontalImpulse": 125000,
+                  "MaximumDistanceFromStart": 4096,
+                  "MinimumWorldZ": -4096,
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "ReactiveRoot": null,
+                  "StartFrozen": true,
+                  "UpwardImpulse": 150000
                 }
               ],
               "Children": []
@@ -2758,7 +2863,7 @@
               "Scale": "1,1,1",
               "Tags": "",
               "Enabled": true,
-              "NetworkMode": 2,
+              "NetworkMode": 1,
               "NetworkFlags": 0,
               "NetworkOrphaned": 0,
               "NetworkTransmit": true,
@@ -2837,6 +2942,27 @@
                   "Static": true,
                   "Surface": null,
                   "SurfaceVelocity": "0,0,0"
+                },
+                {
+                  "__type": "LargeLadGroundSlamReactiveProp",
+                  "__guid": "d4670ee9-cb3d-4961-83c7-79850cb006cc",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "Behavior": "Move",
+                  "EnableDebugLogging": false,
+                  "EnableOutOfBoundsCleanup": false,
+                  "HorizontalImpulse": 125000,
+                  "MaximumDistanceFromStart": 4096,
+                  "MinimumWorldZ": -4096,
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "ReactiveRoot": null,
+                  "StartFrozen": true,
+                  "UpwardImpulse": 150000
                 }
               ],
               "Children": []
@@ -3582,6 +3708,267 @@
                   "RigidbodyFlags": 0,
                   "SleepThreshold": 2,
                   "StartAsleep": true
+                }
+              ],
+              "Children": []
+            },
+            {
+              "__guid": "2d785614-8003-40e6-b3ec-a17e637f485f",
+              "__version": 2,
+              "Flags": 32768,
+              "Name": "ceilingfan_b",
+              "Position": "-490.691986,1264.40039,339.035645",
+              "Rotation": "-0.999989033,-0.00450402498,0.000972872251,0.000964875799",
+              "Scale": "1,1,1",
+              "Tags": "",
+              "Enabled": true,
+              "NetworkMode": 1,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.Prop",
+                  "__guid": "6c9230d1-cf3b-4a64-8399-b35a2c3bbe6f",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "BodyGroups": 18446744073709551615,
+                  "Health": 0,
+                  "IsStatic": false,
+                  "MaterialGroup": null,
+                  "Model": "models/props/trim_sheets/ceiling_fixtures/ceilingfan_b.vmdl",
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OnGibsCreated": null,
+                  "OnPropBreak": null,
+                  "OnPropTakeDamage": null,
+                  "StartAsleep": false,
+                  "Tint": "1,1,1,1"
+                },
+                {
+                  "__type": "Sandbox.SkinnedModelRenderer",
+                  "__guid": "252d2af6-e06b-44e5-aaec-0172eb33dba7",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "AnimationGraph": null,
+                  "BodyGroups": 18446744073709551615,
+                  "BoneMergeTarget": null,
+                  "CreateAttachments": false,
+                  "CreateBoneObjects": false,
+                  "LodOverride": null,
+                  "MaterialGroup": null,
+                  "MaterialOverride": null,
+                  "Materials": null,
+                  "Model": "models/props/trim_sheets/ceiling_fixtures/ceilingfan_b.vmdl",
+                  "Morphs": {},
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "Parameters": {
+                    "bools": {},
+                    "ints": {},
+                    "floats": {},
+                    "vectors": {},
+                    "rotations": {}
+                  },
+                  "PlaybackRate": 1,
+                  "RenderOptions": {
+                    "GameLayer": true,
+                    "OverlayLayer": false,
+                    "BloomLayer": false,
+                    "AfterUILayer": false
+                  },
+                  "RenderType": "On",
+                  "Sequence": {
+                    "Name": null,
+                    "Looping": true,
+                    "Blending": false
+                  },
+                  "Tint": "1,1,1,1",
+                  "UseAnimGraph": true
+                },
+                {
+                  "__type": "Sandbox.ModelPhysics",
+                  "__guid": "ce883c8a-d49a-4a1f-b9d0-72a6366ef76c",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "Bodies": [],
+                  "IgnoreRoot": false,
+                  "Joints": [],
+                  "Locking": {
+                    "X": false,
+                    "Y": false,
+                    "Z": false,
+                    "Pitch": false,
+                    "Yaw": false,
+                    "Roll": false
+                  },
+                  "Model": "models/props/trim_sheets/ceiling_fixtures/ceilingfan_b.vmdl",
+                  "MotionEnabled": false,
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "PhysicsWereCreated": false,
+                  "Renderer": {
+                    "_type": "component",
+                    "component_id": "252d2af6-e06b-44e5-aaec-0172eb33dba7",
+                    "go": "2d785614-8003-40e6-b3ec-a17e637f485f",
+                    "component_type": "SkinnedModelRenderer"
+                  },
+                  "RigidbodyFlags": 0,
+                  "StartAsleep": false
+                },
+                {
+                  "__type": "LargeLadGroundSlamReactiveProp",
+                  "__guid": "d7a0e2d1-8235-4e46-82bb-4a70435e6317",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "Behavior": "Move",
+                  "EnableDebugLogging": false,
+                  "EnableOutOfBoundsCleanup": false,
+                  "HorizontalImpulse": 125000,
+                  "MaximumDistanceFromStart": 4096,
+                  "MinimumWorldZ": -4096,
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "ReactiveRoot": null,
+                  "StartFrozen": true,
+                  "UpwardImpulse": 150000
+                }
+              ],
+              "Children": []
+            },
+            {
+              "__guid": "cdc35217-cf41-415f-8b12-c31c85e721d9",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "office_chair",
+              "Position": "-341.738708,-957.17041,353.00238",
+              "Rotation": "0,0,0.793353319,0.60876143",
+              "Scale": "1,1,1",
+              "Tags": "",
+              "Enabled": true,
+              "NetworkMode": 1,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.Prop",
+                  "__guid": "0ba0ee2c-79b2-4fa3-b778-c7f980c9a2a5",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "BodyGroups": 18446744073709551615,
+                  "Health": 400,
+                  "IsStatic": false,
+                  "MaterialGroup": null,
+                  "Model": "models/sbox_props/office_chair/office_chair.vmdl",
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "OnGibsCreated": null,
+                  "OnPropBreak": null,
+                  "OnPropTakeDamage": null,
+                  "StartAsleep": false,
+                  "Tint": "1,1,1,1"
+                },
+                {
+                  "__type": "Sandbox.SkinnedModelRenderer",
+                  "__guid": "ff938867-4d62-4af9-9c13-4fd4528ea41f",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "AnimationGraph": null,
+                  "BodyGroups": 18446744073709551615,
+                  "BoneMergeTarget": null,
+                  "CreateAttachments": false,
+                  "CreateBoneObjects": false,
+                  "LodOverride": null,
+                  "MaterialGroup": null,
+                  "MaterialOverride": null,
+                  "Materials": null,
+                  "Model": "models/sbox_props/office_chair/office_chair.vmdl",
+                  "Morphs": {},
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "Parameters": {
+                    "bools": {},
+                    "ints": {},
+                    "floats": {},
+                    "vectors": {},
+                    "rotations": {}
+                  },
+                  "PlaybackRate": 1,
+                  "RenderOptions": {
+                    "GameLayer": true,
+                    "OverlayLayer": false,
+                    "BloomLayer": false,
+                    "AfterUILayer": false
+                  },
+                  "RenderType": "On",
+                  "Sequence": {
+                    "Name": null,
+                    "Looping": true,
+                    "Blending": false
+                  },
+                  "Tint": "1,1,1,1",
+                  "UseAnimGraph": true
+                },
+                {
+                  "__type": "Sandbox.ModelPhysics",
+                  "__guid": "86538e39-9905-477d-be01-f33eabe6ed9a",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "Bodies": [],
+                  "IgnoreRoot": false,
+                  "Joints": [],
+                  "Locking": {
+                    "X": false,
+                    "Y": false,
+                    "Z": false,
+                    "Pitch": false,
+                    "Yaw": false,
+                    "Roll": false
+                  },
+                  "Model": "models/sbox_props/office_chair/office_chair.vmdl",
+                  "MotionEnabled": true,
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "PhysicsWereCreated": false,
+                  "Renderer": {
+                    "_type": "component",
+                    "component_id": "ff938867-4d62-4af9-9c13-4fd4528ea41f",
+                    "go": "cdc35217-cf41-415f-8b12-c31c85e721d9",
+                    "component_type": "SkinnedModelRenderer"
+                  },
+                  "RigidbodyFlags": 0,
+                  "StartAsleep": false
                 }
               ],
               "Children": []
@@ -4894,7 +5281,7 @@
               "__version": 2,
               "Flags": 0,
               "Name": "Point Light (4)",
-              "Position": "-480.711975,1233.40637,305.260681",
+              "Position": "-488.711975,1265.40637,335.662292",
               "Rotation": "0,0,0,1",
               "Scale": "1,1,1",
               "Tags": "light_point,light",
@@ -30028,6 +30415,272 @@
                 "7a30a93d-e248-4917-b120-2b6234d6f03f": "177de273-dfcf-4bf3-815c-9678a1a4b90c",
                 "8a200001-0000-4000-8000-000000000004": "65764750-eb91-4069-9933-1ea63e66b2f2"
               }
+            },
+            {
+              "__guid": "a82dff0c-f02a-401b-b8dd-963a3c7ffdfc",
+              "__version": 2,
+              "__Prefab": "prefabs/gameplay/minion_vent.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Name",
+                    "Value": "Minion Vent Opening"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Position",
+                    "Value": "-663.812195,-1182.13562,-32.2195129"
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "8a400001-0000-4000-8000-000000000001": "a82dff0c-f02a-401b-b8dd-963a3c7ffdfc",
+                "8a400001-0000-4000-8000-000000000002": "40607099-df96-40b1-b635-8a2af0265c0c",
+                "8a400001-0000-4000-8000-000000000003": "a818adda-11c4-4415-b244-482ebbd00e12",
+                "cd746e02-03bb-40f2-af6f-9150faf5ef28": "d88b6a75-685f-4549-9e3b-e45516e101e9",
+                "8a400001-0000-4000-8000-000000000004": "e2007244-9f25-86d7-86e0-b1e0bd35390e"
+              }
+            },
+            {
+              "__guid": "c4be6252-a32a-4c82-8ee4-c745a5b4f2a2",
+              "__version": 2,
+              "__Prefab": "prefabs/gameplay/minion_vent.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Name",
+                    "Value": "Minion Vent Opening"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Position",
+                    "Value": "279.870117,929.864441,-48.2195129"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Rotation",
+                    "Value": "0,0,-0.707106709,0.707106769"
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "8a400001-0000-4000-8000-000000000001": "c4be6252-a32a-4c82-8ee4-c745a5b4f2a2",
+                "8a400001-0000-4000-8000-000000000002": "66bb3ab3-fedd-4ee6-9f0f-5c4d0b34da05",
+                "8a400001-0000-4000-8000-000000000003": "e7feedf4-c928-4959-90b0-e3de589034e0",
+                "cd746e02-03bb-40f2-af6f-9150faf5ef28": "c7dbb0eb-67de-49ca-b39e-c06918a40192",
+                "8a400001-0000-4000-8000-000000000004": "71602aa5-c519-4ad3-b415-55de719fe1b8"
+              }
+            },
+            {
+              "__guid": "225c2b8c-1466-4081-bde2-92146f54cfcb",
+              "__version": 2,
+              "__Prefab": "prefabs/gameplay/minion_vent.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Name",
+                    "Value": "Minion Vent Opening"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Position",
+                    "Value": "-1463.81226,-1406.13562,247.780487"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Rotation",
+                    "Value": "0,0,0.707106829,0.707106769"
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "8a400001-0000-4000-8000-000000000001": "225c2b8c-1466-4081-bde2-92146f54cfcb",
+                "8a400001-0000-4000-8000-000000000002": "94cd02dd-36af-4935-bbaa-04b34b7ce3e5",
+                "8a400001-0000-4000-8000-000000000003": "45d7b9c5-9006-44ea-ab80-9060e574b7eb",
+                "cd746e02-03bb-40f2-af6f-9150faf5ef28": "f9526da2-767e-4130-ba40-75260ec59072",
+                "8a400001-0000-4000-8000-000000000004": "116c065e-9098-4824-909a-7415e2ed50c0"
+              }
+            },
+            {
+              "__guid": "b0857593-57fd-4816-bb4e-f06f46fdeea2",
+              "__version": 2,
+              "__Prefab": "prefabs/gameplay/minion_vent.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Name",
+                    "Value": "Minion Vent Opening"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Position",
+                    "Value": "568.187805,1409.86438,175.780487"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Rotation",
+                    "Value": "0,0,-0.707106769,0.707106769"
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "8a400001-0000-4000-8000-000000000001": "b0857593-57fd-4816-bb4e-f06f46fdeea2",
+                "8a400001-0000-4000-8000-000000000002": "dd6f16ca-703e-4a5e-934a-6da8ab528ca3",
+                "8a400001-0000-4000-8000-000000000003": "785e70d0-02e0-4e27-b290-648e71d70504",
+                "cd746e02-03bb-40f2-af6f-9150faf5ef28": "354596b6-a67a-4eca-89a1-a2902cef30c9",
+                "8a400001-0000-4000-8000-000000000004": "72afe86d-9cde-4f6f-a2ca-7b4efa9a1a7f"
+              }
+            },
+            {
+              "__guid": "700194cb-fc68-40c2-8369-1b56c44ccd9e",
+              "__version": 2,
+              "__Prefab": "prefabs/gameplay/minion_vent.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Name",
+                    "Value": "Minion Vent Opening"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Position",
+                    "Value": "584.187805,-958.135559,175.780487"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Rotation",
+                    "Value": "0,0,0.707106769,0.707106769"
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "8a400001-0000-4000-8000-000000000001": "700194cb-fc68-40c2-8369-1b56c44ccd9e",
+                "8a400001-0000-4000-8000-000000000002": "3d3b6111-b71b-4705-8b2a-140c4174c176",
+                "8a400001-0000-4000-8000-000000000003": "d88c35cb-2d7d-47ab-b627-5b4d1ae2bb54",
+                "cd746e02-03bb-40f2-af6f-9150faf5ef28": "11588f75-b080-416b-ac53-0d75cc610ba7",
+                "8a400001-0000-4000-8000-000000000004": "1fbaab6a-fb79-4dff-9a5a-8f1c89718275"
+              }
+            },
+            {
+              "__guid": "169ed563-e0d8-4cdc-87ed-e276ac5d47c8",
+              "__version": 2,
+              "__Prefab": "prefabs/gameplay/minion_vent.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Name",
+                    "Value": "Minion Vent Opening"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Position",
+                    "Value": "-1439.81226,1193.86438,423.780487"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Rotation",
+                    "Value": "0,-0.707106769,0,0.707106769"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "cd746e02-03bb-40f2-af6f-9150faf5ef28"
+                    },
+                    "Property": "Position",
+                    "Value": "-4,-4.00012255,36.0000038"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "cd746e02-03bb-40f2-af6f-9150faf5ef28"
+                    },
+                    "Property": "Scale",
+                    "Value": "0.100000001,1.44000208,1.43999767"
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "8a400001-0000-4000-8000-000000000001": "169ed563-e0d8-4cdc-87ed-e276ac5d47c8",
+                "8a400001-0000-4000-8000-000000000002": "48245e43-4deb-46ed-ad36-ad3abfd9d1e7",
+                "8a400001-0000-4000-8000-000000000003": "25c614fe-72dd-40ec-81e3-44b9202b8ee9",
+                "cd746e02-03bb-40f2-af6f-9150faf5ef28": "6e520a89-911f-4e45-89df-9096274a7f14",
+                "8a400001-0000-4000-8000-000000000004": "78e0fcb1-54e7-4c2e-997d-b4f646e6af01"
+              }
             }
           ]
         },
@@ -30450,215 +31103,59 @@
           "OwnerTransfer": 1,
           "Components": [],
           "Children": []
+        },
+        {
+          "__guid": "1ca1463c-befa-4d18-9a71-722be4ed74bf",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Decal",
+          "Position": "-468.431824,-3.13129044,-92.8694763",
+          "Rotation": "0,0.707106769,0,0.707106769",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 0,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [
+            {
+              "__type": "Sandbox.Decal",
+              "__guid": "96db35f5-af03-4e83-91cc-53ec1a819a17",
+              "__enabled": true,
+              "Flags": 0,
+              "__version": 3,
+              "AttenuationAngle": 1,
+              "ColorMix": 1,
+              "ColorTint": "1,1,1,1",
+              "CoverageAmount": 1,
+              "CoverageRange": 0.07,
+              "Decals": [
+                "textures/basketball_court_markings.decal"
+              ],
+              "Depth": 8,
+              "LifeTime": 0,
+              "Looped": false,
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "Parallax": 1,
+              "Rotation": 0,
+              "Scale": 0.35,
+              "SequenceId": 0,
+              "SheetSequence": false,
+              "Size": "1,1",
+              "SortLayer": 0,
+              "Transient": false
+            }
+          ],
+          "Children": []
         }
       ]
-    },
-    {
-      "__guid": "a82dff0c-f02a-401b-b8dd-963a3c7ffdfc",
-      "__version": 2,
-      "__Prefab": "prefabs/gameplay/minion_vent.prefab",
-      "__PrefabInstancePatch": {
-        "AddedObjects": [],
-        "RemovedObjects": [],
-        "PropertyOverrides": [
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "8a400001-0000-4000-8000-000000000001"
-            },
-            "Property": "Name",
-            "Value": "Minion Vent Opening"
-          },
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "8a400001-0000-4000-8000-000000000001"
-            },
-            "Property": "Position",
-            "Value": "-224,-1184,64"
-          }
-        ],
-        "MovedObjects": []
-      },
-      "__PrefabIdToInstanceId": {
-        "8a400001-0000-4000-8000-000000000001": "a82dff0c-f02a-401b-b8dd-963a3c7ffdfc",
-        "8a400001-0000-4000-8000-000000000002": "40607099-df96-40b1-b635-8a2af0265c0c",
-        "8a400001-0000-4000-8000-000000000003": "a818adda-11c4-4415-b244-482ebbd00e12",
-        "cd746e02-03bb-40f2-af6f-9150faf5ef28": "d88b6a75-685f-4549-9e3b-e45516e101e9",
-        "8a400001-0000-4000-8000-000000000004": "e2007244-9f25-86d7-86e0-b1e0bd35390e"
-      }
-    },
-    {
-      "__guid": "c4be6252-a32a-4c82-8ee4-c745a5b4f2a2",
-      "__version": 2,
-      "__Prefab": "prefabs/gameplay/minion_vent.prefab",
-      "__PrefabInstancePatch": {
-        "AddedObjects": [],
-        "RemovedObjects": [],
-        "PropertyOverrides": [
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "8a400001-0000-4000-8000-000000000001"
-            },
-            "Property": "Name",
-            "Value": "Minion Vent Opening"
-          },
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "8a400001-0000-4000-8000-000000000001"
-            },
-            "Property": "Position",
-            "Value": "719.682312,928,48"
-          },
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "8a400001-0000-4000-8000-000000000001"
-            },
-            "Property": "Rotation",
-            "Value": "0,0,-0.707106709,0.707106769"
-          }
-        ],
-        "MovedObjects": []
-      },
-      "__PrefabIdToInstanceId": {
-        "8a400001-0000-4000-8000-000000000001": "c4be6252-a32a-4c82-8ee4-c745a5b4f2a2",
-        "8a400001-0000-4000-8000-000000000002": "66bb3ab3-fedd-4ee6-9f0f-5c4d0b34da05",
-        "8a400001-0000-4000-8000-000000000003": "e7feedf4-c928-4959-90b0-e3de589034e0",
-        "cd746e02-03bb-40f2-af6f-9150faf5ef28": "c7dbb0eb-67de-49ca-b39e-c06918a40192",
-        "8a400001-0000-4000-8000-000000000004": "71602aa5-c519-4ad3-b415-55de719fe1b8"
-      }
-    },
-    {
-      "__guid": "225c2b8c-1466-4081-bde2-92146f54cfcb",
-      "__version": 2,
-      "__Prefab": "prefabs/gameplay/minion_vent.prefab",
-      "__PrefabInstancePatch": {
-        "AddedObjects": [],
-        "RemovedObjects": [],
-        "PropertyOverrides": [
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "8a400001-0000-4000-8000-000000000001"
-            },
-            "Property": "Name",
-            "Value": "Minion Vent Opening"
-          },
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "8a400001-0000-4000-8000-000000000001"
-            },
-            "Property": "Position",
-            "Value": "-1024,-1408,344"
-          },
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "8a400001-0000-4000-8000-000000000001"
-            },
-            "Property": "Rotation",
-            "Value": "0,0,0.707106829,0.707106769"
-          }
-        ],
-        "MovedObjects": []
-      },
-      "__PrefabIdToInstanceId": {
-        "8a400001-0000-4000-8000-000000000001": "225c2b8c-1466-4081-bde2-92146f54cfcb",
-        "8a400001-0000-4000-8000-000000000002": "94cd02dd-36af-4935-bbaa-04b34b7ce3e5",
-        "8a400001-0000-4000-8000-000000000003": "45d7b9c5-9006-44ea-ab80-9060e574b7eb",
-        "cd746e02-03bb-40f2-af6f-9150faf5ef28": "f9526da2-767e-4130-ba40-75260ec59072",
-        "8a400001-0000-4000-8000-000000000004": "116c065e-9098-4824-909a-7415e2ed50c0"
-      }
-    },
-    {
-      "__guid": "b0857593-57fd-4816-bb4e-f06f46fdeea2",
-      "__version": 2,
-      "__Prefab": "prefabs/gameplay/minion_vent.prefab",
-      "__PrefabInstancePatch": {
-        "AddedObjects": [],
-        "RemovedObjects": [],
-        "PropertyOverrides": [
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "8a400001-0000-4000-8000-000000000001"
-            },
-            "Property": "Name",
-            "Value": "Minion Vent Opening"
-          },
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "8a400001-0000-4000-8000-000000000001"
-            },
-            "Property": "Position",
-            "Value": "1008,1408,272"
-          },
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "8a400001-0000-4000-8000-000000000001"
-            },
-            "Property": "Rotation",
-            "Value": "0,0,-0.707106769,0.707106769"
-          }
-        ],
-        "MovedObjects": []
-      },
-      "__PrefabIdToInstanceId": {
-        "8a400001-0000-4000-8000-000000000001": "b0857593-57fd-4816-bb4e-f06f46fdeea2",
-        "8a400001-0000-4000-8000-000000000002": "dd6f16ca-703e-4a5e-934a-6da8ab528ca3",
-        "8a400001-0000-4000-8000-000000000003": "785e70d0-02e0-4e27-b290-648e71d70504",
-        "cd746e02-03bb-40f2-af6f-9150faf5ef28": "354596b6-a67a-4eca-89a1-a2902cef30c9",
-        "8a400001-0000-4000-8000-000000000004": "72afe86d-9cde-4f6f-a2ca-7b4efa9a1a7f"
-      }
-    },
-    {
-      "__guid": "700194cb-fc68-40c2-8369-1b56c44ccd9e",
-      "__version": 2,
-      "__Prefab": "prefabs/gameplay/minion_vent.prefab",
-      "__PrefabInstancePatch": {
-        "AddedObjects": [],
-        "RemovedObjects": [],
-        "PropertyOverrides": [
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "8a400001-0000-4000-8000-000000000001"
-            },
-            "Property": "Name",
-            "Value": "Minion Vent Opening"
-          },
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "8a400001-0000-4000-8000-000000000001"
-            },
-            "Property": "Position",
-            "Value": "1024,-960,272"
-          },
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "8a400001-0000-4000-8000-000000000001"
-            },
-            "Property": "Rotation",
-            "Value": "0,0,0.707106769,0.707106769"
-          }
-        ],
-        "MovedObjects": []
-      },
-      "__PrefabIdToInstanceId": {
-        "8a400001-0000-4000-8000-000000000001": "700194cb-fc68-40c2-8369-1b56c44ccd9e",
-        "8a400001-0000-4000-8000-000000000002": "3d3b6111-b71b-4705-8b2a-140c4174c176",
-        "8a400001-0000-4000-8000-000000000003": "d88c35cb-2d7d-47ab-b627-5b4d1ae2bb54",
-        "cd746e02-03bb-40f2-af6f-9150faf5ef28": "11588f75-b080-416b-ac53-0d75cc610ba7",
-        "8a400001-0000-4000-8000-000000000004": "1fbaab6a-fb79-4dff-9a5a-8f1c89718275"
-      }
     },
     {
       "__guid": "d085b74d-6ebb-4c30-a7da-ea07244c6254",
@@ -30745,177 +31242,6 @@
         "8ceaf3e7-a031-4113-9e89-4aa6b75792af": "d94ffdad-b5e8-4be6-9f4e-7ddfa71d3f0d",
         "c1db096c-9625-4cf5-86ae-7d13ae01183c": "671981ee-4848-407c-a0aa-9ca7c7dd6023"
       }
-    },
-    {
-      "__guid": "cdc35217-cf41-415f-8b12-c31c85e721d9",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "office_chair",
-      "Position": "138.973251,-1006.57678,513.340088",
-      "Rotation": "0,0,0.793353319,0.60876143",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 1,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.Prop",
-          "__guid": "0ba0ee2c-79b2-4fa3-b778-c7f980c9a2a5",
-          "__enabled": true,
-          "Flags": 0,
-          "BodyGroups": 18446744073709551615,
-          "Health": 400,
-          "IsStatic": false,
-          "MaterialGroup": null,
-          "Model": "models/sbox_props/office_chair/office_chair.vmdl",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "OnGibsCreated": null,
-          "OnPropBreak": null,
-          "OnPropTakeDamage": null,
-          "StartAsleep": false,
-          "Tint": "1,1,1,1"
-        },
-        {
-          "__type": "Sandbox.SkinnedModelRenderer",
-          "__guid": "ff938867-4d62-4af9-9c13-4fd4528ea41f",
-          "__enabled": true,
-          "Flags": 0,
-          "AnimationGraph": null,
-          "BodyGroups": 18446744073709551615,
-          "BoneMergeTarget": null,
-          "CreateAttachments": false,
-          "CreateBoneObjects": false,
-          "LodOverride": null,
-          "MaterialGroup": null,
-          "MaterialOverride": null,
-          "Materials": null,
-          "Model": "models/sbox_props/office_chair/office_chair.vmdl",
-          "Morphs": {},
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "Parameters": {
-            "bools": {},
-            "ints": {},
-            "floats": {},
-            "vectors": {},
-            "rotations": {}
-          },
-          "PlaybackRate": 1,
-          "RenderOptions": {
-            "GameLayer": true,
-            "OverlayLayer": false,
-            "BloomLayer": false,
-            "AfterUILayer": false
-          },
-          "RenderType": "On",
-          "Sequence": {
-            "Name": null,
-            "Looping": true,
-            "Blending": false
-          },
-          "Tint": "1,1,1,1",
-          "UseAnimGraph": true
-        },
-        {
-          "__type": "Sandbox.ModelPhysics",
-          "__guid": "86538e39-9905-477d-be01-f33eabe6ed9a",
-          "__enabled": true,
-          "Flags": 0,
-          "Bodies": [],
-          "IgnoreRoot": false,
-          "Joints": [],
-          "Locking": {
-            "X": false,
-            "Y": false,
-            "Z": false,
-            "Pitch": false,
-            "Yaw": false,
-            "Roll": false
-          },
-          "Model": "models/sbox_props/office_chair/office_chair.vmdl",
-          "MotionEnabled": true,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "PhysicsWereCreated": false,
-          "Renderer": {
-            "_type": "component",
-            "component_id": "ff938867-4d62-4af9-9c13-4fd4528ea41f",
-            "go": "cdc35217-cf41-415f-8b12-c31c85e721d9",
-            "component_type": "SkinnedModelRenderer"
-          },
-          "RigidbodyFlags": 0,
-          "StartAsleep": false
-        }
-      ],
-      "Children": []
-    },
-    {
-      "__guid": "1ca1463c-befa-4d18-9a71-722be4ed74bf",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Decal",
-      "Position": "0,0,32.000061",
-      "Rotation": "0,0.707106769,0,0.707106769",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 0,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.Decal",
-          "__guid": "96db35f5-af03-4e83-91cc-53ec1a819a17",
-          "__enabled": true,
-          "Flags": 0,
-          "__version": 3,
-          "AttenuationAngle": 1,
-          "ColorMix": 1,
-          "ColorTint": "1,1,1,1",
-          "CoverageAmount": 1,
-          "CoverageRange": 0.07,
-          "Decals": [
-            "textures/basketball_court_markings.decal"
-          ],
-          "Depth": 8,
-          "LifeTime": 0,
-          "Looped": false,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "Parallax": 1,
-          "Rotation": 0,
-          "Scale": 0.35,
-          "SequenceId": 0,
-          "SheetSequence": false,
-          "Size": "1,1",
-          "SortLayer": 0,
-          "Transient": false
-        }
-      ],
-      "Children": []
     }
   ],
   "SceneProperties": {
@@ -30958,6 +31284,7 @@
     "ambi.computer_monitor#49612",
     "ambi.computer_mouse#49614",
     "ambi.keyboard#49619",
+    "facepunch.ceilingfanb#275861",
     "facepunch.glass_a#293147",
     "facepunch.industrial_light#288905",
     "facepunch.metal_trim_01#274119",

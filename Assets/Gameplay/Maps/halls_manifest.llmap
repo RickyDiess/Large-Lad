@@ -1,12 +1,12 @@
 {
-  "StableMapId": "large_lad.gym",
+  "StableMapId": "large_lad.halls",
   "ContractVersion": 1,
-  "PublishedPackageIdent": "",
-  "DisplayName": "Gym",
+  "PublishedPackageIdent": null,
+  "DisplayName": "Halls",
   "MapperCredit": "Rokey",
-  "PresentationAsset": "gameplay/maps/gym.png",
-  "Backstory": "",
-  "GameplayTip": "up",
+  "PresentationAsset": "gameplay/maps/halls.png",
+  "Backstory": null,
+  "GameplayTip": "Pick a path",
   "RecommendedMinimumPlayers": 2,
   "RecommendedMaximumPlayers": 32,
   "BalanceOverrides": {

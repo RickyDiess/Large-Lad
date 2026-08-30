@@ -1,0 +1,51 @@
+{
+  "Entries": [
+    {
+      "Prefab": null,
+      "Model": "models/sbox_props/trees/oak/tree_oak_big_a.vmdl",
+      "Weight": 1,
+      "LocalScale": 1,
+      "CastShadows": true,
+      "EnablePhysics": true,
+      "HasAsset": true,
+      "AssetName": "models/sbox_props/trees/oak/tree_oak_big_a.vmdl"
+    },
+    {
+      "Prefab": null,
+      "Model": "models/sbox_props/trees/oak/tree_oak_medium_a.vmdl",
+      "Weight": 1,
+      "LocalScale": 1,
+      "CastShadows": true,
+      "EnablePhysics": true,
+      "HasAsset": true,
+      "AssetName": "models/sbox_props/trees/oak/tree_oak_medium_a.vmdl"
+    },
+    {
+      "Prefab": null,
+      "Model": "models/sbox_props/trees/oak/tree_oak_small_a.vmdl",
+      "Weight": 1,
+      "LocalScale": 1,
+      "CastShadows": true,
+      "EnablePhysics": true,
+      "HasAsset": true,
+      "AssetName": "models/sbox_props/trees/oak/tree_oak_small_a.vmdl"
+    }
+  ],
+  "IsEmpty": false,
+  "TileSizeEnum": "Size512",
+  "TileRadius": 4,
+  "Scatterer": {
+    "Type": "SimpleScatterer",
+    "Scale": "0.800000012 1.20000005",
+    "Density": 0.05,
+    "PlaceOnGround": true,
+    "HeightOffset": 0,
+    "AlignToNormal": false
+  },
+  "__references": [
+    "facepunch.tree_oak_big_a#288919",
+    "facepunch.tree_oak_medium_a#288916",
+    "facepunch.tree_oak_small_a#288917"
+  ],
+  "__version": 0
+}
