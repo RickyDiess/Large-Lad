@@ -5,6 +5,17 @@ using System.Linq;
 public sealed class LargeLadWeaponCatalogLookupTests
 {
 	[TestMethod]
+	public void SerializedWeaponIds_RemainStableWhenTheLineupChanges()
+	{
+		Assert.AreEqual( 0, (int)LargeLadWeaponId.None );
+		Assert.AreEqual( 1, (int)LargeLadWeaponId.Melee );
+		Assert.AreEqual( 2, (int)LargeLadWeaponId.Pistol );
+		Assert.AreEqual( 3, (int)LargeLadWeaponId.Smg );
+		Assert.AreEqual( 5, (int)LargeLadWeaponId.Shotgun );
+		Assert.AreEqual( 6, (int)LargeLadWeaponId.Rifle );
+	}
+
+	[TestMethod]
 	public void Lookup_ResolvesEveryAuthoredFirearm()
 	{
 		var expected = new[]

@@ -31335,49 +31335,6 @@
       }
     },
     {
-      "__guid": "289901c3-7369-401d-8320-d8a644b4edda",
-      "__version": 2,
-      "__Prefab": "prefabs/gameplay/pickup_rifle.prefab",
-      "__PrefabInstancePatch": {
-        "AddedObjects": [],
-        "RemovedObjects": [],
-        "PropertyOverrides": [
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "8a400005-0000-4000-8000-000000000001"
-            },
-            "Property": "Name",
-            "Value": "Rifle"
-          },
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "8a400005-0000-4000-8000-000000000001"
-            },
-            "Property": "Position",
-            "Value": "-260.352905,-729.973511,31.9085388"
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "8a400005-0000-4000-8000-000000000006"
-            },
-            "Property": "Flags",
-            "Value": 0
-          }
-        ],
-        "MovedObjects": []
-      },
-      "__PrefabIdToInstanceId": {
-        "8a400005-0000-4000-8000-000000000001": "289901c3-7369-401d-8320-d8a644b4edda",
-        "8a400005-0000-4000-8000-000000000003": "19602087-1105-415b-b58a-37b0ef0cb268",
-        "8a400005-0000-4000-8000-000000000004": "00d29a2f-417f-4ad7-913e-19b534841463",
-        "8a400005-0000-4000-8000-000000000005": "66077540-2c9b-435c-af53-05a26a93e965",
-        "8a400005-0000-4000-8000-000000000006": "0e225381-7caf-43a8-8e7c-df3d7dbda0ce"
-      }
-    },
-    {
       "__guid": "30953881-d9c8-44c7-9ba6-9121591dcd99",
       "__version": 2,
       "__Prefab": "prefabs/gameplay/pickup_shotgun.prefab",
@@ -31418,6 +31375,49 @@
         "8a400004-0000-4000-8000-000000000004": "7e9dc83f-4fbb-40a0-b440-16a1e7afc762",
         "8a400004-0000-4000-8000-000000000005": "3ab076a6-3faa-4459-81e1-17250ff71cf3",
         "8a400004-0000-4000-8000-000000000006": "54c6dcaa-4cd0-4763-8370-3a4120cb711b"
+      }
+    },
+    {
+      "__guid": "40b602cf-e423-4c05-8831-96ddc25ed122",
+      "__version": 2,
+      "__Prefab": "prefabs/gameplay/pickup_rifle.prefab",
+      "__PrefabInstancePatch": {
+        "AddedObjects": [],
+        "RemovedObjects": [],
+        "PropertyOverrides": [
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a400005-0000-4000-8000-000000000001"
+            },
+            "Property": "Name",
+            "Value": "Rifle"
+          },
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a400005-0000-4000-8000-000000000001"
+            },
+            "Property": "Position",
+            "Value": "-245.907776,-755.219299,32"
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "8a400005-0000-4000-8000-000000000006"
+            },
+            "Property": "Flags",
+            "Value": 0
+          }
+        ],
+        "MovedObjects": []
+      },
+      "__PrefabIdToInstanceId": {
+        "8a400005-0000-4000-8000-000000000001": "40b602cf-e423-4c05-8831-96ddc25ed122",
+        "8a400005-0000-4000-8000-000000000003": "5ba40bae-9506-46a4-a1be-8b142bd2cbda",
+        "8a400005-0000-4000-8000-000000000004": "ea900149-aa50-43a6-9ac5-736519e10e22",
+        "8a400005-0000-4000-8000-000000000005": "9ae5af4a-e961-4855-ad8e-4a5805f0026a",
+        "8a400005-0000-4000-8000-000000000006": "0ddf9d69-0634-48bf-96f1-15490848311a"
       }
     }
   ],

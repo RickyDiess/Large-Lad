@@ -5,7 +5,7 @@
   "Ident": "large_lad",
   "Schema": 1,
   "IncludeSourceFiles": false,
-  "Resources": "/Prefabs/Gameplay/pickup_dodgeball.prefab\n",
+  "Resources": "/Prefabs/Gameplay/pickup_dodgeball.prefab\n/Prefabs/Gameplay/pickup_shotgun.prefab\n/Prefabs/Gameplay/pickup_rifle.prefab\n/Prefabs/Gameplay/native_shotgun.prefab\n/Prefabs/Gameplay/native_rifle.prefab\n",
   "PackageReferences": [
     "facepunch.v_first_person_arms_human",
     "facepunch.v_spaghellim4",

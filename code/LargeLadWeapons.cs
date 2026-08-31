@@ -3,12 +3,13 @@ using System.Collections.Generic;
 
 public enum LargeLadWeaponId
 {
-	None,
-	Melee,
-	Pistol,
-	Smg,
-	Shotgun,
-	Rifle
+	None = 0,
+	Melee = 1,
+	Pistol = 2,
+	Smg = 3,
+	// Value 4 is intentionally retired. These IDs are serialized and networked.
+	Shotgun = 5,
+	Rifle = 6
 }
 
 public enum LargeLadCrosshairStyle
@@ -67,7 +68,10 @@ public static class LargeLadWeaponCatalog
 		AccentColor = Color.Red
 	};
 
-	private static readonly LargeLadWeaponDefinition Pistol = new()
+	private static LargeLadWeaponDefinition Pistol =
+		CreatePistolDefinition();
+
+	private static LargeLadWeaponDefinition CreatePistolDefinition() => new()
 	{
 		Id = LargeLadWeaponId.Pistol,
 		DisplayName = "Pistol",
@@ -76,7 +80,10 @@ public static class LargeLadWeaponCatalog
 		NativePrefabPath = "prefabs/gameplay/native_pistol.prefab"
 	};
 
-	private static readonly LargeLadWeaponDefinition Smg = new()
+	private static LargeLadWeaponDefinition Smg =
+		CreateSmgDefinition();
+
+	private static LargeLadWeaponDefinition CreateSmgDefinition() => new()
 	{
 		Id = LargeLadWeaponId.Smg,
 		DisplayName = "SMG",
@@ -85,7 +92,10 @@ public static class LargeLadWeaponCatalog
 		NativePrefabPath = "prefabs/gameplay/native_smg.prefab"
 	};
 
-	private static readonly LargeLadWeaponDefinition Shotgun = new()
+	private static LargeLadWeaponDefinition Shotgun =
+		CreateShotgunDefinition();
+
+	private static LargeLadWeaponDefinition CreateShotgunDefinition() => new()
 	{
 		Id = LargeLadWeaponId.Shotgun,
 		DisplayName = "Shotgun",
@@ -94,7 +104,10 @@ public static class LargeLadWeaponCatalog
 		NativePrefabPath = "prefabs/gameplay/native_shotgun.prefab"
 	};
 
-	private static readonly LargeLadWeaponDefinition Rifle = new()
+	private static LargeLadWeaponDefinition Rifle =
+		CreateRifleDefinition();
+
+	private static LargeLadWeaponDefinition CreateRifleDefinition() => new()
 	{
 		Id = LargeLadWeaponId.Rifle,
 		DisplayName = "Rifle",
@@ -103,16 +116,11 @@ public static class LargeLadWeaponCatalog
 		NativePrefabPath = "prefabs/gameplay/native_rifle.prefab"
 	};
 
-	private static readonly LargeLadWeaponDefinition[] Firearms =
-	{
-		Pistol,
-		Smg,
-		Shotgun,
-		Rifle
-	};
+	private static LargeLadWeaponDefinition[] Firearms =
+		CreateFirearmList();
 
 	public static IReadOnlyList<LargeLadWeaponDefinition> FirearmDefinitions =>
-		Firearms;
+		GetCurrentFirearms();
 
 	public static LargeLadWeaponDefinition Get( LargeLadWeaponId id )
 	{
@@ -150,7 +158,7 @@ public static class LargeLadWeaponCatalog
 		LargeLadWeaponId id,
 		out LargeLadWeaponDefinition definition )
 	{
-		foreach ( var candidate in Firearms )
+		foreach ( var candidate in GetCurrentFirearms() )
 		{
 			if ( candidate.Id != id )
 				continue;
@@ -173,7 +181,7 @@ public static class LargeLadWeaponCatalog
 		var warnings = new List<string>();
 		var seen = new HashSet<LargeLadWeaponId>();
 
-		foreach ( var definition in Firearms )
+		foreach ( var definition in GetCurrentFirearms() )
 		{
 			if ( definition is not null && !seen.Add( definition.Id ) )
 			{
@@ -200,6 +208,46 @@ public static class LargeLadWeaponCatalog
 		}
 
 		return warnings;
+	}
+
+	private static LargeLadWeaponDefinition[] GetCurrentFirearms()
+	{
+		// s&box preserves static field values during hotload. Rebuild catalog
+		// definitions when serialized enum identities changed between compiles.
+		if ( Pistol?.Id != LargeLadWeaponId.Pistol )
+			Pistol = CreatePistolDefinition();
+
+		if ( Smg?.Id != LargeLadWeaponId.Smg )
+			Smg = CreateSmgDefinition();
+
+		if ( Shotgun?.Id != LargeLadWeaponId.Shotgun )
+			Shotgun = CreateShotgunDefinition();
+
+		if ( Rifle?.Id != LargeLadWeaponId.Rifle )
+			Rifle = CreateRifleDefinition();
+
+		if ( Firearms is null ||
+			Firearms.Length != 4 ||
+			!object.ReferenceEquals( Firearms[0], Pistol ) ||
+			!object.ReferenceEquals( Firearms[1], Smg ) ||
+			!object.ReferenceEquals( Firearms[2], Shotgun ) ||
+			!object.ReferenceEquals( Firearms[3], Rifle ) )
+		{
+			Firearms = CreateFirearmList();
+		}
+
+		return Firearms;
+	}
+
+	private static LargeLadWeaponDefinition[] CreateFirearmList()
+	{
+		return new[]
+		{
+			Pistol,
+			Smg,
+			Shotgun,
+			Rifle
+		};
 	}
 
 	public static IReadOnlyList<string> GetValidationWarnings(
