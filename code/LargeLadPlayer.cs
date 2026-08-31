@@ -795,12 +795,8 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 		// update both the retained setting and the already-live collider tags.
 		// This changes only contact filtering: the dynamic Rigidbody remains
 		// available for explicit impulses such as Ground Slam.
-		var tags = new TagSet();
-		tags.Add( LargeLadGameplayRules.PlayerBodyTag );
-		tags.Add( roleTag );
-
-		if ( supplementaryRoleTag is not null )
-			tags.Add( supplementaryRoleTag );
+		var tags = LargeLadGameplayRules.CreatePlayerMovementCollisionTags(
+			role );
 
 		controller.BodyCollisionTags = tags;
 		controller.CameraCollisionIgnore ??= new TagSet();

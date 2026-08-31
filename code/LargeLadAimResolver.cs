@@ -76,7 +76,9 @@ public static class LargeLadAimResolver
 		var viewTrace = scene.Trace
 			.Ray( viewRay, range )
 			.UseHitboxes( true )
-			.WithoutTags( LargeLadGameplayRules.MinionPassageTag )
+			.WithoutTags(
+				LargeLadGameplayRules.MinionPassageTag,
+				LargeLadGameplayRules.PlayerMovementCollisionTag )
 			.IgnoreGameObjectHierarchy( shooter )
 			.Run();
 		var desiredAimPoint = viewTrace.EndPosition;
@@ -253,7 +255,9 @@ public static class LargeLadAimResolver
 		return scene.Trace
 			.Ray( shotOrigin, shotOrigin + shotDirection * range )
 			.UseHitboxes( true )
-			.WithoutTags( LargeLadGameplayRules.MinionPassageTag )
+			.WithoutTags(
+				LargeLadGameplayRules.MinionPassageTag,
+				LargeLadGameplayRules.PlayerMovementCollisionTag )
 			.IgnoreGameObjectHierarchy( shooter )
 			.Run();
 	}

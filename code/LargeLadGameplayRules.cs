@@ -43,6 +43,13 @@ public static class LargeLadGameplayRules
 	public const string SoftPlayerBodyTag = "large_lad_soft_player_body";
 	public const string MinionBodyTag = "large_lad_minion_body";
 	public const string MinionPassageTag = "large_lad_minion_passage";
+
+	/// <summary>
+	/// Identifies only the PlayerController's physical movement hull. Model
+	/// hitboxes target the player root and deliberately do not receive this tag.
+	/// </summary>
+	public const string PlayerMovementCollisionTag =
+		"large_lad_player_hull";
 	public const float PlayerBodyRadius = 16.0f;
 	public const float PlayerBodyHeight = 72.0f;
 	public const float SoftPlayerSeparationRadius = 28.0f;
@@ -75,6 +82,27 @@ public static class LargeLadGameplayRules
 		return role == LargeLadRole.Minion
 			? MinionBodyTag
 			: null;
+	}
+
+	/// <summary>
+	/// Builds the tags copied to PlayerController.ColliderObject. The player root
+	/// keeps its role tags separately so firearm traces can exclude only the hull.
+	/// </summary>
+	public static TagSet CreatePlayerMovementCollisionTags(
+		LargeLadRole role )
+	{
+		var tags = new TagSet();
+		tags.Add( PlayerBodyTag );
+		tags.Add( GetPlayerBodyCollisionTag( role ) );
+		tags.Add( PlayerMovementCollisionTag );
+
+		var supplementaryRoleTag =
+			GetSupplementaryRoleCollisionTag( role );
+
+		if ( supplementaryRoleTag is not null )
+			tags.Add( supplementaryRoleTag );
+
+		return tags;
 	}
 
 	public static bool CanTraverseMinionPassage( LargeLadRole role )

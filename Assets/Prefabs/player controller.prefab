@@ -32,7 +32,7 @@
           "go": "6ba4547b-02ad-474a-acf0-0d08cf5f3431",
           "component_type": "Rigidbody"
         },
-        "BodyCollisionTags": "player,large_lad_soft_player_body",
+        "BodyCollisionTags": "player,large_lad_soft_player_body,large_lad_player_hull",
         "BodyHeight": 72,
         "BodyMass": 500,
         "BodyRadius": 16,
@@ -1042,7 +1042,7 @@
         "Position": "0,0,0",
         "Rotation": "0,0,0,1",
         "Scale": "1,1,1",
-        "Tags": "",
+        "Tags": "large_lad_player_hull",
         "Enabled": true,
         "NetworkMode": 2,
         "NetworkFlags": 0,

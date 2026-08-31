@@ -1821,6 +1821,16 @@ public sealed class LargeLadFirearm : BaseCombatWeapon,
 		base.PrimaryAttack();
 	}
 
+	protected override SceneTrace BulletTrace(
+		Ray ray,
+		float distance,
+		float radius )
+	{
+		return base.BulletTrace( ray, distance, radius )
+			.WithoutTags(
+				LargeLadGameplayRules.PlayerMovementCollisionTag );
+	}
+
 	private static void SetPresentationEnabled(
 		GameObject presentation,
 		bool enabled )
@@ -2122,7 +2132,9 @@ public sealed class LargeLadFirearm : BaseCombatWeapon,
 		var traces = Scene.Trace
 			.Ray( origin, origin + direction * range )
 			.UseHitboxes( true )
-			.WithoutTags( LargeLadGameplayRules.MinionPassageTag )
+			.WithoutTags(
+				LargeLadGameplayRules.MinionPassageTag,
+				LargeLadGameplayRules.PlayerMovementCollisionTag )
 			.IgnoreGameObjectHierarchy( GameObject )
 			.RunAll();
 		var candidates = new List<LargeLadFirearmHitboxCandidate>();

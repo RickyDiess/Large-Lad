@@ -566,11 +566,11 @@ public sealed class PlayerCollisionRulesTests
 	}
 
 	[TestMethod]
-	public void RuntimeRoleTags_CopyAsTwoDistinctEngineTags()
+	public void MovementHullTags_CopyAsDistinctEngineTags()
 	{
-		var configured = new Sandbox.TagSet();
-		configured.Add( LargeLadGameplayRules.PlayerBodyTag );
-		configured.Add( LargeLadGameplayRules.HunterBodyTag );
+		var configured =
+			LargeLadGameplayRules.CreatePlayerMovementCollisionTags(
+				LargeLadRole.LargeLad );
 		var live = new Sandbox.TagSet();
 
 		live.SetFrom( configured );
@@ -579,8 +579,32 @@ public sealed class PlayerCollisionRulesTests
 			live.Has( LargeLadGameplayRules.PlayerBodyTag ) );
 		Assert.IsTrue(
 			live.Has( LargeLadGameplayRules.HunterBodyTag ) );
+		Assert.IsTrue(
+			live.Has(
+				LargeLadGameplayRules.PlayerMovementCollisionTag ) );
 		Assert.IsFalse(
 			live.Has( LargeLadGameplayRules.SoftPlayerBodyTag ) );
+	}
+
+	[DataTestMethod]
+	[DataRow( LargeLadRole.Unassigned )]
+	[DataRow( LargeLadRole.SkinnyKid )]
+	[DataRow( LargeLadRole.LargeLad )]
+	[DataRow( LargeLadRole.Minion )]
+	public void EveryRoleMovementHull_HasFirearmExclusionIdentity(
+		LargeLadRole role )
+	{
+		var tags =
+			LargeLadGameplayRules.CreatePlayerMovementCollisionTags( role );
+
+		Assert.IsTrue(
+			tags.Has( LargeLadGameplayRules.PlayerBodyTag ) );
+		Assert.IsTrue(
+			tags.Has(
+				LargeLadGameplayRules.PlayerMovementCollisionTag ) );
+		Assert.IsTrue(
+			tags.Has(
+				LargeLadGameplayRules.GetPlayerBodyCollisionTag( role ) ) );
 	}
 
 	[TestMethod]
@@ -1801,18 +1825,16 @@ public sealed class MinionPassageRulesTests
 	[TestMethod]
 	public void MinionRuntimeTags_PreserveHunterContactGroup()
 	{
-		var tags = new Sandbox.TagSet();
-		tags.Add( LargeLadGameplayRules.PlayerBodyTag );
-		tags.Add(
-			LargeLadGameplayRules.GetPlayerBodyCollisionTag(
-				LargeLadRole.Minion ) );
-		tags.Add(
-			LargeLadGameplayRules.GetSupplementaryRoleCollisionTag(
-				LargeLadRole.Minion ) );
+		var tags =
+			LargeLadGameplayRules.CreatePlayerMovementCollisionTags(
+				LargeLadRole.Minion );
 
 		Assert.IsTrue( tags.Has( LargeLadGameplayRules.PlayerBodyTag ) );
 		Assert.IsTrue( tags.Has( LargeLadGameplayRules.HunterBodyTag ) );
 		Assert.IsTrue( tags.Has( LargeLadGameplayRules.MinionBodyTag ) );
+		Assert.IsTrue(
+			tags.Has(
+				LargeLadGameplayRules.PlayerMovementCollisionTag ) );
 		Assert.IsFalse(
 			tags.Has( LargeLadGameplayRules.SoftPlayerBodyTag ) );
 	}
