@@ -240,13 +240,18 @@ public sealed class LargeLadFirearmHeadshotRulesTests
 				maximumClassificationDistance: 150.0f ) );
 	}
 
-	[TestMethod]
-	public void MinionFirearmHeadshot_ConsumesAllCurrentHealth()
+	[DataTestMethod]
+	[DataRow( LargeLadWeaponId.Pistol )]
+	[DataRow( LargeLadWeaponId.Smg )]
+	[DataRow( LargeLadWeaponId.Shotgun )]
+	[DataRow( LargeLadWeaponId.Rifle )]
+	public void EveryCoreFirearmHeadshot_ConsumesAllCurrentMinionHealth(
+		LargeLadWeaponId weapon )
 	{
 		var damage = LargeLadFirearmHitRules.ResolveIncomingDamage(
 			LargeLadRole.Minion,
 			isLiving: true,
-			LargeLadWeaponId.Smg,
+			weapon,
 			LargeLadDamageType.Firearm,
 			LargeLadHitRegion.Head,
 			currentHealth: 125.0f,
@@ -256,7 +261,7 @@ public sealed class LargeLadFirearmHeadshotRulesTests
 		Assert.AreEqual(
 			LargeLadKillfeedCause.FirearmHeadshot,
 			LargeLadFirearmHitRules.GetKillfeedCause(
-				LargeLadWeaponId.Smg,
+				weapon,
 				LargeLadDamageType.Firearm,
 				LargeLadHitRegion.Head ) );
 	}
@@ -367,6 +372,72 @@ public sealed class LargeLadFirearmHeadshotRulesTests
 
 		Assert.AreEqual( 1, appliedDamageEvents );
 		Assert.AreEqual( 1, feedbackResults );
+		Assert.AreEqual( 1, lethalEvents );
+		Assert.AreEqual( 0.0f, health );
+	}
+
+	[TestMethod]
+	public void ShotgunPellets_ClassifyIndependentlyAndCommitAtMostOneDeath()
+	{
+		var gate = new LargeLadFirearmShotRequestGate();
+		var health = 100.0f;
+		var hasReportedLethalTransition = false;
+		var classifiedRegions = new System.Collections.Generic.List<LargeLadHitRegion>();
+		var appliedPellets = 0;
+		var lethalEvents = 0;
+
+		void ResolveShot( int sequence )
+		{
+			if ( !gate.TryConsume( sequence ) )
+				return;
+
+			foreach ( var hasHeadTag in new[] { false, true, false } )
+			{
+				var region = LargeLadFirearmHitRules.ClassifyHitRegion(
+					hasHeadTag ? "head" : "spine_2",
+					hasHeadTag );
+				classifiedRegions.Add( region );
+
+				if ( health <= 0.0f )
+					continue;
+
+				var previousHealth = health;
+				var damage = LargeLadFirearmHitRules.ResolveIncomingDamage(
+					LargeLadRole.Minion,
+					isLiving: true,
+					LargeLadWeaponId.Shotgun,
+					LargeLadDamageType.Firearm,
+					region,
+					health,
+					ordinaryIncomingDamage: 15.0f );
+				health = System.MathF.Max( 0.0f, health - damage );
+				appliedPellets++;
+
+				if ( !LargeLadGameplayRules.IsNewLethalTransition(
+					previousHealth,
+					health,
+					hasReportedLethalTransition ) )
+				{
+					continue;
+				}
+
+				hasReportedLethalTransition = true;
+				lethalEvents++;
+			}
+		}
+
+		ResolveShot( 52 );
+		ResolveShot( 52 );
+
+		CollectionAssert.AreEqual(
+			new[]
+			{
+				LargeLadHitRegion.Body,
+				LargeLadHitRegion.Head,
+				LargeLadHitRegion.Body
+			},
+			classifiedRegions.ToArray() );
+		Assert.AreEqual( 2, appliedPellets );
 		Assert.AreEqual( 1, lethalEvents );
 		Assert.AreEqual( 0.0f, health );
 	}

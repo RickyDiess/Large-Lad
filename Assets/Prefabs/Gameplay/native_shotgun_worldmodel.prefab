@@ -1,0 +1,117 @@
+{
+  "RootObject": {
+    "__guid": "d2b70303-0000-4000-8000-000000000001",
+    "__version": 2,
+    "Flags": 0,
+    "Name": "native_shotgun_worldmodel",
+    "Position": "0,0,0",
+    "Rotation": "0,0,0,1",
+    "Scale": "1,1,1",
+    "Tags": "weapon",
+    "Enabled": true,
+    "NetworkMode": 0,
+    "NetworkFlags": 0,
+    "NetworkOrphaned": 0,
+    "NetworkTransmit": false,
+    "OwnerTransfer": 0,
+    "Components": [
+      {
+        "__type": "Sandbox.BaseWeaponModel",
+        "__guid": "d2b70303-0000-4000-8000-000000000003",
+        "__enabled": true,
+        "Flags": 0,
+        "EjectBrass": {
+          "_type": "gameobject",
+          "prefab": "prefabs/effects/default_brasseject.prefab"
+        },
+        "MuzzleEffect": {
+          "_type": "gameobject",
+          "prefab": "prefabs/effects/default_muzzleflash.prefab"
+        },
+        "MuzzleGameObject": null,
+        "Renderer": {
+          "_type": "component",
+          "component_id": "d2b70303-0000-4000-8000-000000000002",
+          "go": "d2b70303-0000-4000-8000-000000000004",
+          "component_type": "SkinnedModelRenderer"
+        },
+        "ShellEjectGameObject": null,
+        "TracerEffect": {
+          "_type": "gameobject",
+          "prefab": "prefabs/effects/default_tracer.prefab"
+        }
+      }
+    ],
+    "Children": [
+      {
+        "__guid": "d2b70303-0000-4000-8000-000000000004",
+        "__version": 2,
+        "Flags": 0,
+        "Name": "model",
+        "Position": "4.78856468,0,-5.33329741",
+        "Rotation": "0,0,0,1",
+        "Scale": "1,1,1",
+        "Tags": "weapon",
+        "Enabled": true,
+        "NetworkMode": 0,
+        "NetworkFlags": 0,
+        "NetworkOrphaned": 0,
+        "NetworkTransmit": false,
+        "OwnerTransfer": 0,
+        "Components": [
+          {
+            "__type": "Sandbox.SkinnedModelRenderer",
+            "__guid": "d2b70303-0000-4000-8000-000000000002",
+            "__enabled": true,
+            "Flags": 0,
+            "AnimationGraph": null,
+            "BodyGroups": 3,
+            "BoneMergeTarget": null,
+            "CreateAttachments": true,
+            "CreateBoneObjects": false,
+            "Model": "models/weapons/sbox_shotgun_spaghellim4/w_spaghellim4.vmdl",
+            "Parameters": {
+              "bools": {},
+              "ints": {},
+              "floats": {},
+              "vectors": {},
+              "rotations": {}
+            },
+            "PlaybackRate": 1,
+            "RenderOptions": {
+              "GameLayer": true,
+              "OverlayLayer": false,
+              "BloomLayer": false,
+              "AfterUILayer": false
+            },
+            "RenderType": "On",
+            "Tint": "1,1,1,1",
+            "UseAnimGraph": false
+          }
+        ],
+        "Children": []
+      }
+    ],
+    "__properties": {
+      "NetworkInterpolation": false,
+      "TimeScale": 1,
+      "WantsSystemScene": true,
+      "Metadata": {},
+      "NavMesh": {
+        "Enabled": false,
+        "DeferGeneration": false,
+        "CustomBounds": false
+      }
+    },
+    "__variables": []
+  },
+  "ResourceVersion": 2,
+  "ShowInMenu": false,
+  "MenuPath": null,
+  "MenuIcon": null,
+  "DontBreakAsTemplate": false,
+  "__references": [
+    "facepunch.w_spaghellim4#279114"
+  ],
+  "__version": 2
+}

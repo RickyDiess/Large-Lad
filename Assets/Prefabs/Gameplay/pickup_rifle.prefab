@@ -1,0 +1,94 @@
+{
+  "RootObject": {
+    "__guid": "8a400005-0000-4000-8000-000000000001",
+    "__version": 2,
+    "Flags": 0,
+    "Name": "pickup_rifle",
+    "Position": "0,0,0",
+    "Rotation": "0,0,0,1",
+    "Scale": "1,1,1",
+    "Tags": "",
+    "Enabled": true,
+    "NetworkMode": 1,
+    "NetworkFlags": 0,
+    "NetworkOrphaned": 0,
+    "NetworkTransmit": true,
+    "OwnerTransfer": 1,
+    "Components": [
+      {
+        "__type": "Sandbox.BoxCollider",
+        "__guid": "8a400005-0000-4000-8000-000000000003",
+        "__enabled": true,
+        "Flags": 0,
+        "Center": "0,0,10",
+        "IsTrigger": true,
+        "Scale": "64,64,20",
+        "Static": true
+      },
+      {
+        "__type": "LargeLadWeaponPickup",
+        "__guid": "8a400005-0000-4000-8000-000000000004",
+        "__enabled": true,
+        "Flags": 0,
+        "PickupCollider": {
+          "_type": "component",
+          "component_id": "8a400005-0000-4000-8000-000000000003",
+          "go": "8a400005-0000-4000-8000-000000000001",
+          "component_type": "BoxCollider"
+        },
+        "PickupRenderer": {
+          "_type": "component",
+          "component_id": "8a400005-0000-4000-8000-000000000006",
+          "go": "8a400005-0000-4000-8000-000000000005",
+          "component_type": "ModelRenderer"
+        },
+        "PickupPolicy": "Core",
+        "Weapon": "Rifle"
+      }
+    ],
+    "Children": [
+      {
+        "__guid": "8a400005-0000-4000-8000-000000000005",
+        "__version": 2,
+        "Flags": 0,
+        "Name": "model",
+        "Position": "0,0,1.5",
+        "Rotation": "0.707106769,0,0,0.707106769",
+        "Scale": "1,1,1",
+        "Tags": "",
+        "Enabled": true,
+        "NetworkMode": 2,
+        "NetworkFlags": 0,
+        "NetworkOrphaned": 0,
+        "NetworkTransmit": true,
+        "OwnerTransfer": 1,
+        "Components": [
+          {
+            "__type": "Sandbox.ModelRenderer",
+            "__guid": "8a400005-0000-4000-8000-000000000006",
+            "__enabled": true,
+            "Flags": 512,
+            "BodyGroups": 171,
+            "CreateAttachments": false,
+            "Model": "models/weapons/sbox_assault_m4a1/w_m4a1.vmdl",
+            "RenderOptions": { "GameLayer": true, "OverlayLayer": false, "BloomLayer": false, "AfterUILayer": false },
+            "RenderType": "On",
+            "Tint": "1,1,1,1"
+          }
+        ],
+        "Children": []
+      }
+    ],
+    "__properties": { "NetworkInterpolation": true, "TimeScale": 1, "WantsSystemScene": true, "Metadata": {}, "NavMesh": { "Enabled": false, "DeferGeneration": false, "CustomBounds": false } },
+    "__variables": []
+  },
+  "ResourceVersion": 2,
+  "ShowInMenu": true,
+  "MenuPath": "Large Lad/Pickups/Rifle",
+  "MenuIcon": "my_location",
+  "DontBreakAsTemplate": true,
+  "__references": [
+    "facepunch.w_m4a1#278949"
+  ],
+  "__version": 2
+}

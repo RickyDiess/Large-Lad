@@ -312,6 +312,26 @@ public sealed class LargeLadCareerStatRulesTests
 			LargeLadStatIds.HeadshotKills );
 	}
 
+	[DataTestMethod]
+	[DataRow( LargeLadWeaponId.Pistol, "pistol_kills" )]
+	[DataRow( LargeLadWeaponId.Smg, "smg_kills" )]
+	[DataRow( LargeLadWeaponId.Shotgun, "shotgun_kills" )]
+	[DataRow( LargeLadWeaponId.Rifle, "rifle_kills" )]
+	public void EveryCoreFirearm_EarnsItsExactMethodCounter(
+		LargeLadWeaponId weapon,
+		string expectedMethodStat )
+	{
+		AssertDeltas(
+			LargeLadCareerStatRules.GetKillerDeltas( Death(
+				LargeLadRole.SkinnyKid,
+				LargeLadRole.Minion,
+				LargeLadDamageType.Firearm,
+				weapon,
+				LargeLadHitRegion.Body ) ),
+			LargeLadStatIds.Kills,
+			expectedMethodStat );
+	}
+
 	[TestMethod]
 	public void MinionMelee_EarnsGeneralRoleAndMethodCounters()
 	{

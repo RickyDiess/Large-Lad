@@ -176,7 +176,8 @@ remote client:
    the remote sees the map's static world geometry and has matching floor/wall
    collision—not only its networked GameObjects—and cannot fall through the map.
    Verify the same client also sees every authored barricade piece, the pistol
-   and SMG models rather than gray fallback boxes, red dodgeball models, and vent
+   SMG, Shotgun, and Rifle models rather than gray fallback boxes, red
+   dodgeball models, and vent
    covers with their authored model and collision dimensions. No inactive
    client-authored Object-mode root should remain after its local map load.
    In the console, confirm the host reports the number of activated map-authored
@@ -674,32 +675,41 @@ engine-independent role-ability presentation tests in `UnitTests/`.
 
 ### First-person checks
 
-1. As a Skinny Kid, equip native crowbar, Pistol, and SMG in turn. Confirm the
+1. As a Skinny Kid, equip native crowbar, Pistol, SMG, Shotgun, and
+   Rifle in turn. Confirm the
    native weapon prefabs own draw, idle, attack, reload, arms, muzzle, sound, and
    model visibility with no duplicate geometry or effects from the player prefab.
-2. Fire Pistol taps and a sustained SMG burst, empty and reload both magazines,
-   and switch during every transition. Confirm one native animation, sound, muzzle
-   effect, and authoritative shot per action, with no stale model after switching.
-3. As Large Lad and a converted Minion, confirm the custom human arms still use
+2. Fire Pistol taps, a sustained SMG burst, Rifle taps, and a
+   Shotgun blast. Empty and reload every magazine, switching during each
+   transition. Confirm one native animation, sound, muzzle effect, and
+   authoritative shot per action, with no stale model after switching. The Rifle
+   must remain semi-automatic even while Primary Attack is held.
+3. Reload the Shotgun from empty. Confirm its native graph enters reload, inserts
+   one shell every 0.55 seconds, can cancel cleanly, and exits with the exact
+   magazine count. Confirm eight independently spread pellets per accepted shot.
+4. Inspect the M4A1 in both views. Confirm it is the clean bodygroup-0 model with
+   no optic, suppressor, laser, or persisted generated bone objects.
+5. As Large Lad and a converted Minion, confirm the custom human arms still use
    the punching graph and `b_attack` gesture. Select a dodgeball as Skinny Kid and
    confirm those custom arms hold one correctly scaled red ball, then clear as the
    authoritative physical ball is thrown.
-4. Toggle first/third person and recreate the local camera while using fists and
+6. Toggle first/third person and recreate the local camera while using fists and
    the dodgeball. Confirm custom arms bind only to the current owned camera and
    the normal body renderer returns when the ability is hidden.
-5. Disable/destroy `LargeLadRoleAbilityPresentation` in a test prefab copy.
+7. Disable/destroy `LargeLadRoleAbilityPresentation` in a test prefab copy.
    Confirm its local arms and dodgeball objects are removed and the body renderer
    is restored; native crowbar/firearm presentation must remain unaffected.
 
 ### Multiplayer checks
 
 1. Use a host, an owning Skinny Kid, and at least one remote observer. Confirm
-   native crowbar/Pistol/SMG viewmodels are owner-only and their native worldmodels
+   native crowbar and all four Core firearm viewmodels are owner-only and their
+   native worldmodels
    remain aligned through idle, locomotion, attack, reload, and camera changes.
 2. Select a dodgeball and confirm every observer sees one correctly scaled red
    ball in the holder's right hand and the configured throw gesture, followed by
    no stale held ball. Confirm Large Lad/Minion fist gestures still replicate.
-3. Confirm native Pistol/SMG deploy, fire, reload, sound, and muzzle presentation
+3. Confirm all four native Core firearms deploy, fire, reload, sound, and muzzle presentation
    occur once per action on every peer, with no doubled shots, hitmarkers, damage,
    or effects.
 4. Repeat switching, utility selection, Exclusive drop, death, conversion, role
@@ -720,7 +730,8 @@ multiplayer matrix:
 1. Kill a remote player from the host, then kill the host from a remote player.
    Confirm every peer displays one identical transient killfeed entry and the
    credited players' replicated session K/D/A changes exactly once.
-2. Commit lethal Pistol and SMG body shots, a firearm headshot, ordinary melee,
+2. Commit one lethal body shot with each of Pistol, SMG, Shotgun, and
+   Rifle, then a firearm headshot, ordinary melee,
    a dodgeball Minion kill, and a successful Eat. Confirm the feed's cause text
    remains distinct, the headshot is visible, and Eat produces exactly one kill
    plus one `skinny_kids_eaten` career increment only after execution completes.

@@ -30657,6 +30657,22 @@
                   },
                   {
                     "Target": {
+                      "Type": "Component",
+                      "IdValue": "8a400001-0000-4000-8000-000000000002"
+                    },
+                    "Property": "Center",
+                    "Value": "-4,-4,36"
+                  },
+                  {
+                    "Target": {
+                      "Type": "Component",
+                      "IdValue": "8a400001-0000-4000-8000-000000000002"
+                    },
+                    "Property": "Scale",
+                    "Value": "8,72,72"
+                  },
+                  {
+                    "Target": {
                       "Type": "GameObject",
                       "IdValue": "cd746e02-03bb-40f2-af6f-9150faf5ef28"
                     },
@@ -30680,6 +30696,81 @@
                 "8a400001-0000-4000-8000-000000000003": "25c614fe-72dd-40ec-81e3-44b9202b8ee9",
                 "cd746e02-03bb-40f2-af6f-9150faf5ef28": "6e520a89-911f-4e45-89df-9096274a7f14",
                 "8a400001-0000-4000-8000-000000000004": "78e0fcb1-54e7-4c2e-997d-b4f646e6af01"
+              }
+            },
+            {
+              "__guid": "b44aa063-811f-4df5-9936-f012fb92624b",
+              "__version": 2,
+              "__Prefab": "prefabs/gameplay/minion_vent.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Name",
+                    "Value": "Minion Vent Opening"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Position",
+                    "Value": "-407.812195,-1174.13562,615.780396"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a400001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Rotation",
+                    "Value": "0,-0.707106173,0,0.707107127"
+                  },
+                  {
+                    "Target": {
+                      "Type": "Component",
+                      "IdValue": "8a400001-0000-4000-8000-000000000002"
+                    },
+                    "Property": "Center",
+                    "Value": "-4,-8,32"
+                  },
+                  {
+                    "Target": {
+                      "Type": "Component",
+                      "IdValue": "8a400001-0000-4000-8000-000000000002"
+                    },
+                    "Property": "Scale",
+                    "Value": "8,64,64"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "cd746e02-03bb-40f2-af6f-9150faf5ef28"
+                    },
+                    "Property": "Position",
+                    "Value": "-3.99998283,-8.00000191,31.9995136"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "cd746e02-03bb-40f2-af6f-9150faf5ef28"
+                    },
+                    "Property": "Scale",
+                    "Value": "0.100000001,1.27999997,1.27998102"
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "8a400001-0000-4000-8000-000000000001": "b44aa063-811f-4df5-9936-f012fb92624b",
+                "8a400001-0000-4000-8000-000000000002": "f6faca9e-4ac7-4950-938d-dd13baf87f25",
+                "8a400001-0000-4000-8000-000000000003": "7af94f5e-8085-414f-8388-b1b13243d8f0",
+                "cd746e02-03bb-40f2-af6f-9150faf5ef28": "2ef8c6ae-213d-41e6-b6d0-7e9af8590217",
+                "8a400001-0000-4000-8000-000000000004": "cde6e42f-9448-4f28-9ba8-d6d017a4bec4"
               }
             }
           ]
@@ -31241,6 +31332,92 @@
         "8a400002-0000-4000-8000-000000000004": "527401ae-ad95-486d-8053-38c9b387b15b",
         "8ceaf3e7-a031-4113-9e89-4aa6b75792af": "d94ffdad-b5e8-4be6-9f4e-7ddfa71d3f0d",
         "c1db096c-9625-4cf5-86ae-7d13ae01183c": "671981ee-4848-407c-a0aa-9ca7c7dd6023"
+      }
+    },
+    {
+      "__guid": "289901c3-7369-401d-8320-d8a644b4edda",
+      "__version": 2,
+      "__Prefab": "prefabs/gameplay/pickup_rifle.prefab",
+      "__PrefabInstancePatch": {
+        "AddedObjects": [],
+        "RemovedObjects": [],
+        "PropertyOverrides": [
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a400005-0000-4000-8000-000000000001"
+            },
+            "Property": "Name",
+            "Value": "Rifle"
+          },
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a400005-0000-4000-8000-000000000001"
+            },
+            "Property": "Position",
+            "Value": "-260.352905,-729.973511,31.9085388"
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "8a400005-0000-4000-8000-000000000006"
+            },
+            "Property": "Flags",
+            "Value": 0
+          }
+        ],
+        "MovedObjects": []
+      },
+      "__PrefabIdToInstanceId": {
+        "8a400005-0000-4000-8000-000000000001": "289901c3-7369-401d-8320-d8a644b4edda",
+        "8a400005-0000-4000-8000-000000000003": "19602087-1105-415b-b58a-37b0ef0cb268",
+        "8a400005-0000-4000-8000-000000000004": "00d29a2f-417f-4ad7-913e-19b534841463",
+        "8a400005-0000-4000-8000-000000000005": "66077540-2c9b-435c-af53-05a26a93e965",
+        "8a400005-0000-4000-8000-000000000006": "0e225381-7caf-43a8-8e7c-df3d7dbda0ce"
+      }
+    },
+    {
+      "__guid": "30953881-d9c8-44c7-9ba6-9121591dcd99",
+      "__version": 2,
+      "__Prefab": "prefabs/gameplay/pickup_shotgun.prefab",
+      "__PrefabInstancePatch": {
+        "AddedObjects": [],
+        "RemovedObjects": [],
+        "PropertyOverrides": [
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a400004-0000-4000-8000-000000000001"
+            },
+            "Property": "Name",
+            "Value": "Shotgun"
+          },
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8a400004-0000-4000-8000-000000000001"
+            },
+            "Property": "Position",
+            "Value": "-334.501953,-674.961365,31.9979553"
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "8a400004-0000-4000-8000-000000000006"
+            },
+            "Property": "Flags",
+            "Value": 0
+          }
+        ],
+        "MovedObjects": []
+      },
+      "__PrefabIdToInstanceId": {
+        "8a400004-0000-4000-8000-000000000001": "30953881-d9c8-44c7-9ba6-9121591dcd99",
+        "8a400004-0000-4000-8000-000000000003": "2ad06118-9785-41c3-a186-bafcea7f1715",
+        "8a400004-0000-4000-8000-000000000004": "7e9dc83f-4fbb-40a0-b440-16a1e7afc762",
+        "8a400004-0000-4000-8000-000000000005": "3ab076a6-3faa-4459-81e1-17250ff71cf3",
+        "8a400004-0000-4000-8000-000000000006": "54c6dcaa-4cd0-4763-8370-3a4120cb711b"
       }
     }
   ],

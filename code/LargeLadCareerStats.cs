@@ -177,6 +177,10 @@ public static class LargeLadCareerStatRules
 				deltas.Add( new( LargeLadStatIds.PistolKills ) );
 			else if ( death.SourceWeapon == LargeLadWeaponId.Smg )
 				deltas.Add( new( LargeLadStatIds.SmgKills ) );
+			else if ( death.SourceWeapon == LargeLadWeaponId.Shotgun )
+				deltas.Add( new( LargeLadStatIds.ShotgunKills ) );
+			else if ( death.SourceWeapon == LargeLadWeaponId.Rifle )
+				deltas.Add( new( LargeLadStatIds.RifleKills ) );
 		}
 		else if ( death.DamageType == LargeLadDamageType.Melee )
 		{

@@ -17,14 +17,66 @@ public sealed class LargeLadNativeWeaponRulesTests
 	[TestMethod]
 	public void CoreFirearmPolicy_AllowsDifferentWeaponsButRejectsDuplicates()
 	{
-		var pistolOnly = new[] { LargeLadWeaponId.Pistol };
-
-		Assert.IsFalse( LargeLadNativeWeaponRules.CanAddCoreFirearm(
+		var fullCoreRoster = new[]
+		{
 			LargeLadWeaponId.Pistol,
-			pistolOnly ) );
+			LargeLadWeaponId.Smg,
+			LargeLadWeaponId.Shotgun,
+			LargeLadWeaponId.Rifle
+		};
+
+		foreach ( var weapon in fullCoreRoster )
+		{
+			Assert.IsFalse( LargeLadNativeWeaponRules.CanAddCoreFirearm(
+				weapon,
+				fullCoreRoster ),
+				$"Duplicate {weapon} should be rejected." );
+		}
+
 		Assert.IsTrue( LargeLadNativeWeaponRules.CanAddCoreFirearm(
 			LargeLadWeaponId.Smg,
-			pistolOnly ) );
+			new[] { LargeLadWeaponId.Pistol } ) );
+	}
+
+	[TestMethod]
+	public void ShotgunClaimEnvelope_AcceptsEightPelletsButNeverMore()
+	{
+		Assert.IsTrue( LargeLadNativeWeaponRules.IsValidClaimEnvelope(
+			sequence: 1,
+			lastSequence: 0,
+			damage: 15.0f,
+			expectedDamage: 15.0f,
+			force: 3000.0f,
+			expectedForce: 3000.0f,
+			claimedPellets: 8,
+			maximumPellets: 8 ) );
+		Assert.IsFalse( LargeLadNativeWeaponRules.IsValidClaimEnvelope(
+			sequence: 1,
+			lastSequence: 0,
+			damage: 15.0f,
+			expectedDamage: 15.0f,
+			force: 3000.0f,
+			expectedForce: 3000.0f,
+			claimedPellets: 9,
+			maximumPellets: 8 ) );
+	}
+
+	[TestMethod]
+	public void PelletRangeValidation_RetainsSmallSixteenUnitTolerance()
+	{
+		Assert.AreEqual( 16.0f, LargeLadNativeWeaponRules.ClaimRangeTolerance );
+		Assert.IsTrue( LargeLadNativeWeaponRules.IsPlausiblePellet(
+			Vector3.Zero,
+			Vector3.Zero,
+			new Vector3( 4016.0f, 0.0f, 0.0f ),
+			Vector3.Forward,
+			range: 4000.0f ) );
+		Assert.IsFalse( LargeLadNativeWeaponRules.IsPlausiblePellet(
+			Vector3.Zero,
+			Vector3.Zero,
+			new Vector3( 4016.1f, 0.0f, 0.0f ),
+			Vector3.Forward,
+			range: 4000.0f ) );
 	}
 
 	[TestMethod]

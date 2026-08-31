@@ -23,9 +23,9 @@
         "AttackSound": "sound/vidya/weapons/pistol/pistol_shoot.sound",
         "AutoReload": true,
         "Ballistics": {
-          "Damage": 100,
+          "Damage": 50,
           "Pellets": 1,
-          "Range": 1200,
+          "Range": 2400,
           "Radius": 0,
           "Force": 3000,
           "SpreadBase": "0,0",

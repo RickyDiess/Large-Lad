@@ -36,13 +36,13 @@ not gameplay authority.
 | `conversions` | Conversions | Authoritative Skinny Kid-to-Minion conversion commits. | Sum | Count |
 | `pistol_kills` | Pistol Kills | Kills whose actual lethal weapon was the Pistol. | Sum | Count |
 | `smg_kills` | SMG Kills | Kills whose actual lethal weapon was the SMG. | Sum | Count |
-| `shotgun_kills` | Shotgun Kills | Kills whose actual lethal weapon was the future Shotgun. | Sum | Count |
-| `rifle_kills` | Rifle Kills | Kills whose actual lethal weapon was the future Rifle. | Sum | Count |
+| `shotgun_kills` | Shotgun Kills | Kills whose actual lethal weapon was the Shotgun. | Sum | Count |
+| `rifle_kills` | Rifle Kills | Kills whose actual lethal weapon was the Rifle. | Sum | Count |
 | `melee_kills` | Melee Kills | Kills whose actual lethal method was ordinary melee. | Sum | Count |
 | `dodgeball_kills` | Dodgeball Kills | Kills whose actual lethal method was a dodgeball. | Sum | Count |
 | `barricades_destroyed` | Barricades Destroyed | Final Skinny Progression barricade destructions credited to a Skinny Kid. | Sum | Count |
 | `shortcuts_destroyed` | Shortcuts Destroyed | Final Lad Shortcut destructions credited to the Large Lad. | Sum | Count |
 
-`shotgun_kills` and `rifle_kills` are defined now for schema stability, but
-Stage 5 contains no Shotgun or Rifle gameplay path and therefore cannot earn
-either counter yet.
+Stage 6 routes all four Core firearm methods through the one committed death
+record. Only the actual lethal weapon earns its Pistol, SMG, Shotgun, or Rifle
+counter; rejected/replayed claims and nonlethal pellets earn none.

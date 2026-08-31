@@ -69,7 +69,28 @@ missing/configured/geometry distinctions used by the other spawn groups apply.
 
 ### Weapon pickup
 
-Place the supplied Pistol or SMG pickup when Skinny Kids should gain a firearm.
+Place the supplied Pistol, SMG, Shotgun, or Rifle pickup when Skinny
+Kids should gain that firearm.
+
+The Stage 6 Core firearm defaults are:
+
+| Order | Weapon | Damage | Magazine | Fire | Cadence | Range | Pellets | Spread base / growth / recovery |
+| ---: | --- | ---: | ---: | --- | ---: | ---: | ---: | --- |
+| 0 | Pistol | 50 | 8 | Semi | 0.35 s | 2400 | 1 | `0,0` / `0,0` / `0.2` |
+| 1 | SMG | 25 | 30 | Automatic | 0.09 s | 2000 | 1 | `0.2,0.2` / `1.5,1.5` / `0.2` |
+| 2 | Shotgun | 15 per pellet | 6 | Semi | 0.8 s | 1400 | 8 | `3,3` / `2,2` / `0.8` |
+| 3 | Rifle | 60 | 20 | Semi | 0.25 s | 4000 | 1 | `0.1,0.1` / `0.25,0.25` / `0.25` |
+
+The shotgun uses the native incremental reload (`0.55` seconds per shell) and
+the Spaghelli M4 graph's authored shell-reload animations.
+
+Official model paths are
+`models/weapons/sbox_shotgun_spaghellim4/v_spaghellim4.vmdl`,
+`models/weapons/sbox_shotgun_spaghellim4/w_spaghellim4.vmdl`,
+`models/weapons/sbox_assault_m4a1/v_m4a1.vmdl`, and
+`models/weapons/sbox_assault_m4a1/w_m4a1.vmdl`. The M4A1 renderers use bodygroup
+mask `0`, the package's clean default configuration, with no authored optics,
+suppressor, laser, or other attachment.
 Normally change placement and `Pickup Policy (Per Instance)`; use `Core` for an
 independent permanent unlock point or `Exclusive` for one physical item. Common
 failures are an invalid weapon/policy, missing trigger/model, or an Exclusive
@@ -552,8 +573,8 @@ barricade.
 
 ## Pickups and hazards
 
-The gameplay prefab folder contains pistol, SMG, and kill-volume presets. Loose
-ammunition pickups are not part of the map contract.
+The gameplay prefab folder contains Pistol, SMG, Shotgun, Rifle, and
+kill-volume presets. Loose ammunition pickups are not part of the map contract.
 
 Only Skinny Kids own native inventory items: the crowbar, firearms, and the
 single dodgeball utility slot. Large Lad and Minion attacks remain role
@@ -646,10 +667,10 @@ passages; the protected-passage clearance system remains responsible for an
 object entering those routes.
 
 Pickup policy is configured on each `LargeLadWeaponPickup` placement, not in the
-weapon catalog. This lets the same pistol or SMG be a core pickup on one route
+weapon catalog. This lets the same firearm be a core pickup on one route
 and an exclusive physical instance elsewhere.
 
-The pistol and SMG prefab defaults use `Pickup Policy (Per Instance): Core`.
+All five Core firearm prefab defaults use `Pickup Policy (Per Instance): Core`.
 Each living Skinny Kid may unlock the pickup independently. Core pickups never
 hide, duplicate touches do nothing, magazines are retained per weapon, and
 reserve ammunition is explicitly infinite. The HUD displays `magazine / ∞`.
@@ -677,6 +698,9 @@ Skinny Kid starting loadouts are configured as a list of core weapon ids on
 `LargeLadNativeInventory`; they are not numeric slots. The HUD, direct slots,
 and scroll order are native crowbar, native-prefab `SlotOrder` within the Core
 bucket, the carried exclusive firearm, and then the native slot-3 utility item.
+The shipped starting Core list remains empty: maps grant firearms through their
+pickups rather than spawning every player with the full arsenal. If a map opts
+into starting weapons, Core ordering is always Pistol, SMG, Shotgun, then Rifle.
 
 Author the utility with the `Large Lad/Pickups/Dodgeball` prefab. Each placement
 is exactly one stable physical ball and each Skinny Kid has one native utility

@@ -6,7 +6,9 @@ public enum LargeLadWeaponId
 	None,
 	Melee,
 	Pistol,
-	Smg
+	Smg,
+	Shotgun,
+	Rifle
 }
 
 public enum LargeLadCrosshairStyle
@@ -83,10 +85,30 @@ public static class LargeLadWeaponCatalog
 		NativePrefabPath = "prefabs/gameplay/native_smg.prefab"
 	};
 
+	private static readonly LargeLadWeaponDefinition Shotgun = new()
+	{
+		Id = LargeLadWeaponId.Shotgun,
+		DisplayName = "Shotgun",
+		Crosshair = LargeLadCrosshairStyle.FourSegment,
+		AccentColor = new Color( 1.0f, 0.56f, 0.16f ),
+		NativePrefabPath = "prefabs/gameplay/native_shotgun.prefab"
+	};
+
+	private static readonly LargeLadWeaponDefinition Rifle = new()
+	{
+		Id = LargeLadWeaponId.Rifle,
+		DisplayName = "Rifle",
+		Crosshair = LargeLadCrosshairStyle.FourSegment,
+		AccentColor = new Color( 0.48f, 0.82f, 0.28f ),
+		NativePrefabPath = "prefabs/gameplay/native_rifle.prefab"
+	};
+
 	private static readonly LargeLadWeaponDefinition[] Firearms =
 	{
 		Pistol,
-		Smg
+		Smg,
+		Shotgun,
+		Rifle
 	};
 
 	public static IReadOnlyList<LargeLadWeaponDefinition> FirearmDefinitions =>

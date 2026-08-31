@@ -7,23 +7,38 @@ public sealed class LargeLadWeaponCatalogLookupTests
 	[TestMethod]
 	public void Lookup_ResolvesEveryAuthoredFirearm()
 	{
-		Assert.IsTrue(
-			LargeLadWeaponCatalog.TryGetFirearm(
-				LargeLadWeaponId.Pistol,
-				out var pistol ) );
-		Assert.AreEqual( LargeLadWeaponId.Pistol, pistol.Id );
-		Assert.AreSame(
-			pistol,
-			LargeLadWeaponCatalog.Get( LargeLadWeaponId.Pistol ) );
+		var expected = new[]
+		{
+			LargeLadWeaponId.Pistol,
+			LargeLadWeaponId.Smg,
+			LargeLadWeaponId.Shotgun,
+			LargeLadWeaponId.Rifle
+		};
 
-		Assert.IsTrue(
-			LargeLadWeaponCatalog.TryGetFirearm(
+		foreach ( var id in expected )
+		{
+			Assert.IsTrue(
+				LargeLadWeaponCatalog.TryGetFirearm( id, out var definition ),
+				id.ToString() );
+			Assert.AreEqual( id, definition.Id );
+			Assert.AreSame( definition, LargeLadWeaponCatalog.Get( id ) );
+		}
+	}
+
+	[TestMethod]
+	public void CatalogOrder_MatchesCoreSelectionOrder()
+	{
+		CollectionAssert.AreEqual(
+			new[]
+			{
+				LargeLadWeaponId.Pistol,
 				LargeLadWeaponId.Smg,
-				out var smg ) );
-		Assert.AreEqual( LargeLadWeaponId.Smg, smg.Id );
-		Assert.AreSame(
-			smg,
-			LargeLadWeaponCatalog.Get( LargeLadWeaponId.Smg ) );
+				LargeLadWeaponId.Shotgun,
+				LargeLadWeaponId.Rifle
+			},
+			LargeLadWeaponCatalog.FirearmDefinitions
+				.Select( definition => definition.Id )
+				.ToArray() );
 	}
 
 	[TestMethod]
@@ -50,17 +65,35 @@ public sealed class LargeLadWeaponCatalogLookupTests
 			System.Enum.TryParse<LargeLadWeaponId>(
 				"Smg",
 				out var smgId ) );
+		Assert.IsTrue(
+			System.Enum.TryParse<LargeLadWeaponId>(
+				"Shotgun",
+				out var shotgunId ) );
+		Assert.IsTrue(
+			System.Enum.TryParse<LargeLadWeaponId>(
+				"Rifle",
+				out var rifleId ) );
 
 		var pistol = LargeLadWeaponCatalog.Get( pistolId );
 		var smg = LargeLadWeaponCatalog.Get( smgId );
+		var shotgun = LargeLadWeaponCatalog.Get( shotgunId );
+		var rifle = LargeLadWeaponCatalog.Get( rifleId );
 		Assert.AreEqual( "Pistol", pistol.DisplayName );
 		Assert.AreEqual( "SMG", smg.DisplayName );
+		Assert.AreEqual( "Shotgun", shotgun.DisplayName );
+		Assert.AreEqual( "Rifle", rifle.DisplayName );
 		Assert.AreEqual(
 			"prefabs/gameplay/native_pistol.prefab",
 			pistol.NativePrefabPath );
 		Assert.AreEqual(
 			"prefabs/gameplay/native_smg.prefab",
 			smg.NativePrefabPath );
+		Assert.AreEqual(
+			"prefabs/gameplay/native_shotgun.prefab",
+			shotgun.NativePrefabPath );
+		Assert.AreEqual(
+			"prefabs/gameplay/native_rifle.prefab",
+			rifle.NativePrefabPath );
 	}
 }
 

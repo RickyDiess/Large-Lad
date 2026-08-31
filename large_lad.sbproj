@@ -8,8 +8,15 @@
   "Resources": "/Prefabs/Gameplay/pickup_dodgeball.prefab\n",
   "PackageReferences": [
     "facepunch.v_first_person_arms_human",
+    "facepunch.v_spaghellim4",
+    "facepunch.w_spaghellim4",
+    "facepunch.v_m4a1",
+    "facepunch.w_m4a1",
     "vidya.pistol-shoot",
-    "vidya.smg-shoot"
+    "vidya.smg-shoot",
+    "vidya.shotgun-shoot",
+    "vidya.reload-perfect",
+    "drakefruit.m4a1_shot"
   ],
   "EditorReferences": null,
   "Mounts": null,

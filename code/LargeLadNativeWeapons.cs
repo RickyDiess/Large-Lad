@@ -1705,6 +1705,12 @@ public sealed class LargeLadFirearm : BaseCombatWeapon,
 			base.CanPrimaryAttack();
 	}
 
+	protected override void OnEquipped()
+	{
+		base.OnEquipped();
+		EnsureNativePresentation();
+	}
+
 	protected override void OnUpdate()
 	{
 		base.OnUpdate();
@@ -1714,6 +1720,9 @@ public sealed class LargeLadFirearm : BaseCombatWeapon,
 			ResolveExclusiveWorldPresentation();
 			SetExclusiveWorldPresentationEnabled( Inventory is null );
 		}
+
+		if ( IsHeld && IsActive )
+			EnsureNativePresentation();
 
 		BindNativeModelAttachments( ViewModel );
 		BindNativeModelAttachments( WorldModel );
@@ -1837,6 +1846,20 @@ public sealed class LargeLadFirearm : BaseCombatWeapon,
 		SetPresentationEnabled( ViewModel, !thirdPerson );
 		SetPresentationEnabled( WorldModel, thirdPerson );
 		return thirdPerson;
+	}
+
+	private void EnsureNativePresentation()
+	{
+		var owner = Owner;
+
+		if ( owner is null )
+			return;
+
+		if ( WorldModel is null || !WorldModel.IsValid )
+			CreateWorldModel();
+
+		if ( !IsProxy && (ViewModel is null || !ViewModel.IsValid) )
+			CreateViewModel();
 	}
 
 	private void BindNativeModelAttachments( GameObject presentation )

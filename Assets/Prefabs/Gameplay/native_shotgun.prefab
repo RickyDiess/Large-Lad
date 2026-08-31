@@ -1,9 +1,9 @@
 {
   "RootObject": {
-    "__guid": "d2b70101-0000-4000-8000-000000000001",
+    "__guid": "d2b70301-0000-4000-8000-000000000001",
     "__version": 2,
     "Flags": 0,
-    "Name": "native_smg",
+    "Name": "native_shotgun",
     "Position": "0,0,0",
     "Rotation": "0,0,0,1",
     "Scale": "1,1,1",
@@ -17,66 +17,62 @@
     "Components": [
       {
         "__type": "LargeLadFirearm",
-        "__guid": "d2b70101-0000-4000-8000-000000000002",
+        "__guid": "d2b70301-0000-4000-8000-000000000002",
         "__enabled": true,
         "Flags": 0,
-        "AttackSound": "sound/vidya/weapons/smg/smg_shoot.sound",
+        "AttackSound": "sound/vidya/weapons/shotgun/shotgun_shoot.sound",
         "AutoReload": true,
         "Ballistics": {
-          "Damage": 25,
-          "Pellets": 1,
-          "Range": 2000,
+          "Damage": 15,
+          "Pellets": 8,
+          "Range": 1400,
           "Radius": 0,
           "Force": 3000,
-          "SpreadBase": "0.2,0.2",
-          "SpreadGrowth": "1.5,1.5",
-          "SpreadRecovery": 0.2
+          "SpreadBase": "3,3",
+          "SpreadGrowth": "2,2",
+          "SpreadRecovery": 0.8
         },
         "CanCancelReload": true,
-        "ClipMaxSize": 30,
+        "ClipMaxSize": 6,
         "DeployTime": 0.5,
         "DisplayIcon": null,
-        "DisplayName": "SMG",
+        "DisplayName": "Shotgun",
         "DryFireSound": null,
-        "ExclusiveStartingReserve": 90,
+        "ExclusiveStartingReserve": 24,
+        "FirstShellReloadTime": 0,
         "Handedness": "Both",
         "HoldBone": "hold_R",
-        "HoldType": "rifle",
-        "IncrementalReloading": false,
+        "HoldType": "shotgun",
+        "IncrementalReloading": true,
         "MuzzleAttachment": "muzzle",
-        "OnComponentDestroy": null,
-        "OnComponentDisabled": null,
-        "OnComponentEnabled": null,
-        "OnComponentFixedUpdate": null,
-        "OnComponentStart": null,
-        "OnComponentUpdate": null,
         "PickupPolicy": "Core",
         "PreferredSlot": 1,
         "PrimaryAmmoType": null,
-        "PrimaryAutomatic": true,
-        "PrimaryDelay": 0.09,
-        "ReloadTime": 2,
-        "ReloadSoundPackageIdent": "drakefruit/rifle_reload",
+        "PrimaryAutomatic": false,
+        "PrimaryDelay": 0.8,
+        "ReloadStartTime": 0,
+        "ReloadTime": 0.55,
+        "ReloadSoundPackageIdent": null,
         "SecondaryAmmoType": null,
         "SecondaryAutomatic": false,
         "SecondaryClipSize": -1,
         "SecondaryDefaultClip": -1,
         "SecondaryDelay": 0.5,
-        "SlotOrder": 1,
+        "SlotOrder": 2,
         "SpreadScale": 1,
         "StartingAmmo": 0,
         "UsableByNpcs": false,
         "UsesAmmo": true,
         "UsesClips": true,
-        "Value": 20,
+        "Value": 40,
         "ViewModelPrefab": {
           "_type": "gameobject",
-          "prefab": "prefabs/gameplay/native_smg_viewmodel.prefab"
+          "prefab": "prefabs/gameplay/native_shotgun_viewmodel.prefab"
         },
-        "WeaponId": "Smg",
+        "WeaponId": "Shotgun",
         "WorldModelPrefab": {
           "_type": "gameobject",
-          "prefab": "prefabs/gameplay/native_smg_worldmodel.prefab"
+          "prefab": "prefabs/gameplay/native_shotgun_worldmodel.prefab"
         }
       }
     ],
@@ -86,13 +82,7 @@
       "TimeScale": 1,
       "WantsSystemScene": true,
       "Metadata": {},
-      "NavMesh": {
-        "Enabled": false,
-        "IncludeStaticBodies": true,
-        "IncludeKeyframedBodies": true,
-        "DeferGeneration": false,
-        "CustomBounds": false
-      }
+      "NavMesh": { "Enabled": false, "DeferGeneration": false, "CustomBounds": false }
     },
     "__variables": []
   },
