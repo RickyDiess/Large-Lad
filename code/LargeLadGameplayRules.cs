@@ -43,6 +43,7 @@ public static class LargeLadGameplayRules
 	public const string SoftPlayerBodyTag = "large_lad_soft_player_body";
 	public const string MinionBodyTag = "large_lad_minion_body";
 	public const string MinionPassageTag = "large_lad_minion_passage";
+	public const string RagdollCollisionTag = "large_lad_ragdoll";
 
 	/// <summary>
 	/// Identifies only the PlayerController's physical movement hull. Model

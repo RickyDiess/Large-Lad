@@ -519,6 +519,12 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable,
 			return;
 
 		deathRagdoll = controller?.CreateRagdoll( $"{GameObject.Name} Ragdoll" );
+
+		if ( deathRagdoll is not null && deathRagdoll.IsValid )
+		{
+			deathRagdoll.Tags.Add(
+				LargeLadGameplayRules.RagdollCollisionTag );
+		}
 	}
 
 	private void RemoveDeathRagdoll()
