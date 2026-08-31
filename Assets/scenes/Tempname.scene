@@ -1,0 +1,1012 @@
+{
+  "__guid": "4fe6d994-91c5-4eb6-a3e3-44fce0364203",
+  "GameObjects": [
+    {
+      "__guid": "3194c9af-2bb7-4c4a-96dd-89d4cebc4189",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Large Lad Map Profile",
+      "Position": "0,0,0",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "LargeLadMapProfile",
+          "__guid": "c4d979f5-981a-4a70-aa54-e0531919cc79",
+          "__enabled": true,
+          "Flags": 0,
+          "Manifest": null,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null
+        }
+      ],
+      "Children": []
+    },
+    {
+      "__guid": "287340b6-e2b5-4c2c-bb6a-0fc6fd1c391e",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Terrain",
+      "Position": "-10000,-10000,-1",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.Terrain",
+          "__guid": "31062e6c-5565-4fd9-b187-a7d1e01cb7cb",
+          "__enabled": true,
+          "Flags": 0,
+          "__version": 1,
+          "ClipMapLodExtentTexels": 256,
+          "ClipMapLodLevels": 6,
+          "ColliderFlags": 0,
+          "Elasticity": null,
+          "EnableCollision": true,
+          "Friction": null,
+          "IsTrigger": false,
+          "MaterialOverride": null,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "RenderType": "Off",
+          "RollingResistance": null,
+          "Static": true,
+          "Storage": {
+            "$compiler": "embed",
+            "$source": null,
+            "data": {
+              "Maps": {
+                "$blob": "8f881287-8e52-8125-9d14-a536d783158c"
+              },
+              "Resolution": 512,
+              "TerrainSize": 20000,
+              "TerrainHeight": 10000,
+              "Materials": [
+                "materials/terrain/terrain_grass_a.tmat"
+              ],
+              "MaterialSettings": {
+                "HeightBlendEnabled": true,
+                "HeightBlendSharpness": 0.87,
+                "Sampler": {
+                  "Filter": "Anisotropic",
+                  "AddressModeU": "Wrap",
+                  "AddressModeV": "Wrap",
+                  "AddressModeW": "Wrap",
+                  "MipLodBias": 0,
+                  "MaxAnisotropy": 8,
+                  "BorderColor": "0,0,0,0",
+                  "Index": 2
+                }
+              },
+              "ResourceVersion": 3,
+              "__references": null
+            },
+            "compiled": null
+          },
+          "SubdivisionFactor": 1,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0",
+          "TerrainHeight": 10000,
+          "TerrainSize": 20000
+        }
+      ],
+      "Children": []
+    },
+    {
+      "__guid": "2a89b735-1f63-47a7-bd07-e2bd13a144f7",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "2D Skybox",
+      "Position": "0,0,1024",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "skybox",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.SkyBox2D",
+          "__guid": "46aed1e9-4fd4-4be1-ad74-5e9685573b67",
+          "__enabled": true,
+          "Flags": 0,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "SkyIndirectLighting": true,
+          "SkyMaterial": "materials/skybox/skybox_sunrise_01.vmat",
+          "Tint": "0.61569,0.61569,0.61569,1"
+        }
+      ],
+      "Children": []
+    },
+    {
+      "__guid": "335c0591-f053-44b4-8802-14cbc8d41575",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Sun",
+      "Position": "0,0,512",
+      "Rotation": "0.0669872835,0.25000003,-0.482962936,0.83651638",
+      "Scale": "1,1,1",
+      "Tags": "light_directional,light",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.DirectionalLight",
+          "__guid": "4304da92-a7aa-4f5e-8cbd-83dbe1e54d48",
+          "__enabled": true,
+          "Flags": 0,
+          "ContactShadows": true,
+          "Contribution": "Diffuse, Specular, Transmissive",
+          "FogMode": "Enabled",
+          "FogStrength": 1,
+          "LightColor": "0.97953,1,0.84651,1",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "ShadowBias": 0.0005,
+          "ShadowCascadeCount": 4,
+          "ShadowCascadeSplitRatio": 0.91,
+          "ShadowHardness": 0,
+          "Shadows": true,
+          "SkyColor": "1,1,1,0.15",
+          "Visualizer": {}
+        }
+      ],
+      "Children": []
+    },
+    {
+      "__guid": "154b2791-7962-4c4a-a531-02488cd73bf4",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "World",
+      "Position": "468.431824,3.13129044,124.869537",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [],
+      "Children": [
+        {
+          "__guid": "6a8609a4-87fc-439f-8fa8-20448ef295e7",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Geometry",
+          "Position": "0,0,0",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [],
+          "Children": []
+        },
+        {
+          "__guid": "4f19915f-0302-4a3b-8a6e-ea2d5114d4f6",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Props",
+          "Position": "12.2801514,-52.5376587,35.4681702",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [],
+          "Children": []
+        },
+        {
+          "__guid": "659b8f11-1ee4-4de8-a117-5cbb005f67e9",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Lights",
+          "Position": "12.2801514,-52.5376587,35.4681702",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [],
+          "Children": []
+        },
+        {
+          "__guid": "6a562033-86d4-47df-9587-79bcc70d3d79",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Spawnpoints",
+          "Position": "0,0,0",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [],
+          "Children": [
+            {
+              "__guid": "60564e71-5aef-4416-982f-8c5889949cb7",
+              "__version": 2,
+              "__Prefab": "prefabs/gameplay/spawn_hunter.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a100003-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Name",
+                    "Value": "Hunter Team Spawn"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a100003-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Position",
+                    "Value": "-468.431824,1004.86871,-128"
+                  },
+                  {
+                    "Target": {
+                      "Type": "Component",
+                      "IdValue": "8a100003-0000-4000-8000-000000000002"
+                    },
+                    "Property": "SpawnRadius",
+                    "Value": 200
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "8a100003-0000-4000-8000-000000000001": "60564e71-5aef-4416-982f-8c5889949cb7",
+                "8a100003-0000-4000-8000-000000000002": "4e3c13ff-54f2-4e04-8fa2-3f87f40458cb"
+              }
+            },
+            {
+              "__guid": "90889a50-be3e-42d4-9555-b1b28c717604",
+              "__version": 2,
+              "__Prefab": "prefabs/gameplay/spawn_lobby.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a100001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Name",
+                    "Value": "Lobby Team Spawn"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a100001-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Position",
+                    "Value": "-468.431824,1372.86865,-128"
+                  },
+                  {
+                    "Target": {
+                      "Type": "Component",
+                      "IdValue": "8a100001-0000-4000-8000-000000000002"
+                    },
+                    "Property": "SpawnRadius",
+                    "Value": 512
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "8a100001-0000-4000-8000-000000000001": "90889a50-be3e-42d4-9555-b1b28c717604",
+                "8a100001-0000-4000-8000-000000000002": "52ae8d79-86bb-404d-a8d2-bd57c75a54b8"
+              }
+            },
+            {
+              "__guid": "523534f8-54b2-4a6e-8562-828057a6440e",
+              "__version": 2,
+              "__Prefab": "prefabs/gameplay/spawn_skinny_kid.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a100002-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Name",
+                    "Value": "Skinny Kid Team Spawn"
+                  },
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "8a100002-0000-4000-8000-000000000001"
+                    },
+                    "Property": "Position",
+                    "Value": "-468.431824,1628.86865,-128"
+                  },
+                  {
+                    "Target": {
+                      "Type": "Component",
+                      "IdValue": "8a100002-0000-4000-8000-000000000002"
+                    },
+                    "Property": "SpawnRadius",
+                    "Value": 256
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "8a100002-0000-4000-8000-000000000001": "523534f8-54b2-4a6e-8562-828057a6440e",
+                "8a100002-0000-4000-8000-000000000002": "f32b242d-e247-4b70-b527-89f4bb30a499"
+              }
+            }
+          ]
+        },
+        {
+          "__guid": "68433b93-7539-4db1-afab-8a40d65fced8",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Barricades",
+          "Position": "-28.6196289,-4.99571609,-28.6500244",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [],
+          "Children": []
+        },
+        {
+          "__guid": "af69e0e6-72dc-4b48-b080-3e979b27055a",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Pickups",
+          "Position": "0,0,0",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [],
+          "Children": []
+        },
+        {
+          "__guid": "ffd84611-39e0-4a0d-a732-e7ee4d04fe42",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Ladders",
+          "Position": "340.288879,107.563797,327.012238",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [],
+          "Children": []
+        }
+      ]
+    },
+    {
+      "__guid": "7cbf02c8-2c0e-4ef7-9b44-028d69de26a2",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Block",
+      "Position": "-128,-384,-4",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "world",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.MeshComponent",
+          "__guid": "cdb37615-918d-4289-a254-407dca2475b7",
+          "__enabled": true,
+          "Flags": 0,
+          "ColliderFlags": 0,
+          "Collision": "Mesh",
+          "Color": "1,1,1,1",
+          "Elasticity": null,
+          "Friction": null,
+          "HideInGame": false,
+          "IsTrigger": false,
+          "Mesh": {
+            "Data": {
+              "$blob": "f299bffe-a794-8a11-9499-8fc1aa322d65"
+            },
+            "Materials": [
+              "materials/concrete/floor/concrete_polished_01.vmat"
+            ]
+          },
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "RenderType": "On",
+          "RollingResistance": null,
+          "SmoothingAngle": 40,
+          "Static": true,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
+        }
+      ],
+      "Children": []
+    },
+    {
+      "__guid": "b85dda88-ebec-4be0-b2ca-197859ef168c",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Block (5)",
+      "Position": "-128,-384,88",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "world",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.MeshComponent",
+          "__guid": "32f96693-2c4c-4713-8b60-a0c303e5b50a",
+          "__enabled": true,
+          "Flags": 0,
+          "ColliderFlags": 0,
+          "Collision": "Mesh",
+          "Color": "1,1,1,1",
+          "Elasticity": null,
+          "Friction": null,
+          "HideInGame": false,
+          "IsTrigger": false,
+          "Mesh": {
+            "Data": {
+              "$blob": "7bc57041-9d19-825c-87a8-a5318981f0c6"
+            },
+            "Materials": [
+              "materials/generic/wall_brick_older.vmat",
+              "materials/concrete/floor/concrete_polished_01.vmat"
+            ]
+          },
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "RenderType": "On",
+          "RollingResistance": null,
+          "SmoothingAngle": 40,
+          "Static": true,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
+        }
+      ],
+      "Children": []
+    },
+    {
+      "__guid": "7f6e3407-a004-4a4e-a47e-bc6c17619c58",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Block",
+      "Position": "688,1348,-4",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "world",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.MeshComponent",
+          "__guid": "366c7752-19af-4353-b5cd-777e3ce06bbe",
+          "__enabled": true,
+          "Flags": 0,
+          "ColliderFlags": 0,
+          "Collision": "Mesh",
+          "Color": "1,1,1,1",
+          "Elasticity": null,
+          "Friction": null,
+          "HideInGame": false,
+          "IsTrigger": false,
+          "Mesh": {
+            "Data": {
+              "$blob": "2895086e-13cc-8b1d-a37c-8d6c56decbf1"
+            },
+            "Materials": [
+              "materials/concrete/floor/concrete_polished_01.vmat"
+            ]
+          },
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "RenderType": "On",
+          "RollingResistance": null,
+          "SmoothingAngle": 40,
+          "Static": true,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
+        }
+      ],
+      "Children": []
+    },
+    {
+      "__guid": "99106f15-df60-4b1e-9dc6-ef86a207d3ca",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Block (1)",
+      "Position": "-1392,1348,-4",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "world",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.MeshComponent",
+          "__guid": "813566ea-87e0-48b7-9b0b-6083952bb472",
+          "__enabled": true,
+          "Flags": 0,
+          "ColliderFlags": 0,
+          "Collision": "Mesh",
+          "Color": "1,1,1,1",
+          "Elasticity": null,
+          "Friction": null,
+          "HideInGame": false,
+          "IsTrigger": false,
+          "Mesh": {
+            "Data": {
+              "$blob": "2895086e-13cc-8b1d-a37c-8d6c56decbf1"
+            },
+            "Materials": [
+              "materials/concrete/floor/concrete_polished_01.vmat"
+            ]
+          },
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "RenderType": "On",
+          "RollingResistance": null,
+          "SmoothingAngle": 40,
+          "Static": true,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
+        }
+      ],
+      "Children": []
+    },
+    {
+      "__guid": "21a0fb3a-3d17-4fc6-a57a-4d1389202fda",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Block",
+      "Position": "-352,1944,-4",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "world",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.MeshComponent",
+          "__guid": "ed09bda7-6c0f-48a0-bfd3-75b7015de340",
+          "__enabled": true,
+          "Flags": 0,
+          "ColliderFlags": 0,
+          "Collision": "Mesh",
+          "Color": "1,1,1,1",
+          "Elasticity": null,
+          "Friction": null,
+          "HideInGame": false,
+          "IsTrigger": false,
+          "Mesh": {
+            "Data": {
+              "$blob": "83bc4754-68bf-82cc-923a-824ee3bac1a4"
+            },
+            "Materials": [
+              "materials/concrete/floor/concrete_polished_01.vmat"
+            ]
+          },
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "RenderType": "On",
+          "RollingResistance": null,
+          "SmoothingAngle": 40,
+          "Static": true,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
+        }
+      ],
+      "Children": []
+    },
+    {
+      "__guid": "f463e366-ba73-4702-ae28-e6d033280e9b",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Block (4)",
+      "Position": "688,1348,4",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "world",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.MeshComponent",
+          "__guid": "959427cc-c24a-4ed5-bb30-19a8b9021eb7",
+          "__enabled": true,
+          "Flags": 0,
+          "ColliderFlags": 0,
+          "Collision": "Mesh",
+          "Color": "1,1,1,1",
+          "Elasticity": null,
+          "Friction": null,
+          "HideInGame": false,
+          "IsTrigger": false,
+          "Mesh": {
+            "Data": {
+              "$blob": "3135ca4f-9879-8126-8eb8-8d8ab23f1bd9"
+            },
+            "Materials": [
+              "materials/generic/wall_brick_older.vmat"
+            ]
+          },
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "RenderType": "On",
+          "RollingResistance": null,
+          "SmoothingAngle": 40,
+          "Static": true,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
+        }
+      ],
+      "Children": []
+    },
+    {
+      "__guid": "43c574c5-3b76-4dd1-aa52-42d8224ba6fa",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Block (3)",
+      "Position": "-1392,1348,4",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "world",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.MeshComponent",
+          "__guid": "5342068f-61ab-4eff-a4de-b410d0f94512",
+          "__enabled": true,
+          "Flags": 0,
+          "ColliderFlags": 0,
+          "Collision": "Mesh",
+          "Color": "1,1,1,1",
+          "Elasticity": null,
+          "Friction": null,
+          "HideInGame": false,
+          "IsTrigger": false,
+          "Mesh": {
+            "Data": {
+              "$blob": "249bdae1-ba5f-8859-b518-797e79990229"
+            },
+            "Materials": [
+              "materials/generic/wall_brick_older.vmat"
+            ]
+          },
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "RenderType": "On",
+          "RollingResistance": null,
+          "SmoothingAngle": 40,
+          "Static": true,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
+        }
+      ],
+      "Children": []
+    },
+    {
+      "__guid": "46b90d8d-5982-49bd-bb2f-8d525b62e024",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Block (2)",
+      "Position": "-352,1944,4",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "world",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.MeshComponent",
+          "__guid": "8291f364-4562-4e30-aef4-e703024f03f4",
+          "__enabled": true,
+          "Flags": 0,
+          "ColliderFlags": 0,
+          "Collision": "Mesh",
+          "Color": "1,1,1,1",
+          "Elasticity": null,
+          "Friction": null,
+          "HideInGame": false,
+          "IsTrigger": false,
+          "Mesh": {
+            "Data": {
+              "$blob": "e085b24e-074c-8269-b659-a5d8a96afb3a"
+            },
+            "Materials": [
+              "materials/generic/wall_brick_older.vmat"
+            ]
+          },
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "RenderType": "On",
+          "RollingResistance": null,
+          "SmoothingAngle": 40,
+          "Static": true,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
+        }
+      ],
+      "Children": []
+    },
+    {
+      "__guid": "cfb62f29-4a9c-417e-af8c-4d168a05bcc1",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Block",
+      "Position": "-352,764,76",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "world",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.MeshComponent",
+          "__guid": "a149a570-d9bc-4706-af7d-7986ed9efe13",
+          "__enabled": true,
+          "Flags": 0,
+          "ColliderFlags": 0,
+          "Collision": "Mesh",
+          "Color": "1,1,1,1",
+          "Elasticity": null,
+          "Friction": null,
+          "HideInGame": false,
+          "IsTrigger": false,
+          "Mesh": {
+            "Data": {
+              "$blob": "a17287f4-6f56-8d17-9cc1-f509ab5b3229"
+            },
+            "Materials": [
+              "materials/glass/glass_a.vmat"
+            ]
+          },
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "RenderType": "On",
+          "RollingResistance": null,
+          "SmoothingAngle": 40,
+          "Static": true,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
+        }
+      ],
+      "Children": []
+    }
+  ],
+  "SceneProperties": {
+    "NetworkInterpolation": true,
+    "TimeScale": 1,
+    "WantsSystemScene": true,
+    "Metadata": {},
+    "NavMesh": {
+      "Enabled": false,
+      "IncludeStaticBodies": true,
+      "IncludeKeyframedBodies": true,
+      "EditorAutoUpdate": false,
+      "AgentHeight": 64,
+      "AgentRadius": 16,
+      "AgentStepSize": 18,
+      "AgentMaxSlope": 40,
+      "ExcludedBodies": "",
+      "IncludedBodies": "",
+      "DeferGeneration": false,
+      "CustomBounds": false
+    },
+    "GameObjectSystems": {
+      "Sandbox.Clutter.ClutterGridSystem": {
+        "Storage": {
+          "$blob": "64db792e-5935-8fbc-8cfa-050cd49fa7fd",
+          "$refs": []
+        }
+      },
+      "Sandbox.SelectionSetsSystem": {
+        "Data": {
+          "SelectionSets": []
+        }
+      }
+    }
+  },
+  "ResourceVersion": 3,
+  "Title": null,
+  "Description": null,
+  "__references": [
+    "facepunch.concrete_pol_01#291666",
+    "facepunch.glass_a#293147",
+    "facepunch.terrain_grass_a#310246",
+    "facepunch.wall_brick_older#291812"
+  ],
+  "__version": 3
+}

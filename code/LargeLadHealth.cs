@@ -192,7 +192,13 @@ public sealed class LargeLadHealth : Component, ILargeLadDamageable,
 			BaseDamage = damage.Damage
 		};
 
-		TryApplyDamage( context, out _ );
+		TryApplyDamage( context, out var appliedDamage );
+
+		// Host-controlled BaseCombatWeapon shots apply immediately and bypass the
+		// remote ShotClaim validator. Confirm only damage that this authoritative
+		// health component actually accepted.
+		if ( appliedDamage.AppliedDamage > 0.0f )
+			weapon.ConfirmHostControlledPlayerHit( hitRegion );
 	}
 
 	public bool TakeDamage( float amount )

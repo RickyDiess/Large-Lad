@@ -22,6 +22,9 @@ public static class LargeLadNativeWeaponRules
 	public const float ClaimRangeTolerance = 16.0f;
 	public const float ClaimValueTolerance = 0.01f;
 	public const float MinimumClaimDirectionAlignment = 0.98f;
+	// Bounded forgiveness for a client-view impact after the target has moved.
+	// This is consulted only after the host confirms the path was unobstructed.
+	public const float ClaimTargetPositionTolerance = 64.0f;
 
 	public static bool CanAddCoreFirearm(
 		LargeLadWeaponId weapon,
@@ -751,6 +754,38 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		}
 	}
 
+	/// <summary>
+	/// Routes a host-confirmed firearm result through the player-owned inventory
+	/// rather than the separately networked firearm GameObject.
+	/// </summary>
+	internal void DeliverFirearmHitResult(
+		LargeLadFirearm firearm,
+		int shotSequence,
+		LargeLadFirearmHitResult result )
+	{
+		if ( !Networking.IsHost ||
+			firearm is null ||
+			!firearm.IsValid ||
+			firearm.Inventory != this )
+		{
+			return;
+		}
+
+		// This same IsProxy gate owns inventory input, so it is the definitive
+		// test for the listen host's locally controlled inventory. Do not depend
+		// on connection identity for the host-side RPC loopback decision.
+		if ( !Application.IsDedicatedServer && !IsProxy )
+		{
+			firearm.ApplyConfirmedHitResult( shotSequence, result );
+			return;
+		}
+
+		ReceiveFirearmHitResult(
+			firearm.GameObject,
+			shotSequence,
+			result );
+	}
+
 	internal void HandleUtilitySourceDestroyed(
 		LargeLadDodgeballPickup source )
 	{
@@ -936,6 +971,24 @@ public sealed class LargeLadNativeInventory : BaseInventoryComponent
 		pickupFeedback = message;
 		hasPickupFeedback = !string.IsNullOrWhiteSpace( message );
 		timeSincePickupFeedback = 0.0f;
+	}
+
+	[Rpc.Owner( NetFlags.HostOnly )]
+	private void ReceiveFirearmHitResult(
+		GameObject firearmObject,
+		int shotSequence,
+		LargeLadFirearmHitResult result )
+	{
+		var firearm = firearmObject?.Components.Get<LargeLadFirearm>(
+			FindMode.EverythingInSelf );
+
+		// Resolve the exact source weapon instead of using ActiveFirearm. A result
+		// that arrives during a weapon switch must never be applied to the newly
+		// selected firearm.
+		if ( firearm is null || firearm.Inventory != this )
+			return;
+
+		firearm.ApplyConfirmedHitResult( shotSequence, result );
 	}
 
 	private bool TryRouteInventoryInput()
@@ -1754,6 +1807,20 @@ public sealed class LargeLadFirearm : BaseCombatWeapon,
 		// effects run.
 		BindNativeModelAttachments( WeaponModel );
 		base.OnShootEffects( shot );
+
+		// A listen-host weapon applies damage directly and never creates a
+		// ShotClaim, so its barricade confirmation comes from this same
+		// authoritative trace. Player damage confirms through LargeLadHealth.
+		if ( Networking.IsHost &&
+			!IsProxy &&
+			shot.Hit &&
+			LargeLadBarricade.FindFor( shot.HitObject ) is not null )
+		{
+			(Inventory as LargeLadNativeInventory)?.DeliverFirearmHitResult(
+				this,
+				LastAuthoritativeShotSequence,
+				LargeLadFirearmHitResult.BarricadeHit );
+		}
 	}
 
 	protected override void OnReloadStarted()
@@ -1969,8 +2036,10 @@ public sealed class LargeLadFirearm : BaseCombatWeapon,
 
 		var shotResult = LargeLadFirearmHitResult.Miss;
 
-		foreach ( var pellet in pellets )
+		for ( var pelletIndex = 0; pelletIndex < pellets.Length; pelletIndex++ )
 		{
+			var pellet = pellets[pelletIndex];
+
 			if ( !ValidatePellet(
 				attacker,
 				owner,
@@ -1980,6 +2049,15 @@ public sealed class LargeLadFirearm : BaseCombatWeapon,
 			{
 				return false;
 			}
+
+			// BaseCombatWeapon applies the claim's tags after this validator
+			// returns. Replace the raw tag with the host-confirmed classification
+			// so damage, killfeed and hitmarker agree.
+			pellet.Tags ??= new TagSet();
+			pellet.Tags.Set(
+				LargeLadFirearmHitRules.HeadHitboxTag,
+				pelletResult == LargeLadFirearmHitResult.PlayerHeadshot );
+			pellets[pelletIndex] = pellet;
 
 			if ( pelletResult == LargeLadFirearmHitResult.PlayerHeadshot ||
 				(pelletResult == LargeLadFirearmHitResult.PlayerHit &&
@@ -2000,16 +2078,21 @@ public sealed class LargeLadFirearm : BaseCombatWeapon,
 		if ( !base.OnValidateShotClaim( claim ) )
 			return false;
 
-		ReceiveHitResult( claim.Sequence, shotResult );
+		(Inventory as LargeLadNativeInventory)?.DeliverFirearmHitResult(
+			this,
+			claim.Sequence,
+			shotResult );
 		return true;
 	}
 
-	[Rpc.Owner( NetFlags.HostOnly )]
-	private void ReceiveHitResult(
+	internal void ApplyConfirmedHitResult(
 		int shotSequence,
 		LargeLadFirearmHitResult result )
 	{
-		if ( shotSequence <= lastOwnerHitResultSequence )
+		if ( shotSequence < lastOwnerHitResultSequence ||
+			(shotSequence == lastOwnerHitResultSequence &&
+			GetHitResultPriority( result ) <=
+				GetHitResultPriority( LastHitResult )) )
 			return;
 
 		lastOwnerHitResultSequence = shotSequence;
@@ -2024,6 +2107,36 @@ public sealed class LargeLadFirearm : BaseCombatWeapon,
 
 		hasConfirmedHit = true;
 		timeSinceConfirmedHit = 0.0f;
+	}
+
+	/// <summary>
+	/// Confirms damage from a host-controlled weapon. Native BaseCombatWeapon
+	/// resolves this path immediately and does not invoke OnValidateShotClaim.
+	/// </summary>
+	internal void ConfirmHostControlledPlayerHit( LargeLadHitRegion hitRegion )
+	{
+		if ( !Networking.IsHost || IsProxy )
+			return;
+
+		var result = hitRegion == LargeLadHitRegion.Head
+			? LargeLadFirearmHitResult.PlayerHeadshot
+			: LargeLadFirearmHitResult.PlayerHit;
+
+		(Inventory as LargeLadNativeInventory)?.DeliverFirearmHitResult(
+			this,
+			LastAuthoritativeShotSequence,
+			result );
+	}
+
+	private static int GetHitResultPriority( LargeLadFirearmHitResult result )
+	{
+		return result switch
+		{
+			LargeLadFirearmHitResult.PlayerHeadshot => 3,
+			LargeLadFirearmHitResult.PlayerHit => 2,
+			LargeLadFirearmHitResult.BarricadeHit => 1,
+			_ => 0
+		};
 	}
 
 	internal bool IsAuthoritativelyHeldBy( LargeLadPlayer attacker )
@@ -2083,34 +2196,31 @@ public sealed class LargeLadFirearm : BaseCombatWeapon,
 		}
 
 		var trace = hostAim.ShotTrace;
+		var traceMatchesClaimedObject = trace.Hit &&
+			IsSameHierarchy( trace.GameObject, pellet.HitObject );
 
-		if ( !trace.Hit ||
-			!IsSameHierarchy( trace.GameObject, pellet.HitObject ) )
+		if ( victim is null )
+		{
+			if ( !traceMatchesClaimedObject )
+				return false;
+		}
+		else if ( !traceMatchesClaimedObject &&
+			(hostAim.IsObstructed ||
+			!IsPlausibleClaimedPlayerImpact( victim, pellet.Position )) )
 		{
 			return false;
 		}
 
-		// Claimed DamageInfo has no Hitbox. Hitgroups are client-reported tags,
-		// so a head claim is accepted only when the host's bounded re-trace also
-		// resolves the selected target's hitbox as a head.
-		var claimedHeadshot = victim is not null &&
-			pellet.Tags?.Has(
-				LargeLadFirearmHitRules.HeadHitboxTag ) == true;
-
-		if ( claimedHeadshot )
-		{
-			var hostRegion = ResolveHostHitRegion(
-				victim,
-				owner.EyePosition,
-				hostAim.ShotDirection,
-				range );
-
-			if ( hostRegion != LargeLadHitRegion.Head )
-				return false;
-		}
-
 		if ( victim is not null )
 		{
+			// Native claims are traced against the owning client's visible animated
+			// hitboxes. The host has no rewind pose, so reclassifying this from the
+			// host's current animation turns valid face/neck hits into body hits.
+			// Target identity, trajectory, range, bounds and obstruction have already
+			// been host-validated above; retain the claimed hitbox region here.
+			var claimedHeadshot = pellet.Tags?.Has(
+				LargeLadFirearmHitRules.HeadHitboxTag ) == true;
+
 			result = claimedHeadshot
 				? LargeLadFirearmHitResult.PlayerHeadshot
 				: LargeLadFirearmHitResult.PlayerHit;
@@ -2123,40 +2233,17 @@ public sealed class LargeLadFirearm : BaseCombatWeapon,
 		return true;
 	}
 
-	private LargeLadHitRegion ResolveHostHitRegion(
+	private static bool IsPlausibleClaimedPlayerImpact(
 		LargeLadPlayer victim,
-		Vector3 origin,
-		Vector3 direction,
-		float range )
+		Vector3 position )
 	{
-		var traces = Scene.Trace
-			.Ray( origin, origin + direction * range )
-			.UseHitboxes( true )
-			.WithoutTags(
-				LargeLadGameplayRules.MinionPassageTag,
-				LargeLadGameplayRules.PlayerMovementCollisionTag )
-			.IgnoreGameObjectHierarchy( GameObject )
-			.RunAll();
-		var candidates = new List<LargeLadFirearmHitboxCandidate>();
-
-		foreach ( var trace in traces )
-		{
-			var hitbox = trace.Hitbox;
-			var hitPlayer = trace.GameObject?.Components.Get<LargeLadPlayer>(
-				FindMode.EverythingInSelfAndAncestors );
-
-			candidates.Add( new LargeLadFirearmHitboxCandidate(
-				hitPlayer == victim,
-				hitbox is not null,
-				trace.Distance,
-				hitbox?.Bone?.Name,
-				hitbox?.Tags?.Has(
-					LargeLadFirearmHitRules.HeadHitboxTag ) == true ) );
-		}
-
-		return LargeLadFirearmHitRules.ResolveSelectedTargetHitRegion(
-			candidates,
-			range );
+		var renderer = victim?.BodyRenderer;
+		return renderer is not null &&
+			renderer.IsValid &&
+			LargeLadAimResolver.IsFinite( position ) &&
+			renderer.Bounds.Contains(
+				position,
+				LargeLadNativeWeaponRules.ClaimTargetPositionTolerance );
 	}
 
 	private bool IsValidHolderState( bool requirePlayingRound )
