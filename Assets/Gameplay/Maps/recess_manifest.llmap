@@ -1,0 +1,20 @@
+{
+  "StableMapId": "large_lad.recess",
+  "ContractVersion": 1,
+  "PublishedPackageIdent": "",
+  "DisplayName": "Recess",
+  "MapperCredit": "Rokey",
+  "PresentationAsset": "gameplay/maps/gym.png",
+  "Backstory": "",
+  "GameplayTip": "Run",
+  "RecommendedMinimumPlayers": 2,
+  "RecommendedMaximumPlayers": 32,
+  "BalanceOverrides": {
+    "SurvivalDurationSeconds": 0,
+    "SkinnyProgressionBarricadeMaximumHealthMultiplier": 0,
+    "LargeLadMaximumHealthMultiplier": 0,
+    "HunterEscalationMultiplier": 0
+  },
+  "__references": [],
+  "__version": 0
+}

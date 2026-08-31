@@ -769,7 +769,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "1dafb878-d88f-83e6-b188-f10e81a1fe21"
+                          "$blob": "a4849ebf-7d8a-8f3c-a94d-15804007b83c"
                         },
                         "Materials": [
                           "materials/dev/primary_red.vmat"
@@ -1161,10 +1161,10 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "d85de24e-2023-8e26-936e-cef4f7c781cf"
+                          "$blob": "02fe58f5-013c-82a4-a53a-44db5ffd62a4"
                         },
                         "Materials": [
-                          "materials/tools/toolstrigger.vmat"
+                          "materials/tools/toolsnodraw.vmat"
                         ]
                       },
                       "OnComponentDestroy": null,
@@ -1275,7 +1275,7 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "1dafb878-d88f-83e6-b188-f10e81a1fe21"
+                          "$blob": "e0f6e6b4-e16f-843a-aca6-8708409c176a"
                         },
                         "Materials": [
                           "materials/dev/primary_red.vmat"
@@ -1667,10 +1667,10 @@
                       "IsTrigger": false,
                       "Mesh": {
                         "Data": {
-                          "$blob": "d85de24e-2023-8e26-936e-cef4f7c781cf"
+                          "$blob": "6cd5eda4-cd23-8dde-a383-5908e20414b8"
                         },
                         "Materials": [
-                          "materials/tools/toolstrigger.vmat"
+                          "materials/tools/toolsnodraw.vmat"
                         ]
                       },
                       "OnComponentDestroy": null,

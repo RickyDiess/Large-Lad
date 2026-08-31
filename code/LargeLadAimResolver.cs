@@ -78,7 +78,8 @@ public static class LargeLadAimResolver
 			.UseHitboxes( true )
 			.WithoutTags(
 				LargeLadGameplayRules.MinionPassageTag,
-				LargeLadGameplayRules.PlayerMovementCollisionTag )
+				LargeLadGameplayRules.PlayerMovementCollisionTag,
+				LargeLadDodgeballRules.CollisionTag )
 			.IgnoreGameObjectHierarchy( shooter )
 			.Run();
 		var desiredAimPoint = viewTrace.EndPosition;
@@ -257,7 +258,8 @@ public static class LargeLadAimResolver
 			.UseHitboxes( true )
 			.WithoutTags(
 				LargeLadGameplayRules.MinionPassageTag,
-				LargeLadGameplayRules.PlayerMovementCollisionTag )
+				LargeLadGameplayRules.PlayerMovementCollisionTag,
+				LargeLadDodgeballRules.CollisionTag )
 			.IgnoreGameObjectHierarchy( shooter )
 			.Run();
 	}

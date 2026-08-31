@@ -7,6 +7,10 @@
     {
       "MapInstanceIdentifier": "scenes/halls.scene",
       "Manifest": "gameplay/maps/halls_manifest.llmap"
+    },
+    {
+      "MapInstanceIdentifier": "scenes/recess.scene",
+      "Manifest": "gameplay/maps/recess_manifest.llmap"
     }
   ],
   "__references": [],

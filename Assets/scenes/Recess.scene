@@ -22,7 +22,7 @@
           "__guid": "c4d979f5-981a-4a70-aa54-e0531919cc79",
           "__enabled": true,
           "Flags": 0,
-          "Manifest": null,
+          "Manifest": "gameplay/maps/recess_manifest.llmap",
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -145,7 +145,7 @@
           "OnComponentStart": null,
           "OnComponentUpdate": null,
           "SkyIndirectLighting": true,
-          "SkyMaterial": "materials/skybox/skybox_sunrise_01.vmat",
+          "SkyMaterial": "materials/skybox/skybox_overcast_02.vmat",
           "Tint": "0.61569,0.61569,0.61569,1"
         }
       ],
@@ -176,7 +176,7 @@
           "Contribution": "Diffuse, Specular, Transmissive",
           "FogMode": "Enabled",
           "FogStrength": 1,
-          "LightColor": "0.97953,1,0.84651,1",
+          "LightColor": "0.26977,0.26977,0.26977,1",
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -188,7 +188,7 @@
           "ShadowCascadeSplitRatio": 0.91,
           "ShadowHardness": 0,
           "Shadows": true,
-          "SkyColor": "1,1,1,0.15",
+          "SkyColor": "0.26047,0.26047,0.26047,0.15",
           "Visualizer": {}
         }
       ],
@@ -546,11 +546,12 @@
           "IsTrigger": false,
           "Mesh": {
             "Data": {
-              "$blob": "7bc57041-9d19-825c-87a8-a5318981f0c6"
+              "$blob": "bfa05598-ae6c-8b97-a8ed-b2b3b6c08232"
             },
             "Materials": [
               "materials/generic/wall_brick_older.vmat",
-              "materials/concrete/floor/concrete_polished_01.vmat"
+              "materials/concrete/floor/concrete_polished_01.vmat",
+              "materials/plaster/wall/plaster_b.vmat"
             ]
           },
           "OnComponentDestroy": null,
@@ -771,10 +772,11 @@
           "IsTrigger": false,
           "Mesh": {
             "Data": {
-              "$blob": "3135ca4f-9879-8126-8eb8-8d8ab23f1bd9"
+              "$blob": "8d8ca683-261e-8d2a-add3-43176c62b7f9"
             },
             "Materials": [
-              "materials/generic/wall_brick_older.vmat"
+              "materials/generic/wall_brick_older.vmat",
+              "materials/concrete/floor/concrete_polished_01.vmat"
             ]
           },
           "OnComponentDestroy": null,
@@ -827,10 +829,11 @@
           "IsTrigger": false,
           "Mesh": {
             "Data": {
-              "$blob": "249bdae1-ba5f-8859-b518-797e79990229"
+              "$blob": "acd36a16-7492-8ada-84cf-84cce30161bf"
             },
             "Materials": [
-              "materials/generic/wall_brick_older.vmat"
+              "materials/generic/wall_brick_older.vmat",
+              "materials/concrete/floor/concrete_polished_01.vmat"
             ]
           },
           "OnComponentDestroy": null,
@@ -883,10 +886,11 @@
           "IsTrigger": false,
           "Mesh": {
             "Data": {
-              "$blob": "e085b24e-074c-8269-b659-a5d8a96afb3a"
+              "$blob": "b6a261f3-b963-874a-81e1-b0cac55c1c93"
             },
             "Materials": [
-              "materials/generic/wall_brick_older.vmat"
+              "materials/generic/wall_brick_older.vmat",
+              "materials/concrete/floor/concrete_polished_01.vmat"
             ]
           },
           "OnComponentDestroy": null,
@@ -914,7 +918,7 @@
       "__version": 2,
       "Flags": 0,
       "Name": "Block",
-      "Position": "-352,764,76",
+      "Position": "-392,764,76",
       "Rotation": "0,0,0,1",
       "Scale": "1,1,1",
       "Tags": "world",
@@ -939,10 +943,67 @@
           "IsTrigger": false,
           "Mesh": {
             "Data": {
-              "$blob": "a17287f4-6f56-8d17-9cc1-f509ab5b3229"
+              "$blob": "ce88f859-6e3b-8b56-bc52-c421b214627f"
             },
             "Materials": [
               "materials/glass/glass_a.vmat"
+            ]
+          },
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "RenderType": "On",
+          "RollingResistance": null,
+          "SmoothingAngle": 40,
+          "Static": true,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
+        }
+      ],
+      "Children": []
+    },
+    {
+      "__guid": "0f1579d6-8c0e-4b7b-a2e7-803c01957d10",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Block",
+      "Position": "48,760,80",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "world",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.MeshComponent",
+          "__guid": "9e193d4a-5783-48d0-b408-f898ce1b9fd1",
+          "__enabled": true,
+          "Flags": 0,
+          "ColliderFlags": 0,
+          "Collision": "Mesh",
+          "Color": "1,1,1,1",
+          "Elasticity": null,
+          "Friction": null,
+          "HideInGame": false,
+          "IsTrigger": false,
+          "Mesh": {
+            "Data": {
+              "$blob": "bb3a5ef9-2fde-83e1-af4b-947385da7e2c"
+            },
+            "Materials": [
+              "materials/generic/wall_brick_older.vmat",
+              "materials/plaster/wall/plaster_b.vmat"
             ]
           },
           "OnComponentDestroy": null,
@@ -1005,6 +1066,7 @@
   "__references": [
     "facepunch.concrete_pol_01#291666",
     "facepunch.glass_a#293147",
+    "facepunch.plaster_b#313589",
     "facepunch.terrain_grass_a#310246",
     "facepunch.wall_brick_older#291812"
   ],

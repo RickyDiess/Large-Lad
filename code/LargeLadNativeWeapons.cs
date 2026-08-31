@@ -1893,9 +1893,13 @@ public sealed class LargeLadFirearm : BaseCombatWeapon,
 		float distance,
 		float radius )
 	{
+		// Native ShootBullet resolves both damage and a host-only physics impulse
+		// from this trace. Excluding the authored ball tag keeps gunfire out of
+		// that force path without changing the dodgeball's physical collisions.
 		return base.BulletTrace( ray, distance, radius )
 			.WithoutTags(
-				LargeLadGameplayRules.PlayerMovementCollisionTag );
+				LargeLadGameplayRules.PlayerMovementCollisionTag,
+				LargeLadDodgeballRules.CollisionTag );
 	}
 
 	private static void SetPresentationEnabled(
