@@ -338,9 +338,10 @@ internal static class LargeLadSceneRegistry
 				"must target the sole active coordinator on the same gameplay " +
 				"bootstrap object." );
 		}
-		else
+		else if ( mapInstances.Count == 1 )
 		{
-			manager.SessionCoordinator.ResolveBootstrapReferences( mapInstances[0] );
+			var mapInstance = mapInstances[0];
+			manager.SessionCoordinator.ResolveBootstrapReferences( mapInstance );
 
 			if ( manager.SessionCoordinator.GameManager != manager )
 			{
@@ -349,8 +350,7 @@ internal static class LargeLadSceneRegistry
 					"manager on its gameplay bootstrap object." );
 			}
 
-			if ( mapInstances.Count != 1 ||
-				manager.SessionCoordinator.MapInstance != mapInstances[0] ||
+			if ( manager.SessionCoordinator.MapInstance != mapInstance ||
 				!manager.SessionCoordinator.MapInstance.GameObject.IsRoot )
 			{
 				issues.Add(
