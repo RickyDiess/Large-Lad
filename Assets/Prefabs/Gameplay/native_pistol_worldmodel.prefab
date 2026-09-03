@@ -58,7 +58,7 @@
         "Position": "4,0,-3.5",
         "Rotation": "0,0,0,1",
         "Scale": "1,1,1",
-        "Tags": "weapon",
+        "Tags": "",
         "Enabled": true,
         "NetworkMode": 0,
         "NetworkFlags": 0,
@@ -112,11 +112,66 @@
             "UseAnimGraph": false
           }
         ],
-        "Children": []
+        "Children": [
+          {
+            "__guid": "e911a462-5cca-452a-a87a-f810b3906543",
+            "__version": 2,
+            "Flags": 0,
+            "Name": "RightHandGrip",
+            "Position": "-3.2551651,0,3.02114606",
+            "Rotation": "-0.13052699,0,0,0.991444767",
+            "Scale": "1,1,1",
+            "Tags": "",
+            "Enabled": true,
+            "NetworkMode": 0,
+            "NetworkFlags": 0,
+            "NetworkOrphaned": 0,
+            "NetworkTransmit": false,
+            "OwnerTransfer": 0,
+            "Components": [],
+            "Children": []
+          },
+          {
+            "__guid": "42abcb92-4d02-48b5-9224-84494352e0f7",
+            "__version": 2,
+            "Flags": 0,
+            "Name": "muzzle",
+            "Position": "0,0,0",
+            "Rotation": "0,0,0,1",
+            "Scale": "1,1,1",
+            "Tags": "",
+            "Enabled": true,
+            "NetworkMode": 2,
+            "NetworkFlags": 0,
+            "NetworkOrphaned": 0,
+            "NetworkTransmit": true,
+            "OwnerTransfer": 1,
+            "Components": [],
+            "Children": []
+          },
+          {
+            "__guid": "e2912000-063e-4a01-90f4-11196620b0ed",
+            "__version": 2,
+            "Flags": 0,
+            "Name": "eject",
+            "Position": "0,0,0",
+            "Rotation": "0,0,0,1",
+            "Scale": "1,1,1",
+            "Tags": "",
+            "Enabled": true,
+            "NetworkMode": 2,
+            "NetworkFlags": 0,
+            "NetworkOrphaned": 0,
+            "NetworkTransmit": true,
+            "OwnerTransfer": 1,
+            "Components": [],
+            "Children": []
+          }
+        ]
       }
     ],
     "__properties": {
-      "NetworkInterpolation": false,
+      "NetworkInterpolation": true,
       "TimeScale": 1,
       "WantsSystemScene": true,
       "Metadata": {},

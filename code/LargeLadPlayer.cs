@@ -19,6 +19,7 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 {
 	private const int TeleportSettleFrames = 2;
 	private const float KillVolumeTeleportGrace = 0.5f;
+	private const string LeftHandWeaponIkName = "hand_left";
 
 	private Scene registeredScene;
 	private Vector3 pendingTeleportPosition;
@@ -35,6 +36,8 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 		LargeLadRolePreference.NoPreference;
 	private LargeLadRoleSelectionHistory roleSelectionHistory;
 	private int nextLocalRolePreferenceRequestId;
+	private SkinnedModelRenderer leftHandWeaponIkRenderer;
+	private bool hasLeftHandWeaponIk;
 
 	[Property, RequireComponent]
 	public LargeLadHealth Health { get; set; }
@@ -116,10 +119,12 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 		base.OnEnabled();
 		ApplyRoleCollision( Role );
 		RegisterWithGameManager();
+		UpdateLeftHandWeaponIk();
 	}
 
 	protected override void OnDisabled()
 	{
+		ClearLeftHandWeaponIk();
 		CancelEatParticipationForLifecycle();
 		CancelGroundSlamStagger();
 		pendingSoftSeparationDisplacement = Vector3.Zero;
@@ -129,6 +134,7 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 
 	protected override void OnDestroy()
 	{
+		ClearLeftHandWeaponIk();
 		CancelEatParticipationForLifecycle();
 		CancelGroundSlamStagger();
 		UnregisterFromGameManager();
@@ -143,10 +149,16 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 		lastLocalUiInputSuppressed =
 			LargeLadLocalUiInput.ShouldSuppressGameplayInput;
 		RefreshMovementState();
+		UpdateLeftHandWeaponIk();
 	}
 
 	protected override void OnUpdate()
 	{
+		// Weapon models are local presentation objects on every peer. Derive the
+		// support-hand target locally so observers see the same IK without an RPC
+		// or a continuously synchronized transform.
+		UpdateLeftHandWeaponIk();
+
 		if ( Networking.IsHost &&
 			IsGroundSlamStaggered &&
 			Time.Now >= groundSlamStaggerEndsAt )
@@ -183,6 +195,7 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 	{
 		base.OnRefresh();
 		ApplyRoleCollision( Role );
+		UpdateLeftHandWeaponIk();
 	}
 
 	protected override void OnFixedUpdate()
@@ -269,6 +282,9 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 		// The synchronized role is sufficient to update presentation on every
 		// observer and movement settings on whichever peer owns this player.
 		ApplyRoleProfile( newRole );
+		if ( newRole != LargeLadRole.SkinnyKid )
+			ClearLeftHandWeaponIk();
+
 		LargeLadSceneRegistry.NotifyPlayerRoleChanged(
 			registeredScene,
 			this,
@@ -282,6 +298,53 @@ public sealed class LargeLadPlayer : Component, IScenePhysicsEvents
 				$"[Debug/Player Lifecycle] {GameObject.Name} changed role " +
 				$"from {oldRole} to {newRole}." );
 		}
+	}
+
+	private void UpdateLeftHandWeaponIk()
+	{
+		var renderer = BodyRenderer;
+
+		if ( leftHandWeaponIkRenderer is not null &&
+			leftHandWeaponIkRenderer != renderer )
+		{
+			ClearLeftHandWeaponIk();
+		}
+
+		var firearm = NativeInventory?.ActiveItem as LargeLadFirearm;
+		var gripTransform = default( Transform );
+		var canApply =
+			renderer is not null &&
+			renderer.IsValid &&
+			Role == LargeLadRole.SkinnyKid &&
+			Health?.IsDead == false &&
+			firearm is not null &&
+			firearm.IsValid &&
+			firearm.IsHeld &&
+			firearm.IsActive &&
+			firearm.TryGetLeftHandGrip( out gripTransform );
+
+		if ( !canApply )
+		{
+			ClearLeftHandWeaponIk();
+			return;
+		}
+
+		renderer.SetIk( LeftHandWeaponIkName, gripTransform );
+		leftHandWeaponIkRenderer = renderer;
+		hasLeftHandWeaponIk = true;
+	}
+
+	private void ClearLeftHandWeaponIk()
+	{
+		if ( hasLeftHandWeaponIk &&
+			leftHandWeaponIkRenderer is not null &&
+			leftHandWeaponIkRenderer.IsValid )
+		{
+			leftHandWeaponIkRenderer.ClearIk( LeftHandWeaponIkName );
+		}
+
+		hasLeftHandWeaponIk = false;
+		leftHandWeaponIkRenderer = null;
 	}
 
 	private void OnMovementLockedChanged( bool oldValue, bool newValue )

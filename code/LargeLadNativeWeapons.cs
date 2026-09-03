@@ -1495,6 +1495,8 @@ public sealed class LargeLadFirearm : BaseCombatWeapon,
 {
 	private const float ConfirmedHitmarkerDuration = 0.14f;
 	private const float ReloadSoundVolume = 0.3f;
+	private const string LeftHandGripName = "LeftHandGrip";
+	private const string RightHandGripName = "RightHandGrip";
 
 	// BaseCombatWeapon numbers the first native shot claim as sequence zero.
 	private int lastHostClaimSequence = -1;
@@ -1510,6 +1512,10 @@ public sealed class LargeLadFirearm : BaseCombatWeapon,
 	private BoxCollider exclusiveWorldCollider;
 	private Transform preparedExclusiveWorldTransform;
 	private bool hasPreparedExclusiveWorldDrop;
+	private GameObject cachedLeftHandGrip;
+	private GameObject cachedLeftHandGripWorldModel;
+	private GameObject cachedRightHandGrip;
+	private GameObject cachedRightHandGripWorldModel;
 
 	[Property]
 	public LargeLadWeaponId WeaponId { get; set; } = LargeLadWeaponId.Pistol;
@@ -1775,7 +1781,10 @@ public sealed class LargeLadFirearm : BaseCombatWeapon,
 		}
 
 		if ( IsHeld && IsActive )
+		{
 			EnsureNativePresentation();
+			AlignWorldModelToRightHandGrip();
+		}
 
 		BindNativeModelAttachments( ViewModel );
 		BindNativeModelAttachments( WorldModel );
@@ -1787,7 +1796,12 @@ public sealed class LargeLadFirearm : BaseCombatWeapon,
 	protected override void CreateWorldModel()
 	{
 		base.CreateWorldModel();
+		cachedLeftHandGrip = null;
+		cachedLeftHandGripWorldModel = null;
+		cachedRightHandGrip = null;
+		cachedRightHandGripWorldModel = null;
 		BindNativeModelAttachments( WorldModel );
+		AlignWorldModelToRightHandGrip();
 	}
 
 	protected override void CreateViewModel()
@@ -1941,6 +1955,82 @@ public sealed class LargeLadFirearm : BaseCombatWeapon,
 
 		if ( !IsProxy && (ViewModel is null || !ViewModel.IsValid) )
 			CreateViewModel();
+	}
+
+	internal bool TryGetLeftHandGrip( out Transform gripTransform )
+	{
+		gripTransform = default;
+
+		if ( WeaponId is not (LargeLadWeaponId.Smg or
+			LargeLadWeaponId.Rifle or
+			LargeLadWeaponId.Shotgun) ||
+			WorldModel is null ||
+			!WorldModel.IsValid )
+		{
+			return false;
+		}
+
+		if ( cachedLeftHandGripWorldModel != WorldModel ||
+			cachedLeftHandGrip is null ||
+			!cachedLeftHandGrip.IsValid )
+		{
+			cachedLeftHandGripWorldModel = WorldModel;
+			cachedLeftHandGrip = WorldModel
+				.GetAllObjects( true )
+				.FirstOrDefault( candidate =>
+					candidate.Name == LeftHandGripName );
+		}
+
+		if ( cachedLeftHandGrip is null || !cachedLeftHandGrip.IsValid )
+			return false;
+
+		gripTransform = cachedLeftHandGrip.WorldTransform;
+		return true;
+	}
+
+	private void AlignWorldModelToRightHandGrip()
+	{
+		// The native world model is already parented to hold_R. Move the model
+		// root so the authored marker meets that attachment; driving hand_right
+		// IK from a descendant of the same hand would create a feedback loop.
+		if ( WeaponId is not (LargeLadWeaponId.Pistol or
+			LargeLadWeaponId.Smg or
+			LargeLadWeaponId.Rifle or
+			LargeLadWeaponId.Shotgun) ||
+			WorldModel is null ||
+			!WorldModel.IsValid )
+		{
+			return;
+		}
+
+		var attachment = WorldModel.Parent;
+		if ( attachment is null || !attachment.IsValid )
+			return;
+
+		if ( cachedRightHandGripWorldModel != WorldModel ||
+			cachedRightHandGrip is null ||
+			!cachedRightHandGrip.IsValid )
+		{
+			cachedRightHandGripWorldModel = WorldModel;
+			cachedRightHandGrip = WorldModel
+				.GetAllObjects( true )
+				.FirstOrDefault( candidate =>
+					candidate.Name == RightHandGripName );
+		}
+
+		if ( cachedRightHandGrip is null || !cachedRightHandGrip.IsValid )
+			return;
+
+		var desiredGrip = attachment.WorldTransform;
+		var currentGrip = cachedRightHandGrip.WorldTransform;
+		var alignedRoot = WorldModel.WorldTransform;
+		var deltaRotation =
+			desiredGrip.Rotation * currentGrip.Rotation.Inverse;
+
+		alignedRoot.Position = desiredGrip.Position +
+			deltaRotation * (alignedRoot.Position - currentGrip.Position);
+		alignedRoot.Rotation = deltaRotation * alignedRoot.Rotation;
+		WorldModel.WorldTransform = alignedRoot;
 	}
 
 	private void BindNativeModelAttachments( GameObject presentation )

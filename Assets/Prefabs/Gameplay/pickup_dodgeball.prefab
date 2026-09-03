@@ -24,7 +24,7 @@
         "CreateAttachments": false,
         "LodOverride": null,
         "MaterialGroup": null,
-        "MaterialOverride": null,
+        "MaterialOverride": "textures/dodgeball.vmat",
         "Materials": null,
         "Model": "models/dev/sphere.vmdl",
         "OnComponentDestroy": null,
@@ -40,7 +40,7 @@
           "AfterUILayer": false
         },
         "RenderType": "On",
-        "Tint": "1,0,0,1"
+        "Tint": "1,1,1,1"
       },
       {
         "__type": "Sandbox.SphereCollider",

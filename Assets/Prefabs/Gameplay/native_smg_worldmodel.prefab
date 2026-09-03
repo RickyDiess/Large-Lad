@@ -58,7 +58,7 @@
         "Position": "3,0,-7",
         "Rotation": "0,0,0,1",
         "Scale": "1,1,1",
-        "Tags": "weapon",
+        "Tags": "",
         "Enabled": true,
         "NetworkMode": 0,
         "NetworkFlags": 0,
@@ -103,20 +103,110 @@
               "AfterUILayer": false
             },
             "RenderType": "On",
-            "Sequence": { "Name": null, "Looping": true, "Blending": false },
+            "Sequence": {
+              "Name": null,
+              "Looping": true,
+              "Blending": false
+            },
             "Tint": "1,1,1,1",
             "UseAnimGraph": false
           }
         ],
-        "Children": []
+        "Children": [
+          {
+            "__guid": "dfd8db89-e9e5-4fc7-b6b5-5c3bf4532586",
+            "__version": 2,
+            "Flags": 0,
+            "Name": "LeftHandGrip",
+            "Position": "6.21134758,2.93407917,6.57110929",
+            "Rotation": "0,0,-0.608761132,0.793353379",
+            "Scale": "1,1,1",
+            "Tags": "",
+            "Enabled": true,
+            "NetworkMode": 0,
+            "NetworkFlags": 0,
+            "NetworkOrphaned": 0,
+            "NetworkTransmit": false,
+            "OwnerTransfer": 0,
+            "Components": [],
+            "Children": []
+          },
+          {
+            "__guid": "cf5ed17e-447f-41d0-826c-7dd15a3028a3",
+            "__version": 2,
+            "Flags": 0,
+            "Name": "RightHandGrip",
+            "Position": "-2.36364603,-0.865704119,6.21700573",
+            "Rotation": "0,0,0,1",
+            "Scale": "1,1,1",
+            "Tags": "",
+            "Enabled": true,
+            "NetworkMode": 0,
+            "NetworkFlags": 0,
+            "NetworkOrphaned": 0,
+            "NetworkTransmit": false,
+            "OwnerTransfer": 0,
+            "Components": [],
+            "Children": []
+          },
+          {
+            "__guid": "582ea925-8459-4526-b5cc-6f4b1600157c",
+            "__version": 2,
+            "Flags": 0,
+            "Name": "muzzle",
+            "Position": "0,0,0",
+            "Rotation": "0,0,0,1",
+            "Scale": "1,1,1",
+            "Tags": "",
+            "Enabled": true,
+            "NetworkMode": 2,
+            "NetworkFlags": 0,
+            "NetworkOrphaned": 0,
+            "NetworkTransmit": true,
+            "OwnerTransfer": 1,
+            "Components": [],
+            "Children": []
+          },
+          {
+            "__guid": "ba187d43-2f27-46bb-b7c3-2b16ad63335a",
+            "__version": 2,
+            "Flags": 0,
+            "Name": "eject",
+            "Position": "0,0,0",
+            "Rotation": "0,0,0,1",
+            "Scale": "1,1,1",
+            "Tags": "",
+            "Enabled": true,
+            "NetworkMode": 2,
+            "NetworkFlags": 0,
+            "NetworkOrphaned": 0,
+            "NetworkTransmit": true,
+            "OwnerTransfer": 1,
+            "Components": [],
+            "Children": []
+          }
+        ]
       }
     ],
     "__properties": {
-      "NetworkInterpolation": false,
+      "NetworkInterpolation": true,
       "TimeScale": 1,
       "WantsSystemScene": true,
       "Metadata": {},
-      "NavMesh": { "Enabled": false, "DeferGeneration": false, "CustomBounds": false }
+      "NavMesh": {
+        "Enabled": false,
+        "IncludeStaticBodies": true,
+        "IncludeKeyframedBodies": true,
+        "EditorAutoUpdate": false,
+        "AgentHeight": 64,
+        "AgentRadius": 16,
+        "AgentStepSize": 18,
+        "AgentMaxSlope": 40,
+        "ExcludedBodies": "",
+        "IncludedBodies": "",
+        "DeferGeneration": false,
+        "CustomBounds": false
+      }
     },
     "__variables": []
   },
@@ -125,6 +215,8 @@
   "MenuPath": null,
   "MenuIcon": null,
   "DontBreakAsTemplate": false,
-  "__references": [ "facepunch.w_mp5#279124" ],
+  "__references": [
+    "facepunch.w_mp5#279124"
+  ],
   "__version": 2
 }

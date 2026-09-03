@@ -20,6 +20,7 @@
         "__guid": "d2b70303-0000-4000-8000-000000000003",
         "__enabled": true,
         "Flags": 0,
+        "DeploySound": null,
         "EjectBrass": {
           "_type": "gameobject",
           "prefab": "prefabs/effects/default_brasseject.prefab"
@@ -29,6 +30,12 @@
           "prefab": "prefabs/effects/default_muzzleflash.prefab"
         },
         "MuzzleGameObject": null,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
         "Renderer": {
           "_type": "component",
           "component_id": "d2b70303-0000-4000-8000-000000000002",
@@ -48,10 +55,10 @@
         "__version": 2,
         "Flags": 0,
         "Name": "model",
-        "Position": "4.78856468,0,-5.33329741",
+        "Position": "0,0,0",
         "Rotation": "0,0,0,1",
         "Scale": "1,1,1",
-        "Tags": "weapon",
+        "Tags": "",
         "Enabled": true,
         "NetworkMode": 0,
         "NetworkFlags": 0,
@@ -69,7 +76,18 @@
             "BoneMergeTarget": null,
             "CreateAttachments": true,
             "CreateBoneObjects": false,
+            "LodOverride": null,
+            "MaterialGroup": null,
+            "MaterialOverride": null,
+            "Materials": null,
             "Model": "models/weapons/sbox_shotgun_spaghellim4/w_spaghellim4.vmdl",
+            "Morphs": {},
+            "OnComponentDestroy": null,
+            "OnComponentDisabled": null,
+            "OnComponentEnabled": null,
+            "OnComponentFixedUpdate": null,
+            "OnComponentStart": null,
+            "OnComponentUpdate": null,
             "Parameters": {
               "bools": {},
               "ints": {},
@@ -85,20 +103,107 @@
               "AfterUILayer": false
             },
             "RenderType": "On",
+            "Sequence": {
+              "Name": null,
+              "Looping": true,
+              "Blending": false
+            },
             "Tint": "1,1,1,1",
             "UseAnimGraph": false
           }
         ],
-        "Children": []
+        "Children": [
+          {
+            "__guid": "599036e6-efd8-45eb-8885-d72e826642e1",
+            "__version": 2,
+            "Flags": 0,
+            "Name": "muzzle",
+            "Position": "0,0,0",
+            "Rotation": "0,0,0,1",
+            "Scale": "1,1,1",
+            "Tags": "",
+            "Enabled": true,
+            "NetworkMode": 2,
+            "NetworkFlags": 0,
+            "NetworkOrphaned": 0,
+            "NetworkTransmit": true,
+            "OwnerTransfer": 1,
+            "Components": [],
+            "Children": []
+          },
+          {
+            "__guid": "4c4eec4e-c62e-45bb-b424-637f7645dac8",
+            "__version": 2,
+            "Flags": 0,
+            "Name": "eject",
+            "Position": "0,0,0",
+            "Rotation": "0,0,0,1",
+            "Scale": "1,1,1",
+            "Tags": "",
+            "Enabled": true,
+            "NetworkMode": 2,
+            "NetworkFlags": 0,
+            "NetworkOrphaned": 0,
+            "NetworkTransmit": true,
+            "OwnerTransfer": 1,
+            "Components": [],
+            "Children": []
+          },
+          {
+            "__guid": "0dfb3ec5-8482-4a21-a19e-ecc98e10ef84",
+            "__version": 2,
+            "Flags": 0,
+            "Name": "LeftHandGrip",
+            "Position": "5.88322878,2.39307976,3.45018768",
+            "Rotation": "0,0,-0.499999344,0.866026044",
+            "Scale": "1,1,1",
+            "Tags": "",
+            "Enabled": true,
+            "NetworkMode": 0,
+            "NetworkFlags": 0,
+            "NetworkOrphaned": 0,
+            "NetworkTransmit": false,
+            "OwnerTransfer": 0,
+            "Components": [],
+            "Children": []
+          },
+          {
+            "__guid": "f5cf73df-dd97-410a-9988-d5dd7b752f6f",
+            "__version": 2,
+            "Flags": 0,
+            "Name": "RightHandGrip",
+            "Position": "-3.88659954,0,5.88549662",
+            "Rotation": "0,-4.47034836E-08,0,0.99999994",
+            "Scale": "1,1,1",
+            "Tags": "",
+            "Enabled": true,
+            "NetworkMode": 0,
+            "NetworkFlags": 0,
+            "NetworkOrphaned": 0,
+            "NetworkTransmit": false,
+            "OwnerTransfer": 0,
+            "Components": [],
+            "Children": []
+          }
+        ]
       }
     ],
     "__properties": {
-      "NetworkInterpolation": false,
+      "NetworkInterpolation": true,
       "TimeScale": 1,
       "WantsSystemScene": true,
       "Metadata": {},
       "NavMesh": {
         "Enabled": false,
+        "IncludeStaticBodies": true,
+        "IncludeKeyframedBodies": true,
+        "EditorAutoUpdate": false,
+        "AgentHeight": 64,
+        "AgentRadius": 16,
+        "AgentStepSize": 18,
+        "AgentMaxSlope": 40,
+        "ExcludedBodies": "",
+        "IncludedBodies": "",
         "DeferGeneration": false,
         "CustomBounds": false
       }
