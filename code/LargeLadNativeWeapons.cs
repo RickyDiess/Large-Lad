@@ -1490,7 +1490,7 @@ public enum LargeLadFirearmHitResult
 	BarricadeHit
 }
 
-public sealed class LargeLadFirearm : BaseCombatWeapon,
+public sealed partial class LargeLadFirearm : BaseCombatWeapon,
 	Component.ITriggerListener
 {
 	private const float ConfirmedHitmarkerDuration = 0.14f;
@@ -1783,7 +1783,8 @@ public sealed class LargeLadFirearm : BaseCombatWeapon,
 		if ( IsHeld && IsActive )
 		{
 			EnsureNativePresentation();
-			AlignWorldModelToRightHandGrip();
+			if ( !AimDrivenPresentation )
+				AlignWorldModelToRightHandGrip();
 		}
 
 		BindNativeModelAttachments( ViewModel );
@@ -1801,7 +1802,8 @@ public sealed class LargeLadFirearm : BaseCombatWeapon,
 		cachedRightHandGrip = null;
 		cachedRightHandGripWorldModel = null;
 		BindNativeModelAttachments( WorldModel );
-		AlignWorldModelToRightHandGrip();
+		if ( !AimDrivenPresentation )
+			AlignWorldModelToRightHandGrip();
 	}
 
 	protected override void CreateViewModel()
@@ -1988,7 +1990,7 @@ public sealed class LargeLadFirearm : BaseCombatWeapon,
 		return true;
 	}
 
-	private void AlignWorldModelToRightHandGrip()
+	internal void AlignWorldModelToRightHandGrip()
 	{
 		// The native world model is already parented to hold_R. Move the model
 		// root so the authored marker meets that attachment; driving hand_right
@@ -2003,7 +2005,8 @@ public sealed class LargeLadFirearm : BaseCombatWeapon,
 			return;
 		}
 
-		var attachment = WorldModel.Parent;
+		// Restore native parenting when aim-driven presentation is switched off.
+		var attachment = HolderRenderer?.GetBoneObject( HoldBone );
 		if ( attachment is null || !attachment.IsValid )
 			return;
 
@@ -2020,6 +2023,9 @@ public sealed class LargeLadFirearm : BaseCombatWeapon,
 
 		if ( cachedRightHandGrip is null || !cachedRightHandGrip.IsValid )
 			return;
+
+		if ( WorldModel.Parent != attachment )
+			WorldModel.SetParent( attachment, true );
 
 		var desiredGrip = attachment.WorldTransform;
 		var currentGrip = cachedRightHandGrip.WorldTransform;

@@ -790,3 +790,55 @@ Unpublished/local editor sessions may not provide a meaningful backend account
 verification. In that case, record the owner-RPC/hotcompile result locally and
 perform steps 15–16 against the published package rather than claiming backend
 success from editor-only play.
+
+## Aim-driven firearm presentation
+
+Rifle, SMG, and Shotgun place their world models independently of the arms. The
+controller supplies aim through `LargeLadWeaponPresentationAim`; the weapon uses
+an animated shoulder position rebased onto the current body transform, then
+supplies both grip targets before native animation/IK evaluation. Arm IK never
+drives the weapon position. The shoulder animation and native `hold_R` local
+wrist offset come from the last evaluated pose; root movement and aim are current.
+
+Third-person aiming remains a separate prototype. Replacing its direction policy
+belongs in the aim adapter, not the grip solver. This presentation does not change
+shot origins, camera placement, damage, ammunition, or networking. In particular,
+it does not claim muzzle-to-crosshair convergence at close range.
+
+World Presentation properties on the firearm control the shoulder adjustment
+(`CarryPivot`, yaw space), grip distance (`CarryGripOffset`, aim space), native
+torso stance (`CarryBodyYaw`), and support-hand adjustment in weapon space. The
+original grip markers are preserved. RightHandGrip describes `hold_R`; its wrist
+conversion must use the native local attachment pose, not the model bind pose.
+
+During native `IsReloading`, both manual hand targets are cleared and the gun
+returns to its native `hold_R` parent so the reload gesture controls it. The normal
+carry pose resumes over a 0.2-second body-relative blend. The right hand stays
+attached; the left hand blends from its final native reload pose to the grip in
+weapon space, so it travels with the gun throughout the return. Inactive, dead,
+disabled, non-Skinny-Kid players,
+invalid renderers, and weapons without support grips clear owned IK targets.
+
+Validation checklist (use an active two-player round for normal weapon input):
+
+- Owner and observer: idle, abrupt strafing/direction changes, walking backward,
+  crouching, jumping, and steep up/down aim. Check hand contact, chest/stock
+  clearance, and barrel direction separately.
+- Fire and reload while moving; inspect the beginning, magazine interaction, and
+  return to carry. Cancel a reload by switching weapons and repeat it.
+- Switch long gun to Pistol, holster, re-equip, die, respawn, and change roles.
+  Check that no hand target or orphaned weapon model remains.
+- Restart play to verify prefab defaults without runtime diagnostic overrides.
+- Repeat on a remote client, including late join. Host-only measurements are not
+  proof of client correctness.
+
+Local validation (2026-09-07): native hotcompile and all three prefab compiles
+passed. A temporary native-animation/eye-angle sweep measured Rifle (297 frames),
+SMG (341), and Shotgun (383), with maximum wrist-to-target errors below 0.001
+units right and 0.008 units left, no measured support-arm reach deficit, and the
+barrel aligned with controller aim. These were synthetic animation sweeps, not
+physical movement or remote-client acceptance. A native SMG reload released both
+IK targets under hold_R and restored both on completion; holstering cleared both.
+The temporary probe was removed. The latest weapon-relative reload return still
+needs visual acceptance; stock clearance, especially on Shotgun, and the complete
+remote-client/lifecycle checklist above remain to be checked.
