@@ -46,8 +46,8 @@
         "__version": 2,
         "Flags": 0,
         "Name": "model",
-        "Position": "1,0,-8",
-        "Rotation": "0,0,1,0",
+        "Position": "0,0,0",
+        "Rotation": "0,0,0,1",
         "Scale": "1,1,1",
         "Tags": "weapon",
         "Enabled": true,
@@ -103,7 +103,26 @@
             "UseAnimGraph": false
           }
         ],
-        "Children": []
+        "Children": [
+          {
+            "__guid": "d2b70203-0000-4000-8000-000000000005",
+            "__version": 2,
+            "Flags": 0,
+            "Name": "RightHandGrip",
+            "Position": "2,0,8",
+            "Rotation": "0,0,1,0",
+            "Scale": "1,1,1",
+            "Tags": "",
+            "Enabled": true,
+            "NetworkMode": 0,
+            "NetworkFlags": 0,
+            "NetworkOrphaned": 0,
+            "NetworkTransmit": false,
+            "OwnerTransfer": 0,
+            "Components": [],
+            "Children": []
+          }
+        ]
       }
     ],
     "__properties": {

@@ -1303,7 +1303,12 @@ public sealed class LargeLadDodgeballItem : BaseInventoryItem
 /// </summary>
 public sealed class LargeLadMeleeWeapon : BaseCombatWeapon
 {
+	private const float ThirdPersonHandPose = 0.07f;
+	private const float ThirdPersonAttackVariant = 1.0f;
+
 	private LargeLadMeleeCombat cachedMeleeCombat;
+	private GameObject cachedRightHandGrip;
+	private GameObject cachedRightHandGripWorldModel;
 
 	protected override bool OnCanPickup( BaseInventoryComponent inventory )
 	{
@@ -1339,10 +1344,20 @@ public sealed class LargeLadMeleeWeapon : BaseCombatWeapon
 		ShootEffects();
 	}
 
+	protected override void OnShootEffects( ShotEffect shot )
+	{
+		// HoldItem supplies a true one-handed carry pose. Select its strong
+		// right-hand attack before the native effect triggers b_attack so every
+		// observer evaluates the same overhand Crowbar swing.
+		ApplyThirdPersonPose();
+		base.OnShootEffects( shot );
+	}
+
 	protected override void OnEquipped()
 	{
 		base.OnEquipped();
 		EnsureNativePresentation();
+		ApplyThirdPersonPose();
 	}
 
 	protected override void OnUpdate()
@@ -1358,6 +1373,8 @@ public sealed class LargeLadMeleeWeapon : BaseCombatWeapon
 		// model lifecycle. The native creation methods remain responsible for
 		// attachment, deploy animation, and weapon-model binding.
 		EnsureNativePresentation();
+		ApplyThirdPersonPose();
+		AlignWorldModelToRightHandGrip();
 
 		if ( !IsProxy )
 			ApplyLocalPresentationMode( Scene?.Camera );
@@ -1366,6 +1383,28 @@ public sealed class LargeLadMeleeWeapon : BaseCombatWeapon
 	protected override void CreateWorldModel()
 	{
 		base.CreateWorldModel();
+		cachedRightHandGrip = null;
+		cachedRightHandGripWorldModel = null;
+		AlignWorldModelToRightHandGrip();
+	}
+
+	private void AlignWorldModelToRightHandGrip()
+	{
+		// Follow the animated native hand, including its melee gesture. The
+		// authored marker controls placement without driving either arm's IK.
+		LargeLadNativeGripAlignment.Align( WorldModel,
+			HolderRenderer?.GetBoneObject( HoldBone ),
+			ref cachedRightHandGripWorldModel, ref cachedRightHandGrip );
+	}
+
+	private void ApplyThirdPersonPose()
+	{
+		var renderer = HolderRenderer;
+		if ( renderer is null || !renderer.IsValid )
+			return;
+
+		renderer.Set( "holdtype_pose_hand", ThirdPersonHandPose );
+		renderer.Set( "holdtype_attack", ThirdPersonAttackVariant );
 	}
 
 	protected override void CreateViewModel()
@@ -1390,6 +1429,13 @@ public sealed class LargeLadMeleeWeapon : BaseCombatWeapon
 	{
 		if ( !IsProxy )
 			Scene?.Camera?.RenderExcludeTags.Remove( "firstperson" );
+
+		var renderer = HolderRenderer;
+		if ( renderer is not null && renderer.IsValid )
+		{
+			renderer.Set( "holdtype_pose_hand", 0.0f );
+			renderer.Set( "holdtype_attack", 0.0f );
+		}
 
 		base.OnHolstered();
 	}
@@ -2007,36 +2053,8 @@ public sealed partial class LargeLadFirearm : BaseCombatWeapon,
 
 		// Restore native parenting when aim-driven presentation is switched off.
 		var attachment = HolderRenderer?.GetBoneObject( HoldBone );
-		if ( attachment is null || !attachment.IsValid )
-			return;
-
-		if ( cachedRightHandGripWorldModel != WorldModel ||
-			cachedRightHandGrip is null ||
-			!cachedRightHandGrip.IsValid )
-		{
-			cachedRightHandGripWorldModel = WorldModel;
-			cachedRightHandGrip = WorldModel
-				.GetAllObjects( true )
-				.FirstOrDefault( candidate =>
-					candidate.Name == RightHandGripName );
-		}
-
-		if ( cachedRightHandGrip is null || !cachedRightHandGrip.IsValid )
-			return;
-
-		if ( WorldModel.Parent != attachment )
-			WorldModel.SetParent( attachment, true );
-
-		var desiredGrip = attachment.WorldTransform;
-		var currentGrip = cachedRightHandGrip.WorldTransform;
-		var alignedRoot = WorldModel.WorldTransform;
-		var deltaRotation =
-			desiredGrip.Rotation * currentGrip.Rotation.Inverse;
-
-		alignedRoot.Position = desiredGrip.Position +
-			deltaRotation * (alignedRoot.Position - currentGrip.Position);
-		alignedRoot.Rotation = deltaRotation * alignedRoot.Rotation;
-		WorldModel.WorldTransform = alignedRoot;
+		LargeLadNativeGripAlignment.Align( WorldModel, attachment,
+			ref cachedRightHandGripWorldModel, ref cachedRightHandGrip );
 	}
 
 	private void BindNativeModelAttachments( GameObject presentation )

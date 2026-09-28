@@ -40,7 +40,7 @@
         "DryFireSound": null,
         "Handedness": "Right",
         "HoldBone": "hold_R",
-        "HoldType": "melee_weapons",
+        "HoldType": "holditem",
         "IncrementalReloading": false,
         "OnComponentDestroy": null,
         "OnComponentDisabled": null,
