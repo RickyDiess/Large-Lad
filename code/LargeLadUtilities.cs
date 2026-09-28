@@ -19,35 +19,31 @@ public sealed class LargeLadUtilityPresentationDefinition
 	public LargeLadUtilityId Id { get; init; }
 	public int FirstPersonSkeleton { get; init; }
 	public bool FirstPersonTwoHanded { get; init; }
-	public string FirstPersonHeldModelPath { get; init; }
 	public string FirstPersonHeldAttachmentBone { get; init; }
 	public Vector3 FirstPersonHeldPositionOffset { get; init; }
 	public Angles FirstPersonHeldRotationOffset { get; init; }
-	public float FirstPersonHeldModelScale { get; init; } = 1.0f;
-	public string ThirdPersonWorldModelPath { get; init; }
+	public float FirstPersonHeldScaleMultiplier { get; init; } = 1.0f;
 	public Vector3 ThirdPersonModelPosition { get; init; }
 	public Angles ThirdPersonModelRotation { get; init; }
-	public float ThirdPersonModelScale { get; init; } = 1.0f;
 }
 
 public static class LargeLadUtilityPresentationCatalog
 {
-	private static readonly LargeLadUtilityPresentationDefinition Dodgeball =
+	private static readonly LargeLadUtilityPresentationDefinition DodgeballPresentationOffsets =
 		new()
 		{
 			Id = LargeLadUtilityId.Dodgeball,
 			FirstPersonSkeleton = 0,
 			FirstPersonTwoHanded = false,
-			FirstPersonHeldModelPath = "models/dev/sphere.vmdl",
 			FirstPersonHeldAttachmentBone = "hand_R",
 			FirstPersonHeldPositionOffset = new Vector3( 7.0f, 0.0f, 0.0f ),
 			FirstPersonHeldRotationOffset = Angles.Zero,
-			FirstPersonHeldModelScale = 0.18f,
-			ThirdPersonWorldModelPath = "models/dev/sphere.vmdl",
-			// Keep the ball centered at the authored hold attachment.
-			ThirdPersonModelPosition = Vector3.Zero,
-			ThirdPersonModelRotation = Angles.Zero,
-			ThirdPersonModelScale = 0.5f
+			// The canonical pickup is authored at 0.5 scale. Keep the established
+			// 0.18 first-person size while deriving it from that authored scale.
+			FirstPersonHeldScaleMultiplier = 0.36f,
+			// Support the ball above the palm rather than burying the hand at its center.
+			ThirdPersonModelPosition = new Vector3( 0.0f, 0.0f, 14.0f ),
+			ThirdPersonModelRotation = Angles.Zero
 		};
 
 	public static bool TryGet(
@@ -56,7 +52,7 @@ public static class LargeLadUtilityPresentationCatalog
 	{
 		if ( utility == LargeLadUtilityId.Dodgeball )
 		{
-			definition = Dodgeball;
+			definition = DodgeballPresentationOffsets;
 			return true;
 		}
 

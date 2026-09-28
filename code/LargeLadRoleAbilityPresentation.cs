@@ -5,9 +5,8 @@ using System.Threading.Tasks;
 
 /// <summary>
 /// Presentation for player abilities that do not have native weapon models.
-/// Native Skinny Kid melee and firearms never enter this component. Bare-fist
-/// role attacks remain custom, and the dodgeball stays here until its inventory
-/// item gains a native viewmodel/worldmodel presentation of its own.
+/// Bare-fist role attacks and dodgeballs use this component. Native weapons own
+/// their presentation, except while finishing the dodgeball's empty-hand throw.
 /// </summary>
 public sealed class LargeLadRoleAbilityPresentation : Component
 {
@@ -32,7 +31,7 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 
 	[Property, Group( "First Person - Dodgeball" )]
 	public Vector3 DodgeballPositionOffset { get; set; } =
-		new( 10.0f, 0.0f, -14.0f );
+		new( 12.0f, -7.0f, -4.0f );
 
 	[Property, Group( "First Person - Dodgeball" )]
 	public float DodgeballArmsScale { get; set; } = 0.72f;
@@ -72,7 +71,7 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 	public float DodgeballHandPose { get; set; }
 
 	[Property, Group( "Third Person - Dodgeball" )]
-	public float DodgeballThirdPersonAttackVariant { get; set; }
+	public float DodgeballThirdPersonAttackVariant { get; set; } = 1.0f;
 
 	[Property, Group( "Third Person - Dodgeball" )]
 	public float DodgeballAttackPoseDuration { get; set; } = 0.65f;
@@ -91,6 +90,7 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 	private GameObject firstPersonDodgeballObject;
 	private SkinnedModelRenderer firstPersonArmsRenderer;
 	private ModelRenderer firstPersonDodgeballRenderer;
+	private LargeLadDodgeballPickup dodgeballAppearanceSource;
 	private GameObject boundCameraObject;
 	private LargeLadRoleAbilityPresentationKind firstPersonKind;
 	private string failedFirstPersonBindingKey;
@@ -100,9 +100,6 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 	private GameObject thirdPersonDodgeballModelPivot;
 	private GameObject thirdPersonDodgeballObject;
 	private ModelRenderer thirdPersonDodgeballRenderer;
-	private string appliedThirdPersonDodgeballModelPath;
-	private string failedThirdPersonDodgeballBindingKey;
-	private string failedThirdPersonAttachmentBindingKey;
 
 	private LargeLadRoleAbilityPresentationState currentState;
 	private LargeLadRoleAbilityPresentationKind currentKind;
@@ -113,6 +110,9 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 	private TimeSince timeSinceThirdPersonDodgeballAttack;
 	private int presentationRevision;
 	private bool nativePresentationSuppressed;
+	private bool showingDodgeballFollowThrough;
+	private readonly List<(Renderer Renderer, bool Game, bool Overlay)>
+		suppressedThrowRenderers = new();
 	private bool hasFirstPersonGroundState;
 	private bool wasFirstPersonGrounded;
 
@@ -151,7 +151,24 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 
 	protected override void OnUpdate()
 	{
+		RestoreThrowRenderers();
 		ResolveCachedReferences();
+		showingDodgeballFollowThrough = CanShowDodgeballFollowThrough();
+		if ( showingDodgeballFollowThrough )
+		{
+			// The host has already released the ball and equipped melee. Preserve
+			// only the empty-hand gesture; inventory and attack timing stay native.
+			nativePresentationSuppressed = false;
+			DestroyFirstPersonDodgeball();
+			DestroyThirdPersonDodgeball();
+			var firstPerson = !IsProxy && cachedController?.ThirdPerson == false;
+			SetBodyVisible( !firstPerson );
+			if ( !firstPerson )
+				DestroyFirstPersonPresentation();
+			ApplyThirdPersonPose( LargeLadRoleAbilityPresentationKind.Dodgeball,
+				LargeLadRoleAbilityPresentationView.ThirdPerson );
+			return;
+		}
 
 		if ( cachedPlayer?.NativeInventory?
 			.HasNativeCombatPresentationControl == true )
@@ -208,6 +225,15 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 
 	protected override void OnPreRender()
 	{
+		if ( showingDodgeballFollowThrough && CanShowDodgeballFollowThrough() )
+		{
+			UpdateFirstPersonTransform( LargeLadRoleAbilityPresentationKind.Dodgeball );
+			var melee = cachedPlayer.NativeInventory.ActiveItem as LargeLadMeleeWeapon;
+			SuppressThrowRenderers( melee?.WorldModel );
+			SuppressThrowRenderers( melee?.ViewModel );
+			return;
+		}
+
 		if ( nativePresentationSuppressed || !hasCurrentState )
 			return;
 
@@ -264,10 +290,57 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 			return;
 		}
 
+		TriggerThirdPersonDodgeballAttack();
 		if ( view == LargeLadRoleAbilityPresentationView.FirstPerson )
 			TriggerFirstPersonAttack( DodgeballAttackVariant );
-		else
-			TriggerThirdPersonDodgeballAttack();
+	}
+
+	private bool CanShowDodgeballFollowThrough()
+	{
+		return hasRecentThirdPersonDodgeballAttack &&
+			timeSinceThirdPersonDodgeballAttack < System.MathF.Max( 0.0f, DodgeballAttackPoseDuration ) &&
+			cachedPlayer?.Role == LargeLadRole.SkinnyKid &&
+			cachedPlayer.Health?.IsDead == false &&
+			GetGameManager()?.IsRoundActive == true &&
+			cachedPlayer.NativeInventory?.ActiveItem is LargeLadMeleeWeapon;
+	}
+
+	internal void CancelDodgeballFollowThrough()
+	{
+		if ( !hasRecentThirdPersonDodgeballAttack && !showingDodgeballFollowThrough )
+			return;
+
+		hasRecentThirdPersonDodgeballAttack = false;
+		showingDodgeballFollowThrough = false;
+		RestoreThrowRenderers();
+		DestroyFirstPersonPresentation();
+	}
+
+	private void SuppressThrowRenderers( GameObject model )
+	{
+		if ( model is null || !model.IsValid )
+			return;
+
+		foreach ( var renderer in model.Components.GetAll<Renderer>( FindMode.EverythingInSelfAndDescendants ) )
+		{
+			if ( suppressedThrowRenderers.Exists( entry => entry.Renderer == renderer ) )
+				continue;
+			suppressedThrowRenderers.Add( (renderer, renderer.RenderOptions.Game, renderer.RenderOptions.Overlay) );
+			renderer.RenderOptions.Game = false;
+			renderer.RenderOptions.Overlay = false;
+		}
+	}
+
+	private void RestoreThrowRenderers()
+	{
+		foreach ( var entry in suppressedThrowRenderers )
+		{
+			if ( entry.Renderer is null || !entry.Renderer.IsValid )
+				continue;
+			entry.Renderer.RenderOptions.Game = entry.Game;
+			entry.Renderer.RenderOptions.Overlay = entry.Overlay;
+		}
+		suppressedThrowRenderers.Clear();
 	}
 
 	internal void BroadcastUtilityUse()
@@ -529,6 +602,19 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 		firstPersonArmsObject.LocalPosition = position;
 		firstPersonArmsObject.LocalRotation = Rotation.Identity;
 		firstPersonArmsObject.LocalScale = new Vector3( scale, scale, scale );
+
+		if ( kind == LargeLadRoleAbilityPresentationKind.Dodgeball )
+		{
+			// The human arms share one bodygroup. Hide only the local left-arm
+			// branch, leaving the throwing hand and all third-person bones intact.
+			firstPersonArmsRenderer.CreateBoneObjects = true;
+			var leftArm = firstPersonArmsRenderer.GetBoneObject( "clavicle_L" );
+			if ( leftArm is not null && leftArm.IsValid )
+			{
+				leftArm.Flags |= GameObjectFlags.ProceduralBone;
+				leftArm.LocalScale = new Vector3( 0.001f );
+			}
+		}
 	}
 
 	private void EnsureFirstPersonDodgeball(
@@ -538,7 +624,7 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 		if ( kind != LargeLadRoleAbilityPresentationKind.Dodgeball ||
 			!LargeLadUtilityPresentationCatalog.TryGet(
 				state.Utility,
-				out var definition ) ||
+				out _ ) ||
 			firstPersonRoot is null ||
 			!firstPersonRoot.IsValid )
 		{
@@ -546,24 +632,28 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 			return;
 		}
 
-		var path = definition.FirstPersonHeldModelPath;
-		var bindingKey = $"{presentationRevision}:{path}";
-		if ( firstPersonDodgeballObject is not null &&
-			firstPersonDodgeballObject.IsValid )
+		if ( !TryResolveDodgeballAppearance(
+				state.UtilityInstanceId,
+				out var sourceRenderer ) )
 		{
+			DestroyFirstPersonDodgeball();
 			return;
 		}
 
-		if ( failedFirstPersonDodgeballBindingKey == bindingKey )
-			return;
-
-		var model = string.IsNullOrWhiteSpace( path )
-			? null
-			: Model.Load( path );
-		if ( model is null || model.IsError )
+		if ( firstPersonDodgeballObject is not null &&
+			firstPersonDodgeballObject.IsValid )
 		{
-			WarnMissingAssetOnce( "first-person dodgeball model", path );
-			failedFirstPersonDodgeballBindingKey = bindingKey;
+			CopyDodgeballAppearance(
+				sourceRenderer,
+				firstPersonDodgeballRenderer );
+			return;
+		}
+
+		if ( sourceRenderer.Model is null || sourceRenderer.Model.IsError )
+		{
+			WarnMissingAssetOnce(
+				"first-person dodgeball source model",
+				sourceRenderer.GameObject.Name );
 			return;
 		}
 
@@ -576,9 +666,9 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 		};
 		firstPersonDodgeballRenderer = firstPersonDodgeballObject.Components
 			.Create<ModelRenderer>();
-		firstPersonDodgeballRenderer.Model = model;
-		firstPersonDodgeballRenderer.Tint =
-			LargeLadUtilityRules.DodgeballColor;
+		CopyDodgeballAppearance(
+			sourceRenderer,
+			firstPersonDodgeballRenderer );
 		ConfigureFirstPersonRenderer( firstPersonDodgeballRenderer );
 		failedFirstPersonDodgeballBindingKey = null;
 	}
@@ -599,7 +689,7 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 		}
 
 		var bindingKey =
-			$"{presentationRevision}:{definition.FirstPersonHeldModelPath}:" +
+			$"{presentationRevision}:{state.UtilityInstanceId}:" +
 			definition.FirstPersonHeldAttachmentBone;
 		if ( string.IsNullOrWhiteSpace(
 				definition.FirstPersonHeldAttachmentBone ) ||
@@ -620,15 +710,23 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 
 		failedFirstPersonDodgeballBindingKey = null;
 		SetObjectEnabled( firstPersonDodgeballObject, true );
-		var scale = System.MathF.Max(
-			0.01f,
-			definition.FirstPersonHeldModelScale );
+		if ( !TryResolveDodgeballAppearance(
+				state.UtilityInstanceId,
+				out var sourceRenderer ) )
+		{
+			SetObjectEnabled( firstPersonDodgeballObject, false );
+			return;
+		}
+
+		var scale = sourceRenderer.GameObject.WorldScale *
+			System.MathF.Max(
+				0.01f,
+				definition.FirstPersonHeldScaleMultiplier );
 		firstPersonDodgeballObject.WorldPosition = handTransform.PointToWorld(
 			definition.FirstPersonHeldPositionOffset );
 		firstPersonDodgeballObject.WorldRotation = handTransform.Rotation *
 			definition.FirstPersonHeldRotationOffset.ToRotation();
-		firstPersonDodgeballObject.WorldScale =
-			new Vector3( scale, scale, scale );
+		firstPersonDodgeballObject.WorldScale = scale;
 	}
 
 	private void EnsureThirdPersonDodgeball(
@@ -636,36 +734,34 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 	{
 		if ( !LargeLadUtilityPresentationCatalog.TryGet(
 			state.Utility,
-			out var definition ) )
+			out _ ) ||
+			!TryResolveDodgeballAppearance(
+				state.UtilityInstanceId,
+				out var sourceRenderer ) )
 		{
 			DestroyThirdPersonDodgeball();
 			return;
 		}
 
-		var path = definition.ThirdPersonWorldModelPath;
-		var bindingKey = $"{presentationRevision}:{path}";
 		if ( thirdPersonDodgeballGripRoot is not null &&
 			thirdPersonDodgeballGripRoot.IsValid &&
 			thirdPersonDodgeballModelPivot is not null &&
 			thirdPersonDodgeballModelPivot.IsValid &&
 			thirdPersonDodgeballObject is not null &&
-			thirdPersonDodgeballObject.IsValid &&
-			appliedThirdPersonDodgeballModelPath == path )
+			thirdPersonDodgeballObject.IsValid )
 		{
+			CopyDodgeballAppearance(
+				sourceRenderer,
+				thirdPersonDodgeballRenderer );
 			return;
 		}
 
-		if ( failedThirdPersonDodgeballBindingKey == bindingKey )
-			return;
-
 		DestroyThirdPersonDodgeball();
-		var model = string.IsNullOrWhiteSpace( path )
-			? null
-			: Model.Load( path );
-		if ( model is null || model.IsError )
+		if ( sourceRenderer.Model is null || sourceRenderer.Model.IsError )
 		{
-			WarnMissingAssetOnce( "third-person dodgeball model", path );
-			failedThirdPersonDodgeballBindingKey = bindingKey;
+			WarnMissingAssetOnce(
+				"third-person dodgeball source model",
+				sourceRenderer.GameObject.Name );
 			return;
 		}
 
@@ -693,13 +789,11 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 		};
 		thirdPersonDodgeballRenderer = thirdPersonDodgeballObject.Components
 			.Create<ModelRenderer>();
-		thirdPersonDodgeballRenderer.Model = model;
-		thirdPersonDodgeballRenderer.Tint =
-			LargeLadUtilityRules.DodgeballColor;
+		CopyDodgeballAppearance(
+			sourceRenderer,
+			thirdPersonDodgeballRenderer );
 		thirdPersonDodgeballRenderer.RenderOptions.Game = true;
 		thirdPersonDodgeballRenderer.RenderOptions.Overlay = false;
-		appliedThirdPersonDodgeballModelPath = path;
-		failedThirdPersonDodgeballBindingKey = null;
 	}
 
 	private void UpdateThirdPersonDodgeballTransform(
@@ -715,16 +809,10 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 			!thirdPersonDodgeballModelPivot.IsValid ||
 			thirdPersonDodgeballObject is null ||
 			!thirdPersonDodgeballObject.IsValid ||
-			bodyRenderer is null )
-		{
-			SetObjectEnabled( thirdPersonDodgeballObject, false );
-			return;
-		}
-
-		var bindingKey =
-			$"{presentationRevision}:{bodyRenderer.GameObject.Id}:" +
-			$"{definition.ThirdPersonWorldModelPath}:{ThirdPersonGripBone}";
-		if ( failedThirdPersonAttachmentBindingKey == bindingKey )
+			bodyRenderer is null ||
+			!TryResolveDodgeballAppearance(
+				state.UtilityInstanceId,
+				out var sourceRenderer ) )
 		{
 			SetObjectEnabled( thirdPersonDodgeballObject, false );
 			return;
@@ -735,7 +823,6 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 			ThirdPersonGripBone,
 			out var holdTransform ) )
 		{
-			failedThirdPersonAttachmentBindingKey = bindingKey;
 			WarnMissingAssetOnce(
 				"third-person dodgeball grip attachment",
 				ThirdPersonGripBone );
@@ -743,12 +830,7 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 			return;
 		}
 
-		failedThirdPersonAttachmentBindingKey = null;
 		SetObjectEnabled( thirdPersonDodgeballObject, true );
-		var scale = System.MathF.Max(
-			0.01f,
-			definition.ThirdPersonModelScale );
-
 		thirdPersonDodgeballGripRoot.WorldScale = Vector3.One;
 		thirdPersonDodgeballGripRoot.WorldPosition = holdTransform.Position;
 		thirdPersonDodgeballGripRoot.WorldRotation = holdTransform.Rotation;
@@ -756,9 +838,53 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 			definition.ThirdPersonModelPosition;
 		thirdPersonDodgeballModelPivot.LocalRotation =
 			definition.ThirdPersonModelRotation.ToRotation();
-		thirdPersonDodgeballModelPivot.LocalScale =
-			new Vector3( scale, scale, scale );
+		thirdPersonDodgeballModelPivot.WorldScale =
+			sourceRenderer.GameObject.WorldScale;
 		thirdPersonDodgeballObject.LocalTransform = global::Transform.Zero;
+	}
+
+	private bool TryResolveDodgeballAppearance(
+		int utilityInstanceId,
+		out ModelRenderer renderer )
+	{
+		renderer = null;
+		if ( utilityInstanceId <= 0 )
+			return false;
+
+		if ( dodgeballAppearanceSource is null ||
+			!dodgeballAppearanceSource.IsValid ||
+			dodgeballAppearanceSource.Scene != Scene ||
+			dodgeballAppearanceSource.UtilityInstanceId != utilityInstanceId )
+		{
+			dodgeballAppearanceSource = null;
+			foreach ( var pickup in Scene?
+				.GetAllComponents<LargeLadDodgeballPickup>() ??
+				System.Array.Empty<LargeLadDodgeballPickup>() )
+			{
+				if ( pickup.UtilityInstanceId != utilityInstanceId )
+					continue;
+
+				dodgeballAppearanceSource = pickup;
+				break;
+			}
+		}
+
+		renderer = dodgeballAppearanceSource?.PickupRenderer as ModelRenderer;
+		return renderer is not null && renderer.IsValid;
+	}
+
+	private static void CopyDodgeballAppearance(
+		ModelRenderer source,
+		ModelRenderer target )
+	{
+		if ( source is null || target is null )
+			return;
+
+		target.Model = source.Model;
+		target.MaterialOverride = source.MaterialOverride;
+		target.MaterialGroup = source.MaterialGroup;
+		target.BodyGroups = source.BodyGroups;
+		target.Tint = source.Tint;
 	}
 
 	private static bool TryGetWorldAttachmentTransform(
@@ -1071,18 +1197,20 @@ public sealed class LargeLadRoleAbilityPresentation : Component
 		thirdPersonDodgeballModelPivot = null;
 		thirdPersonDodgeballObject = null;
 		thirdPersonDodgeballRenderer = null;
-		appliedThirdPersonDodgeballModelPath = null;
 	}
 
 	private void ResetPresentation(
 		bool restoreBody,
 		bool clearPose )
 	{
+		RestoreThrowRenderers();
+		showingDodgeballFollowThrough = false;
 		presentationRevision++;
 		DestroyFirstPersonPresentation();
 		DestroyThirdPersonDodgeball();
 		hasRecentThirdPersonDodgeballAttack = false;
 		hasCurrentState = false;
+		dodgeballAppearanceSource = null;
 
 		if ( restoreBody )
 			SetBodyVisible( true );

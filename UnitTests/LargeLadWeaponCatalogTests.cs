@@ -216,16 +216,7 @@ public sealed class LargeLadRemainingPresentationDefinitionTests
 		Assert.AreEqual( 0, dodgeball.FirstPersonSkeleton );
 		Assert.IsFalse( dodgeball.FirstPersonTwoHanded );
 		Assert.AreEqual(
-			"models/dev/sphere.vmdl",
-			dodgeball.FirstPersonHeldModelPath );
-		Assert.AreEqual(
 			"hand_R",
 			dodgeball.FirstPersonHeldAttachmentBone );
-		Assert.AreEqual(
-			"models/dev/sphere.vmdl",
-			dodgeball.ThirdPersonWorldModelPath );
-		Assert.AreEqual(
-			Vector3.Zero,
-			dodgeball.ThirdPersonModelPosition );
 	}
 }

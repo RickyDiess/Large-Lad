@@ -1346,6 +1346,8 @@ public sealed class LargeLadMeleeWeapon : BaseCombatWeapon
 
 	protected override void OnShootEffects( ShotEffect shot )
 	{
+		Owner?.Components.Get<LargeLadPlayer>()?.AbilityPresentation?
+			.CancelDodgeballFollowThrough();
 		// HoldItem supplies a true one-handed carry pose. Select its strong
 		// right-hand attack before the native effect triggers b_attack so every
 		// observer evaluates the same overhand Crowbar swing.
